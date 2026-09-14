@@ -144,6 +144,50 @@ namespace UrbanLegendBureau.Systems
             return page != null ? page.SpreadWeight : 0f;
         }
 
+        // ------------------------------------------------------------- 열람 기록
+
+        /// <summary>
+        /// 열람 기록 접두사.
+        /// 기존 SaveData.storyFlags 를 쓴다. storyFlags 는 원래 이런 용도의 범용 플래그 목록이라
+        /// 새 필드를 만들거나 saveVersion 을 올리지 않아도 된다.
+        /// </summary>
+        private const string ViewedFlagPrefix = "web_viewed_";
+
+        /// <summary>이미 열어 본 글인가. 자연 확산을 한 번만 적용하기 위한 판정이다.</summary>
+        public bool IsPageViewed(SaveData save, string pageId)
+        {
+            if (save == null || save.storyFlags == null || string.IsNullOrEmpty(pageId)) return false;
+            return save.storyFlags.Contains(ViewedFlagPrefix + pageId);
+        }
+
+        /// <summary>
+        /// 열람으로 기록한다. 처음 열었을 때만 true.
+        /// 같은 글을 다시 열거나 화면을 다시 들어와도 두 번 기록되지 않는다.
+        /// </summary>
+        public bool TryMarkPageViewed(SaveService save, string pageId)
+        {
+            if (save == null || save.Current == null || string.IsNullOrEmpty(pageId)) return false;
+            if (!HasPage(pageId)) return false;
+
+            var flag = ViewedFlagPrefix + pageId;
+            if (save.Current.storyFlags.Contains(flag)) return false;
+
+            save.Current.storyFlags.Add(flag);
+            save.MarkDirty();
+            return true;
+        }
+
+        /// <summary>
+        /// 열람으로 확산이 퍼질 글인가.
+        /// 이미 검열했거나 이미 열어 본 글은 더 이상 퍼지지 않는다.
+        /// </summary>
+        public bool ShouldSpreadOnView(SaveData save, string pageId)
+        {
+            if (save == null || !HasPage(pageId)) return false;
+            if (IsCensored(save, pageId)) return false;
+            return !IsPageViewed(save, pageId);
+        }
+
         // ------------------------------------------------------------- 검열
 
         /// <summary>

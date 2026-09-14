@@ -34,7 +34,7 @@ namespace UrbanLegendBureau.UI
         private Func<WebPageSO, string> _statusProvider;
         private Func<WebPageSO, bool> _canCensorProvider;
         private Func<string> _statsProvider;
-        private string _feedbackTextId;
+        private Func<string> _feedbackProvider;
 
         /// <summary>표시할 게시글과 상태 계산 방법을 넘긴다.</summary>
         public void Bind(WebPageSO page,
@@ -46,14 +46,30 @@ namespace UrbanLegendBureau.UI
             _statusProvider = statusProvider;
             _canCensorProvider = canCensorProvider;
             _statsProvider = statsProvider;
-            _feedbackTextId = null;   // 새 글을 열면 이전 안내는 지운다
+            _feedbackProvider = null;   // 새 글을 열면 이전 안내는 지운다
             Refresh();
         }
 
         /// <summary>검열 결과를 알린다. String ID만 받는다.</summary>
         public void ShowFeedback(string textId)
         {
-            _feedbackTextId = textId;
+            if (string.IsNullOrEmpty(textId)) { _feedbackProvider = null; }
+            else
+            {
+                var id = textId;
+                _feedbackProvider = () =>
+                    ServiceRegistry.TryGet<LocalizationService>(out var loc) ? loc.Get(id) : string.Empty;
+            }
+            Refresh();
+        }
+
+        /// <summary>
+        /// 수치 변화처럼 조립이 필요한 안내를 알린다.
+        /// 완성된 문자열이 아니라 만드는 방법을 받아 두어야 언어가 바뀔 때 다시 조립된다.
+        /// </summary>
+        public void ShowFeedbackProvider(Func<string> provider)
+        {
+            _feedbackProvider = provider;
             Refresh();
         }
 
@@ -95,7 +111,7 @@ namespace UrbanLegendBureau.UI
             if (_statsText != null) _statsText.text = _statsProvider != null ? _statsProvider() : string.Empty;
             if (_feedbackText != null)
             {
-                _feedbackText.text = string.IsNullOrEmpty(_feedbackTextId) ? string.Empty : loc.Get(_feedbackTextId);
+                _feedbackText.text = _feedbackProvider != null ? _feedbackProvider() : string.Empty;
             }
 
             // 이미 검열한 글에는 버튼을 숨긴다.

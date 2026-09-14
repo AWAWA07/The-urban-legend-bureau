@@ -47,6 +47,7 @@ namespace UrbanLegendBureau.Dev
             yield return RunUIStackTest();
             yield return RunSaveTest();
             yield return RunLegendDataTest();
+            yield return RunSpreadLevelTest();
 
             if (_failures.Count == 0)
             {
@@ -306,6 +307,51 @@ namespace UrbanLegendBureau.Dev
                 Expect(fromSave == legend, "SaveData 로 찾은 괴담이 원본과 다르다.");
                 Debug.Log($"{Tag} Legend | SaveData legendId='{state.legendId}' -> '{(fromSave != null ? fromSave.name : "없음")}' 복원 성공");
             }
+
+            yield return null;
+        }
+
+        /// <summary>
+        /// 확산도 단계 경계값 검증.
+        /// 경계는 한 곳(SpreadService)에서만 정하므로, 여기서 그 경계가 지켜지는지 확인한다.
+        /// </summary>
+        private IEnumerator RunSpreadLevelTest()
+        {
+            if (!ServiceRegistry.TryGet<SpreadService>(out var spread))
+            {
+                Fail("SpreadService 미등록");
+                yield break;
+            }
+
+            // (확산도, 기대 단계)
+            var cases = new (float rate, SpreadLevel expected)[]
+            {
+                (0f,     SpreadLevel.Stable),
+                (24.99f, SpreadLevel.Stable),
+                (25f,    SpreadLevel.Spreading),
+                (49.99f, SpreadLevel.Spreading),
+                (50f,    SpreadLevel.Dangerous),
+                (74.99f, SpreadLevel.Dangerous),
+                (75f,    SpreadLevel.Critical),
+                (100f,   SpreadLevel.Critical),
+            };
+
+            var sb = new StringBuilder();
+            sb.Append($"{Tag} Spread 경계값 |");
+
+            foreach (var c in cases)
+            {
+                var actual = spread.GetSpreadLevel(c.rate);
+                sb.Append($" {c.rate:0.##}→{actual}");
+                Expect(actual == c.expected, $"확산도 {c.rate} 의 단계가 {actual}, 기대 {c.expected}");
+            }
+            Debug.Log(sb.ToString());
+
+            // 경고 대상 판정
+            Expect(!SpreadLevel.Stable.NeedsFieldWarning(), "Stable 이 경고 대상으로 판정됐다.");
+            Expect(!SpreadLevel.Spreading.NeedsFieldWarning(), "Spreading 이 경고 대상으로 판정됐다.");
+            Expect(SpreadLevel.Dangerous.NeedsFieldWarning(), "Dangerous 가 경고 대상이 아니다.");
+            Expect(SpreadLevel.Critical.NeedsFieldWarning(), "Critical 이 경고 대상이 아니다.");
 
             yield return null;
         }

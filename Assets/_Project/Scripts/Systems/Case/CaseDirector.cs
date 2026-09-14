@@ -29,6 +29,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _fieldHudScreen;
         [SerializeField] private TextPanelScreen _cluePopupScreen;
         [SerializeField] private TextPanelScreen _rulePopupScreen;
+        [SerializeField] private TextPanelScreen _warningPopupScreen;
         [SerializeField] private TextPanelScreen _exorcismScreen;
         [SerializeField] private TextPanelScreen _resultScreen;
 
@@ -60,6 +61,7 @@ namespace UrbanLegendBureau.Systems
         private string _legendId => _case != null ? _case.LegendId : string.Empty;
         private string _pendingClueId;
         private string _sealFeedbackTextId;
+        private SpreadChangeResult _lastSpreadChange;
 
         // --- 화면 문구 String ID ---
         private const string TitleTextId = "ui.slice.title";
@@ -103,6 +105,8 @@ namespace UrbanLegendBureau.Systems
         private const string CaseListTitleTextId = "ui.case.list_title";
         private const string CaseListHintTextId = "ui.case.list_hint";
         private const string CaseCompletedMarkTextId = "ui.case.completed_mark";
+        private const string ViewSpreadTextId = "spread.feedback.view";
+        private const string SpreadWarningTitleTextId = "spread.warning.title";
 
         private void Start()
         {
@@ -249,12 +253,55 @@ namespace UrbanLegendBureau.Systems
             Debug.Log($"[CaseDirector] 인터넷 조사 | 게시글 {GetCasePages().Count}개 | step={CaseFlow.GetStep(_save)}");
         }
 
-        /// <summary>목록에서 게시글을 골랐을 때.</summary>
+        /// <summary>
+        /// 목록에서 게시글을 골랐을 때.
+        /// 처음 여는 글이면 그만큼 소문이 퍼진다. 이미 열었거나 검열한 글은 퍼지지 않는다.
+        /// </summary>
         private void OnPageSelected(WebPageSO page)
         {
+            string feedbackId = null;
+
+            if (page != null && _internet != null && _spread != null
+                && _internet.ShouldSpreadOnView(_save.Current, page.PageId))
+            {
+                float amount = _spread.GetViewSpreadAmount(page.PageId);
+                var change = _spread.ApplySpreadDelta(_save.Current, _legendId, amount);
+                _internet.TryMarkPageViewed(_save, page.PageId);
+                _save.MarkDirty();
+
+                if (change.Changed)
+                {
+                    _lastSpreadChange = change;
+                    feedbackId = ViewSpreadTextId;
+                    Debug.Log($"[CaseDirector] 열람 확산 | {page.PageId} +{amount:F1} " +
+                              $"({change.PreviousRate:F0}% -> {change.CurrentRate:F0}%)");
+                }
+            }
+
             _internetPageScreen.Bind(page, BuildPageStatus, CanCensor, BuildStatsLine);
+            if (feedbackId != null)
+            {
+                var change = _lastSpreadChange;
+                _internetPageScreen.ShowFeedbackProvider(() => BuildSpreadChangeLine(ViewSpreadTextId, change));
+            }
+
             _ui.Push(_internetPageScreen);
-            Debug.Log($"[CaseDirector] 게시글 열람: {(page != null ? page.PageId : "(없음)")}");
+            _internetListScreen.Refresh();
+        }
+
+        /// <summary>"안내 문구 / 확산도 42% → 30%" 형태의 한 줄을 만든다.</summary>
+        private string BuildSpreadChangeLine(string messageTextId, SpreadChangeResult change)
+        {
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(messageTextId));
+
+            if (change.Changed)
+            {
+                sb.Append("   ");
+                sb.Append(_loc.Get(LabelSpreadTextId));
+                sb.Append($" {change.PreviousRate:F0}% → {change.CurrentRate:F0}%");
+            }
+            return sb.ToString();
         }
 
         /// <summary>상세 화면의 검열 버튼.</summary>
@@ -263,18 +310,19 @@ namespace UrbanLegendBureau.Systems
             var page = _internetPageScreen != null ? _internetPageScreen.CurrentPage : null;
             if (page == null || _internet == null) return;
 
-            float spreadBefore = GetSpread();
             float beliefBefore = GetBelief();
 
             var result = _internet.TryCensorPage(_save, page.PageId);
             string feedbackId = ApplyCensorOutcome(page, result);
 
             // 검열 성공/실패와 무관하게 화면 상태를 즉시 다시 그린다.
-            _internetPageScreen.ShowFeedback(feedbackId);
+            var change = _lastSpreadChange;
+            _internetPageScreen.ShowFeedbackProvider(() => BuildSpreadChangeLine(feedbackId, change));
             _internetListScreen.Refresh();
 
             Debug.Log($"[CaseDirector] 검열 시도: {page.PageId} -> {result} | " +
-                      $"확산 {spreadBefore:F0} -> {GetSpread():F0} / 믿음 {beliefBefore:F0} -> {GetBelief():F0}");
+                      $"확산 {change.PreviousRate:F0} -> {change.CurrentRate:F0} ({change.CurrentLevel}) / " +
+                      $"믿음 {beliefBefore:F0} -> {GetBelief():F0}");
         }
 
         /// <summary>
@@ -295,7 +343,7 @@ namespace UrbanLegendBureau.Systems
                 case CensorResult.Success:
                 {
                     float weight = _spread.GetSpreadWeight(page.PageId);
-                    _spread.TryReduceSpread(_save.Current, _legendId, weight);
+                    _lastSpreadChange = _spread.ApplySpreadDelta(_save.Current, _legendId, -weight);
                     _save.MarkDirty();
                     return CensorOkTextId;
                 }
@@ -303,16 +351,18 @@ namespace UrbanLegendBureau.Systems
                 case CensorResult.WrongTarget:
                 {
                     float penalty = _spread.GetWrongCensorPenalty(page.PageId);
-                    _spread.TryAddSpread(_save.Current, _legendId, penalty);
+                    _lastSpreadChange = _spread.ApplySpreadDelta(_save.Current, _legendId, penalty);
                     _belief.TryAddBelief(_save.Current, BeliefService.SpreadToBelief(penalty));
                     _save.MarkDirty();
                     return CensorWrongTextId;
                 }
 
                 case CensorResult.AlreadyCensored:
+                    _lastSpreadChange = SpreadChangeResult.Failed(GetSpread(), _spread.GetSpreadLevel(GetSpread()));
                     return CensorDoneTextId;
 
                 default:
+                    _lastSpreadChange = SpreadChangeResult.Failed(GetSpread(), _spread.GetSpreadLevel(GetSpread()));
                     return PageMissingTextId;
             }
         }
@@ -329,10 +379,14 @@ namespace UrbanLegendBureau.Systems
             return _belief != null ? _belief.GetBeliefLevel(_save.Current) : 0f;
         }
 
-        /// <summary>확산도 / 믿음도 표시줄. 라벨은 Localization에서 가져온다.</summary>
+        /// <summary>확산도 / 단계 / 믿음도 표시줄. 라벨은 Localization에서 가져온다.</summary>
         private string BuildStatsLine()
         {
-            return $"{_loc.Get(LabelSpreadTextId)}: {GetSpread():F0}%    {_loc.Get(LabelBeliefTextId)}: {GetBelief():F0}%";
+            float spread = GetSpread();
+            string levelText = _spread != null ? _loc.Get(_spread.GetSpreadLevelTextId(spread)) : string.Empty;
+
+            return $"{_loc.Get(LabelSpreadTextId)}: {spread:F0}% ({levelText})" +
+                   $"    {_loc.Get(LabelBeliefTextId)}: {GetBelief():F0}";
         }
 
         /// <summary>상세 화면의 목록 복귀 버튼.</summary>
@@ -342,8 +396,37 @@ namespace UrbanLegendBureau.Systems
             _internetListScreen.Refresh();
         }
 
-        /// <summary>인터넷 화면의 현장 이동 버튼.</summary>
+        /// <summary>
+        /// 인터넷 화면의 현장 이동 버튼.
+        /// 확산도가 위험 이상이면 먼저 경고를 보여준다. 진입을 막지는 않는다.
+        /// </summary>
         public void OnEnterFieldClicked()
+        {
+            var level = _spread != null ? _spread.GetSpreadLevel(_save.Current, _legendId) : SpreadLevel.Stable;
+
+            if (level.NeedsFieldWarning())
+            {
+                var warningId = level.ToWarningTextId();
+                _warningPopupScreen.BindWithBodyProvider(
+                    SpreadWarningTitleTextId,
+                    () => _loc.Get(warningId) + "\n\n" + BuildStatsLine());
+                _ui.Push(_warningPopupScreen);
+
+                Debug.Log($"[CaseDirector] 현장 진입 경고 | 확산 {GetSpread():F0}% ({level})");
+                return;
+            }
+
+            EnterField();
+        }
+
+        /// <summary>경고 팝업의 확인 버튼. 확인하면 그대로 현장으로 들어간다.</summary>
+        public void OnSpreadWarningConfirmClicked()
+        {
+            _ui.Close(_warningPopupScreen);
+            EnterField();
+        }
+
+        private void EnterField()
         {
             CaseFlow.SetStep(_save, CaseStep.FieldInvestigation);
 
@@ -351,7 +434,7 @@ namespace UrbanLegendBureau.Systems
             _ui.Replace(_fieldHudScreen);
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
-            Debug.Log($"[CaseDirector] 현장 진입 | step={CaseFlow.GetStep(_save)}");
+            Debug.Log($"[CaseDirector] 현장 진입 | 확산 {GetSpread():F0}% step={CaseFlow.GetStep(_save)}");
         }
 
         /// <summary>단서 팝업의 확인 버튼.</summary>
@@ -407,7 +490,7 @@ namespace UrbanLegendBureau.Systems
             if (result.IsSuccess())
             {
                 // 봉인하면 확산은 멎는다. 믿음은 이번 단계에서 건드리지 않는다.
-                if (_spread != null) _spread.TrySetSpreadRate(_save.Current, _legendId, 0f);
+                if (_spread != null) _lastSpreadChange = _spread.ApplySpreadRate(_save.Current, _legendId, 0f);
                 _save.MarkDirty();
             }
 

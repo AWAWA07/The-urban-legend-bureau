@@ -108,6 +108,7 @@ namespace UrbanLegendBureau.EditorTools
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
+            var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
 
             var btnStart = CreateButton(titleButtons, "Btn_StartCase", "ui.case.btn_cases");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
@@ -119,6 +120,7 @@ namespace UrbanLegendBureau.EditorTools
             var btnBack = CreateButton(resultButtons, "Btn_BackToTitle", "ui.slice.btn_back_to_title");
             var btnClueOk = CreateButton(clueButtons, "Btn_ClueOk", "ui.common.ok");
             var btnRuleOk = CreateButton(ruleButtons, "Btn_RuleOk", "ui.common.ok");
+            var btnWarningOk = CreateButton(warningButtons, "Btn_WarningOk", "ui.common.ok");
 
             // --- 진행 담당 ---
             var directorGo = new GameObject("CaseDirector");
@@ -133,6 +135,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_fieldHudScreen").objectReferenceValue = fieldHud;
             dso.FindProperty("_cluePopupScreen").objectReferenceValue = cluePopup;
             dso.FindProperty("_rulePopupScreen").objectReferenceValue = rulePopup;
+            dso.FindProperty("_warningPopupScreen").objectReferenceValue = warningPopup;
             dso.FindProperty("_exorcismScreen").objectReferenceValue = exorcism;
             dso.FindProperty("_sealButton").objectReferenceValue = btnSeal;
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
@@ -156,6 +159,7 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnBack.GetComponent<Button>().onClick, director.OnBackToTitleClicked);
             UnityEventTools.AddPersistentListener(btnClueOk.GetComponent<Button>().onClick, director.OnCluePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnRuleOk.GetComponent<Button>().onClick, director.OnRulePopupConfirmClicked);
+            UnityEventTools.AddPersistentListener(btnWarningOk.GetComponent<Button>().onClick, director.OnSpreadWarningConfirmClicked);
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();

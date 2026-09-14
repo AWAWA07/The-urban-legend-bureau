@@ -23,6 +23,18 @@ namespace UrbanLegendBureau.Systems
         /// <summary>확산도 상한.</summary>
         public const float MaxSpread = 100f;
 
+        // --- 단계 경계. 여기서만 정한다. ---
+        public const float SpreadingThreshold = 25f;
+        public const float DangerousThreshold = 50f;
+        public const float CriticalThreshold = 75f;
+
+        /// <summary>
+        /// 게시글을 처음 열어 봤을 때 확산에 더해지는 비율.
+        /// 글이 퍼지는 만큼(spreadWeight)의 일부만 반영한다.
+        /// 밸런스 조절점이므로 한 곳에만 둔다.
+        /// </summary>
+        public const float ViewSpreadRatio = 0.25f;
+
         private readonly GameDataCatalogSO _catalog;
         private readonly Dictionary<string, WebPageSO> _pagesById = new Dictionary<string, WebPageSO>();
 
@@ -108,6 +120,68 @@ namespace UrbanLegendBureau.Systems
 
             state.spreadRate = Mathf.Clamp(state.spreadRate - amount, MinSpread, MaxSpread);
             return true;
+        }
+
+        // ------------------------------------------------------------- 단계
+
+        /// <summary>확산도 수치를 단계로 바꾼다. 경계는 이 메서드 하나가 정한다.</summary>
+        public SpreadLevel GetSpreadLevel(float spreadRate)
+        {
+            if (spreadRate >= CriticalThreshold) return SpreadLevel.Critical;
+            if (spreadRate >= DangerousThreshold) return SpreadLevel.Dangerous;
+            if (spreadRate >= SpreadingThreshold) return SpreadLevel.Spreading;
+            return SpreadLevel.Stable;
+        }
+
+        /// <summary>괴담의 현재 확산 단계.</summary>
+        public SpreadLevel GetSpreadLevel(SaveData save, string legendId)
+        {
+            return GetSpreadLevel(GetSpreadRate(save, legendId));
+        }
+
+        /// <summary>단계 이름의 Localization String ID.</summary>
+        public string GetSpreadLevelTextId(float spreadRate)
+        {
+            return GetSpreadLevel(spreadRate).ToTextId();
+        }
+
+        // ------------------------------------------------------------- 변화 추적
+
+        /// <summary>
+        /// 확산도를 더하고 전후 값을 함께 돌려준다.
+        /// "42% -> 30%" 같은 안내가 필요한 곳에서 쓴다. 음수를 주면 감소한다.
+        /// </summary>
+        public SpreadChangeResult ApplySpreadDelta(SaveData save, string legendId, float delta)
+        {
+            float before = GetSpreadRate(save, legendId);
+            var beforeLevel = GetSpreadLevel(before);
+
+            bool ok = delta >= 0f
+                ? TryAddSpread(save, legendId, delta)
+                : TryReduceSpread(save, legendId, -delta);
+
+            if (!ok) return SpreadChangeResult.Failed(before, beforeLevel);
+
+            float after = GetSpreadRate(save, legendId);
+            return new SpreadChangeResult(true, before, after, beforeLevel, GetSpreadLevel(after));
+        }
+
+        /// <summary>확산도를 지정한 값으로 두고 전후를 돌려준다. 봉인처럼 0으로 만들 때 쓴다.</summary>
+        public SpreadChangeResult ApplySpreadRate(SaveData save, string legendId, float value)
+        {
+            float before = GetSpreadRate(save, legendId);
+            var beforeLevel = GetSpreadLevel(before);
+
+            if (!TrySetSpreadRate(save, legendId, value)) return SpreadChangeResult.Failed(before, beforeLevel);
+
+            float after = GetSpreadRate(save, legendId);
+            return new SpreadChangeResult(true, before, after, beforeLevel, GetSpreadLevel(after));
+        }
+
+        /// <summary>게시글을 처음 열었을 때 퍼지는 양. 검열된 글은 더 이상 퍼지지 않는다.</summary>
+        public float GetViewSpreadAmount(string pageId)
+        {
+            return GetSpreadWeight(pageId) * ViewSpreadRatio;
         }
 
         // ------------------------------------------------------------- 게시글 계수
