@@ -21,21 +21,39 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _bodyText;
         [SerializeField] private TMP_Text _statusText;
 
+        [Tooltip("확산도 / 믿음도 표시줄.")]
+        [SerializeField] private TMP_Text _statsText;
+
+        [Tooltip("검열 결과 안내. 화면을 새로 열면 지워진다.")]
+        [SerializeField] private TMP_Text _feedbackText;
+
         [Header("버튼")]
         [SerializeField] private Button _censorButton;
 
         private WebPageSO _page;
         private Func<WebPageSO, string> _statusProvider;
         private Func<WebPageSO, bool> _canCensorProvider;
+        private Func<string> _statsProvider;
+        private string _feedbackTextId;
 
         /// <summary>표시할 게시글과 상태 계산 방법을 넘긴다.</summary>
         public void Bind(WebPageSO page,
             Func<WebPageSO, string> statusProvider,
-            Func<WebPageSO, bool> canCensorProvider)
+            Func<WebPageSO, bool> canCensorProvider,
+            Func<string> statsProvider = null)
         {
             _page = page;
             _statusProvider = statusProvider;
             _canCensorProvider = canCensorProvider;
+            _statsProvider = statsProvider;
+            _feedbackTextId = null;   // 새 글을 열면 이전 안내는 지운다
+            Refresh();
+        }
+
+        /// <summary>검열 결과를 알린다. String ID만 받는다.</summary>
+        public void ShowFeedback(string textId)
+        {
+            _feedbackTextId = textId;
             Refresh();
         }
 
@@ -65,6 +83,8 @@ namespace UrbanLegendBureau.UI
                 if (_titleText != null) _titleText.text = loc.Get("ui.net.page_missing");
                 if (_bodyText != null) _bodyText.text = string.Empty;
                 if (_statusText != null) _statusText.text = string.Empty;
+                if (_statsText != null) _statsText.text = string.Empty;
+                if (_feedbackText != null) _feedbackText.text = string.Empty;
                 if (_censorButton != null) _censorButton.gameObject.SetActive(false);
                 return;
             }
@@ -72,12 +92,18 @@ namespace UrbanLegendBureau.UI
             if (_titleText != null) _titleText.text = loc.Get(_page.TitleTextId);
             if (_bodyText != null) _bodyText.text = loc.Get(_page.BodyTextId);
             if (_statusText != null && _statusProvider != null) _statusText.text = _statusProvider(_page);
+            if (_statsText != null) _statsText.text = _statsProvider != null ? _statsProvider() : string.Empty;
+            if (_feedbackText != null)
+            {
+                _feedbackText.text = string.IsNullOrEmpty(_feedbackTextId) ? string.Empty : loc.Get(_feedbackTextId);
+            }
 
-            // 검열할 수 없거나 이미 검열한 글에는 버튼을 아예 노출하지 않는다.
+            // 이미 검열한 글에는 버튼을 숨긴다.
+            // 검열할 수 없는 글에는 버튼을 남겨 둔다. 눌러 봐야 잘못된 검열이라는 것을 알 수 있다.
             if (_censorButton != null)
             {
-                bool canCensor = _canCensorProvider != null && _canCensorProvider(_page);
-                _censorButton.gameObject.SetActive(canCensor);
+                bool showButton = _canCensorProvider == null || _canCensorProvider(_page);
+                _censorButton.gameObject.SetActive(showButton);
             }
         }
 

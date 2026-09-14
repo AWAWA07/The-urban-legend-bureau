@@ -31,6 +31,8 @@ namespace UrbanLegendBureau.EditorTools
         private static readonly Color ButtonColor = new Color(0.23f, 0.27f, 0.36f, 1f);
         private static readonly Color TextColor = new Color(0.93f, 0.93f, 0.96f);
         private static readonly Color DimTextColor = new Color(0.68f, 0.70f, 0.78f);
+        private static readonly Color AccentColor = new Color(0.86f, 0.74f, 0.48f);
+        private static readonly Color WarnColor = new Color(0.92f, 0.55f, 0.50f);
 
         [MenuItem("UrbanLegendBureau/Dev/Build 01_Title Slice Scene")]
         public static string Build()
@@ -259,6 +261,8 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0f, 380f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
             var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
                 new Vector2(0f, 300f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
+            var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
+                new Vector2(0f, -300f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
 
             // 목록 영역
             var listGo = new GameObject("List", typeof(RectTransform));
@@ -296,6 +300,7 @@ namespace UrbanLegendBureau.EditorTools
             so.Update();
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_footerText").objectReferenceValue = footerText;
+            so.FindProperty("_statsText").objectReferenceValue = statsText;
             so.FindProperty("_listRoot").objectReferenceValue = listRt;
             so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -319,12 +324,18 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0f, 110f), new Vector2(1300f, 300f), TextAlignmentOptions.Top);
             var statusText = AddText(go.transform, "Status", 30f, UIFontWeight.SemiBold, DimTextColor,
                 new Vector2(0f, -120f), new Vector2(1300f, 70f), TextAlignmentOptions.Center);
+            var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
+                new Vector2(0f, -180f), new Vector2(1300f, 60f), TextAlignmentOptions.Center);
+            var feedbackText = AddText(go.transform, "Feedback", 28f, UIFontWeight.Medium, WarnColor,
+                new Vector2(0f, -240f), new Vector2(1300f, 60f), TextAlignmentOptions.Center);
 
             var so = new SerializedObject(screen);
             so.Update();
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
             so.FindProperty("_statusText").objectReferenceValue = statusText;
+            so.FindProperty("_statsText").objectReferenceValue = statsText;
+            so.FindProperty("_feedbackText").objectReferenceValue = feedbackText;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -330f), new Vector2(1000f, 110f));

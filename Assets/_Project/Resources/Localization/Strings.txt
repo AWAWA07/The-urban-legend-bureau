@@ -101,3 +101,9 @@ ui.net.list_hint	게시글을 눌러 내용을 확인하세요. 확산을 막으
 # --- 9단계: 검열 불가 테스트용 게시글 ---
 web.test.002.title	[공지] 시설 점검 안내	[Notice] Scheduled Maintenance	검열 불가 대상
 web.test.002.body	금주 야간 시설 점검이 있습니다. 해당 시간대 출입이 제한됩니다.	Night maintenance is scheduled this week. Access will be restricted.	괴담과 무관한 공지
+
+# --- 10단계: 확산 / 믿음 수치 ---
+ui.net.label_spread	괴담 확산도	Spread	수치 표시줄
+ui.net.label_belief	믿음도	Belief	수치 표시줄
+ui.net.censor_ok_feedback	검열했습니다. 괴담의 확산이 줄었습니다.	Censored. The spread has been reduced.	정상 검열 피드백
+ui.net.censor_wrong_feedback	잘못된 검열입니다. 괴담의 확산이 증가했습니다.	Wrong target. The spread has increased.	오검열 피드백

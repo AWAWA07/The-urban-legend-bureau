@@ -42,6 +42,8 @@ namespace UrbanLegendBureau.Systems
         private LegendService _legends;
         private RuleService _rules;
         private InternetService _internet;
+        private SpreadService _spread;
+        private BeliefService _belief;
         private LocalizationService _loc;
 
         private LegendSO _legend;
@@ -71,6 +73,10 @@ namespace UrbanLegendBureau.Systems
         private const string CensorDoneTextId = "ui.net.censor_done";
         private const string CensorBlockedTextId = "ui.net.censor_blocked";
         private const string PageMissingTextId = "ui.net.page_missing";
+        private const string CensorOkTextId = "ui.net.censor_ok_feedback";
+        private const string CensorWrongTextId = "ui.net.censor_wrong_feedback";
+        private const string LabelSpreadTextId = "ui.net.label_spread";
+        private const string LabelBeliefTextId = "ui.net.label_belief";
 
         private void Start()
         {
@@ -79,6 +85,8 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _legends);
             ServiceRegistry.TryGet(out _rules);
             ServiceRegistry.TryGet(out _internet);
+            ServiceRegistry.TryGet(out _spread);
+            ServiceRegistry.TryGet(out _belief);
             ServiceRegistry.TryGet(out _loc);
 
             if (_ui == null || _save == null || _legends == null || _loc == null)
@@ -131,8 +139,19 @@ namespace UrbanLegendBureau.Systems
         /// <summary>타이틀의 조사 시작 버튼.</summary>
         public void OnStartCaseClicked()
         {
+            // 처음 여는 사건이면 괴담 데이터의 초기 확산도를 심는다.
+            // 이미 조사를 시작한 사건이라면 저장된 확산도를 그대로 둔다.
+            bool firstTime = !_save.Current.GetOrCreateLegendState(_legendId).isDiscovered;
+
             CaseFlow.StartCase(_save, _caseId, _legendId);
             CaseFlow.SetStep(_save, CaseStep.LegendBriefing);
+
+            if (firstTime && _legend != null && _spread != null)
+            {
+                _spread.TrySetSpreadRate(_save.Current, _legendId, _legend.InitialSpreadRate);
+                _save.MarkDirty();
+                Debug.Log($"[CaseDirector] 초기 확산도 설정 | {_legendId} = {_legend.InitialSpreadRate}");
+            }
 
             _bureauScreen.BindWithBodyProvider(BureauTitleTextId, BuildLegendBriefing);
             _ui.Replace(_bureauScreen);
@@ -147,7 +166,7 @@ namespace UrbanLegendBureau.Systems
 
             _internetListScreen.Bind(
                 InternetTitleTextId, InternetFooterTextId,
-                GetCasePages(), BuildPageListLabel, OnPageSelected);
+                GetCasePages(), BuildPageListLabel, OnPageSelected, BuildStatsLine);
 
             _ui.Replace(_internetListScreen);
             Debug.Log($"[CaseDirector] 인터넷 조사 | 게시글 {GetCasePages().Count}개 | step={CaseFlow.GetStep(_save)}");
@@ -156,7 +175,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>목록에서 게시글을 골랐을 때.</summary>
         private void OnPageSelected(WebPageSO page)
         {
-            _internetPageScreen.Bind(page, BuildPageStatus, CanCensor);
+            _internetPageScreen.Bind(page, BuildPageStatus, CanCensor, BuildStatsLine);
             _ui.Push(_internetPageScreen);
             Debug.Log($"[CaseDirector] 게시글 열람: {(page != null ? page.PageId : "(없음)")}");
         }
@@ -167,14 +186,76 @@ namespace UrbanLegendBureau.Systems
             var page = _internetPageScreen != null ? _internetPageScreen.CurrentPage : null;
             if (page == null || _internet == null) return;
 
+            float spreadBefore = GetSpread();
+            float beliefBefore = GetBelief();
+
             var result = _internet.TryCensorPage(_save, page.PageId);
+            string feedbackId = ApplyCensorOutcome(page, result);
 
             // 검열 성공/실패와 무관하게 화면 상태를 즉시 다시 그린다.
-            _internetPageScreen.Refresh();
+            _internetPageScreen.ShowFeedback(feedbackId);
             _internetListScreen.Refresh();
 
-            Debug.Log($"[CaseDirector] 검열 시도: {page.PageId} -> {result}" +
-                      (result.IsWrongAttempt() ? $" (잘못된 검열, 페널티 {_internet.GetWrongCensorPenalty(page.PageId)})" : string.Empty));
+            Debug.Log($"[CaseDirector] 검열 시도: {page.PageId} -> {result} | " +
+                      $"확산 {spreadBefore:F0} -> {GetSpread():F0} / 믿음 {beliefBefore:F0} -> {GetBelief():F0}");
+        }
+
+        /// <summary>
+        /// 검열 결과를 확산도와 믿음 수치에 반영한다.
+        ///
+        /// 정상 검열 : 확산도 -= spreadWeight          (믿음은 건드리지 않는다)
+        /// 잘못된 검열: 확산도 += wrongCensorPenalty,  믿음 += 증가분 x 비율
+        ///
+        /// 수치를 다루는 곳을 여기 하나로 모아 둔 이유:
+        /// 어느 괴담의 확산인지는 사건이 알고 있고, InternetService는 모른다.
+        /// </summary>
+        private string ApplyCensorOutcome(WebPageSO page, CensorResult result)
+        {
+            if (_spread == null || _belief == null) return null;
+
+            switch (result)
+            {
+                case CensorResult.Success:
+                {
+                    float weight = _spread.GetSpreadWeight(page.PageId);
+                    _spread.TryReduceSpread(_save.Current, _legendId, weight);
+                    _save.MarkDirty();
+                    return CensorOkTextId;
+                }
+
+                case CensorResult.WrongTarget:
+                {
+                    float penalty = _spread.GetWrongCensorPenalty(page.PageId);
+                    _spread.TryAddSpread(_save.Current, _legendId, penalty);
+                    _belief.TryAddBelief(_save.Current, BeliefService.SpreadToBelief(penalty));
+                    _save.MarkDirty();
+                    return CensorWrongTextId;
+                }
+
+                case CensorResult.AlreadyCensored:
+                    return CensorDoneTextId;
+
+                default:
+                    return PageMissingTextId;
+            }
+        }
+
+        // ------------------------------------------------------------- 수치 표시
+
+        private float GetSpread()
+        {
+            return _spread != null ? _spread.GetSpreadRate(_save.Current, _legendId) : 0f;
+        }
+
+        private float GetBelief()
+        {
+            return _belief != null ? _belief.GetBeliefLevel(_save.Current) : 0f;
+        }
+
+        /// <summary>확산도 / 믿음도 표시줄. 라벨은 Localization에서 가져온다.</summary>
+        private string BuildStatsLine()
+        {
+            return $"{_loc.Get(LabelSpreadTextId)}: {GetSpread():F0}%    {_loc.Get(LabelBeliefTextId)}: {GetBelief():F0}%";
         }
 
         /// <summary>상세 화면의 목록 복귀 버튼.</summary>
@@ -408,9 +489,14 @@ namespace UrbanLegendBureau.Systems
             return _loc.Get(CensorAvailableTextId);
         }
 
+        /// <summary>
+        /// 검열 버튼을 노출할지. 이미 검열한 글에만 숨긴다.
+        /// 검열하면 안 되는 글에도 버튼을 남겨 둔다 — 눌러 봐야 잘못된 대상이라는 것을 알 수 있다.
+        /// </summary>
         private bool CanCensor(WebPageSO page)
         {
-            return page != null && _internet != null && _internet.CanCensorNow(_save, page.PageId);
+            if (page == null || _internet == null) return false;
+            return !_internet.IsCensored(_save.Current, page.PageId);
         }
 
         /// <summary>단서 ID를 괴담 데이터에서 찾아 표시 문구로 바꾼다.</summary>
