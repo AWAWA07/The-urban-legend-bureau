@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04586074f22c48241b185133944d2cee, type: 3}
+  m_Name: legend_test_002
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.LegendSO
+  _legendId: legend_test_002
+  _nameTextId: legend.test.002.name
+  _descriptionTextId: legend.test.002.description
+  _riskLevel: 1
+  _initialSpreadRate: 12
+  _rules:
+  - {fileID: 11400000, guid: cbe713e3144d8cc41b1100ca05e11e3b, type: 2}
+  _clues:
+  - {fileID: 11400000, guid: fbfcfed9f316e4243a344e26e21fd3fc, type: 2}
+  _webPages:
+  - {fileID: 11400000, guid: 225ad01d109ae504f89de82416d38f79, type: 2}

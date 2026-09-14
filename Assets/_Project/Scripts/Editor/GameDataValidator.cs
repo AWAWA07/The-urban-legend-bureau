@@ -46,6 +46,7 @@ namespace UrbanLegendBureau.EditorTools
 
         public static Report Validate()
         {
+            var cases = LoadAll<CaseSO>();
             var legends = LoadAll<LegendSO>();
             var rules = LoadAll<RuleSO>();
             var clues = LoadAll<ClueSO>();
@@ -55,7 +56,9 @@ namespace UrbanLegendBureau.EditorTools
             var sb = new StringBuilder();
 
             var clueIds = CollectIds(clues);
+            var legendIds = CollectIds(legends);
 
+            CheckIds(cases, "CaseSO", report, sb);
             CheckIds(legends, "LegendSO", report, sb);
             CheckIds(rules, "RuleSO", report, sb);
             CheckIds(clues, "ClueSO", report, sb);
@@ -63,6 +66,21 @@ namespace UrbanLegendBureau.EditorTools
 
             // --- 텍스트 ID ---
             var localization = LoadLocalization();
+
+            foreach (var c in cases)
+            {
+                CheckTextId(c, c.CaseNameTextId, "caseNameTextId", localization, report, sb);
+                CheckTextId(c, c.CaseDescriptionTextId, "caseDescriptionTextId", localization, report, sb);
+
+                if (string.IsNullOrEmpty(c.LegendId))
+                {
+                    Error(report, sb, c, "legendId 가 비어 있다.");
+                }
+                else if (!legendIds.Contains(c.LegendId))
+                {
+                    Error(report, sb, c, "legendId '" + c.LegendId + "' 에 해당하는 LegendSO 가 없다.");
+                }
+            }
 
             foreach (var l in legends)
             {
@@ -111,7 +129,7 @@ namespace UrbanLegendBureau.EditorTools
             localization.Shutdown();
 
             report.Summary =
-                "Legend " + legends.Count + " / Rule " + rules.Count +
+                "Case " + cases.Count + " / Legend " + legends.Count + " / Rule " + rules.Count +
                 " / Clue " + clues.Count + " / WebPage " + pages.Count;
             report.Text = report.Summary + "\n" + sb;
             return report;

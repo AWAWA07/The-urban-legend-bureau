@@ -91,6 +91,9 @@ namespace UrbanLegendBureau.Core
             var exorcism = new ExorcismService(_gameDataCatalog);
             ServiceRegistry.Register(exorcism);
 
+            var cases = new CaseService(_gameDataCatalog);
+            ServiceRegistry.Register(cases);
+
             // --- 초기화 ---
             InitializeService(localization);
             InitializeService(input);
@@ -102,6 +105,7 @@ namespace UrbanLegendBureau.Core
             InitializeService(spread);
             InitializeService(belief);
             InitializeService(exorcism);
+            InitializeService(cases);
 
             IsBooted = true;
 
@@ -175,6 +179,11 @@ namespace UrbanLegendBureau.Core
             if (Instance != this) return;
 
             // 등록 역순으로 종료한다.
+            if (ServiceRegistry.TryGet<CaseService>(out var cases))
+            {
+                cases.Shutdown();
+            }
+
             if (ServiceRegistry.TryGet<ExorcismService>(out var exorcism))
             {
                 exorcism.Shutdown();

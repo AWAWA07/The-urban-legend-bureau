@@ -129,3 +129,24 @@ ui.rule.wrong	오류	Mistaken	규칙 목록 표식
 ui.seal.state_false_only	올바른 규칙 없음	No verified rule	
 ui.seal.false_only	확인된 규칙은 있지만 올바른 규칙을 찾지 못했습니다.	You have rules, but none of them are the verified one.	봉인 실패 안내
 ui.seal.need_true_rule	괴담의 올바른 규칙을 파악하지 못했습니다.	You have not identified the legend true rule.	
+
+# --- 13단계: 사건 데이터 ---
+case.test.001.name	사건 #001 — 삭제되지 않는 게시글	Case #001 — The Post That Will Not Delete	1번 사건 이름
+case.test.002.name	사건 #002 — 3층에서 멈추는 엘리베이터	Case #002 — The Elevator That Stops at the Third Floor	2번 사건 이름
+case.test.002.description	야간에만 3층에서 멈춘다는 엘리베이터 제보가 반복해서 접수되고 있다.	Reports keep coming in about an elevator that stops at the third floor only at night.	
+
+# --- 13단계: 두 번째 괴담 ---
+legend.test.002.name	3층의 승객	The Passenger on Three	
+legend.test.002.description	아무도 누르지 않았는데 3층에서 문이 열린다. 열린 문 밖에는 아무도 없다.	The doors open on the third floor though no one pressed it. No one is standing there.	
+rule.test.003.text	문이 열려도 3층에서는 내리지 않는다.	Do not step out on the third floor, even if the doors open.	정답 규칙
+clue.test.003.text	3층 버튼만 유독 닳아 있는 조작판	A control panel worn down only on the third-floor button	
+web.test.003.title	야근하다 겪은 일 (엘리베이터)	Something that happened during overtime (elevator)	
+web.test.003.body	누르지도 않은 3층에서 문이 열렸습니다. 아무도 없었는데 닫힘 버튼이 안 먹더군요.	The doors opened on three, which I never pressed. Nobody was there, and the close button stopped responding.	
+field.test.panel	엘리베이터 조작판	Elevator Panel	
+field.test.panel.result	3층 버튼만 유독 닳아 있다.	Only the third-floor button is worn down.	
+field.test.mirror	승강기 거울	Elevator Mirror	
+field.test.mirror.result	거울에는 당신 말고 아무도 비치지 않는다.	Nothing but you is reflected in the mirror.	단서 없음
+ui.case.list_title	사건 목록	Case Files	
+ui.case.list_hint	조사할 사건을 선택하세요.	Choose a case to investigate.	
+ui.case.completed_mark	종결	Closed	
+ui.case.btn_cases	사건 목록	Case Files	

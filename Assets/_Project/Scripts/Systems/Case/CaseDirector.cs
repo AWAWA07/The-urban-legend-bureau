@@ -20,12 +20,9 @@ namespace UrbanLegendBureau.Systems
     /// </summary>
     public class CaseDirector : MonoBehaviour
     {
-        [Header("사건 데이터 (ID)")]
-        [SerializeField] private string _caseId = "case_test_001";
-        [SerializeField] private string _legendId = "legend_test_001";
-
         [Header("화면")]
         [SerializeField] private TextPanelScreen _titleScreen;
+        [SerializeField] private CaseListScreen _caseListScreen;
         [SerializeField] private TextPanelScreen _bureauScreen;
         [SerializeField] private InternetListScreen _internetListScreen;
         [SerializeField] private InternetPageScreen _internetPageScreen;
@@ -50,15 +47,23 @@ namespace UrbanLegendBureau.Systems
         private SpreadService _spread;
         private BeliefService _belief;
         private ExorcismService _exorcism;
+        private CaseService _cases;
         private LocalizationService _loc;
 
+        private CaseSO _case;
         private LegendSO _legend;
+
+        /// <summary>현재 조사 중인 사건 ID. CaseSO에서 가져온다. 하드코딩하지 않는다.</summary>
+        private string _caseId => _case != null ? _case.CaseId : string.Empty;
+
+        /// <summary>현재 사건이 다루는 괴담 ID.</summary>
+        private string _legendId => _case != null ? _case.LegendId : string.Empty;
         private string _pendingClueId;
         private string _sealFeedbackTextId;
 
         // --- 화면 문구 String ID ---
         private const string TitleTextId = "ui.slice.title";
-        private const string TitleBodyTextId = "case.test.001.title";
+        private const string TitleBodyTextId = "ui.case.list_hint";
         private const string TitleFooterNewTextId = "ui.slice.title_hint";
         private const string TitleFooterDoneTextId = "ui.slice.already_completed";
         private const string BureauTitleTextId = "ui.slice.bureau_title";
@@ -95,6 +100,9 @@ namespace UrbanLegendBureau.Systems
         private const string RuleWrongTextId = "ui.rule.wrong";
         private const string SealStateFalseOnlyTextId = "ui.seal.state_false_only";
         private const string SealNeedTrueRuleTextId = "ui.seal.need_true_rule";
+        private const string CaseListTitleTextId = "ui.case.list_title";
+        private const string CaseListHintTextId = "ui.case.list_hint";
+        private const string CaseCompletedMarkTextId = "ui.case.completed_mark";
 
         private void Start()
         {
@@ -106,6 +114,7 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _spread);
             ServiceRegistry.TryGet(out _belief);
             ServiceRegistry.TryGet(out _exorcism);
+            ServiceRegistry.TryGet(out _cases);
             ServiceRegistry.TryGet(out _loc);
 
             if (_ui == null || _save == null || _legends == null || _loc == null)
@@ -122,12 +131,6 @@ namespace UrbanLegendBureau.Systems
                           $"보유 단서 {_save.Current.acquiredClueIds.Count}개");
             }
 
-            _legend = _legends.GetLegend(_legendId);
-            if (_legend == null)
-            {
-                Debug.LogError($"[CaseDirector] 괴담 '{_legendId}' 를 찾지 못했다. GameDataCatalog을 확인할 것.");
-            }
-
             if (_field != null)
             {
                 _field.Investigated += OnPointInvestigated;
@@ -136,6 +139,24 @@ namespace UrbanLegendBureau.Systems
 
             // 저장된 진행이 있어도 이번 단계에서는 타이틀부터 시작한다.
             ShowTitle();
+        }
+
+        /// <summary>사건을 현재 조사 대상으로 삼는다. 여기서만 _case 가 바뀐다.</summary>
+        private bool SelectCase(CaseSO caseData)
+        {
+            if (caseData == null) return false;
+
+            _case = caseData;
+            _legend = _legends.GetLegend(caseData.LegendId);
+
+            if (_legend == null)
+            {
+                Debug.LogError($"[CaseDirector] 사건 '{caseData.CaseId}' 의 괴담 '{caseData.LegendId}' 를 찾지 못했다.");
+                return false;
+            }
+
+            Debug.Log($"[CaseDirector] 사건 선택 | {caseData.CaseId} -> {caseData.LegendId}");
+            return true;
         }
 
         private void OnDestroy()
@@ -147,23 +168,60 @@ namespace UrbanLegendBureau.Systems
 
         private void ShowTitle()
         {
-            bool completed = CaseFlow.IsCaseCompleted(_save, _caseId);
-            _titleScreen.Bind(TitleTextId, TitleBodyTextId,
-                completed ? TitleFooterDoneTextId : TitleFooterNewTextId);
+            if (_field != null) _field.SetFieldVisible(false);
+
+            _titleScreen.Bind(TitleTextId, TitleBodyTextId, TitleFooterNewTextId);
 
             if (_ui.Count == 0) _ui.Push(_titleScreen);
             else _ui.Replace(_titleScreen);
         }
 
-        /// <summary>타이틀의 조사 시작 버튼.</summary>
+        /// <summary>타이틀의 사건 목록 버튼. 선택 가능한 사건을 나열한다.</summary>
+        public void OnOpenCaseListClicked()
+        {
+            var list = _cases != null ? _cases.GetPlayableCases() : new List<CaseSO>();
+
+            _caseListScreen.Bind(CaseListTitleTextId, CaseListHintTextId, list, BuildCaseLabel, OnCaseSelected);
+            _ui.Replace(_caseListScreen);
+
+            Debug.Log($"[CaseDirector] 사건 목록 | 선택 가능 {list.Count}건");
+        }
+
+        /// <summary>사건 목록 항목 문구: 사건 이름 + 개요, 완료했으면 표시.</summary>
+        private string BuildCaseLabel(CaseSO caseData)
+        {
+            if (caseData == null) return string.Empty;
+
+            string name = _loc.Get(caseData.CaseNameTextId);
+            if (CaseFlow.IsCaseCompleted(_save, caseData.CaseId))
+            {
+                name += "  [" + _loc.Get(CaseCompletedMarkTextId) + "]";
+            }
+            return name + "\n" + _loc.Get(caseData.CaseDescriptionTextId);
+        }
+
+        /// <summary>목록에서 사건을 골랐을 때. 선택한 사건으로 브리핑을 연다.</summary>
+        private void OnCaseSelected(CaseSO caseData)
+        {
+            if (!SelectCase(caseData)) return;
+            OnStartCaseClicked();
+        }
+
+        /// <summary>선택한 사건을 시작한다.</summary>
         public void OnStartCaseClicked()
         {
+            if (_case == null)
+            {
+                Debug.LogWarning("[CaseDirector] 선택된 사건이 없다. 사건 목록에서 먼저 고를 것.");
+                return;
+            }
+
             // 처음 여는 사건이면 괴담 데이터의 초기 확산도를 심는다.
             // 이미 조사를 시작한 사건이라면 저장된 확산도를 그대로 둔다.
             bool firstTime = !_save.Current.GetOrCreateLegendState(_legendId).isDiscovered;
 
             CaseFlow.StartCase(_save, _caseId, _legendId);
-            CaseFlow.SetStep(_save, CaseStep.LegendBriefing);
+            CaseFlow.SetStep(_save, _case.StartingStep);
 
             if (firstTime && _legend != null && _spread != null)
             {
@@ -292,7 +350,7 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.Bind(FieldTitleTextId, FieldHintTextId);
             _ui.Replace(_fieldHudScreen);
 
-            if (_field != null) _field.SetFieldVisible(true);
+            if (_field != null) _field.SetFieldVisible(true, _legendId);
             Debug.Log($"[CaseDirector] 현장 진입 | step={CaseFlow.GetStep(_save)}");
         }
 
@@ -573,15 +631,26 @@ namespace UrbanLegendBureau.Systems
             return sb.ToString();
         }
 
+        /// <summary>
+        /// 사건 결과 요약.
+        ///
+        /// SaveData의 단서/게시글 목록은 게임 전체를 통틀어 누적된다.
+        /// 결과 화면은 '이번 사건'의 성과를 보여주는 자리이므로,
+        /// 이 사건의 괴담에 속한 것만 골라 낸다. 다른 사건의 성과가 섞이면 안 된다.
+        /// </summary>
         private string BuildResultBody()
         {
             var sb = new StringBuilder();
             sb.AppendLine(_loc.Get(LabelClueTextId));
 
             var acquired = _save.Current.acquiredClueIds;
-            for (int i = 0; i < acquired.Count; i++)
+            if (_legend != null)
             {
-                sb.AppendLine("- " + ResolveClueText(acquired[i]));
+                foreach (var clue in _legend.Clues)
+                {
+                    if (clue == null || !acquired.Contains(clue.ClueId)) continue;
+                    sb.AppendLine("- " + _loc.Get(clue.ClueTextId));
+                }
             }
 
             if (_save.Current.deducedRuleIds.Count > 0)
@@ -590,15 +659,22 @@ namespace UrbanLegendBureau.Systems
                 sb.Append(BuildRuleListWithMarks());
             }
 
-            // 검열한 게시글
+            // 이 사건에서 검열한 게시글
             var censored = _save.Current.censoredPageIds;
-            if (censored.Count > 0)
+            if (_legend != null)
             {
-                sb.AppendLine();
-                sb.AppendLine(_loc.Get(LabelCensoredTextId));
-                for (int i = 0; i < censored.Count; i++)
+                var lines = new StringBuilder();
+                foreach (var page in _legend.WebPages)
                 {
-                    sb.AppendLine("- " + ResolvePageTitle(censored[i]));
+                    if (page == null || !censored.Contains(page.PageId)) continue;
+                    lines.AppendLine("- " + _loc.Get(page.TitleTextId));
+                }
+
+                if (lines.Length > 0)
+                {
+                    sb.AppendLine();
+                    sb.AppendLine(_loc.Get(LabelCensoredTextId));
+                    sb.Append(lines);
                 }
             }
 
@@ -649,13 +725,6 @@ namespace UrbanLegendBureau.Systems
         {
             if (page == null || _internet == null) return false;
             return !_internet.IsCensored(_save.Current, page.PageId);
-        }
-
-        /// <summary>게시글 ID를 제목 문구로 바꾼다. 못 찾으면 ID 그대로 둔다.</summary>
-        private string ResolvePageTitle(string pageId)
-        {
-            var page = _internet != null ? _internet.GetPage(pageId) : null;
-            return page != null ? _loc.Get(page.TitleTextId) : pageId;
         }
 
         /// <summary>단서 ID를 괴담 데이터에서 찾아 표시 문구로 바꾼다.</summary>

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UrbanLegendBureau.Core;
 using UrbanLegendBureau.InputSystemLayer;
@@ -13,8 +14,19 @@ namespace UrbanLegendBureau.Systems
     /// </summary>
     public class FieldController : MonoBehaviour
     {
-        [Tooltip("현장 오브젝트들의 부모. 현장 단계가 아닐 때는 꺼 둔다.")]
-        [SerializeField] private GameObject _fieldRoot;
+        /// <summary>괴담 하나에 대응하는 현장.</summary>
+        [System.Serializable]
+        public class FieldGroup
+        {
+            [Tooltip("이 현장이 속한 괴담의 ID.")]
+            public string legendId;
+
+            [Tooltip("현장 오브젝트들의 부모.")]
+            public GameObject root;
+        }
+
+        [Tooltip("괴담별 현장. 사건이 늘면 항목을 추가한다. 코드를 고칠 필요는 없다.")]
+        [SerializeField] private List<FieldGroup> _fieldGroups = new List<FieldGroup>();
 
         [Tooltip("조사 지점이 속한 레이어. 비워 두면 모든 레이어를 검사한다.")]
         [SerializeField] private LayerMask _investigationLayers = ~0;
@@ -30,7 +42,18 @@ namespace UrbanLegendBureau.Systems
 
         private void Awake()
         {
-            SetFieldVisible(false);
+            HideAll();
+        }
+
+        private void HideAll()
+        {
+            for (int i = 0; i < _fieldGroups.Count; i++)
+            {
+                if (_fieldGroups[i] != null && _fieldGroups[i].root != null)
+                {
+                    _fieldGroups[i].root.SetActive(false);
+                }
+            }
         }
 
         private void Start()
@@ -38,12 +61,30 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _input);
         }
 
-        /// <summary>현장을 켜고 끈다.</summary>
-        public void SetFieldVisible(bool visible)
+        /// <summary>
+        /// 해당 괴담의 현장을 켠다. 다른 괴담의 현장은 꺼진다.
+        /// legendId를 비워 두거나 visible이 false면 전부 끈다.
+        /// </summary>
+        public void SetFieldVisible(bool visible, string legendId = null)
         {
-            IsActive = visible;
-            if (_fieldRoot != null) _fieldRoot.SetActive(visible);
+            IsActive = false;
             _pressedPoint = null;
+
+            HideAll();
+            if (!visible || string.IsNullOrEmpty(legendId)) return;
+
+            for (int i = 0; i < _fieldGroups.Count; i++)
+            {
+                var group = _fieldGroups[i];
+                if (group == null || group.root == null) continue;
+                if (group.legendId != legendId) continue;
+
+                group.root.SetActive(true);
+                IsActive = true;
+                return;
+            }
+
+            Debug.LogWarning($"[FieldController] '{legendId}' 에 대응하는 현장이 없다. 인스펙터의 현장 목록을 확인할 것.");
         }
 
         private void Update()

@@ -18,6 +18,9 @@ namespace UrbanLegendBureau.Data
     [CreateAssetMenu(fileName = "GameDataCatalog", menuName = "Game Data/Catalog", order = 0)]
     public class GameDataCatalogSO : ScriptableObject
     {
+        [Tooltip("게임에 존재하는 모든 사건.")]
+        [SerializeField] private List<CaseSO> _cases = new List<CaseSO>();
+
         [Tooltip("게임에 존재하는 모든 괴담. 메뉴로 자동 갱신할 수 있다.")]
         [SerializeField] private List<LegendSO> _legends = new List<LegendSO>();
 
@@ -30,11 +33,13 @@ namespace UrbanLegendBureau.Data
         [Tooltip("게임에 존재하는 모든 인터넷 페이지.")]
         [SerializeField] private List<WebPageSO> _webPages = new List<WebPageSO>();
 
+        public IReadOnlyList<CaseSO> Cases => _cases;
         public IReadOnlyList<LegendSO> Legends => _legends;
         public IReadOnlyList<RuleSO> Rules => _rules;
         public IReadOnlyList<ClueSO> Clues => _clues;
         public IReadOnlyList<WebPageSO> WebPages => _webPages;
 
+        public int CaseCount => _cases != null ? _cases.Count : 0;
         public int LegendCount => _legends != null ? _legends.Count : 0;
         public int RuleCount => _rules != null ? _rules.Count : 0;
     }

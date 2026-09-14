@@ -61,7 +61,7 @@ namespace UrbanLegendBureau.EditorTools
             rootSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 현장 (월드) ---
-            var fieldRoot = new GameObject("FieldRoot");
+            var fieldRoot = new GameObject("FieldRoot_Legend1");
             BuildFieldBackground(fieldRoot.transform);
             var desk = BuildPoint(fieldRoot.transform, "InvestigationPoint_Desk", new Vector2(-4.2f, -1.2f),
                 new Vector2(3.0f, 2.0f), new Color(0.55f, 0.42f, 0.30f),
@@ -73,16 +73,34 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(2.6f, 1.6f), new Color(0.48f, 0.30f, 0.34f),
                 "field.test.wall", "field.test.wall.result", "clue_test_002");   // 오답 규칙의 근거
 
+            // --- 두 번째 사건의 현장 ---
+            var fieldRoot2 = new GameObject("FieldRoot_Legend2");
+            BuildFieldBackground(fieldRoot2.transform);
+            BuildPoint(fieldRoot2.transform, "InvestigationPoint_Panel", new Vector2(-3.6f, -0.6f),
+                new Vector2(1.6f, 2.6f), new Color(0.42f, 0.46f, 0.52f),
+                "field.test.panel", "field.test.panel.result", "clue_test_003");
+            BuildPoint(fieldRoot2.transform, "InvestigationPoint_Mirror", new Vector2(3.4f, 0.4f),
+                new Vector2(2.4f, 3.2f), new Color(0.30f, 0.38f, 0.42f),
+                "field.test.mirror", "field.test.mirror.result", null);
+
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();
             var fieldSo = new SerializedObject(field);
             fieldSo.Update();
-            fieldSo.FindProperty("_fieldRoot").objectReferenceValue = fieldRoot;
+            var groups = fieldSo.FindProperty("_fieldGroups");
+            groups.arraySize = 2;
+            var g0 = groups.GetArrayElementAtIndex(0);
+            g0.FindPropertyRelative("legendId").stringValue = "legend_test_001";
+            g0.FindPropertyRelative("root").objectReferenceValue = fieldRoot;
+            var g1 = groups.GetArrayElementAtIndex(1);
+            g1.FindPropertyRelative("legendId").stringValue = "legend_test_002";
+            g1.FindPropertyRelative("root").objectReferenceValue = fieldRoot2;
             fieldSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 화면 ---
             var title = BuildPanelScreen("Screen_Title", UILayer.Screen, out var titleButtons, true);
             var bureau = BuildPanelScreen("Screen_Bureau", UILayer.Screen, out var bureauButtons, true);
+            var caseList = BuildCaseListScreen("Screen_CaseList");
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildHudScreen("Screen_FieldHud");
@@ -91,7 +109,7 @@ namespace UrbanLegendBureau.EditorTools
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
 
-            var btnStart = CreateButton(titleButtons, "Btn_StartCase", "ui.slice.btn_start_case");
+            var btnStart = CreateButton(titleButtons, "Btn_StartCase", "ui.case.btn_cases");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
             var btnField = CreateButton(internetButtons, "Btn_EnterField", "ui.slice.btn_enter_field");
             var btnCensor = CreateButton(pageButtons, "Btn_Censor", "ui.net.btn_censor");
@@ -108,6 +126,7 @@ namespace UrbanLegendBureau.EditorTools
             var dso = new SerializedObject(director);
             dso.Update();
             dso.FindProperty("_titleScreen").objectReferenceValue = title;
+            dso.FindProperty("_caseListScreen").objectReferenceValue = caseList;
             dso.FindProperty("_bureauScreen").objectReferenceValue = bureau;
             dso.FindProperty("_internetListScreen").objectReferenceValue = internetList;
             dso.FindProperty("_internetPageScreen").objectReferenceValue = internetPage;
@@ -121,7 +140,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_field").objectReferenceValue = field;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartCaseClicked);
+            UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnOpenCaseListClicked);
             UnityEventTools.AddPersistentListener(btnInternet.GetComponent<Button>().onClick, director.OnInternetResearchClicked);
             UnityEventTools.AddPersistentListener(btnField.GetComponent<Button>().onClick, director.OnEnterFieldClicked);
             // 상세 화면이 검열 버튼을 직접 숨기고 보여야 하므로 참조를 넘겨 둔다.
@@ -254,6 +273,78 @@ namespace UrbanLegendBureau.EditorTools
 
             buttonRow = row.transform;
             return screen;
+        }
+
+        /// <summary>사건 목록 화면.</summary>
+        private static CaseListScreen BuildCaseListScreen(string name)
+        {
+            var go = CreatePanel(null, name, PanelColor);
+            StretchFull(go);
+
+            var screen = go.AddComponent<CaseListScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 380f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
+            var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 300f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
+
+            var listRt = BuildListRoot(go.transform, new Vector2(0f, 230f), new Vector2(1200f, 440f));
+            var templateButton = BuildItemTemplate(listRt, new Vector2(1100f, 140f), 28f);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_footerText").objectReferenceValue = footerText;
+            so.FindProperty("_listRoot").objectReferenceValue = listRt;
+            so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return screen;
+        }
+
+        /// <summary>세로 목록 영역을 만든다.</summary>
+        private static RectTransform BuildListRoot(Transform parent, Vector2 anchoredPosition, Vector2 size)
+        {
+            var listGo = new GameObject("List", typeof(RectTransform));
+            listGo.transform.SetParent(parent, false);
+            var listRt = (RectTransform)listGo.transform;
+            listRt.anchorMin = new Vector2(0.5f, 0.5f);
+            listRt.anchorMax = new Vector2(0.5f, 0.5f);
+            listRt.pivot = new Vector2(0.5f, 1f);
+            listRt.anchoredPosition = anchoredPosition;
+            listRt.sizeDelta = size;
+
+            var layout = listGo.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = 16f;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = false;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            return listRt;
+        }
+
+        /// <summary>복제용 항목 버튼을 만든다. 비활성 상태로 둔다.</summary>
+        private static Button BuildItemTemplate(Transform parent, Vector2 size, float fontSize)
+        {
+            var template = CreatePanel(parent, "ItemTemplate", ButtonColor);
+            var button = template.AddComponent<Button>();
+            button.targetGraphic = template.GetComponent<Image>();
+
+            var rt = (RectTransform)template.transform;
+            rt.sizeDelta = size;
+
+            var label = AddText(template.transform, "ItemLabel", fontSize, UIFontWeight.Medium, TextColor,
+                Vector2.zero, size, TextAlignmentOptions.Center);
+            var lrt = (RectTransform)label.transform;
+            lrt.anchorMin = Vector2.zero;
+            lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = new Vector2(20f, 8f);
+            lrt.offsetMax = new Vector2(-20f, -8f);
+
+            template.SetActive(false);
+            return button;
         }
 
         /// <summary>인터넷 게시글 목록 화면. 항목 버튼은 템플릿을 복제해 런타임에 만든다.</summary>

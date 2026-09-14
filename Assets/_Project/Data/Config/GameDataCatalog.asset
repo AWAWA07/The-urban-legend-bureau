@@ -12,14 +12,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c039364d1f6036a49aaada837cef692f, type: 3}
   m_Name: GameDataCatalog
   m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.GameDataCatalogSO
+  _cases:
+  - {fileID: 11400000, guid: cbd9fd7ab9f3f834aa8878f41028316a, type: 2}
+  - {fileID: 11400000, guid: 5a43d89e6ccc6d549a59d7815e3b3652, type: 2}
   _legends:
   - {fileID: 11400000, guid: 818f1078420be744eacafde4488ab796, type: 2}
+  - {fileID: 11400000, guid: 1b0e27b507c5d8343b9641f31da88ae7, type: 2}
   _rules:
   - {fileID: 11400000, guid: d2d23c5a3adc0564e905000ca950fe4a, type: 2}
   - {fileID: 11400000, guid: 999ec248f9b19ed48bc6672889baf234, type: 2}
+  - {fileID: 11400000, guid: cbe713e3144d8cc41b1100ca05e11e3b, type: 2}
   _clues:
   - {fileID: 11400000, guid: aace8366727ee10418714c6673d6613c, type: 2}
   - {fileID: 11400000, guid: 61d675c168376604f8a8e302d7cc9a5c, type: 2}
+  - {fileID: 11400000, guid: fbfcfed9f316e4243a344e26e21fd3fc, type: 2}
   _webPages:
   - {fileID: 11400000, guid: a5e058e5f8580004a851d4861d38b4bb, type: 2}
   - {fileID: 11400000, guid: caf327726b3155e40a36523c300c8fbe, type: 2}
+  - {fileID: 11400000, guid: 225ad01d109ae504f89de82416d38f79, type: 2}
