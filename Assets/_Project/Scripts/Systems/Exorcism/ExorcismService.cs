@@ -86,8 +86,19 @@ namespace UrbanLegendBureau.Systems
             return SealResult.Success;
         }
 
-        /// <summary>이 괴담에서 플레이어가 알아낸 규칙들.</summary>
+        /// <summary>이 괴담에서 플레이어가 알아낸 규칙들. 정답과 함정이 섞여 있을 수 있다.</summary>
         public List<RuleSO> GetDeducedRules(SaveData save, string legendId)
+        {
+            return CollectDeduced(save, legendId, onlyTrue: false);
+        }
+
+        /// <summary>이 괴담에서 알아낸 규칙 중 올바른 것들. 봉인의 근거가 된다.</summary>
+        public List<RuleSO> GetDeducedTrueRules(SaveData save, string legendId)
+        {
+            return CollectDeduced(save, legendId, onlyTrue: true);
+        }
+
+        private List<RuleSO> CollectDeduced(SaveData save, string legendId, bool onlyTrue)
         {
             var result = new List<RuleSO>();
             if (save == null || save.deducedRuleIds == null) return result;
@@ -98,7 +109,10 @@ namespace UrbanLegendBureau.Systems
             foreach (var rule in legend.Rules)
             {
                 if (rule == null || string.IsNullOrEmpty(rule.RuleId)) continue;
-                if (save.deducedRuleIds.Contains(rule.RuleId)) result.Add(rule);
+                if (!save.deducedRuleIds.Contains(rule.RuleId)) continue;
+                if (onlyTrue && !rule.IsTrue) continue;
+
+                result.Add(rule);
             }
             return result;
         }
@@ -119,10 +133,14 @@ namespace UrbanLegendBureau.Systems
 
             if (IsSealed(save, legendId)) return SealResult.AlreadySealed;
 
-            // 이 괴담의 규칙 중 하나라도 추론했는가.
-            if (GetDeducedRules(save, legendId).Count == 0) return SealResult.RuleNotFound;
+            // 올바른 규칙을 하나라도 알아야 봉인할 수 있다.
+            // 함정 규칙만 붙들고 있으면 봉인되지 않는다 — 그게 이 게임의 핵심이다.
+            if (GetDeducedTrueRules(save, legendId).Count > 0) return SealResult.Success;
 
-            return SealResult.Success;
+            // 규칙을 알긴 아는데 전부 틀렸다면, 아무것도 모르는 것과 구분해 알려준다.
+            if (GetDeducedRules(save, legendId).Count > 0) return SealResult.FalseRuleOnly;
+
+            return SealResult.RuleNotFound;
         }
 
         private LegendSO FindLegend(string legendId)

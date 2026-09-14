@@ -120,3 +120,12 @@ ui.seal.no_rule	괴담의 규칙을 파악하지 못했습니다.	You have not w
 ui.seal.failed	봉인에 실패했습니다.	The sealing failed.	기타 실패
 ui.seal.label_censored	검열한 게시글	Censored Posts	결과 화면
 ui.seal.btn_seal	괴담 봉인	Seal the Legend	
+
+# --- 12단계: 함정 규칙 ---
+clue.test.002.text	벽에 갈겨쓴 목격담 낙서	Scrawled eyewitness graffiti on the wall	오답 규칙의 근거
+rule.test.002.text	자정 전에 이름을 세 번 부르면 나타난다.	Say the name three times before midnight and it appears.	함정 규칙 (오답)
+ui.rule.correct	정확	Verified	규칙 목록 표식
+ui.rule.wrong	오류	Mistaken	규칙 목록 표식
+ui.seal.state_false_only	올바른 규칙 없음	No verified rule	
+ui.seal.false_only	확인된 규칙은 있지만 올바른 규칙을 찾지 못했습니다.	You have rules, but none of them are the verified one.	봉인 실패 안내
+ui.seal.need_true_rule	괴담의 올바른 규칙을 파악하지 못했습니다.	You have not identified the legend true rule.	

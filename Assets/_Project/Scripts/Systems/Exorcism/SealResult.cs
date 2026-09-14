@@ -22,7 +22,10 @@ namespace UrbanLegendBureau.Systems
         RuleNotFound = 3,
 
         /// <summary>저장 데이터가 없어 판단할 수 없다.</summary>
-        NoSaveData = 4
+        NoSaveData = 4,
+
+        /// <summary>규칙은 알아냈지만 전부 함정 규칙이다. 올바른 규칙을 더 찾아야 한다.</summary>
+        FalseRuleOnly = 5
     }
 
     public static class SealResultExtensions
@@ -37,6 +40,7 @@ namespace UrbanLegendBureau.Systems
                 case SealResult.Success: return "ui.seal.success";
                 case SealResult.AlreadySealed: return "ui.seal.already";
                 case SealResult.RuleNotFound: return "ui.seal.no_rule";
+                case SealResult.FalseRuleOnly: return "ui.seal.false_only";
                 default: return "ui.seal.failed";
             }
         }

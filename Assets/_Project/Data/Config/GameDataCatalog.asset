@@ -16,8 +16,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 818f1078420be744eacafde4488ab796, type: 2}
   _rules:
   - {fileID: 11400000, guid: d2d23c5a3adc0564e905000ca950fe4a, type: 2}
+  - {fileID: 11400000, guid: 999ec248f9b19ed48bc6672889baf234, type: 2}
   _clues:
   - {fileID: 11400000, guid: aace8366727ee10418714c6673d6613c, type: 2}
+  - {fileID: 11400000, guid: 61d675c168376604f8a8e302d7cc9a5c, type: 2}
   _webPages:
   - {fileID: 11400000, guid: a5e058e5f8580004a851d4861d38b4bb, type: 2}
   - {fileID: 11400000, guid: caf327726b3155e40a36523c300c8fbe, type: 2}

@@ -168,6 +168,64 @@ namespace UrbanLegendBureau.Systems
             return result;
         }
 
+        // ------------------------------------------------------------- 정답 / 오답
+
+        /// <summary>올바른 규칙인가. 없는 규칙이면 false.</summary>
+        public bool IsRuleTrue(string ruleId)
+        {
+            var rule = GetRuleQuiet(ruleId);
+            return rule != null && rule.IsTrue;
+        }
+
+        /// <summary>함정 규칙인가. 없는 규칙이면 false. (IsRuleTrue의 단순 반대가 아니다)</summary>
+        public bool IsRuleFalse(string ruleId)
+        {
+            var rule = GetRuleQuiet(ruleId);
+            return rule != null && !rule.IsTrue;
+        }
+
+        /// <summary>플레이어가 추론한 모든 규칙. 괴담을 가리지 않는다.</summary>
+        public IReadOnlyList<RuleSO> GetDeducedRules(SaveData save)
+        {
+            var result = new List<RuleSO>();
+            if (save == null || save.deducedRuleIds == null) return result;
+
+            for (int i = 0; i < save.deducedRuleIds.Count; i++)
+            {
+                var rule = GetRuleQuiet(save.deducedRuleIds[i]);
+                if (rule != null) result.Add(rule);
+            }
+            return result;
+        }
+
+        /// <summary>이 괴담에서 추론한 규칙 중 올바른 것들.</summary>
+        public IReadOnlyList<RuleSO> GetDeducedTrueRules(SaveData save, LegendSO legend)
+        {
+            return FilterDeduced(save, legend, wantTrue: true);
+        }
+
+        /// <summary>이 괴담에서 추론한 규칙 중 함정인 것들.</summary>
+        public IReadOnlyList<RuleSO> GetDeducedFalseRules(SaveData save, LegendSO legend)
+        {
+            return FilterDeduced(save, legend, wantTrue: false);
+        }
+
+        private static List<RuleSO> FilterDeduced(SaveData save, LegendSO legend, bool wantTrue)
+        {
+            var result = new List<RuleSO>();
+            if (save == null || save.deducedRuleIds == null || legend == null) return result;
+
+            foreach (var rule in legend.Rules)
+            {
+                if (rule == null || string.IsNullOrEmpty(rule.RuleId)) continue;
+                if (!save.deducedRuleIds.Contains(rule.RuleId)) continue;
+                if (rule.IsTrue != wantTrue) continue;
+
+                result.Add(rule);
+            }
+            return result;
+        }
+
         public bool IsRuleDeduced(SaveService save, string ruleId)
         {
             if (save == null || save.Current == null || string.IsNullOrEmpty(ruleId)) return false;

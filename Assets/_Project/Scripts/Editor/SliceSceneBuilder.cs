@@ -71,7 +71,7 @@ namespace UrbanLegendBureau.EditorTools
                 "field.test.phone", "field.test.phone.result", "clue_test_001");
             var wall = BuildPoint(fieldRoot.transform, "InvestigationPoint_Wall", new Vector2(4.2f, 1.4f),
                 new Vector2(2.6f, 1.6f), new Color(0.48f, 0.30f, 0.34f),
-                "field.test.wall", "field.test.wall.result", null);
+                "field.test.wall", "field.test.wall.result", "clue_test_002");   // 오답 규칙의 근거
 
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();

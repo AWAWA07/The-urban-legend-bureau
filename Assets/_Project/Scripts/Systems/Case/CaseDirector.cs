@@ -91,6 +91,10 @@ namespace UrbanLegendBureau.Systems
         private const string SealStateDoneTextId = "ui.seal.state_done";
         private const string SealNoRuleTextId = "ui.seal.no_rule";
         private const string LabelCensoredTextId = "ui.seal.label_censored";
+        private const string RuleCorrectTextId = "ui.rule.correct";
+        private const string RuleWrongTextId = "ui.rule.wrong";
+        private const string SealStateFalseOnlyTextId = "ui.seal.state_false_only";
+        private const string SealNeedTrueRuleTextId = "ui.seal.need_true_rule";
 
         private void Start()
         {
@@ -369,12 +373,21 @@ namespace UrbanLegendBureau.Systems
             return _exorcism != null && _exorcism.CanSeal(_save.Current, _legendId);
         }
 
-        /// <summary>봉인 전에는 봉인 버튼만, 봉인 후에는 확인 버튼만 보인다.</summary>
+        /// <summary>
+        /// 봉인 전에는 봉인 버튼만, 봉인 후에는 확인 버튼만 보인다.
+        /// 올바른 규칙이 없으면 봉인 버튼을 눌러도 소용없으므로 비활성화한다.
+        /// </summary>
         private void RefreshExorcismButtons()
         {
             bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
 
-            if (_sealButton != null) _sealButton.SetActive(!sealed_);
+            if (_sealButton != null)
+            {
+                _sealButton.SetActive(!sealed_);
+                var button = _sealButton.GetComponent<UnityEngine.UI.Button>();
+                if (button != null) button.interactable = CanSealNow();
+            }
+
             if (_sealConfirmButton != null) _sealConfirmButton.SetActive(sealed_);
         }
 
@@ -387,7 +400,30 @@ namespace UrbanLegendBureau.Systems
             sb.AppendLine(BuildStatsLine());
             sb.AppendLine();
 
+            sb.Append(BuildRuleListWithMarks());
+
+            sb.AppendLine();
+            sb.Append(_loc.Get(LabelSealStateTextId) + ": " + _loc.Get(GetSealStateTextId()));
+
+            // 규칙은 있는데 전부 틀렸다면 왜 봉인이 안 되는지 알려준다.
+            if (_exorcism != null
+                && !_exorcism.IsSealed(_save.Current, _legendId)
+                && !CanSealNow()
+                && _exorcism.GetDeducedRules(_save.Current, _legendId).Count > 0)
+            {
+                sb.AppendLine();
+                sb.Append(_loc.Get(SealNeedTrueRuleTextId));
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>확인한 규칙을 정확/오류 표식과 함께 나열한다.</summary>
+        private string BuildRuleListWithMarks()
+        {
+            var sb = new StringBuilder();
             sb.AppendLine(_loc.Get(RuleListTextId));
+
             var rules = _exorcism != null
                 ? _exorcism.GetDeducedRules(_save.Current, _legendId)
                 : new List<RuleSO>();
@@ -395,18 +431,27 @@ namespace UrbanLegendBureau.Systems
             if (rules.Count == 0)
             {
                 sb.AppendLine("- " + _loc.Get(SealNoRuleTextId));
+                return sb.ToString();
             }
-            else
+
+            foreach (var rule in rules)
             {
-                foreach (var rule in rules) sb.AppendLine("- " + _loc.Get(rule.RuleTextId));
+                string mark = _loc.Get(rule.IsTrue ? RuleCorrectTextId : RuleWrongTextId);
+                sb.AppendLine($"- [{mark}] {_loc.Get(rule.RuleTextId)}");
             }
-
-            sb.AppendLine();
-            bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
-            sb.Append(_loc.Get(LabelSealStateTextId) + ": " +
-                      _loc.Get(sealed_ ? SealStateDoneTextId : (CanSealNow() ? SealStateReadyTextId : SealStateBlockedTextId)));
-
             return sb.ToString();
+        }
+
+        /// <summary>봉인 상태 표시 문구의 ID. 봉인 완료 / 봉인 가능 / 올바른 규칙 없음 / 봉인 불가.</summary>
+        private string GetSealStateTextId()
+        {
+            if (_exorcism == null) return SealStateBlockedTextId;
+            if (_exorcism.IsSealed(_save.Current, _legendId)) return SealStateDoneTextId;
+            if (CanSealNow()) return SealStateReadyTextId;
+
+            return _exorcism.GetDeducedRules(_save.Current, _legendId).Count > 0
+                ? SealStateFalseOnlyTextId
+                : SealStateBlockedTextId;
         }
 
         /// <summary>결과 화면의 타이틀 복귀 버튼.</summary>
@@ -499,22 +544,6 @@ namespace UrbanLegendBureau.Systems
             return sb.ToString();
         }
 
-        /// <summary>결과 화면에 표시할 확인된 규칙 목록.</summary>
-        private string BuildDeducedRuleList()
-        {
-            var ids = _save.Current.deducedRuleIds;
-            if (ids.Count == 0) return string.Empty;
-
-            var sb = new StringBuilder();
-            sb.AppendLine(_loc.Get(RuleListTextId));
-            for (int i = 0; i < ids.Count; i++)
-            {
-                var rule = _rules != null ? _rules.GetRule(ids[i]) : null;
-                sb.AppendLine("- " + (rule != null ? _loc.Get(rule.RuleTextId) : ids[i]));
-            }
-            return sb.ToString();
-        }
-
         private void CompleteCase()
         {
             CaseFlow.SetStep(_save, CaseStep.ClueAcquired);
@@ -555,11 +584,10 @@ namespace UrbanLegendBureau.Systems
                 sb.AppendLine("- " + ResolveClueText(acquired[i]));
             }
 
-            var ruleList = BuildDeducedRuleList();
-            if (!string.IsNullOrEmpty(ruleList))
+            if (_save.Current.deducedRuleIds.Count > 0)
             {
                 sb.AppendLine();
-                sb.Append(ruleList);
+                sb.Append(BuildRuleListWithMarks());
             }
 
             // 검열한 게시글
