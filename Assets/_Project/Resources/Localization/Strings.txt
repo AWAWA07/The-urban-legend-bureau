@@ -107,3 +107,16 @@ ui.net.label_spread	괴담 확산도	Spread	수치 표시줄
 ui.net.label_belief	믿음도	Belief	수치 표시줄
 ui.net.censor_ok_feedback	검열했습니다. 괴담의 확산이 줄었습니다.	Censored. The spread has been reduced.	정상 검열 피드백
 ui.net.censor_wrong_feedback	잘못된 검열입니다. 괴담의 확산이 증가했습니다.	Wrong target. The spread has increased.	오검열 피드백
+
+# --- 11단계: 퇴마 / 봉인 ---
+ui.seal.title	괴담 봉인	Sealing the Legend	봉인 화면
+ui.seal.label_state	괴담 상태	Legend Status	
+ui.seal.state_ready	봉인 가능	Ready to seal	
+ui.seal.state_blocked	봉인 불가	Cannot seal	
+ui.seal.state_done	봉인 완료	Sealed	
+ui.seal.success	괴담이 봉인되었습니다.	The legend has been sealed.	성공 피드백
+ui.seal.already	이미 봉인된 괴담입니다.	This legend is already sealed.	
+ui.seal.no_rule	괴담의 규칙을 파악하지 못했습니다.	You have not worked out the legend rule.	
+ui.seal.failed	봉인에 실패했습니다.	The sealing failed.	기타 실패
+ui.seal.label_censored	검열한 게시글	Censored Posts	결과 화면
+ui.seal.btn_seal	괴담 봉인	Seal the Legend	

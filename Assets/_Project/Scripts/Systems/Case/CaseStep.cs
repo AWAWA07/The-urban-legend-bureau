@@ -25,7 +25,10 @@ namespace UrbanLegendBureau.Systems
         /// <summary>괴담의 규칙을 추론했다.</summary>
         RuleDeduction = 5,
 
+        /// <summary>퇴마/봉인 단계.</summary>
+        Exorcism = 6,
+
         /// <summary>사건 종료.</summary>
-        Completed = 6
+        Completed = 7
     }
 }

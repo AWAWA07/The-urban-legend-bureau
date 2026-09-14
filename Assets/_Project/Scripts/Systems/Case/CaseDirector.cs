@@ -32,7 +32,12 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _fieldHudScreen;
         [SerializeField] private TextPanelScreen _cluePopupScreen;
         [SerializeField] private TextPanelScreen _rulePopupScreen;
+        [SerializeField] private TextPanelScreen _exorcismScreen;
         [SerializeField] private TextPanelScreen _resultScreen;
+
+        [Header("봉인 화면 버튼")]
+        [SerializeField] private GameObject _sealButton;
+        [SerializeField] private GameObject _sealConfirmButton;
 
         [Header("현장")]
         [SerializeField] private FieldController _field;
@@ -44,10 +49,12 @@ namespace UrbanLegendBureau.Systems
         private InternetService _internet;
         private SpreadService _spread;
         private BeliefService _belief;
+        private ExorcismService _exorcism;
         private LocalizationService _loc;
 
         private LegendSO _legend;
         private string _pendingClueId;
+        private string _sealFeedbackTextId;
 
         // --- 화면 문구 String ID ---
         private const string TitleTextId = "ui.slice.title";
@@ -77,6 +84,13 @@ namespace UrbanLegendBureau.Systems
         private const string CensorWrongTextId = "ui.net.censor_wrong_feedback";
         private const string LabelSpreadTextId = "ui.net.label_spread";
         private const string LabelBeliefTextId = "ui.net.label_belief";
+        private const string ExorcismTitleTextId = "ui.seal.title";
+        private const string LabelSealStateTextId = "ui.seal.label_state";
+        private const string SealStateReadyTextId = "ui.seal.state_ready";
+        private const string SealStateBlockedTextId = "ui.seal.state_blocked";
+        private const string SealStateDoneTextId = "ui.seal.state_done";
+        private const string SealNoRuleTextId = "ui.seal.no_rule";
+        private const string LabelCensoredTextId = "ui.seal.label_censored";
 
         private void Start()
         {
@@ -87,6 +101,7 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _internet);
             ServiceRegistry.TryGet(out _spread);
             ServiceRegistry.TryGet(out _belief);
+            ServiceRegistry.TryGet(out _exorcism);
             ServiceRegistry.TryGet(out _loc);
 
             if (_ui == null || _save == null || _legends == null || _loc == null)
@@ -297,11 +312,101 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
-        /// <summary>규칙 팝업의 확인 버튼.</summary>
+        /// <summary>규칙 팝업의 확인 버튼. 규칙을 알았으니 봉인 단계로 넘어간다.</summary>
         public void OnRulePopupConfirmClicked()
         {
             _ui.Close(_rulePopupScreen);
+            ShowExorcism();
+        }
+
+        // ------------------------------------------------------------- 봉인
+
+        private void ShowExorcism()
+        {
+            CaseFlow.SetStep(_save, CaseStep.Exorcism);
+
+            if (_field != null) _field.SetFieldVisible(false);
+
+            _sealFeedbackTextId = null;
+            _exorcismScreen.BindWithBodyProvider(ExorcismTitleTextId, BuildExorcismBody, null);
+            _ui.Replace(_exorcismScreen);
+
+            RefreshExorcismButtons();
+            Debug.Log($"[CaseDirector] 봉인 단계 | 봉인 가능={CanSealNow()} step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>봉인 화면의 [괴담 봉인] 버튼.</summary>
+        public void OnSealClicked()
+        {
+            if (_exorcism == null) return;
+
+            var result = _exorcism.TrySeal(_save.Current, _legendId);
+
+            if (result.IsSuccess())
+            {
+                // 봉인하면 확산은 멎는다. 믿음은 이번 단계에서 건드리지 않는다.
+                if (_spread != null) _spread.TrySetSpreadRate(_save.Current, _legendId, 0f);
+                _save.MarkDirty();
+            }
+
+            _sealFeedbackTextId = result.ToTextId();
+            _exorcismScreen.BindWithBodyProvider(ExorcismTitleTextId, BuildExorcismBody, _sealFeedbackTextId);
+            RefreshExorcismButtons();
+
+            Debug.Log($"[CaseDirector] 봉인 시도: {_legendId} -> {result} | " +
+                      $"isSealed={_exorcism.IsSealed(_save.Current, _legendId)} 확산={GetSpread():F0}");
+        }
+
+        /// <summary>봉인 화면의 확인 버튼. 봉인이 끝난 뒤에만 사건을 종료한다.</summary>
+        public void OnExorcismConfirmClicked()
+        {
+            if (_exorcism == null || !_exorcism.IsSealed(_save.Current, _legendId)) return;
             CompleteCase();
+        }
+
+        private bool CanSealNow()
+        {
+            return _exorcism != null && _exorcism.CanSeal(_save.Current, _legendId);
+        }
+
+        /// <summary>봉인 전에는 봉인 버튼만, 봉인 후에는 확인 버튼만 보인다.</summary>
+        private void RefreshExorcismButtons()
+        {
+            bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
+
+            if (_sealButton != null) _sealButton.SetActive(!sealed_);
+            if (_sealConfirmButton != null) _sealConfirmButton.SetActive(sealed_);
+        }
+
+        /// <summary>봉인 화면 본문: 괴담 / 수치 / 확인한 규칙 / 봉인 가능 여부.</summary>
+        private string BuildExorcismBody()
+        {
+            var sb = new StringBuilder();
+
+            if (_legend != null) sb.AppendLine(_loc.Get(_legend.NameTextId));
+            sb.AppendLine(BuildStatsLine());
+            sb.AppendLine();
+
+            sb.AppendLine(_loc.Get(RuleListTextId));
+            var rules = _exorcism != null
+                ? _exorcism.GetDeducedRules(_save.Current, _legendId)
+                : new List<RuleSO>();
+
+            if (rules.Count == 0)
+            {
+                sb.AppendLine("- " + _loc.Get(SealNoRuleTextId));
+            }
+            else
+            {
+                foreach (var rule in rules) sb.AppendLine("- " + _loc.Get(rule.RuleTextId));
+            }
+
+            sb.AppendLine();
+            bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
+            sb.Append(_loc.Get(LabelSealStateTextId) + ": " +
+                      _loc.Get(sealed_ ? SealStateDoneTextId : (CanSealNow() ? SealStateReadyTextId : SealStateBlockedTextId)));
+
+            return sb.ToString();
         }
 
         /// <summary>결과 화면의 타이틀 복귀 버튼.</summary>
@@ -456,6 +561,25 @@ namespace UrbanLegendBureau.Systems
                 sb.AppendLine();
                 sb.Append(ruleList);
             }
+
+            // 검열한 게시글
+            var censored = _save.Current.censoredPageIds;
+            if (censored.Count > 0)
+            {
+                sb.AppendLine();
+                sb.AppendLine(_loc.Get(LabelCensoredTextId));
+                for (int i = 0; i < censored.Count; i++)
+                {
+                    sb.AppendLine("- " + ResolvePageTitle(censored[i]));
+                }
+            }
+
+            // 괴담 봉인 여부
+            bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
+            sb.AppendLine();
+            sb.Append(_loc.Get(LabelSealStateTextId) + ": " +
+                      _loc.Get(sealed_ ? SealStateDoneTextId : SealStateBlockedTextId));
+
             return sb.ToString();
         }
 
@@ -497,6 +621,13 @@ namespace UrbanLegendBureau.Systems
         {
             if (page == null || _internet == null) return false;
             return !_internet.IsCensored(_save.Current, page.PageId);
+        }
+
+        /// <summary>게시글 ID를 제목 문구로 바꾼다. 못 찾으면 ID 그대로 둔다.</summary>
+        private string ResolvePageTitle(string pageId)
+        {
+            var page = _internet != null ? _internet.GetPage(pageId) : null;
+            return page != null ? _loc.Get(page.TitleTextId) : pageId;
         }
 
         /// <summary>단서 ID를 괴담 데이터에서 찾아 표시 문구로 바꾼다.</summary>

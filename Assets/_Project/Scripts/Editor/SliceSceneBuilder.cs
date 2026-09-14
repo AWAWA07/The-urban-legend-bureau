@@ -86,6 +86,7 @@ namespace UrbanLegendBureau.EditorTools
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildHudScreen("Screen_FieldHud");
+            var exorcism = BuildPanelScreen("Screen_Exorcism", UILayer.Screen, out var exorcismButtons, true);
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -95,6 +96,8 @@ namespace UrbanLegendBureau.EditorTools
             var btnField = CreateButton(internetButtons, "Btn_EnterField", "ui.slice.btn_enter_field");
             var btnCensor = CreateButton(pageButtons, "Btn_Censor", "ui.net.btn_censor");
             var btnPageBack = CreateButton(pageButtons, "Btn_PageBack", "ui.net.btn_back");
+            var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
+            var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
             var btnBack = CreateButton(resultButtons, "Btn_BackToTitle", "ui.slice.btn_back_to_title");
             var btnClueOk = CreateButton(clueButtons, "Btn_ClueOk", "ui.common.ok");
             var btnRuleOk = CreateButton(ruleButtons, "Btn_RuleOk", "ui.common.ok");
@@ -111,6 +114,9 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_fieldHudScreen").objectReferenceValue = fieldHud;
             dso.FindProperty("_cluePopupScreen").objectReferenceValue = cluePopup;
             dso.FindProperty("_rulePopupScreen").objectReferenceValue = rulePopup;
+            dso.FindProperty("_exorcismScreen").objectReferenceValue = exorcism;
+            dso.FindProperty("_sealButton").objectReferenceValue = btnSeal;
+            dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
             dso.ApplyModifiedPropertiesWithoutUndo();
@@ -126,6 +132,8 @@ namespace UrbanLegendBureau.EditorTools
 
             UnityEventTools.AddPersistentListener(btnCensor.GetComponent<Button>().onClick, director.OnCensorClicked);
             UnityEventTools.AddPersistentListener(btnPageBack.GetComponent<Button>().onClick, director.OnPageBackClicked);
+            UnityEventTools.AddPersistentListener(btnSeal.GetComponent<Button>().onClick, director.OnSealClicked);
+            UnityEventTools.AddPersistentListener(btnSealOk.GetComponent<Button>().onClick, director.OnExorcismConfirmClicked);
             UnityEventTools.AddPersistentListener(btnBack.GetComponent<Button>().onClick, director.OnBackToTitleClicked);
             UnityEventTools.AddPersistentListener(btnClueOk.GetComponent<Button>().onClick, director.OnCluePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnRuleOk.GetComponent<Button>().onClick, director.OnRulePopupConfirmClicked);

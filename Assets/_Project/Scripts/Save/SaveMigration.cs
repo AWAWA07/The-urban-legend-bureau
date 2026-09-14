@@ -10,11 +10,12 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
-        // v1 에서 사건 종료를 뜻하던 단계 값. v2 에서 규칙 추론 단계가 끼어들며 밀렸다.
-        private const int V1CompletedStep = 5;
-        private const int V2CompletedStep = 6;
+        // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
+        private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
+        private const int V2CompletedStep = 6;   // v2: 봉인 단계가 없었다
+        private const int V3CompletedStep = 7;
 
         public enum Result
         {
@@ -59,6 +60,16 @@ namespace UrbanLegendBureau.Save
                     data.currentStepIndex = V2CompletedStep;
                 }
                 data.saveVersion = 2;
+            }
+
+            if (data.saveVersion == 2)
+            {
+                // v3에서 CaseStep에 Exorcism(6)이 추가되면서 Completed가 6 -> 7로 밀렸다.
+                if (data.currentStepIndex == V2CompletedStep)
+                {
+                    data.currentStepIndex = V3CompletedStep;
+                }
+                data.saveVersion = 3;
             }
 
             if (data.saveVersion < CurrentVersion)
