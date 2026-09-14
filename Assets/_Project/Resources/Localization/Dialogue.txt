@@ -1,0 +1,4 @@
+# 테스트용 대사 샘플. 실제 스토리 텍스트는 아직 작성하지 않는다.
+ID	ko	en	note
+dlg.jihan.test.001	또 올라왔네요. 이번엔 삭제가 안 됩니다.	It's up again. This one won't delete.	차지한
+dlg.hanyeong.test.001	믿는 사람이 늘면\n그건 더 이상 소문이 아니야.	Once enough people believe,\nit stops being a rumor.	한영 / 줄바꿈 테스트

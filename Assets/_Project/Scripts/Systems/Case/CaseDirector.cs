@@ -1,0 +1,429 @@
+using System.Collections.Generic;
+using System.Text;
+using UnityEngine;
+using UrbanLegendBureau.Core;
+using UrbanLegendBureau.Data;
+using UrbanLegendBureau.Localization;
+using UrbanLegendBureau.Save;
+using UrbanLegendBureau.UI;
+
+namespace UrbanLegendBureau.Systems
+{
+    /// <summary>
+    /// 첫 번째 Vertical Slice의 진행을 이어 붙이는 컴포넌트.
+    ///
+    /// 화면 전환은 기존 UIService, 데이터 조회는 기존 LegendService,
+    /// 진행 상태는 기존 SaveData를 쓴다. 새로 만든 것은 이 연결 코드뿐이다.
+    ///
+    /// 사건이 여러 개가 되면 이 역할은 CaseSO + CaseService로 옮겨간다.
+    /// 지금은 사건 하나를 관통시키는 것이 목적이라 최소 형태로 둔다.
+    /// </summary>
+    public class CaseDirector : MonoBehaviour
+    {
+        [Header("사건 데이터 (ID)")]
+        [SerializeField] private string _caseId = "case_test_001";
+        [SerializeField] private string _legendId = "legend_test_001";
+
+        [Header("화면")]
+        [SerializeField] private TextPanelScreen _titleScreen;
+        [SerializeField] private TextPanelScreen _bureauScreen;
+        [SerializeField] private InternetListScreen _internetListScreen;
+        [SerializeField] private InternetPageScreen _internetPageScreen;
+        [SerializeField] private TextPanelScreen _fieldHudScreen;
+        [SerializeField] private TextPanelScreen _cluePopupScreen;
+        [SerializeField] private TextPanelScreen _rulePopupScreen;
+        [SerializeField] private TextPanelScreen _resultScreen;
+
+        [Header("현장")]
+        [SerializeField] private FieldController _field;
+
+        private UIService _ui;
+        private SaveService _save;
+        private LegendService _legends;
+        private RuleService _rules;
+        private InternetService _internet;
+        private LocalizationService _loc;
+
+        private LegendSO _legend;
+        private string _pendingClueId;
+
+        // --- 화면 문구 String ID ---
+        private const string TitleTextId = "ui.slice.title";
+        private const string TitleBodyTextId = "case.test.001.title";
+        private const string TitleFooterNewTextId = "ui.slice.title_hint";
+        private const string TitleFooterDoneTextId = "ui.slice.already_completed";
+        private const string BureauTitleTextId = "ui.slice.bureau_title";
+        private const string InternetTitleTextId = "ui.slice.internet_title";
+        private const string InternetFooterTextId = "ui.slice.internet_hint";
+        private const string FieldTitleTextId = "ui.slice.field_title";
+        private const string FieldHintTextId = "ui.slice.field_hint";
+        private const string ClueAcquiredTextId = "ui.slice.clue_acquired";
+        private const string ClueDuplicateTextId = "ui.slice.clue_duplicate";
+        private const string NothingFoundTextId = "ui.slice.nothing_found";
+        private const string ResultTitleTextId = "ui.slice.case_complete";
+        private const string ResultFooterTextId = "ui.slice.result_hint";
+        private const string LabelRiskTextId = "ui.slice.label_risk";
+        private const string LabelClueTextId = "ui.slice.label_clue";
+        private const string RuleFoundTextId = "ui.slice.rule_found";
+        private const string RuleRelatedClueTextId = "ui.slice.rule_related_clue";
+        private const string RuleListTextId = "ui.slice.rule_list";
+        private const string CensorAvailableTextId = "ui.net.censor_available";
+        private const string CensorDoneTextId = "ui.net.censor_done";
+        private const string CensorBlockedTextId = "ui.net.censor_blocked";
+        private const string PageMissingTextId = "ui.net.page_missing";
+
+        private void Start()
+        {
+            ServiceRegistry.TryGet(out _ui);
+            ServiceRegistry.TryGet(out _save);
+            ServiceRegistry.TryGet(out _legends);
+            ServiceRegistry.TryGet(out _rules);
+            ServiceRegistry.TryGet(out _internet);
+            ServiceRegistry.TryGet(out _loc);
+
+            if (_ui == null || _save == null || _legends == null || _loc == null)
+            {
+                Debug.LogError("[CaseDirector] 필요한 서비스를 찾지 못했다. 씬에 GameRoot가 있는지 확인할 것.");
+                enabled = false;
+                return;
+            }
+
+            // 저장된 진행이 있으면 불러온다. 없으면 SaveService가 만든 새 데이터를 그대로 쓴다.
+            if (_save.HasSave() && _save.Load())
+            {
+                Debug.Log($"[CaseDirector] 저장 불러옴 | 완료된 사건 {_save.Current.completedCaseIds.Count}개, " +
+                          $"보유 단서 {_save.Current.acquiredClueIds.Count}개");
+            }
+
+            _legend = _legends.GetLegend(_legendId);
+            if (_legend == null)
+            {
+                Debug.LogError($"[CaseDirector] 괴담 '{_legendId}' 를 찾지 못했다. GameDataCatalog을 확인할 것.");
+            }
+
+            if (_field != null)
+            {
+                _field.Investigated += OnPointInvestigated;
+                _field.SetFieldVisible(false);
+            }
+
+            // 저장된 진행이 있어도 이번 단계에서는 타이틀부터 시작한다.
+            ShowTitle();
+        }
+
+        private void OnDestroy()
+        {
+            if (_field != null) _field.Investigated -= OnPointInvestigated;
+        }
+
+        // ------------------------------------------------------------- 화면 전환
+
+        private void ShowTitle()
+        {
+            bool completed = CaseFlow.IsCaseCompleted(_save, _caseId);
+            _titleScreen.Bind(TitleTextId, TitleBodyTextId,
+                completed ? TitleFooterDoneTextId : TitleFooterNewTextId);
+
+            if (_ui.Count == 0) _ui.Push(_titleScreen);
+            else _ui.Replace(_titleScreen);
+        }
+
+        /// <summary>타이틀의 조사 시작 버튼.</summary>
+        public void OnStartCaseClicked()
+        {
+            CaseFlow.StartCase(_save, _caseId, _legendId);
+            CaseFlow.SetStep(_save, CaseStep.LegendBriefing);
+
+            _bureauScreen.BindWithBodyProvider(BureauTitleTextId, BuildLegendBriefing);
+            _ui.Replace(_bureauScreen);
+
+            Debug.Log($"[CaseDirector] 사건 시작 | caseId={_caseId} step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>
+        public void OnInternetResearchClicked()
+        {
+            CaseFlow.SetStep(_save, CaseStep.InternetResearch);
+
+            _internetListScreen.Bind(
+                InternetTitleTextId, InternetFooterTextId,
+                GetCasePages(), BuildPageListLabel, OnPageSelected);
+
+            _ui.Replace(_internetListScreen);
+            Debug.Log($"[CaseDirector] 인터넷 조사 | 게시글 {GetCasePages().Count}개 | step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>목록에서 게시글을 골랐을 때.</summary>
+        private void OnPageSelected(WebPageSO page)
+        {
+            _internetPageScreen.Bind(page, BuildPageStatus, CanCensor);
+            _ui.Push(_internetPageScreen);
+            Debug.Log($"[CaseDirector] 게시글 열람: {(page != null ? page.PageId : "(없음)")}");
+        }
+
+        /// <summary>상세 화면의 검열 버튼.</summary>
+        public void OnCensorClicked()
+        {
+            var page = _internetPageScreen != null ? _internetPageScreen.CurrentPage : null;
+            if (page == null || _internet == null) return;
+
+            var result = _internet.TryCensorPage(_save, page.PageId);
+
+            // 검열 성공/실패와 무관하게 화면 상태를 즉시 다시 그린다.
+            _internetPageScreen.Refresh();
+            _internetListScreen.Refresh();
+
+            Debug.Log($"[CaseDirector] 검열 시도: {page.PageId} -> {result}" +
+                      (result.IsWrongAttempt() ? $" (잘못된 검열, 페널티 {_internet.GetWrongCensorPenalty(page.PageId)})" : string.Empty));
+        }
+
+        /// <summary>상세 화면의 목록 복귀 버튼.</summary>
+        public void OnPageBackClicked()
+        {
+            _ui.Close(_internetPageScreen);
+            _internetListScreen.Refresh();
+        }
+
+        /// <summary>인터넷 화면의 현장 이동 버튼.</summary>
+        public void OnEnterFieldClicked()
+        {
+            CaseFlow.SetStep(_save, CaseStep.FieldInvestigation);
+
+            _fieldHudScreen.Bind(FieldTitleTextId, FieldHintTextId);
+            _ui.Replace(_fieldHudScreen);
+
+            if (_field != null) _field.SetFieldVisible(true);
+            Debug.Log($"[CaseDirector] 현장 진입 | step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>단서 팝업의 확인 버튼.</summary>
+        public void OnCluePopupConfirmClicked()
+        {
+            _ui.Close(_cluePopupScreen);
+
+            if (string.IsNullOrEmpty(_pendingClueId))
+            {
+                // 단서가 없는 지점이었다. 현장 조사를 계속한다.
+                return;
+            }
+
+            _pendingClueId = null;
+
+            // 단서만으로는 사건이 끝나지 않는다. 규칙을 추론해야 종결할 수 있다.
+            if (!TryDeduceRules())
+            {
+                Debug.Log("[CaseDirector] 아직 추론할 수 있는 규칙이 없다. 현장 조사를 계속한다.");
+            }
+        }
+
+        /// <summary>규칙 팝업의 확인 버튼.</summary>
+        public void OnRulePopupConfirmClicked()
+        {
+            _ui.Close(_rulePopupScreen);
+            CompleteCase();
+        }
+
+        /// <summary>결과 화면의 타이틀 복귀 버튼.</summary>
+        public void OnBackToTitleClicked()
+        {
+            if (_field != null) _field.SetFieldVisible(false);
+            ShowTitle();
+        }
+
+        // ------------------------------------------------------------- 현장 조사
+
+        private void OnPointInvestigated(InvestigationPoint point)
+        {
+            if (point == null) return;
+
+            point.MarkInvestigated();
+
+            if (!point.HasClue)
+            {
+                _pendingClueId = null;
+                _cluePopupScreen.BindWithBodyProvider(NothingFoundTextId, () => _loc.Get(point.ResultTextId));
+                _ui.Push(_cluePopupScreen);
+                Debug.Log($"[CaseDirector] 조사: {point.name} - 단서 없음");
+                return;
+            }
+
+            bool acquired = CaseFlow.AcquireClue(_save, point.ClueId);
+
+            _pendingClueId = point.ClueId;
+            string clueId = point.ClueId;
+            _cluePopupScreen.BindWithBodyProvider(
+                acquired ? ClueAcquiredTextId : ClueDuplicateTextId,
+                () => ResolveClueText(clueId));
+            _ui.Push(_cluePopupScreen);
+
+            Debug.Log($"[CaseDirector] 조사: {point.name} - 단서 '{point.ClueId}' " +
+                      (acquired ? "획득" : "이미 보유(중복 추가 안 함)"));
+        }
+
+        // ------------------------------------------------------------- 규칙 추론
+
+        /// <summary>
+        /// 지금 보유한 단서로 추론할 수 있는 규칙을 해금한다.
+        /// 새로 해금한 규칙이 있으면 규칙 팝업을 띄우고 true를 돌려준다.
+        /// </summary>
+        private bool TryDeduceRules()
+        {
+            if (_rules == null) return false;
+
+            var candidates = _rules.GetDeduceableRules(_save, _legend);
+            if (candidates.Count == 0) return false;
+
+            var deduced = new List<RuleSO>();
+            foreach (var rule in candidates)
+            {
+                if (_rules.TryDeduceRule(_save, rule.RuleId))
+                {
+                    deduced.Add(rule);
+                    Debug.Log($"[CaseDirector] 규칙 해금: {rule.RuleId}");
+                }
+            }
+
+            if (deduced.Count == 0) return false;
+
+            CaseFlow.SetStep(_save, CaseStep.RuleDeduction);
+
+            _rulePopupScreen.BindWithBodyProvider(RuleFoundTextId, () => BuildRuleBody(deduced));
+            _ui.Push(_rulePopupScreen);
+            return true;
+        }
+
+        /// <summary>규칙 문구 + 근거가 된 단서를 함께 보여준다.</summary>
+        private string BuildRuleBody(List<RuleSO> rules)
+        {
+            var sb = new StringBuilder();
+            for (int i = 0; i < rules.Count; i++)
+            {
+                var rule = rules[i];
+                if (i > 0) sb.AppendLine();
+                sb.AppendLine(_loc.Get(rule.RuleTextId));
+                sb.AppendLine();
+                sb.AppendLine(_loc.Get(RuleRelatedClueTextId));
+
+                var required = rule.RequiredClueIds;
+                for (int c = 0; c < required.Count; c++)
+                {
+                    sb.AppendLine("- " + ResolveClueText(required[c]));
+                }
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>결과 화면에 표시할 확인된 규칙 목록.</summary>
+        private string BuildDeducedRuleList()
+        {
+            var ids = _save.Current.deducedRuleIds;
+            if (ids.Count == 0) return string.Empty;
+
+            var sb = new StringBuilder();
+            sb.AppendLine(_loc.Get(RuleListTextId));
+            for (int i = 0; i < ids.Count; i++)
+            {
+                var rule = _rules != null ? _rules.GetRule(ids[i]) : null;
+                sb.AppendLine("- " + (rule != null ? _loc.Get(rule.RuleTextId) : ids[i]));
+            }
+            return sb.ToString();
+        }
+
+        private void CompleteCase()
+        {
+            CaseFlow.SetStep(_save, CaseStep.ClueAcquired);
+            bool newlyCompleted = CaseFlow.CompleteCase(_save, _caseId);
+
+            if (_field != null) _field.SetFieldVisible(false);
+
+            _resultScreen.BindWithBodyProvider(ResultTitleTextId, BuildResultBody, ResultFooterTextId);
+            _ui.Replace(_resultScreen);
+
+            Debug.Log($"[CaseDirector] 사건 종료 | caseId={_caseId} 신규완료={newlyCompleted} " +
+                      $"step={CaseFlow.GetStep(_save)} 저장됨");
+        }
+
+        // ------------------------------------------------------------- 텍스트 조립
+
+        private string BuildLegendBriefing()
+        {
+            if (_legend == null) return _loc.Get(NothingFoundTextId);
+
+            var sb = new StringBuilder();
+            sb.AppendLine(_loc.Get(_legend.NameTextId));
+            sb.AppendLine();
+            sb.AppendLine(_loc.Get(LabelRiskTextId) + ": " + _loc.Get(_legend.RiskLevelTextId));
+            sb.AppendLine();
+            sb.Append(_loc.Get(_legend.DescriptionTextId));
+            return sb.ToString();
+        }
+
+        private string BuildResultBody()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(_loc.Get(LabelClueTextId));
+
+            var acquired = _save.Current.acquiredClueIds;
+            for (int i = 0; i < acquired.Count; i++)
+            {
+                sb.AppendLine("- " + ResolveClueText(acquired[i]));
+            }
+
+            var ruleList = BuildDeducedRuleList();
+            if (!string.IsNullOrEmpty(ruleList))
+            {
+                sb.AppendLine();
+                sb.Append(ruleList);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>이번 사건에서 볼 수 있는 게시글. 괴담 데이터에 연결된 것만 보여준다.</summary>
+        private List<WebPageSO> GetCasePages()
+        {
+            var result = new List<WebPageSO>();
+            if (_legend == null) return result;
+
+            foreach (var page in _legend.WebPages)
+            {
+                if (page != null) result.Add(page);
+            }
+            return result;
+        }
+
+        /// <summary>목록 항목 문구: 제목 + 현재 상태.</summary>
+        private string BuildPageListLabel(WebPageSO page)
+        {
+            if (page == null) return _loc.Get(PageMissingTextId);
+            return _loc.Get(page.TitleTextId) + "\n" + BuildPageStatus(page);
+        }
+
+        /// <summary>검열 가능 / 검열 완료 / 검열 불가 중 현재 상태.</summary>
+        private string BuildPageStatus(WebPageSO page)
+        {
+            if (page == null || _internet == null) return _loc.Get(PageMissingTextId);
+
+            if (_internet.IsCensored(_save.Current, page.PageId)) return _loc.Get(CensorDoneTextId);
+            if (!_internet.IsCensorable(page)) return _loc.Get(CensorBlockedTextId);
+            return _loc.Get(CensorAvailableTextId);
+        }
+
+        private bool CanCensor(WebPageSO page)
+        {
+            return page != null && _internet != null && _internet.CanCensorNow(_save, page.PageId);
+        }
+
+        /// <summary>단서 ID를 괴담 데이터에서 찾아 표시 문구로 바꾼다.</summary>
+        private string ResolveClueText(string clueId)
+        {
+            if (_legend != null)
+            {
+                foreach (var clue in _legend.Clues)
+                {
+                    if (clue != null && clue.ClueId == clueId) return _loc.Get(clue.ClueTextId);
+                }
+            }
+            return clueId;
+        }
+    }
+}

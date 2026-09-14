@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "unity": {
+      "command": "uvx",
+      "args": [
+        "--prerelease", "explicit",
+        "--from", "mcpforunityserver>=0.0.0a0",
+        "mcp-for-unity"
+      ]
+    }
+  }
+}
