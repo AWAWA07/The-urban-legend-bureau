@@ -332,7 +332,10 @@ namespace UrbanLegendBureau.UI
                 // 목록 높이가 아직 갱신되지 않은 채로 위치를 잡으면 엉뚱한 곳에 멈춘다.
                 // 배치를 먼저 확정한 뒤 맨 아래로 내린다.
                 Canvas.ForceUpdateCanvases();
-                if (_commentRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentRoot);
+                // 댓글 쓰기 칸까지 한 덩어리로 굴러가므로 덩어리 전체를 다시 배치한다.
+                var content = _commentScroll.content;
+                if (content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+                else if (_commentRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentRoot);
 
                 _commentScroll.verticalNormalizedPosition = 0f;
             }
