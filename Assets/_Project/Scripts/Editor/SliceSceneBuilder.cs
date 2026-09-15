@@ -856,6 +856,9 @@ namespace UrbanLegendBureau.EditorTools
         /// 차지한의 컴퓨터 바탕화면.
         /// 아이콘 다섯 개 중 지금 열리는 것은 괴담넷뿐이다. 나머지는 자리만 잡아 둔다.
         /// </summary>
+        /// <summary>바탕화면 작업 표시줄의 높이. 괴담넷 창이 이만큼 자리를 비운다.</summary>
+        private const float DesktopTaskbarHeight = 56f;
+
         private static DesktopScreen BuildDesktopScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.10f, 0.13f, 0.20f, 1f));
@@ -864,14 +867,14 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<DesktopScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
-            // 작업 표시줄
+            // 작업 표시줄. 괴담넷 창은 이 자리를 비워 두므로 창을 열어도 계속 보인다.
             var taskbar = CreatePanel(go.transform, "Taskbar", new Color(0.07f, 0.09f, 0.14f, 1f));
             var tbRt = (RectTransform)taskbar.transform;
             tbRt.anchorMin = new Vector2(0f, 0f);
             tbRt.anchorMax = new Vector2(1f, 0f);
             tbRt.pivot = new Vector2(0.5f, 0f);
             tbRt.anchoredPosition = Vector2.zero;
-            tbRt.sizeDelta = new Vector2(0f, 56f);
+            tbRt.sizeDelta = new Vector2(0f, DesktopTaskbarHeight);
 
             var clock = AddText(taskbar.transform, "Clock", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
@@ -938,17 +941,26 @@ namespace UrbanLegendBureau.EditorTools
         /// <summary>인터넷 커뮤니티 게시글 화면.</summary>
         private static CommunityPageScreen BuildCommunityScreen(string name)
         {
-            var go = CreatePanel(null, name, new Color(0.94f, 0.94f, 0.95f, 1f));   // 커뮤니티는 밝은 배경
+            // 화면 자체는 투명하다. UIService 가 화면 뿌리를 레이어 전체로 늘려 버리기 때문에
+            // 여기에 색을 칠하면 아래 바탕화면이 통째로 가려진다.
+            var go = CreatePanel(null, name, new Color(0f, 0f, 0f, 0f));
             StretchFull(go);
 
             var screen = go.AddComponent<CommunityPageScreen>();
-            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            // 아래 화면(바탕화면)을 숨기지 않는다. 작업 표시줄이 계속 보여야 하기 때문이다.
+            ConfigureScreen(screen, name, UILayer.Screen, false, true);
 
             var ink = new Color(0.12f, 0.12f, 0.14f);
             var dim = new Color(0.42f, 0.44f, 0.48f);
 
             // --- 창 제목 표시줄. 진짜 브라우저 창처럼 보이게 한다. ---
-            var titleBar = CreatePanel(go.transform, "TitleBar", new Color(0.13f, 0.14f, 0.18f, 1f));
+            // 괴담넷은 바탕화면 위에 뜬 창이다. 아래쪽 작업 표시줄 자리는 비워 둔다.
+            // 그래야 창을 열어도 컴퓨터를 쓰고 있다는 것이 계속 보인다.
+            var window = CreatePanel(go.transform, "Window", new Color(0.94f, 0.94f, 0.95f, 1f));
+            StretchInside((RectTransform)window.transform, 0f, 0f, 0f, DesktopTaskbarHeight);
+
+            var titleBar = CreatePanel(window.transform, "TitleBar", new Color(0.13f, 0.14f, 0.18f, 1f));
             var barRt = (RectTransform)titleBar.transform;
             barRt.anchorMin = new Vector2(0f, 1f);
             barRt.anchorMax = new Vector2(1f, 1f);
@@ -978,8 +990,11 @@ namespace UrbanLegendBureau.EditorTools
 
             // --- 게시판 목록 보기 ---
             var boardView = new GameObject("BoardView", typeof(RectTransform));
-            boardView.transform.SetParent(go.transform, false);
+            boardView.transform.SetParent(window.transform, false);
             StretchFull(boardView);
+
+            // 대사 상자가 떠 있는 동안 화면 전체를 잠그는 무리. 끌기까지 함께 막힌다.
+            var boardControls = boardView.AddComponent<CanvasGroup>();
 
             // 목록 화면도 글 화면과 똑같이 만든다.
             // 창 제목 표시줄만 남고 머리말부터 글 줄까지 한 장으로 끌려 내려간다.
@@ -1008,7 +1023,7 @@ namespace UrbanLegendBureau.EditorTools
             bpRt.sizeDelta = Vector2.zero;
             AddStack(boardPage, 0f, new RectOffset(0, 0, 0, 0));
 
-            var boardControls = boardPage.AddComponent<CanvasGroup>();
+
 
             var boardScroll = boardViewport.AddComponent<ScrollRect>();
             boardScroll.viewport = bvRt;
@@ -1051,26 +1066,25 @@ namespace UrbanLegendBureau.EditorTools
             boardListLayout.childForceExpandWidth = true;
             boardListLayout.childForceExpandHeight = false;
 
-            var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(1f, 1f, 1f, 0f));
+            // 줄 자체는 흰 종이와 같은 색이라 평소에는 보이지 않는다.
+            // 마우스를 올린 줄만 옅은 회색이 된다. 눌러야 할 곳은 그것으로 안다.
+            var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(1f, 1f, 1f, 1f));
             var boardButton = boardTemplate.AddComponent<Button>();
             boardButton.targetGraphic = boardTemplate.GetComponent<Image>();
+
+            var boardColors = boardButton.colors;
+            boardColors.normalColor = Color.white;
+            boardColors.highlightedColor = new Color(0.93f, 0.93f, 0.94f, 1f);
+            boardColors.pressedColor = new Color(0.87f, 0.87f, 0.89f, 1f);
+            boardColors.selectedColor = Color.white;
+            boardColors.disabledColor = Color.white;          // 눌리지 않는 줄도 평소 모습 그대로
+            boardColors.fadeDuration = 0.08f;
+            boardButton.colors = boardColors;
             var btRt = (RectTransform)boardTemplate.transform;
             btRt.sizeDelta = new Vector2(0f, 104f);
             var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
                 Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
             StretchInside(btLabel.rectTransform, 12f, 12f, 12f, 18f);
-
-            // 눌러야 할 글에만 붙는 안내. 어느 줄을 열어야 하는지 한눈에 보이게 한다.
-            var btHint = AddText(boardTemplate.transform, "Hint", 24f, UIFontWeight.Bold,
-                new Color(0.20f, 0.36f, 0.70f),
-                Vector2.zero, new Vector2(340f, 40f), TextAlignmentOptions.Right);
-            var btHintRt = btHint.rectTransform;
-            btHintRt.anchorMin = new Vector2(1f, 0.5f);
-            btHintRt.anchorMax = new Vector2(1f, 0.5f);
-            btHintRt.pivot = new Vector2(1f, 0.5f);
-            btHintRt.anchoredPosition = new Vector2(-16f, 0f);
-            btHintRt.sizeDelta = new Vector2(340f, 40f);
-            btHint.raycastTarget = false;
 
             // 글 사이를 가르는 가는 선. 댓글과 같은 방식이다.
             var btRule = CreatePanel(boardTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
@@ -1085,8 +1099,10 @@ namespace UrbanLegendBureau.EditorTools
 
             // --- 글 하나를 펼친 보기 ---
             var postView = new GameObject("PostView", typeof(RectTransform));
-            postView.transform.SetParent(go.transform, false);
+            postView.transform.SetParent(window.transform, false);
             StretchFull(postView);
+
+            var postControls = postView.AddComponent<CanvasGroup>();
 
             // 실제 커뮤니티 글 화면처럼 화면 전체가 한 장으로 굴러간다.
             // 글과 댓글은 회색 틈이 아니라 굵은 가로선으로 나눈다. 실제 화면이 그렇게 나눈다.
@@ -1129,9 +1145,7 @@ namespace UrbanLegendBureau.EditorTools
             pageRt.sizeDelta = new Vector2(0f, 0f);   // 폭은 굴러가는 자리에 맞춘다
             AddStack(page, 0f, new RectOffset(0, 0, 0, 0));
 
-            // 대사 상자가 떠 있는 동안 누르지 못하게 잠그는 무리.
-            // interactable 만 끄므로 끌어서 내리는 것은 그대로 된다.
-            var postControls = page.AddComponent<CanvasGroup>();
+
 
             var pageScroll = pageViewport.AddComponent<ScrollRect>();
             pageScroll.viewport = cvRt;
@@ -1298,6 +1312,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_boardView").objectReferenceValue = boardView;
             so.FindProperty("_postView").objectReferenceValue = postView;
             so.FindProperty("_boardRoot").objectReferenceValue = boardRoot;
+            so.FindProperty("_boardScroll").objectReferenceValue = boardScroll;
             so.FindProperty("_boardEntryTemplate").objectReferenceValue = boardButton;
             SetTextArray(so.FindProperty("_siteTexts"), boardSiteText, siteText);
             so.FindProperty("_boardListText").objectReferenceValue = boardBoardText;

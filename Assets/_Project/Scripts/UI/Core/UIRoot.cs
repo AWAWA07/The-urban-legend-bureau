@@ -25,7 +25,28 @@ namespace UrbanLegendBureau.UI
             var root = go.AddComponent<UIRoot>();
             root.BuildLayers();
             root.EnsureEventSystem();
+            root.BuildPointer();
             return root;
+        }
+
+        /// <summary>
+        /// 게임이 직접 그리는 마우스 화살표. 가장 위 레이어에 둔다.
+        /// 어떤 화면보다 위에 있어야 화면에 가려지지 않는다.
+        /// </summary>
+        private void BuildPointer()
+        {
+            var parent = GetLayerParent(UILayer.System);
+            if (parent == null) return;
+
+            var go = new GameObject("GamePointer", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            go.layer = LayerMask.NameToLayer("UI");
+
+            var image = go.AddComponent<Image>();
+            image.raycastTarget = false;
+
+            go.AddComponent<GamePointer>();
+            go.transform.SetAsLastSibling();
         }
 
         /// <summary>해당 레이어의 부모 RectTransform.</summary>

@@ -249,8 +249,8 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.ShowBoard(true);
             _communityScreen.ShowNotice(null);
 
-            if (_ui.Count == 0) _ui.Push(_communityScreen);
-            else _ui.Replace(_communityScreen);
+            // 바탕화면 위에 얹는다. 바꿔 끼우지 않아야 아래에서 작업 표시줄이 계속 보인다.
+            if (!_ui.Contains(_communityScreen)) _ui.Push(_communityScreen);
 
             Debug.Log("[TutorialDirector] 괴담넷 | 게시판 목록 " + _boardEntries.Count + "개");
 
@@ -271,6 +271,8 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void BuildBoardEntries()
         {
+            // 인기글이 시간과 상관없이 맨 위에 붙고, 나머지는 새로 올라온 것부터 내려간다.
+            // 실제 게시판이 그렇게 늘어놓는다.
             _boardEntries = new List<CommunityBoardEntry>
             {
                 new CommunityBoardEntry
@@ -281,15 +283,17 @@ namespace UrbanLegendBureau.Systems
                     Openable = true,
                     Page = _tutorialPage,
                 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta" },
-                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },
                 new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true },
+
+                // 여기부터 최신순
+                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta" },  // 12분 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta" },  // 34분 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },  // 1시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta" },  // 2시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },  // 4시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },  // 6시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },  // 9시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },  // 어제 23:50
             };
         }
 
@@ -335,8 +339,7 @@ namespace UrbanLegendBureau.Systems
             // 대화 화면을 확실히 닫는다. 위에 팝업이 떠 있어도 스택에 남지 않게 한다.
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 
-            if (_ui.Count == 0) _ui.Push(_communityScreen);
-            else if (!_ui.Contains(_communityScreen)) _ui.Replace(_communityScreen);
+            if (!_ui.Contains(_communityScreen)) _ui.Push(_communityScreen);
 
             Debug.Log("[TutorialDirector] 커뮤니티 글 | 댓글 선택 " + _choices.Count + "개");
 

@@ -336,17 +336,17 @@ ui.desktop.app_gallery	갤러리	Gallery	아직 기능 없음
 ui.net.window_title	괴담넷	LegendNet	창 제목 표시줄
 ui.net.hot_mark	인기	HOT	인기글 표시
 ui.net.board_open_hint	▶ 눌러서 열기	▶ Open this post	
-board.subway.meta	익명    조회 1284    댓글 4	Anonymous    views 1284    comments 4	
+board.subway.meta	익명    조회 1284    댓글 4    오늘 02:41	Anonymous    views 1284    comments 4    today 02:41	
 board.filler.001	오늘 지하철에서 지갑 주웠는데 어디에 맡기나요	Found a wallet on the subway today. Where do I hand it in?	목록 채우기
-board.filler.001.meta	지갑주인찾아요    조회 41    댓글 2	WalletFinder    views 41    comments 2	
+board.filler.001.meta	지갑주인찾아요    조회 41    댓글 2    6시간 전	WalletFinder    views 41    comments 2    6h ago	
 board.filler.002	야근하고 집 가는 길 사진	Photo from the walk home after overtime	
-board.filler.002.meta	익명    조회 88    댓글 5	Anonymous    views 88    comments 5	
+board.filler.002.meta	익명    조회 88    댓글 5    9시간 전	Anonymous    views 88    comments 5    9h ago	
 board.filler.003	이 노선 막차 시간 아시는 분	Anyone know the last train time on this line?	
-board.filler.003.meta	막차연구회    조회 12    댓글 0	LastTrainClub    views 12    comments 0	
+board.filler.003.meta	막차연구회    조회 12    댓글 0    어제 23:50	LastTrainClub    views 12    comments 0    yesterday 23:50	
 
 # --- 조정: 컴퓨터 안내 대사 ---
 tutorial.pc.001	자, 저기 괴담넷을 눌러봐.	All right. Click LegendNet over there.	한영, 인물 없음
-tutorial.pc.002	인기글 보이지? 들어가봐.	See the hot post? Open it.	한영
+tutorial.pc.002	인기글 보이지? 첫번째 게시물을 눌러봐.	See the hot post? Open the first one.	한영
 tutorial.pc.003	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰기 부터 해보자.	This is the kind of story we have to hold down. Start with the comment box.	한영
 tutorial.pc.like_warn	사람들 믿음도를 떨어트려야 하는데 굳이 좋아요를 안 누르는게 낫지 않을까?	We need belief to drop. Maybe do not hit Like.	
 tutorial.pc.dislike_good	싫어요를 눌러서 사람들 동조 시키는 것도 좋은 방법이야	Hitting Dislike to sway people is a fine move too.	
@@ -354,14 +354,14 @@ ui.net.author_player	{0}(차지한)	{0} (Chajihan)	내가 쓴 댓글의 작성�
 
 # --- 괴담넷: 게시판 목록 채우기 (추가) ---
 board.filler.004	우리 회사 엘리베이터 4층에서 항상 혼자 열림	Our office elevator always opens by itself on the 4th floor	
-board.filler.004.meta	4층은무서워    조회 203    댓글 7	FourthFloor    views 203    comments 7	
+board.filler.004.meta	4층은무서워    조회 203    댓글 7    2시간 전	FourthFloor    views 203    comments 7    2h ago	
 board.filler.005	중고거래 하다가 이상한 사람 만난 썰	Story about the odd person I met at a used-goods trade	
-board.filler.005.meta	익명    조회 157    댓글 12	Anonymous    views 157    comments 12	
+board.filler.005.meta	익명    조회 157    댓글 12    4시간 전	Anonymous    views 157    comments 12    4h ago	
 board.filler.006	새벽에 복도에서 발소리 나는데 아무도 없음	Footsteps in the hallway at dawn but nobody is there	
-board.filler.006.meta	복도등켜주세요    조회 96    댓글 4	HallwayLight    views 96    comments 4	
+board.filler.006.meta	복도등켜주세요    조회 96    댓글 4    12분 전	HallwayLight    views 96    comments 4    12m ago	
 board.filler.007	고양이가 자꾸 빈 벽을 쳐다봐요	My cat keeps staring at an empty wall	
-board.filler.007.meta	냥집사9년차    조회 340    댓글 19	CatServant    views 340    comments 19	
+board.filler.007.meta	냥집사9년차    조회 340    댓글 19    34분 전	CatServant    views 340    comments 19    34m ago	
 board.filler.008	버스 막차 놓쳐서 두 시간 걸어옴	Missed the last bus and walked for two hours	
-board.filler.008.meta	익명    조회 28    댓글 1	Anonymous    views 28    comments 1	
+board.filler.008.meta	익명    조회 28    댓글 1    1시간 전	Anonymous    views 28    comments 1    1h ago	
 board.filler.009	이 사진 뭔가 이상하지 않나요	Is there something off about this photo?	
-board.filler.009.meta	사진은거짓말안함    조회 512    댓글 23	PhotosDontLie    views 512    comments 23	
+board.filler.009.meta	사진은거짓말안함    조회 512    댓글 23    어제 21:07	PhotosDontLie    views 512    comments 23    yesterday 21:07	

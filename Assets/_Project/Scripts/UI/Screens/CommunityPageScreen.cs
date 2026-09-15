@@ -63,8 +63,9 @@ namespace UrbanLegendBureau.UI
         [Header("게시판 목록")]
         [SerializeField] private RectTransform _boardRoot;
 
-        [Tooltip("눌러서 열 수 있는 글 줄의 바탕색. 나머지는 투명하게 둔다.")]
-        [SerializeField] private Color _boardOpenableColor = new Color(0.90f, 0.94f, 1f, 1f);
+        [Tooltip("목록 굴림판. 목록을 열 때마다 맨 위로 돌린다.")]
+        [SerializeField] private ScrollRect _boardScroll;
+
         [SerializeField] private Button _boardEntryTemplate;
 
         [Header("머리말")]
@@ -116,7 +117,7 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _noticeText;
 
         [Header("잠금")]
-        [Tooltip("글 화면에서 누를 수 있는 것들을 한꺼번에 잠그는 무리. 끌어서 내리는 것은 막지 않는다.")]
+        [Tooltip("글 화면 전체를 한꺼번에 잠그는 무리. 누르는 것도 끄는 것도 함께 막힌다.")]
         [SerializeField] private CanvasGroup _postControls;
 
         [Tooltip("목록 화면 쪽 무리.")]
@@ -133,10 +134,6 @@ namespace UrbanLegendBureau.UI
 
         private const string WindowTitleTextId = "ui.net.window_title";
         private const string HotMarkTextId = "ui.net.hot_mark";
-        private const string BoardOpenHintTextId = "ui.net.board_open_hint";
-
-        /// <summary>목록 줄 안에서 "눌러서 열기" 안내를 맡은 글자의 이름.</summary>
-        private const string BoardHintName = "Text_Hint";
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
@@ -170,16 +167,23 @@ namespace UrbanLegendBureau.UI
         /// <summary>
         /// 누를 수 있는 것들을 한꺼번에 열고 잠근다.
         ///
-        /// 대사 상자가 떠 있는 동안에는 잠근다. 말이 끝나기 전에 골라 버리면 순서가 엉킨다.
-        /// 끌어서 내리는 것은 막지 않는다. CanvasGroup 의 interactable 은 버튼만 잠그기 때문이다.
+        /// 대사 상자가 떠 있는 동안에는 잠근다. 말이 끝나기 전에 만지면 순서가 엉킨다.
+        /// 누르는 것뿐 아니라 끌어서 내리는 것도 함께 막는다.
         /// </summary>
         public void SetControlsEnabled(bool enabled)
         {
             _controlsEnabled = enabled;
 
-            if (_postControls != null) _postControls.interactable = enabled;
-            if (_boardControls != null) _boardControls.interactable = enabled;
+            Apply(_postControls, enabled);
+            Apply(_boardControls, enabled);
             if (_closeButton != null) _closeButton.interactable = enabled && _onClose != null;
+
+            void Apply(CanvasGroup group, bool on)
+            {
+                if (group == null) return;
+                group.interactable = on;
+                group.blocksRaycasts = on;   // 끌기까지 막으려면 이것도 꺼야 한다
+            }
         }
 
         private bool _controlsEnabled = true;
@@ -214,6 +218,14 @@ namespace UrbanLegendBureau.UI
             if (_postView != null) _postView.SetActive(!showBoard);
 
             Refresh();
+
+            // 목록은 언제나 맨 위부터 보여준다. 글 줄이 늘면서 자리가 밀리는 것을 막는다.
+            if (showBoard && _boardScroll != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                if (_boardScroll.content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_boardScroll.content);
+                _boardScroll.verticalNormalizedPosition = 1f;
+            }
         }
 
         /// <summary>게시글을 건다. 조회수와 작성 시각은 화면에 보이기 위한 값이다.</summary>
@@ -408,31 +420,18 @@ namespace UrbanLegendBureau.UI
                 item.gameObject.name = "Post_" + i;
                 item.gameObject.SetActive(true);
 
-                foreach (var text in item.GetComponentsInChildren<TMP_Text>(true))
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null)
                 {
-                    if (text.name == BoardHintName)
-                    {
-                        // 열 수 있는 글에만 안내를 붙인다. 어디를 눌러야 하는지 한눈에 보이게 한다.
-                        text.text = loc.Get(BoardOpenHintTextId);
-                        text.gameObject.SetActive(entry.Openable);
-                        continue;
-                    }
-
                     string title = loc.Get(entry.TitleTextId);
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
                     string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
-                    text.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
-                }
-
-                // 열 수 있는 글은 바탕을 달리해 눈에 띄게 한다.
-                var background = item.GetComponent<Image>();
-                if (background != null)
-                {
-                    background.color = entry.Openable ? _boardOpenableColor : new Color(1f, 1f, 1f, 0f);
+                    label.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
                 }
 
                 // 배경을 채우는 줄은 눌리지 않는다. 튜토리얼이 엉뚱한 글로 새지 않게 한다.
+                // 열 수 있는 줄은 마우스를 올렸을 때만 옅은 회색이 된다. 눌러야 할 곳은 그것으로 안다.
                 item.interactable = entry.Openable;
 
                 var captured = entry;
