@@ -112,7 +112,19 @@ namespace UrbanLegendBureau.EditorTools
                 {
                     Error(report, sb, a, "rewardClueId '" + a.RewardClueId + "' 에 해당하는 ClueSO 가 없다.");
                 }
+
+                if (a.MinutesOverride < 0)
+                {
+                    Error(report, sb, a, "minutesOverride 가 음수다.");
+                }
+
+                if (a.UseSpreadOverride && a.SpreadOverride < 0f)
+                {
+                    Error(report, sb, a, "spreadOverride 가 음수다.");
+                }
             }
+
+            int pointCount = CheckScenePoints(clueIds, report, sb);
 
             foreach (var r in rules)
             {
@@ -151,9 +163,83 @@ namespace UrbanLegendBureau.EditorTools
 
             report.Summary =
                 "Case " + cases.Count + " / Legend " + legends.Count + " / Rule " + rules.Count +
-                " / Clue " + clues.Count + " / WebPage " + pages.Count + " / Action " + actions.Count;
+                " / Clue " + clues.Count + " / WebPage " + pages.Count + " / Action " + actions.Count +
+                " / 조사지점 " + pointCount + "(열린 씬)";
             report.Text = report.Summary + "\n" + sb;
             return report;
+        }
+
+        // ------------------------------------------------------------- 조사 지점
+
+        /// <summary>
+        /// 지금 열려 있는 씬의 조사 지점을 검사한다.
+        ///
+        /// 지점은 에셋이 아니라 씬 오브젝트라 AssetDatabase로 찾을 수 없다.
+        /// 씬을 강제로 여는 대신 열려 있는 씬만 본다. 검증기가 작업 중인 씬을 바꾸지 않게 하기 위해서다.
+        /// </summary>
+        private static int CheckScenePoints(HashSet<string> clueIds, Report report, StringBuilder sb)
+        {
+            var points = Object.FindObjectsByType<UrbanLegendBureau.Systems.InvestigationPoint>(
+                FindObjectsInactive.Include, FindObjectsSortMode.None);
+
+            var seenIds = new Dictionary<string, Object>();
+
+            foreach (var point in points)
+            {
+                if (seenIds.TryGetValue(point.PointId, out var other))
+                {
+                    Error(report, sb, point, "pointId '" + point.PointId + "' 가 " + other.name + " 와 중복된다.");
+                }
+                else
+                {
+                    seenIds[point.PointId] = point;
+                }
+
+                if (string.IsNullOrEmpty(point.NameTextId))
+                {
+                    Error(report, sb, point, "nameTextId 가 비어 있다.");
+                }
+
+                // 해금 조건의 단서
+                var required = point.RequiredClueIds;
+                for (int i = 0; i < required.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(required[i]))
+                    {
+                        Error(report, sb, point, "requiredClueIds[" + i + "] 가 비어 있다.");
+                    }
+                    else if (!clueIds.Contains(required[i]))
+                    {
+                        Error(report, sb, point, "requiredClueIds[" + i + "] 의 '" + required[i] + "' 에 해당하는 ClueSO 가 없다.");
+                    }
+                }
+
+                // 연결된 조사 방법
+                var seenActions = new HashSet<string>();
+                var actions = point.Actions;
+                for (int i = 0; i < actions.Count; i++)
+                {
+                    var action = actions[i];
+                    if (action == null)
+                    {
+                        Error(report, sb, point, "actions[" + i + "] 가 비어 있다.");
+                        continue;
+                    }
+
+                    if (!seenActions.Add(action.ActionId))
+                    {
+                        Error(report, sb, point, "actions 에 '" + action.ActionId + "' 가 두 번 연결돼 있다.");
+                    }
+
+                    if (!action.UsableInField)
+                    {
+                        Warning(report, sb, point,
+                            "'" + action.ActionId + "' 는 사무실 전용인데 현장 지점에 연결돼 있다. 목록에 나오지 않는다.");
+                    }
+                }
+            }
+
+            return points.Length;
         }
 
         // ------------------------------------------------------------- 검사

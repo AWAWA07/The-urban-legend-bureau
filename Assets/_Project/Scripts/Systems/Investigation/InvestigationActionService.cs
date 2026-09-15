@@ -111,7 +111,23 @@ namespace UrbanLegendBureau.Systems
 
             foreach (var action in legend.InvestigationActions)
             {
-                if (action != null) result.Add(action);
+                // 현장 전용 행동은 사무실 목록에 내보내지 않는다.
+                // 사용 위치를 지정하지 않은 데이터는 Both이므로 예전처럼 그대로 나온다.
+                if (action != null && action.UsableInOffice) result.Add(action);
+            }
+            return result;
+        }
+
+        /// <summary>현장 지점에서 고를 수 있는 행동만 걸러낸다.</summary>
+        public List<InvestigationActionSO> FilterFieldActions(IReadOnlyList<InvestigationActionSO> actions)
+        {
+            var result = new List<InvestigationActionSO>();
+            if (actions == null) return result;
+
+            for (int i = 0; i < actions.Count; i++)
+            {
+                var action = actions[i];
+                if (action != null && action.UsableInField) result.Add(action);
             }
             return result;
         }
@@ -200,18 +216,13 @@ namespace UrbanLegendBureau.Systems
             }
 
             // --- 사건 시간과 확산 (15단계 서비스에 그대로 맡긴다) ---
+            int spentMinutes = GetMinutes(action);
+
             var tick = default(InvestigationTickResult);
             if (_time != null)
             {
-                int cost = action.MinutesOverride > 0
-                    ? action.MinutesOverride
-                    : InvestigationTimeService.MinutesPerAction;
-
-                float spread = action.UseSpreadOverride
-                    ? action.SpreadOverride
-                    : InvestigationTimeService.GetSpreadCost(action.ActionKind);
-
-                tick = _time.RegisterAction(save, caseId, legendId, action.ActionKind, cost, spread);
+                tick = _time.RegisterAction(save, caseId, legendId, action.ActionKind,
+                    spentMinutes, GetSpreadCost(action));
                 count = tick.ActionCount;
                 minutes = tick.ElapsedMinutes;
             }
@@ -221,16 +232,42 @@ namespace UrbanLegendBureau.Systems
 
             string messageId = ResolveMessageTextId(action, acquired);
 
+            // 조사는 했지만 무엇을 남겼는가는 셋으로 갈린다.
+            var outcome = acquired != null
+                ? InvestigationOutcome.NewClue
+                : (action.HasRewardClue ? InvestigationOutcome.AlreadyKnown : InvestigationOutcome.NoInformation);
+
             Debug.Log($"[InvestigationActionService] 실행 | {action.ActionId} ({action.ActionKind}) | " +
-                      $"{count}회 / {minutes}분" +
+                      $"{outcome} | +{spentMinutes}분 -> {count}회 / {minutes}분" +
                       (acquired != null ? $" | 단서 획득 {acquired}" : string.Empty) +
                       (tick.Spread.Changed
                           ? $" | 확산 {tick.Spread.PreviousRate:F1} -> {tick.Spread.CurrentRate:F1}"
                           : string.Empty));
 
             return new InvestigationActionResult(true, InvestigationFailure.None, action.ActionId,
-                action.ActionKind, action.MinutesOverride > 0 ? action.MinutesOverride : InvestigationTimeService.MinutesPerAction,
-                count, minutes, tick.Spread, acquired, messageId);
+                action.ActionKind, spentMinutes,
+                count, minutes, tick.Spread, acquired, messageId, outcome);
+        }
+
+        // ------------------------------------------------------------- 비용
+
+        /// <summary>
+        /// 이 행동이 쓰는 사건 시간(분).
+        /// 데이터에 값이 없으면 15단계 기본값을 그대로 쓴다.
+        /// 목록에 "예상 비용"을 보여줄 때도 같은 함수를 쓴다. 표시와 실제가 어긋나지 않게 하기 위해서다.
+        /// </summary>
+        public static int GetMinutes(InvestigationActionSO action)
+        {
+            return action == null
+                ? InvestigationTimeService.MinutesPerAction
+                : action.GetMinutes(InvestigationTimeService.MinutesPerAction);
+        }
+
+        /// <summary>이 행동이 올리는 확산량. 데이터에 값이 없으면 행동 종류의 기본값을 쓴다.</summary>
+        public static float GetSpreadCost(InvestigationActionSO action)
+        {
+            if (action == null) return 0f;
+            return action.GetSpreadCost(InvestigationTimeService.GetSpreadCost(action.ActionKind));
         }
 
         // ------------------------------------------------------------- 내부

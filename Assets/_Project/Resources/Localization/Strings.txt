@@ -200,3 +200,7 @@ action.test.006.name	사진 촬영	Take photos
 action.test.006.desc	현장을 사진으로 남긴다.	Record the site in photographs.	
 action.test.006.result	사진에는 특별히 이상한 것이 찍히지 않았다.	Nothing unusual shows up in the photos.	
 ui.field.btn_done	조사 종료	Finish investigation	현장에서 봉인 단계로
+
+# --- 18단계: 조사 비용 표시 ---
+ui.action.cost_time	시간 +{0}분	Time +{0} min	조사 방법 목록의 예상 비용
+ui.action.cost_spread	확산도 +{0}%	Spread +{0}%	

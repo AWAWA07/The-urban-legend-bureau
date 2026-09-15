@@ -34,6 +34,9 @@ namespace UrbanLegendBureau.Data
         [Tooltip("15단계 InvestigationAction 중 어디에 해당하는가. 시간/확산 기본값을 여기서 가져온다.")]
         [SerializeField] private InvestigationAction _actionKind = InvestigationAction.FieldSearch;
 
+        [Tooltip("어디에서 고를 수 있는가. 지정하지 않으면(Both) 예전처럼 사무실과 현장 양쪽에 나온다.")]
+        [SerializeField] private ActionUsage _usage = ActionUsage.Both;
+
         [Tooltip("이 행동이 쓰는 사건 시간(분). 0이면 InvestigationTimeService의 기본값을 쓴다.")]
         [SerializeField, Min(0)] private int _minutesOverride;
 
@@ -66,7 +69,26 @@ namespace UrbanLegendBureau.Data
         public string DescriptionTextId => _descriptionTextId;
         public string ResultTextId => _resultTextId;
         public InvestigationAction ActionKind => _actionKind;
+        public ActionUsage Usage => _usage;
         public int MinutesOverride => _minutesOverride;
+
+        /// <summary>사무실 목록에 나오는가.</summary>
+        public bool UsableInOffice => _usage != ActionUsage.Field;
+
+        /// <summary>현장 지점에서 고를 수 있는가.</summary>
+        public bool UsableInField => _usage != ActionUsage.Office;
+
+        /// <summary>이 행동이 실제로 쓰는 사건 시간(분).</summary>
+        public int GetMinutes(int defaultMinutes)
+        {
+            return _minutesOverride > 0 ? _minutesOverride : defaultMinutes;
+        }
+
+        /// <summary>이 행동이 실제로 올리는 확산량.</summary>
+        public float GetSpreadCost(float defaultSpread)
+        {
+            return _useSpreadOverride ? _spreadOverride : defaultSpread;
+        }
         public bool UseSpreadOverride => _useSpreadOverride;
         public float SpreadOverride => _spreadOverride;
         public IReadOnlyList<string> RequiredClueIds => _requiredClueIds;

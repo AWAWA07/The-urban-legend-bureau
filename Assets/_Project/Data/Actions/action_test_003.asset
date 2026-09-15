@@ -17,9 +17,10 @@ MonoBehaviour:
   _descriptionTextId: action.test.003.desc
   _resultTextId: action.test.003.result
   _actionKind: 7
-  _minutesOverride: 0
-  _useSpreadOverride: 0
-  _spreadOverride: 0
+  _usage: 2
+  _minutesOverride: 15
+  _useSpreadOverride: 1
+  _spreadOverride: 2.5
   _requiredClueIds:
   - clue_test_001
   _requireStep: 0

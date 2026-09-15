@@ -17,6 +17,7 @@ MonoBehaviour:
   _descriptionTextId: action.test.002.desc
   _resultTextId: action.test.002.result
   _actionKind: 2
+  _usage: 2
   _minutesOverride: 0
   _useSpreadOverride: 0
   _spreadOverride: 0

@@ -20,6 +20,27 @@ namespace UrbanLegendBureau.Systems
     }
 
     /// <summary>
+    /// 조사 행동이 무엇을 남겼는가.
+    ///
+    /// "조건에 막혀 못 했다"와 "했지만 새 정보가 없었다"는 전혀 다른 일이다.
+    /// 앞은 아무 자원도 쓰지 않았고, 뒤는 시간과 확산을 쓴 선택이다.
+    /// </summary>
+    public enum InvestigationOutcome
+    {
+        /// <summary>조건을 만족하지 못해 실행되지 않았다. 시간/확산/단서 변화 없음.</summary>
+        Blocked = 0,
+
+        /// <summary>새 단서를 얻었다.</summary>
+        NewClue = 1,
+
+        /// <summary>이미 알고 있던 내용이었다. 시간과 확산은 썼다.</summary>
+        AlreadyKnown = 2,
+
+        /// <summary>단서를 주지 않는 조사였다. 시간과 확산은 썼다.</summary>
+        NoInformation = 3
+    }
+
+    /// <summary>
     /// 조사 행동 한 번의 결과.
     ///
     /// bool 하나로 돌려주면 화면이 "무엇이 일어났는지"를 다시 계산해야 한다.
@@ -55,10 +76,18 @@ namespace UrbanLegendBureau.Systems
         /// <summary>화면에 보여줄 결과 문구의 String ID.</summary>
         public string MessageTextId { get; }
 
+        /// <summary>이번 조사가 무엇을 남겼는가.</summary>
+        public InvestigationOutcome Outcome { get; }
+
+        /// <summary>이번 조사로 올라간 확산량. 변화가 없으면 0.</summary>
+        public float SpreadAdded => Spread.Changed ? Spread.CurrentRate - Spread.PreviousRate : 0f;
+
         public InvestigationActionResult(bool success, InvestigationFailure failure, string actionId,
             InvestigationAction action, int minutesAdded, int actionCount, int elapsedMinutes,
-            SpreadChangeResult spread, string acquiredClueId, string messageTextId)
+            SpreadChangeResult spread, string acquiredClueId, string messageTextId,
+            InvestigationOutcome outcome = InvestigationOutcome.NoInformation)
         {
+            Outcome = outcome;
             Success = success;
             Failure = failure;
             ActionId = actionId;
@@ -79,7 +108,7 @@ namespace UrbanLegendBureau.Systems
             int actionCount, int elapsedMinutes, string messageTextId)
         {
             return new InvestigationActionResult(false, failure, actionId, default, 0,
-                actionCount, elapsedMinutes, default, null, messageTextId);
+                actionCount, elapsedMinutes, default, null, messageTextId, InvestigationOutcome.Blocked);
         }
     }
 }

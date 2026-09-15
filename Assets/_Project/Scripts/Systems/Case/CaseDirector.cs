@@ -116,6 +116,8 @@ namespace UrbanLegendBureau.Systems
         private const string ActionListHintTextId = "ui.action.hint";
         private const string ActionLockedMarkTextId = "ui.action.locked";
         private const string PointBlockedTextId = "ui.field.point_locked";
+        private const string CostTimeTextId = "ui.action.cost_time";
+        private const string CostSpreadTextId = "ui.action.cost_spread";
         private const string ElapsedTextId = "ui.time.elapsed";
         private const string ActionCountTextId = "ui.time.actions";
         private const string SpreadWarningTitleTextId = "spread.warning.title";
@@ -299,13 +301,7 @@ namespace UrbanLegendBureau.Systems
         private List<InvestigationActionSO> CurrentActions()
         {
             if (_activePoint == null) return _actions.GetActionsForLegend(_legend);
-
-            var list = new List<InvestigationActionSO>();
-            foreach (var action in _activePoint.Actions)
-            {
-                if (action != null) list.Add(action);
-            }
-            return list;
+            return _actions.FilterFieldActions(_activePoint.Actions);
         }
 
         /// <summary>행동 화면을 현재 맥락에 맞춰 다시 채운다. 제목은 지점 이름이 있으면 그것을 쓴다.</summary>
@@ -335,19 +331,36 @@ namespace UrbanLegendBureau.Systems
             Debug.Log($"[CaseDirector] 조사 지점 잠김 | {point.PointId} -> {failure} (시간/확산 변화 없음)");
         }
 
-        /// <summary>항목 문구: 행동 이름 + 설명. 지금 할 수 없는 행동은 표시를 붙인다.</summary>
+        /// <summary>
+        /// 항목 문구: 행동 이름 + 설명 + 예상 비용.
+        /// 비용을 미리 보여주어야 "시간을 아낄까, 정보를 얻을까"를 고를 수 있다.
+        /// </summary>
         private string BuildActionLabel(InvestigationActionSO action)
         {
             if (action == null) return string.Empty;
 
-            string name = _loc.Get(action.ActionNameTextId);
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(action.ActionNameTextId));
+
             if (_actions != null && !_actions.CanPerform(_save, action))
             {
-                name += "  [" + _loc.Get(ActionLockedMarkTextId) + "]";
+                sb.Append("  [").Append(_loc.Get(ActionLockedMarkTextId)).Append("]");
             }
 
             var desc = _loc.Get(action.DescriptionTextId);
-            return string.IsNullOrEmpty(desc) ? name : name + "\n" + desc;
+            if (!string.IsNullOrEmpty(desc)) sb.Append("\n").Append(desc);
+
+            sb.Append("\n").Append(BuildActionCostLine(action));
+            return sb.ToString();
+        }
+
+        /// <summary>"시간 +10분   확산도 +1.5%" 한 줄. 실제 실행에 쓰는 값과 같은 계산을 쓴다.</summary>
+        private string BuildActionCostLine(InvestigationActionSO action)
+        {
+            int minutes = InvestigationActionService.GetMinutes(action);
+            float spread = InvestigationActionService.GetSpreadCost(action);
+
+            return _loc.Get(CostTimeTextId, minutes) + "   " + _loc.Get(CostSpreadTextId, spread.ToString("0.#"));
         }
 
         /// <summary>
@@ -378,17 +391,28 @@ namespace UrbanLegendBureau.Systems
                       (ruleShown ? " | 규칙 추론" : string.Empty));
         }
 
-        /// <summary>결과 문구 + 확산이 움직였다면 변화까지 한 줄로 만든다.</summary>
+        /// <summary>
+        /// 조사 결과 문구.
+        /// 무엇을 얻었는지와 무엇을 썼는지를 한 번에 보여준다.
+        /// 조건에 막힌 경우에는 쓴 것이 없으므로 비용 줄을 붙이지 않는다.
+        /// </summary>
         private string BuildActionResultLine(InvestigationActionResult result)
         {
             var sb = new StringBuilder();
             sb.Append(_loc.Get(result.MessageTextId));
 
-            if (result.Success && result.GotNewClue)
+            if (result.Outcome == InvestigationOutcome.Blocked) return sb.ToString();
+
+            if (result.GotNewClue)
             {
                 sb.Append("\n- ");
                 sb.Append(ResolveClueText(result.AcquiredClueId));
             }
+
+            sb.Append("\n");
+            sb.Append(_loc.Get(CostTimeTextId, result.MinutesAdded));
+            sb.Append("   ");
+            sb.Append(_loc.Get(CostSpreadTextId, result.SpreadAdded.ToString("0.#")));
 
             if (result.Spread.Changed)
             {
