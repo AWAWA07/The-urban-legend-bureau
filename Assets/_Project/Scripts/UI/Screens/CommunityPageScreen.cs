@@ -62,6 +62,9 @@ namespace UrbanLegendBureau.UI
 
         [Header("게시판 목록")]
         [SerializeField] private RectTransform _boardRoot;
+
+        [Tooltip("눌러서 열 수 있는 글 줄의 바탕색. 나머지는 투명하게 둔다.")]
+        [SerializeField] private Color _boardOpenableColor = new Color(0.90f, 0.94f, 1f, 1f);
         [SerializeField] private Button _boardEntryTemplate;
 
         [Header("머리말")]
@@ -130,6 +133,10 @@ namespace UrbanLegendBureau.UI
 
         private const string WindowTitleTextId = "ui.net.window_title";
         private const string HotMarkTextId = "ui.net.hot_mark";
+        private const string BoardOpenHintTextId = "ui.net.board_open_hint";
+
+        /// <summary>목록 줄 안에서 "눌러서 열기" 안내를 맡은 글자의 이름.</summary>
+        private const string BoardHintName = "Text_Hint";
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
@@ -401,14 +408,28 @@ namespace UrbanLegendBureau.UI
                 item.gameObject.name = "Post_" + i;
                 item.gameObject.SetActive(true);
 
-                var label = item.GetComponentInChildren<TMP_Text>(true);
-                if (label != null)
+                foreach (var text in item.GetComponentsInChildren<TMP_Text>(true))
                 {
+                    if (text.name == BoardHintName)
+                    {
+                        // 열 수 있는 글에만 안내를 붙인다. 어디를 눌러야 하는지 한눈에 보이게 한다.
+                        text.text = loc.Get(BoardOpenHintTextId);
+                        text.gameObject.SetActive(entry.Openable);
+                        continue;
+                    }
+
                     string title = loc.Get(entry.TitleTextId);
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
                     string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
-                    label.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
+                    text.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
+                }
+
+                // 열 수 있는 글은 바탕을 달리해 눈에 띄게 한다.
+                var background = item.GetComponent<Image>();
+                if (background != null)
+                {
+                    background.color = entry.Openable ? _boardOpenableColor : new Color(1f, 1f, 1f, 0f);
                 }
 
                 // 배경을 채우는 줄은 눌리지 않는다. 튜토리얼이 엉뚱한 글로 새지 않게 한다.

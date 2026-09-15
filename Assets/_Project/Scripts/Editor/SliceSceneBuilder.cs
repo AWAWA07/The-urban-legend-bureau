@@ -1060,6 +1060,18 @@ namespace UrbanLegendBureau.EditorTools
                 Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
             StretchInside(btLabel.rectTransform, 12f, 12f, 12f, 18f);
 
+            // 눌러야 할 글에만 붙는 안내. 어느 줄을 열어야 하는지 한눈에 보이게 한다.
+            var btHint = AddText(boardTemplate.transform, "Hint", 24f, UIFontWeight.Bold,
+                new Color(0.20f, 0.36f, 0.70f),
+                Vector2.zero, new Vector2(340f, 40f), TextAlignmentOptions.Right);
+            var btHintRt = btHint.rectTransform;
+            btHintRt.anchorMin = new Vector2(1f, 0.5f);
+            btHintRt.anchorMax = new Vector2(1f, 0.5f);
+            btHintRt.pivot = new Vector2(1f, 0.5f);
+            btHintRt.anchoredPosition = new Vector2(-16f, 0f);
+            btHintRt.sizeDelta = new Vector2(340f, 40f);
+            btHint.raycastTarget = false;
+
             // 글 사이를 가르는 가는 선. 댓글과 같은 방식이다.
             var btRule = CreatePanel(boardTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
             var btRuleRt = (RectTransform)btRule.transform;
