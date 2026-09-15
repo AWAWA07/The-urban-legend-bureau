@@ -39,6 +39,7 @@ namespace UrbanLegendBureau.UI
         private Action<string> _onOpen;
         private readonly HashSet<string> _allowed = new HashSet<string>();
         private bool _allowAll = true;
+        private bool _lockAll;
 
         private const string ClockTextId = "ui.desktop.clock";
 
@@ -67,6 +68,7 @@ namespace UrbanLegendBureau.UI
         {
             _allowed.Clear();
             _allowAll = appIds == null || appIds.Length == 0;
+            _lockAll = false;
 
             if (!_allowAll)
             {
@@ -76,12 +78,22 @@ namespace UrbanLegendBureau.UI
             ApplyInteractable();
         }
 
+        /// <summary>
+        /// 아무것도 누를 수 없게 한다. 한영이 말하는 동안에 쓴다.
+        /// 말이 끝나기 전에 아이콘을 눌러 버리면 안내를 건너뛰게 된다.
+        /// </summary>
+        public void LockAllApps()
+        {
+            _lockAll = true;
+            ApplyInteractable();
+        }
+
         private void ApplyInteractable()
         {
             foreach (var icon in _icons)
             {
                 if (icon == null || icon.button == null) continue;
-                icon.button.interactable = _allowAll || _allowed.Contains(icon.appId);
+                icon.button.interactable = !_lockAll && (_allowAll || _allowed.Contains(icon.appId));
             }
         }
 

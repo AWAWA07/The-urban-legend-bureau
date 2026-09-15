@@ -220,7 +220,7 @@ namespace UrbanLegendBureau.Systems
             GamePointer.SetVisible(true);
 
             _desktopScreen.Bind(OnAppClicked);
-            _desktopScreen.SetAllowedApps();          // 대사 중에는 어차피 위가 막힌다
+            _desktopScreen.LockAllApps();            // 한영의 안내가 끝나기 전에는 아무것도 못 누른다
 
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 
