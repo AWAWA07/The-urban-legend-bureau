@@ -1095,6 +1095,7 @@ namespace UrbanLegendBureau.EditorTools
             btRuleRt.anchoredPosition = Vector2.zero;
             btRuleRt.sizeDelta = new Vector2(0f, 2f);
             btRule.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(btRule, 2f);
             boardTemplate.SetActive(false);
 
             // --- 글 하나를 펼친 보기 ---
@@ -1255,6 +1256,7 @@ namespace UrbanLegendBureau.EditorTools
             comRuleRt.anchoredPosition = Vector2.zero;
             comRuleRt.sizeDelta = new Vector2(0f, 2f);
             comRule.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(comRule, 2f);
             commentTemplate.SetActive(false);
 
             // --- 댓글 쓰기 칸. 댓글 목록 맨 아래에 붙는다. ---
@@ -1822,6 +1824,17 @@ namespace UrbanLegendBureau.EditorTools
             element.minHeight = height;
             element.preferredHeight = height;
             element.flexibleHeight = 0f;
+            AddCrisp(rule, height);
+        }
+
+        /// <summary>선이 작은 창에서 사라지지 않도록 실제 픽셀 두께를 지키게 한다.</summary>
+        private static void AddCrisp(GameObject rule, float pixels)
+        {
+            var crisp = rule.AddComponent<CrispRule>();
+            var so = new SerializedObject(crisp);
+            so.Update();
+            so.FindProperty("_pixels").floatValue = pixels;
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>

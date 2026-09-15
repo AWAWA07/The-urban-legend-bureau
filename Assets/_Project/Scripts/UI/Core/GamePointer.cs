@@ -19,13 +19,26 @@ namespace UrbanLegendBureau.UI
         [Tooltip("화살표를 그릴 칸. 비워 두면 스스로 찾는다.")]
         [SerializeField] private Image _image;
 
-        [Tooltip("화면에 그릴 크기(기준 1920x1080 에서의 픽셀).")]
-        [SerializeField] private float _size = 34f;
+        [Tooltip("그림 한 칸을 실제 화면 몇 픽셀로 그릴 것인가. 정수라야 모양이 일그러지지 않는다.")]
+        [SerializeField] private int _pixelScale = 2;
 
         private InputService _input;
         private RectTransform _rect;
         private RectTransform _canvasRect;
         private Canvas _canvas;
+
+        /// <summary>지금 화면에 떠 있는 화살표. 켜고 끄는 것은 밖에서 정한다.</summary>
+        private static GamePointer _instance;
+
+        /// <summary>
+        /// 화살표를 보일지 정한다.
+        /// 차지한의 컴퓨터를 들여다보는 동안에만 켠다. 그 밖에서는 운영체제 화살표를 그대로 쓴다.
+        /// </summary>
+        public static void SetVisible(bool visible)
+        {
+            if (_instance == null) return;
+            _instance.gameObject.SetActive(visible);
+        }
 
         /// <summary>
         /// 화살표 모양. X는 테두리, O는 속, 점은 빈 곳이다.
@@ -55,6 +68,8 @@ namespace UrbanLegendBureau.UI
 
         private void Awake()
         {
+            _instance = this;
+
             if (_image == null) _image = GetComponent<Image>();
             _rect = (RectTransform)transform;
             _canvas = GetComponentInParent<Canvas>();
@@ -69,10 +84,10 @@ namespace UrbanLegendBureau.UI
                 _rect.pivot = new Vector2(0f, 1f);
                 _rect.anchorMin = new Vector2(0f, 0f);
                 _rect.anchorMax = new Vector2(0f, 0f);
-
-                float ratio = (float)Shape[0].Length / Shape.Length;
-                _rect.sizeDelta = new Vector2(_size * ratio, _size);
             }
+
+            // 켜고 끄는 것은 밖에서 정한다. 처음에는 꺼 둔다.
+            gameObject.SetActive(false);
         }
 
         private void OnEnable()
@@ -104,7 +119,15 @@ namespace UrbanLegendBureau.UI
 
             // 화면 좌표를 캔버스 좌표로 옮긴다. 캔버스는 화면 크기에 맞춰 늘고 줄기 때문이다.
             float scale = _canvas != null && _canvas.scaleFactor > 0f ? _canvas.scaleFactor : 1f;
-            _rect.anchoredPosition = screen / scale;
+
+            // 그림 한 칸이 실제 화면에서 정확히 정수 픽셀이 되게 크기를 거꾸로 계산한다.
+            // 캔버스 배율에 그냥 맡기면 칸이 소수 픽셀로 늘어나 모양이 일그러진다.
+            int step = Mathf.Max(1, _pixelScale);
+            _rect.sizeDelta = new Vector2(Shape[0].Length * step, Shape.Length * step) / scale;
+
+            // 자리도 픽셀에 맞춰 떨어뜨린다. 반 픽셀에 걸치면 가장자리가 흐려진다.
+            var snapped = new Vector2(Mathf.Round(screen.x), Mathf.Round(screen.y));
+            _rect.anchoredPosition = snapped / scale;
         }
 
         /// <summary>글자판을 읽어 화살표 그림을 만든다. 한 번만 만들고 그대로 쓴다.</summary>

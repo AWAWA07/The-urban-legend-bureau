@@ -216,6 +216,9 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            // 여기서부터는 차지한의 컴퓨터를 들여다보는 화면이다. 화살표도 게임 안의 것으로 바꾼다.
+            GamePointer.SetVisible(true);
+
             _desktopScreen.Bind(OnAppClicked);
             _desktopScreen.SetAllowedApps();          // 대사 중에는 어차피 위가 막힌다
 
@@ -670,6 +673,9 @@ namespace UrbanLegendBureau.Systems
             if (!IsRunning) return;
 
             IsRunning = false;
+
+            // 컴퓨터 화면에서 나온다. 화살표를 운영체제에 돌려준다.
+            GamePointer.SetVisible(false);
 
             // 튜토리얼 전용 저장본은 그냥 버린다. 파일로 쓴 적이 없다.
             _sandbox = null;
