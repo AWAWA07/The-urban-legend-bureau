@@ -157,6 +157,7 @@ namespace UrbanLegendBureau.EditorTools
             var settings = BuildSettingsScreen("Screen_Settings", out var settingsButtons);
             var dialogue = BuildDialogueScreen("Screen_Dialogue", true);
             var talk = BuildDialogueScreen("Screen_TutorialTalk", false);
+            var desktop = BuildDesktopScreen("Screen_Desktop");
             var community = BuildCommunityScreen("Screen_Community");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -226,6 +227,7 @@ namespace UrbanLegendBureau.EditorTools
             tso.Update();
             tso.FindProperty("_dialogueScreen").objectReferenceValue = dialogue;
             tso.FindProperty("_talkScreen").objectReferenceValue = talk;
+            tso.FindProperty("_desktopScreen").objectReferenceValue = desktop;
             tso.FindProperty("_communityScreen").objectReferenceValue = community;
             tso.FindProperty("_caseDirector").objectReferenceValue = director;
             tso.FindProperty("_tutorialPage").objectReferenceValue =
@@ -831,6 +833,89 @@ namespace UrbanLegendBureau.EditorTools
             return image;
         }
 
+        /// <summary>
+        /// 차지한의 컴퓨터 바탕화면.
+        /// 아이콘 다섯 개 중 지금 열리는 것은 괴담넷뿐이다. 나머지는 자리만 잡아 둔다.
+        /// </summary>
+        private static DesktopScreen BuildDesktopScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.10f, 0.13f, 0.20f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<DesktopScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            // 작업 표시줄
+            var taskbar = CreatePanel(go.transform, "Taskbar", new Color(0.07f, 0.09f, 0.14f, 1f));
+            var tbRt = (RectTransform)taskbar.transform;
+            tbRt.anchorMin = new Vector2(0f, 0f);
+            tbRt.anchorMax = new Vector2(1f, 0f);
+            tbRt.pivot = new Vector2(0.5f, 0f);
+            tbRt.anchoredPosition = Vector2.zero;
+            tbRt.sizeDelta = new Vector2(0f, 56f);
+
+            var clock = AddText(taskbar.transform, "Clock", 24f, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
+            StretchInside(clock.rectTransform, 40f, 40f, 8f, 8f);
+
+            // 아이콘은 왼쪽 위에서부터 한 줄로 늘어놓는다.
+            var apps = new[]
+            {
+                new[] { "gwedamnet", "ui.desktop.app_net" },
+                new[] { "memo", "ui.desktop.app_memo" },
+                new[] { "archive", "ui.desktop.app_archive" },
+                new[] { "kikitalk", "ui.desktop.app_talk" },
+                new[] { "gallery", "ui.desktop.app_gallery" },
+            };
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_clockText").objectReferenceValue = clock;
+
+            var iconList = so.FindProperty("_icons");
+            iconList.arraySize = apps.Length;
+
+            for (int i = 0; i < apps.Length; i++)
+            {
+                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-780f, 380f - i * 150f));
+
+                var element = iconList.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("appId").stringValue = apps[i][0];
+                element.FindPropertyRelative("labelTextId").stringValue = apps[i][1];
+                element.FindPropertyRelative("button").objectReferenceValue = icon.GetComponent<Button>();
+                element.FindPropertyRelative("label").objectReferenceValue = icon.GetComponentInChildren<TMP_Text>(true);
+            }
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
+        /// <summary>바탕화면 아이콘 하나. 네모 하나와 이름표로 둔다.</summary>
+        private static GameObject BuildDesktopIcon(Transform parent, string id, Vector2 position)
+        {
+            var go = new GameObject("Icon_" + id, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(200f, 130f);
+
+            var button = go.AddComponent<Button>();
+
+            var box = CreatePanel(go.transform, "Box", new Color(0.24f, 0.30f, 0.42f, 1f));
+            var boxRt = (RectTransform)box.transform;
+            boxRt.anchoredPosition = new Vector2(0f, 24f);
+            boxRt.sizeDelta = new Vector2(84f, 68f);
+            button.targetGraphic = box.GetComponent<Image>();
+
+            var label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
+                new Vector2(0f, -44f), new Vector2(200f, 40f), TextAlignmentOptions.Center);
+            label.raycastTarget = false;
+
+            return go;
+        }
+
         /// <summary>인터넷 커뮤니티 게시글 화면.</summary>
         private static CommunityPageScreen BuildCommunityScreen(string name)
         {
@@ -843,12 +928,38 @@ namespace UrbanLegendBureau.EditorTools
             var ink = new Color(0.12f, 0.12f, 0.14f);
             var dim = new Color(0.42f, 0.44f, 0.48f);
 
+            // --- 창 제목 표시줄. 진짜 브라우저 창처럼 보이게 한다. ---
+            var titleBar = CreatePanel(go.transform, "TitleBar", new Color(0.13f, 0.14f, 0.18f, 1f));
+            var barRt = (RectTransform)titleBar.transform;
+            barRt.anchorMin = new Vector2(0f, 1f);
+            barRt.anchorMax = new Vector2(1f, 1f);
+            barRt.pivot = new Vector2(0.5f, 1f);
+            barRt.anchoredPosition = Vector2.zero;
+            barRt.sizeDelta = new Vector2(0f, 56f);
+
+            var windowTitle = AddText(titleBar.transform, "WindowTitle", 26f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(windowTitle.rectTransform, 110f, 260f, 8f, 8f);
+
+            var closeButton = CreatePanel(titleBar.transform, "Btn_CloseWindow", new Color(0.62f, 0.22f, 0.24f, 1f));
+            var closeRt = (RectTransform)closeButton.transform;
+            closeRt.anchorMin = new Vector2(1f, 0.5f);
+            closeRt.anchorMax = new Vector2(1f, 0.5f);
+            closeRt.anchoredPosition = new Vector2(-70f, 0f);
+            closeRt.sizeDelta = new Vector2(56f, 40f);
+            var close = closeButton.AddComponent<Button>();
+            close.targetGraphic = closeButton.GetComponent<Image>();
+            var closeLabel = AddText(closeButton.transform, "Label", 26f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(56f, 40f), TextAlignmentOptions.Center);
+            closeLabel.text = "X";
+            closeLabel.raycastTarget = false;
+
             var header = CreatePanel(go.transform, "Header", new Color(0.20f, 0.24f, 0.34f, 1f));
             var headerRt = (RectTransform)header.transform;
             headerRt.anchorMin = new Vector2(0f, 1f);
             headerRt.anchorMax = new Vector2(1f, 1f);
             headerRt.pivot = new Vector2(0.5f, 1f);
-            headerRt.anchoredPosition = Vector2.zero;
+            headerRt.anchoredPosition = new Vector2(0f, -56f);   // 제목 표시줄 아래
             headerRt.sizeDelta = new Vector2(0f, 90f);
 
             // 머리말 글자는 아래 게시글 본문(폭 1700, 좌우 가운데)의 왼쪽 선에 맞춘다.
@@ -863,27 +974,53 @@ namespace UrbanLegendBureau.EditorTools
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
             StretchInside(boardText.rectTransform, contentMargin + 360f, 1920f - contentMargin - 360f - 420f, 10f, 10f);
 
-            var titleText = AddText(go.transform, "PostTitle", 44f, UIFontWeight.Bold, ink,
+            // --- 게시판 목록 보기 ---
+            var boardView = new GameObject("BoardView", typeof(RectTransform));
+            boardView.transform.SetParent(go.transform, false);
+            StretchFull(boardView);
+
+            var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 300f),
+                new Vector2(1700f, 620f), 10f);
+            var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(0.99f, 0.99f, 1f, 1f));
+            var boardButton = boardTemplate.AddComponent<Button>();
+            boardButton.targetGraphic = boardTemplate.GetComponent<Image>();
+            var btRt = (RectTransform)boardTemplate.transform;
+            btRt.sizeDelta = new Vector2(1660f, 96f);
+            var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
+                Vector2.zero, new Vector2(1600f, 86f), TextAlignmentOptions.Left);
+            var btlRt = (RectTransform)btLabel.transform;
+            btlRt.anchorMin = Vector2.zero;
+            btlRt.anchorMax = Vector2.one;
+            btlRt.offsetMin = new Vector2(24f, 6f);
+            btlRt.offsetMax = new Vector2(-24f, -6f);
+            boardTemplate.SetActive(false);
+
+            // --- 글 하나를 펼친 보기 ---
+            var postView = new GameObject("PostView", typeof(RectTransform));
+            postView.transform.SetParent(go.transform, false);
+            StretchFull(postView);
+
+            var titleText = AddText(postView.transform, "PostTitle", 44f, UIFontWeight.Bold, ink,
                 new Vector2(0f, 360f), new Vector2(1700f, 70f), TextAlignmentOptions.Left);
-            var metaText = AddText(go.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
+            var metaText = AddText(postView.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
                 new Vector2(0f, 310f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
-            var bodyText = AddText(go.transform, "PostBody", 30f, UIFontWeight.Regular, ink,
+            var bodyText = AddText(postView.transform, "PostBody", 30f, UIFontWeight.Regular, ink,
                 new Vector2(0f, 190f), new Vector2(1700f, 190f), TextAlignmentOptions.TopLeft);
 
-            var commentHeader = AddText(go.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
+            var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
                 new Vector2(0f, 70f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
 
-            var commentRoot = CreateVerticalList(go.transform, "Comments", new Vector2(-440f, 30f),
+            var commentRoot = CreateVerticalList(postView.transform, "Comments", new Vector2(-440f, 30f),
                 new Vector2(820f, 320f), 8f);
             var commentTemplate = AddText(commentRoot, "CommentTemplate", 24f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(800f, 66f), TextAlignmentOptions.TopLeft);
             commentTemplate.gameObject.SetActive(false);
 
             // 댓글 쓰기 영역은 댓글 목록보다 위에서 시작한다. 아래쪽은 대화 상자 자리다.
-            var choiceHeader = AddText(go.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
+            var choiceHeader = AddText(postView.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
                 new Vector2(460f, 160f), new Vector2(820f, 40f), TextAlignmentOptions.Left);
 
-            var choiceRoot = CreateVerticalList(go.transform, "Choices", new Vector2(460f, 120f),
+            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(460f, 120f),
                 new Vector2(820f, 320f), 10f);
             var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
             var choiceButton = choiceTemplate.AddComponent<Button>();
@@ -900,11 +1037,17 @@ namespace UrbanLegendBureau.EditorTools
             choiceTemplate.SetActive(false);
 
             // 안내는 선택지 바로 위에 둔다. 아래쪽은 한영의 대화 상자가 쓰는 자리라 비워 둔다.
-            var noticeText = AddText(go.transform, "Notice", 26f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
+            var noticeText = AddText(postView.transform, "Notice", 26f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
                 new Vector2(460f, 206f), new Vector2(820f, 44f), TextAlignmentOptions.Left);
 
             var so = new SerializedObject(screen);
             so.Update();
+            so.FindProperty("_windowTitleText").objectReferenceValue = windowTitle;
+            so.FindProperty("_closeButton").objectReferenceValue = close;
+            so.FindProperty("_boardView").objectReferenceValue = boardView;
+            so.FindProperty("_postView").objectReferenceValue = postView;
+            so.FindProperty("_boardRoot").objectReferenceValue = boardRoot;
+            so.FindProperty("_boardEntryTemplate").objectReferenceValue = boardButton;
             so.FindProperty("_siteText").objectReferenceValue = siteText;
             so.FindProperty("_boardText").objectReferenceValue = boardText;
             so.FindProperty("_titleText").objectReferenceValue = titleText;

@@ -316,3 +316,25 @@ tutorial.reaction.2	주작 아니냐 이거	This is made up, right?
 tutorial.reaction.3	막차 시간표 보고 왔는데 맞는 말이네	I checked the timetable. They have a point	
 tutorial.btn_finish	튜토리얼 종료	Finish tutorial	
 tutorial.line.006	미안한데 바로 일 좀 시켜도 될까?	Sorry, but can I put you to work right away?	한영, 차지한 등장 직전
+
+# --- 조정: 컴퓨터 바탕화면 / 게시판 목록 ---
+ui.desktop.clock	오전 02:44	02:44 AM	바탕화면 시계(임시)
+ui.desktop.app_net	괴담넷	LegendNet	
+ui.desktop.app_memo	메모장	Notepad	아직 기능 없음
+ui.desktop.app_archive	도감	Archive	아직 기능 없음
+ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
+ui.desktop.app_gallery	갤러리	Gallery	아직 기능 없음
+ui.net.window_title	괴담넷 - 자유게시판	LegendNet - Open board	창 제목 표시줄
+ui.net.hot_mark	인기	HOT	인기글 표시
+board.subway.meta	익명    조회 1284    댓글 3	Anonymous    views 1284    comments 3	
+board.filler.001	오늘 지하철에서 지갑 주웠는데 어디에 맡기나요	Found a wallet on the subway today. Where do I hand it in?	목록 채우기
+board.filler.001.meta	익명    조회 41    댓글 2	Anonymous    views 41    comments 2	
+board.filler.002	야근하고 집 가는 길 사진	Photo from the walk home after overtime	
+board.filler.002.meta	익명    조회 88    댓글 5	Anonymous    views 88    comments 5	
+board.filler.003	이 노선 막차 시간 아시는 분	Anyone know the last train time on this line?	
+board.filler.003.meta	익명    조회 12    댓글 0	Anonymous    views 12    comments 0	
+
+# --- 조정: 컴퓨터 안내 대사 ---
+tutorial.pc.001	자, 저기 괴담넷을 눌러봐.	All right. Click LegendNet over there.	한영, 인물 없음
+tutorial.pc.002	인기글 보이지? 들어가봐.	See the hot post? Open it.	한영
+tutorial.pc.003	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰기 부터 해보자.	This is the kind of story we have to hold down. Start with the comment box.	한영

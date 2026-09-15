@@ -27,6 +27,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("커뮤니티 화면 위에 겹쳐 쓰는 대화 화면. 같은 DialogueScreen을 재사용한다.")]
         [SerializeField] private DialogueScreen _talkScreen;
 
+        [Tooltip("차지한의 컴퓨터 바탕화면.")]
+        [SerializeField] private DesktopScreen _desktopScreen;
+
         [SerializeField] private CommunityPageScreen _communityScreen;
 
         [Header("연결")]
@@ -81,6 +84,12 @@ namespace UrbanLegendBureau.Systems
         private const string TutorialPostViews = "1284";
         private const string PostTimeTextId = "ui.net.post_time_tutorial";
         private const string ChoiceHintTextId = "tutorial.comment.hint";
+        private const string PcLine1TextId = "tutorial.pc.001";
+        private const string PcLine2TextId = "tutorial.pc.002";
+        private const string PcLine3TextId = "tutorial.pc.003";
+
+        /// <summary>바탕화면에서 괴담넷 아이콘을 가리키는 ID. 씬의 아이콘 설정과 같아야 한다.</summary>
+        public const string NetAppId = "gwedamnet";
         private const string WrongTextId = "tutorial.comment.wrong";
         private const string NeedFieldTextId = "tutorial.comment.need_field";
         private const string NeedFieldHanyoungTextId = "tutorial.comment.need_field_hanyoung";
@@ -189,7 +198,89 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            OpenDesktop();
+        }
+
+        // ------------------------------------------------------------- 컴퓨터
+
+        /// <summary>대화가 끝나면 차지한의 컴퓨터 앞에 앉는다.</summary>
+        private void OpenDesktop()
+        {
+            if (_desktopScreen == null)
+            {
+                Debug.LogError("[TutorialDirector] 바탕화면이 연결되지 않았다. 씬을 다시 빌드할 것.");
+                return;
+            }
+
+            _desktopScreen.Bind(OnAppClicked);
+            _desktopScreen.SetAllowedApps();          // 대사 중에는 어차피 위가 막힌다
+
+            if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
+
+            if (_ui.Count == 0) _ui.Push(_desktopScreen);
+            else _ui.Replace(_desktopScreen);
+
+            Debug.Log("[TutorialDirector] 컴퓨터 화면");
+
+            // 여기서는 한영이 옆에서 안내만 한다. 인물은 세우지 않는다.
+            ShowTalk(PcLine1TextId, AfterTalk.OpenDesktopNet, showCharacter: false);
+        }
+
+        /// <summary>바탕화면 아이콘을 눌렀을 때. 지금 열 수 있는 것은 괴담넷뿐이다.</summary>
+        private void OnAppClicked(string appId)
+        {
+            if (appId != NetAppId) return;
+            OpenCommunityBoard();
+        }
+
+        /// <summary>괴담넷을 열면 게시판 목록부터 보인다.</summary>
+        private void OpenCommunityBoard()
+        {
+            if (_communityScreen == null) return;
+
+            BuildBoardEntries();
+
+            _communityScreen.BindWindow(null);        // 튜토리얼 중에는 창을 닫을 수 없다
+            _communityScreen.BindBoard(_boardEntries, OnBoardEntryClicked);
+            _communityScreen.ShowBoard(true);
+            _communityScreen.ShowNotice(null);
+
+            if (_ui.Count == 0) _ui.Push(_communityScreen);
+            else _ui.Replace(_communityScreen);
+
+            Debug.Log("[TutorialDirector] 괴담넷 | 게시판 목록 " + _boardEntries.Count + "개");
+
+            ShowTalk(PcLine2TextId, AfterTalk.OpenHotPost, showCharacter: false);
+        }
+
+        private void OnBoardEntryClicked(CommunityBoardEntry entry)
+        {
+            if (entry == null || !entry.Openable) return;
             OpenCommunity();
+        }
+
+        private List<CommunityBoardEntry> _boardEntries;
+
+        /// <summary>
+        /// 게시판 목록. 인기글 하나만 열리고 나머지는 자리를 채운다.
+        /// 튜토리얼이 엉뚱한 글로 새지 않게 하기 위해서다.
+        /// </summary>
+        private void BuildBoardEntries()
+        {
+            _boardEntries = new List<CommunityBoardEntry>
+            {
+                new CommunityBoardEntry
+                {
+                    TitleTextId = _tutorialPage != null ? _tutorialPage.TitleTextId : string.Empty,
+                    MetaTextId = "board.subway.meta",
+                    IsHot = true,
+                    Openable = true,
+                    Page = _tutorialPage,
+                },
+                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },
+                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },
+                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },
+            };
         }
 
         // ------------------------------------------------------------- 커뮤니티
@@ -204,7 +295,13 @@ namespace UrbanLegendBureau.Systems
             PostComment,
 
             /// <summary>튜토리얼을 끝낸다.</summary>
-            Finish
+            Finish,
+
+            /// <summary>괴담넷 아이콘만 누를 수 있게 열어 준다.</summary>
+            OpenDesktopNet,
+
+            /// <summary>게시판에서 인기글만 누를 수 있게 열어 준다.</summary>
+            OpenHotPost
         }
 
         private AfterTalk _afterTalk;
@@ -221,17 +318,18 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected);
             _communityScreen.ShowNotice(null);
+            _communityScreen.ShowBoard(false);       // 목록에서 글로 들어간다
 
             // 대화 화면을 확실히 닫는다. 위에 팝업이 떠 있어도 스택에 남지 않게 한다.
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 
             if (_ui.Count == 0) _ui.Push(_communityScreen);
-            else _ui.Replace(_communityScreen);
+            else if (!_ui.Contains(_communityScreen)) _ui.Replace(_communityScreen);
 
-            Debug.Log("[TutorialDirector] 커뮤니티 화면 | 댓글 선택 " + _choices.Count + "개");
+            Debug.Log("[TutorialDirector] 커뮤니티 글 | 댓글 선택 " + _choices.Count + "개");
 
             // 설명은 일반 문구가 아니라 한영이 직접 말한다.
-            ShowTalk(ChoiceHintTextId, AfterTalk.BackToChoices);
+            ShowTalk(PcLine3TextId, AfterTalk.BackToChoices, showCharacter: false);
         }
 
         // ------------------------------------------------------------- 한영의 말
@@ -243,7 +341,7 @@ namespace UrbanLegendBureau.Systems
         /// 이 화면은 아래를 가리지 않는 팝업이라 커뮤니티가 그대로 보이고,
         /// 화면 전체를 덮는 진행 버튼이 있어 말하는 동안에는 선택지를 누를 수 없다.
         /// </summary>
-        private void ShowTalk(string lineTextId, AfterTalk after)
+        private void ShowTalk(string lineTextId, AfterTalk after, bool showCharacter = true)
         {
             if (_talkScreen == null)
             {
@@ -263,7 +361,7 @@ namespace UrbanLegendBureau.Systems
                 () => _loc.Get(HanyoungNameTextId),
                 () => _loc.Get(lineTextId),
                 1f,
-                leftVisible: true,
+                leftVisible: showCharacter,
                 rightVisible: false);
 
             Debug.Log("[TutorialDirector] 한영 대사 | " + lineTextId + " -> 끝나면 " + after);
@@ -301,6 +399,15 @@ namespace UrbanLegendBureau.Systems
 
                 case AfterTalk.Finish:
                     FinishTutorial();
+                    break;
+
+                case AfterTalk.OpenDesktopNet:
+                    // 안내가 끝나야 아이콘을 누를 수 있다. 그것도 괴담넷 하나만.
+                    if (_desktopScreen != null) _desktopScreen.SetAllowedApps(NetAppId);
+                    break;
+
+                case AfterTalk.OpenHotPost:
+                    // 목록은 이미 인기글만 눌리게 되어 있다. 여기서는 아무것도 더 열지 않는다.
                     break;
 
                 default:
@@ -508,6 +615,7 @@ namespace UrbanLegendBureau.Systems
 
             if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
             if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
+            if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 
             MarkTutorialSeen();

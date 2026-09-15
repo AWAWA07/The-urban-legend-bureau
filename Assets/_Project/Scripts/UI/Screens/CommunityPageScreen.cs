@@ -9,6 +9,22 @@ using UrbanLegendBureau.Localization;
 
 namespace UrbanLegendBureau.UI
 {
+    /// <summary>게시판 목록에 걸리는 글 한 줄.</summary>
+    public class CommunityBoardEntry
+    {
+        public string TitleTextId;
+        public string MetaTextId;
+
+        /// <summary>인기글 표시를 붙일 것인가.</summary>
+        public bool IsHot;
+
+        /// <summary>눌러서 열 수 있는 글인가. 배경을 채우는 줄은 열리지 않는다.</summary>
+        public bool Openable;
+
+        /// <summary>열었을 때 보여줄 글. Openable이 아니면 비어 있어도 된다.</summary>
+        public WebPageSO Page;
+    }
+
     /// <summary>화면에 붙는 댓글 한 줄. 판정에 쓰이는 데이터는 들고 있지 않다.</summary>
     public class CommunityComment
     {
@@ -30,6 +46,24 @@ namespace UrbanLegendBureau.UI
     /// </summary>
     public class CommunityPageScreen : UIScreen
     {
+        [Header("창 틀")]
+        [Tooltip("창 제목. 브라우저 제목 표시줄처럼 쓴다.")]
+        [SerializeField] private TMP_Text _windowTitleText;
+
+        [Tooltip("창 닫기 버튼.")]
+        [SerializeField] private Button _closeButton;
+
+        [Header("보기 전환")]
+        [Tooltip("게시판 목록 영역 전체.")]
+        [SerializeField] private GameObject _boardView;
+
+        [Tooltip("글 하나를 펼친 영역 전체.")]
+        [SerializeField] private GameObject _postView;
+
+        [Header("게시판 목록")]
+        [SerializeField] private RectTransform _boardRoot;
+        [SerializeField] private Button _boardEntryTemplate;
+
         [Header("머리말")]
         [SerializeField] private TMP_Text _siteText;
         [SerializeField] private TMP_Text _boardText;
@@ -54,6 +88,15 @@ namespace UrbanLegendBureau.UI
 
         private readonly List<GameObject> _spawnedComments = new List<GameObject>();
         private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
+        private readonly List<GameObject> _spawnedEntries = new List<GameObject>();
+
+        private IReadOnlyList<CommunityBoardEntry> _entries;
+        private Action<CommunityBoardEntry> _onEntry;
+        private Action _onClose;
+        private bool _showingBoard = true;
+
+        private const string WindowTitleTextId = "ui.net.window_title";
+        private const string HotMarkTextId = "ui.net.hot_mark";
 
         private const string SiteTextId = "ui.net.site_name";
         private const string BoardTextId = "ui.net.board_free";
@@ -69,6 +112,38 @@ namespace UrbanLegendBureau.UI
         private Func<TutorialCommentChoice, string> _choiceLabelProvider;
         private Action<TutorialCommentChoice> _onChoice;
         private Func<string> _noticeProvider;
+
+        /// <summary>창 닫기 버튼이 할 일을 정한다. null을 주면 버튼이 꺼진다.</summary>
+        public void BindWindow(Action onClose)
+        {
+            _onClose = onClose;
+
+            if (_closeButton != null)
+            {
+                _closeButton.onClick.RemoveAllListeners();
+                _closeButton.onClick.AddListener(() => _onClose?.Invoke());
+                _closeButton.interactable = onClose != null;
+            }
+        }
+
+        /// <summary>게시판 목록을 건다.</summary>
+        public void BindBoard(IReadOnlyList<CommunityBoardEntry> entries, Action<CommunityBoardEntry> onEntry)
+        {
+            _entries = entries;
+            _onEntry = onEntry;
+            Refresh();
+        }
+
+        /// <summary>목록 보기와 글 보기를 바꾼다.</summary>
+        public void ShowBoard(bool showBoard)
+        {
+            _showingBoard = showBoard;
+
+            if (_boardView != null) _boardView.SetActive(showBoard);
+            if (_postView != null) _postView.SetActive(!showBoard);
+
+            Refresh();
+        }
 
         /// <summary>게시글을 건다. 조회수와 작성 시각은 화면에 보이기 위한 값이다.</summary>
         public void BindPage(WebPageSO page, int views, string postTimeTextId)
@@ -124,8 +199,15 @@ namespace UrbanLegendBureau.UI
         {
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
+            if (_windowTitleText != null) _windowTitleText.text = loc.Get(WindowTitleTextId);
             if (_siteText != null) _siteText.text = loc.Get(SiteTextId);
             if (_boardText != null) _boardText.text = loc.Get(BoardTextId);
+
+            if (_showingBoard)
+            {
+                RebuildBoard(loc);
+                return;     // 목록을 보는 중에는 글 내용을 그릴 것이 없다
+            }
 
             if (_titleText != null) _titleText.text = _page != null ? loc.Get(_page.TitleTextId) : string.Empty;
             if (_bodyText != null) _bodyText.text = _page != null ? loc.Get(_page.BodyTextId) : string.Empty;
@@ -152,6 +234,43 @@ namespace UrbanLegendBureau.UI
         }
 
         // ------------------------------------------------------------- 목록
+
+        private void RebuildBoard(LocalizationService loc)
+        {
+            if (_boardRoot == null || _boardEntryTemplate == null) return;
+
+            ClearSpawned(_spawnedEntries);
+            if (_entries == null) return;
+
+            for (int i = 0; i < _entries.Count; i++)
+            {
+                var entry = _entries[i];
+                if (entry == null) continue;
+
+                var item = Instantiate(_boardEntryTemplate, _boardRoot);
+                item.gameObject.name = "Post_" + i;
+                item.gameObject.SetActive(true);
+
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null)
+                {
+                    string title = loc.Get(entry.TitleTextId);
+                    if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
+
+                    string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
+                    label.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
+                }
+
+                // 배경을 채우는 줄은 눌리지 않는다. 튜토리얼이 엉뚱한 글로 새지 않게 한다.
+                item.interactable = entry.Openable;
+
+                var captured = entry;
+                item.onClick.RemoveAllListeners();
+                item.onClick.AddListener(() => _onEntry?.Invoke(captured));
+
+                _spawnedEntries.Add(item.gameObject);
+            }
+        }
 
         private void RebuildComments(LocalizationService loc)
         {
