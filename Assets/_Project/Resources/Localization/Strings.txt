@@ -338,3 +338,4 @@ board.filler.003.meta	익명    조회 12    댓글 0	Anonymous    views 12    c
 tutorial.pc.001	자, 저기 괴담넷을 눌러봐.	All right. Click LegendNet over there.	한영, 인물 없음
 tutorial.pc.002	인기글 보이지? 들어가봐.	See the hot post? Open it.	한영
 tutorial.pc.003	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰기 부터 해보자.	This is the kind of story we have to hold down. Start with the comment box.	한영
+ui.net.author_player	{0}(차지한)	{0} (Chajihan)	내가 쓴 댓글의 작성자 표기

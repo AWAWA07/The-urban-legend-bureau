@@ -558,9 +558,10 @@ namespace UrbanLegendBureau.Systems
             }
 
             // 플레이어의 댓글이 먼저 올라간다.
+            // 커뮤니티에서는 다들 익명이다. 누가 썼는지는 화면이 괄호로 덧붙인다.
             _comments.Add(new CommunityComment
             {
-                AuthorTextId = PlayerNameTextId,
+                AuthorTextId = "ui.net.author_anon",
                 BodyTextId = choice.BodyTextId,
                 IsPlayer = true,
             });

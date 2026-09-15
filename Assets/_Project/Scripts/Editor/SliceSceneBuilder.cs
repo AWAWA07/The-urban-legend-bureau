@@ -1017,38 +1017,71 @@ namespace UrbanLegendBureau.EditorTools
             const float leftX = -(columnWidth + columnGap) * 0.5f;    // -430
             const float rightX = (columnWidth + columnGap) * 0.5f;    //  430
 
-            // 각 줄은 자기 칸 안에서만 그려진다. 칸끼리 최소 12 이상 띄워 글자가 맞닿지 않게 한다.
+            // 글 머리(제목/정보/본문)는 폭 전체를 쓰고, 그 아래에서만 두 단으로 갈라진다.
+            // 본문이 폭 전체인 채 오른쪽 단과 같은 높이에 있으면 글자가 겹친다.
+            // 여백은 가까운 것끼리 좁게, 묶음이 바뀌는 곳은 넓게 준다.
             var titleText = AddText(postView.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
-                new Vector2(0f, 344f), new Vector2(1700f, 56f), TextAlignmentOptions.Left);       // 316~372
+                new Vector2(0f, 346f), new Vector2(1700f, 54f), TextAlignmentOptions.Left);       // 319~373
             var metaText = AddText(postView.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
-                new Vector2(0f, 288f), new Vector2(1700f, 30f), TextAlignmentOptions.Left);       // 273~303
+                new Vector2(0f, 298f), new Vector2(1700f, 30f), TextAlignmentOptions.Left);       // 283~313, 제목과 6
             var bodyText = AddText(postView.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
-                new Vector2(0f, 208f), new Vector2(1700f, 100f), TextAlignmentOptions.TopLeft);   // 158~258
+                new Vector2(0f, 228f), new Vector2(1700f, 86f), TextAlignmentOptions.TopLeft);    // 185~271, 정보와 12
 
-            // 왼쪽: 달린 댓글
+            // --- 여기부터 두 단. 왼쪽은 달린 댓글, 오른쪽은 댓글 쓰기 ---
+            const float SectionTop = 150f;     // 머리말 줄 (본문과 35)
+            const float ListTop = 118f;        // 목록 시작 (머리말과 15)
+            const float ListHeight = 300f;     // 아래 -182 에서 끝난다. 대화 상자 위로 8 남긴다.
+
             var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(leftX, 126f), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);   // 109~143
+                new Vector2(leftX, SectionTop), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);
 
-            var commentRoot = CreateVerticalList(postView.transform, "Comments", new Vector2(leftX, 94f),
-                new Vector2(columnWidth, 276f), 10f);                                                  // 94~-182
+            // 댓글은 늘어나므로 잘라 보여주고 스크롤한다. 실제 커뮤니티도 그렇게 동작한다.
+            var commentViewport = new GameObject("CommentsViewport", typeof(RectTransform));
+            commentViewport.transform.SetParent(postView.transform, false);
+            var cvRt = (RectTransform)commentViewport.transform;
+            cvRt.anchorMin = new Vector2(0.5f, 0.5f);
+            cvRt.anchorMax = new Vector2(0.5f, 0.5f);
+            cvRt.pivot = new Vector2(0.5f, 1f);
+            cvRt.anchoredPosition = new Vector2(leftX, ListTop);
+            cvRt.sizeDelta = new Vector2(columnWidth, ListHeight);
+            commentViewport.AddComponent<RectMask2D>();
+
+            var commentRoot = CreateVerticalList(commentViewport.transform, "Comments", Vector2.zero,
+                new Vector2(columnWidth, ListHeight), 10f);
+            commentRoot.anchorMin = new Vector2(0.5f, 1f);
+            commentRoot.anchorMax = new Vector2(0.5f, 1f);
+            commentRoot.pivot = new Vector2(0.5f, 1f);
+            commentRoot.anchoredPosition = Vector2.zero;
+            var commentFitter = commentRoot.gameObject.AddComponent<ContentSizeFitter>();
+            commentFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var commentScroll = commentViewport.AddComponent<ScrollRect>();
+            commentScroll.viewport = cvRt;
+            commentScroll.content = commentRoot;
+            commentScroll.horizontal = false;
+            commentScroll.vertical = true;
+            commentScroll.movementType = ScrollRect.MovementType.Clamped;
+            commentScroll.scrollSensitivity = 30f;
+
             // 댓글 한 줄을 카드로 둔다. 배경이 있어야 어디까지가 한 댓글인지 눈에 들어온다.
             var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 1f));
             var comRt = (RectTransform)commentTemplate.transform;
-            comRt.sizeDelta = new Vector2(columnWidth, 78f);
-            var comLabel = AddText(commentTemplate.transform, "Label", 23f, UIFontWeight.Regular, ink,
-                Vector2.zero, new Vector2(columnWidth - 40f, 66f), TextAlignmentOptions.TopLeft);
-            StretchInside(comLabel.rectTransform, 20f, 20f, 10f, 10f);
+            comRt.sizeDelta = new Vector2(columnWidth, 74f);
+            var comLabel = AddText(commentTemplate.transform, "Label", 22f, UIFontWeight.Regular, ink,
+                Vector2.zero, new Vector2(columnWidth - 40f, 62f), TextAlignmentOptions.TopLeft);
+            StretchInside(comLabel.rectTransform, 20f, 20f, 8f, 8f);
             commentTemplate.SetActive(false);
 
-            // 오른쪽: 댓글 쓰기. 본문 높이에 맞춰 위에서부터 시작한다.
-            var noticeText = AddText(postView.transform, "Notice", 24f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                new Vector2(rightX, 296f), new Vector2(columnWidth, 32f), TextAlignmentOptions.Left);
-
+            // 오른쪽: 댓글 쓰기. 왼쪽 댓글과 같은 높이에서 시작한다.
             var choiceHeader = AddText(postView.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(rightX, 252f), new Vector2(columnWidth, 36f), TextAlignmentOptions.Left);
+                new Vector2(rightX, SectionTop), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);
 
-            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(rightX, 220f),
-                new Vector2(columnWidth, 402f), 14f);
+            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(rightX, ListTop),
+                new Vector2(columnWidth, ListHeight), 13f);
+
+            // 안내는 오른쪽 머리말 위. 본문 아래 빈 자리라 무엇과도 겹치지 않는다.
+            var noticeText = AddText(postView.transform, "Notice", 24f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
+                new Vector2(rightX, 190f), new Vector2(columnWidth, 30f), TextAlignmentOptions.Left);
             var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
@@ -1075,6 +1108,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_commentHeaderText").objectReferenceValue = commentHeader;
             so.FindProperty("_commentRoot").objectReferenceValue = commentRoot;
             so.FindProperty("_commentTemplate").objectReferenceValue = commentTemplate;
+            so.FindProperty("_commentScroll").objectReferenceValue = commentScroll;
             so.FindProperty("_choiceHeaderText").objectReferenceValue = choiceHeader;
             so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
             so.FindProperty("_choiceTemplate").objectReferenceValue = choiceButton;

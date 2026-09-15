@@ -83,6 +83,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("내가 쓴 댓글의 배경색. 남의 댓글과 구분한다.")]
         [SerializeField] private Color _playerCommentColor = new Color(0.90f, 0.94f, 1f, 1f);
 
+        [Tooltip("댓글 스크롤. 새 댓글이 붙으면 맨 아래로 내린다.")]
+        [SerializeField] private ScrollRect _commentScroll;
+
         [Header("댓글 선택지")]
         [SerializeField] private TMP_Text _choiceHeaderText;
         [SerializeField] private RectTransform _choiceRoot;
@@ -102,6 +105,7 @@ namespace UrbanLegendBureau.UI
 
         private const string WindowTitleTextId = "ui.net.window_title";
         private const string HotMarkTextId = "ui.net.hot_mark";
+        private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
         private const string BoardTextId = "ui.net.board_free";
@@ -295,8 +299,13 @@ namespace UrbanLegendBureau.UI
                 var label = item.GetComponentInChildren<TMP_Text>(true);
                 if (label != null)
                 {
+                    // 커뮤니티는 다들 익명이다. 내가 쓴 글에만 누구인지 괄호로 덧붙는다.
+                    string author = comment.IsPlayer
+                        ? loc.Get(PlayerAuthorTextId, loc.Get(comment.AuthorTextId))
+                        : loc.Get(comment.AuthorTextId);
+
                     // 작성자는 작고 흐리게, 내용은 그대로. 실제 커뮤니티 댓글처럼 두 줄로 둔다.
-                    label.text = "<size=82%><color=#6B7280>" + loc.Get(comment.AuthorTextId) + "</color></size>\n"
+                    label.text = "<size=82%><color=#6B7280>" + author + "</color></size>\n"
                                  + loc.Get(comment.BodyTextId);
                 }
 
@@ -308,6 +317,17 @@ namespace UrbanLegendBureau.UI
                 }
 
                 _spawnedComments.Add(item);
+            }
+
+            // 새 댓글이 붙으면 맨 아래가 보이게 한다. 방금 달린 것이 화면 밖에 있으면 안 된다.
+            if (_commentScroll != null)
+            {
+                // 목록 높이가 아직 갱신되지 않은 채로 위치를 잡으면 엉뚱한 곳에 멈춘다.
+                // 배치를 먼저 확정한 뒤 맨 아래로 내린다.
+                Canvas.ForceUpdateCanvases();
+                if (_commentRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentRoot);
+
+                _commentScroll.verticalNormalizedPosition = 0f;
             }
         }
 
