@@ -112,6 +112,13 @@ namespace UrbanLegendBureau.UI
         [Tooltip("선택 결과 안내.")]
         [SerializeField] private TMP_Text _noticeText;
 
+        [Header("잠금")]
+        [Tooltip("글 화면에서 누를 수 있는 것들을 한꺼번에 잠그는 무리. 끌어서 내리는 것은 막지 않는다.")]
+        [SerializeField] private CanvasGroup _postControls;
+
+        [Tooltip("목록 화면 쪽 무리.")]
+        [SerializeField] private CanvasGroup _boardControls;
+
         private readonly List<GameObject> _spawnedComments = new List<GameObject>();
         private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
         private readonly List<GameObject> _spawnedEntries = new List<GameObject>();
@@ -153,6 +160,23 @@ namespace UrbanLegendBureau.UI
         private Action<TutorialCommentChoice> _onChoice;
         private Func<string> _noticeProvider;
 
+        /// <summary>
+        /// 누를 수 있는 것들을 한꺼번에 열고 잠근다.
+        ///
+        /// 대사 상자가 떠 있는 동안에는 잠근다. 말이 끝나기 전에 골라 버리면 순서가 엉킨다.
+        /// 끌어서 내리는 것은 막지 않는다. CanvasGroup 의 interactable 은 버튼만 잠그기 때문이다.
+        /// </summary>
+        public void SetControlsEnabled(bool enabled)
+        {
+            _controlsEnabled = enabled;
+
+            if (_postControls != null) _postControls.interactable = enabled;
+            if (_boardControls != null) _boardControls.interactable = enabled;
+            if (_closeButton != null) _closeButton.interactable = enabled && _onClose != null;
+        }
+
+        private bool _controlsEnabled = true;
+
         /// <summary>창 닫기 버튼이 할 일을 정한다. null을 주면 버튼이 꺼진다.</summary>
         public void BindWindow(Action onClose)
         {
@@ -162,7 +186,7 @@ namespace UrbanLegendBureau.UI
             {
                 _closeButton.onClick.RemoveAllListeners();
                 _closeButton.onClick.AddListener(() => _onClose?.Invoke());
-                _closeButton.interactable = onClose != null;
+                _closeButton.interactable = onClose != null && _controlsEnabled;
             }
         }
 

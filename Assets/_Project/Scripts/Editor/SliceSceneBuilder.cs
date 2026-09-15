@@ -992,6 +992,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 330f),
                 new Vector2(1700f, 520f), 12f);
+            var boardControls = boardRoot.gameObject.AddComponent<CanvasGroup>();
             var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(0.99f, 0.99f, 1f, 1f));
             var boardButton = boardTemplate.AddComponent<Button>();
             boardButton.targetGraphic = boardTemplate.GetComponent<Image>();
@@ -1047,6 +1048,10 @@ namespace UrbanLegendBureau.EditorTools
             pageRt.anchoredPosition = Vector2.zero;
             pageRt.sizeDelta = new Vector2(0f, 0f);   // 폭은 굴러가는 자리에 맞춘다
             AddStack(page, 0f, new RectOffset(0, 0, 0, 0));
+
+            // 대사 상자가 떠 있는 동안 누르지 못하게 잠그는 무리.
+            // interactable 만 끄므로 끌어서 내리는 것은 그대로 된다.
+            var postControls = page.AddComponent<CanvasGroup>();
 
             var pageScroll = pageViewport.AddComponent<ScrollRect>();
             pageScroll.viewport = cvRt;
@@ -1232,6 +1237,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
             so.FindProperty("_choiceTemplate").objectReferenceValue = choiceButton;
             so.FindProperty("_noticeText").objectReferenceValue = noticeText;
+            so.FindProperty("_postControls").objectReferenceValue = postControls;
+            so.FindProperty("_boardControls").objectReferenceValue = boardControls;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // 버튼 줄은 두지 않는다. 튜토리얼을 임의로 끝낼 수 없고, 흐름이 알아서 다음으로 넘어간다.

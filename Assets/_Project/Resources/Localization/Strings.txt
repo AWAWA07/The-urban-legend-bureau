@@ -294,6 +294,8 @@ ui.net.board_all	전체게시판	All boards
 ui.net.author_anon	익명	Anonymous	
 ui.net.author_nick_1	퇴근길전사	LastTrainRider	
 ui.net.author_nick_2	새벽세시	ThreeAM	
+ui.net.author_nick_3	심야택시	NightCab	
+ui.net.author_nick_4	오늘도야근	StillAtWork	
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
 ui.net.comment_header	댓글 {0}	Comments {0}	

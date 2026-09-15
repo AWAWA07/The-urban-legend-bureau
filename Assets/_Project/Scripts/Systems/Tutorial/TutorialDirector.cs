@@ -379,6 +379,9 @@ namespace UrbanLegendBureau.Systems
             // 꺼져 있는 화면에 대사를 넣으면 강조 움직임 코루틴이 시작되지 못한다.
             if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
 
+            // 말하는 동안에는 괴담넷에서 아무것도 고를 수 없다. 끌어서 내리는 것만 된다.
+            if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
+
             _talkScreen.SetSoloLayout(false);   // 겹침 대화는 정해진 자리를 그대로 쓴다
             _talkScreen.ShowLine(true,
                 () => _loc.Get(HanyoungNameTextId),
@@ -403,6 +406,9 @@ namespace UrbanLegendBureau.Systems
 
             if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
 
+            // 나레이션 동안에도 아무것도 고를 수 없다.
+            if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
+
             // 나레이션에는 인물을 세우지 않는다. 대사 상자만 남는다.
             _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: false, rightVisible: false);
 
@@ -413,6 +419,9 @@ namespace UrbanLegendBureau.Systems
         private void OnTalkAdvanced()
         {
             if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
+
+            // 상자를 닫았으니 다시 고를 수 있다.
+            if (_communityScreen != null) _communityScreen.SetControlsEnabled(true);
 
             switch (_afterTalk)
             {
@@ -561,14 +570,22 @@ namespace UrbanLegendBureau.Systems
         /// <summary>반응이 하나씩 붙는 간격(초).</summary>
         private const float ReactionInterval = 0.8f;
 
-        /// <summary>마지막 반응과 나레이션 사이의 뜸.</summary>
-        private const float NarrationDelay = 1.2f;
+        /// <summary>마지막 반응과 나레이션 사이의 뜸. 마지막 반응을 읽을 틈을 준다.</summary>
+        private const float NarrationDelay = 1.9f;
 
         private static readonly string[] ReactionTextIds =
         {
             "tutorial.reaction.1",
             "tutorial.reaction.2",
             "tutorial.reaction.3",
+        };
+
+        /// <summary>반응을 쓴 사람들. 기존 댓글처럼 닉네임과 익명을 섞는다.</summary>
+        private static readonly string[] ReactionAuthorTextIds =
+        {
+            "ui.net.author_nick_3",
+            "ui.net.author_anon",
+            "ui.net.author_nick_4",
         };
 
         /// <summary>
@@ -609,7 +626,7 @@ namespace UrbanLegendBureau.Systems
             {
                 _comments.Add(new CommunityComment
                 {
-                    AuthorTextId = "ui.net.author_anon",
+                    AuthorTextId = ReactionAuthorTextIds[i],
                     BodyTextId = ReactionTextIds[i],
                 });
                 _communityScreen.BindComments(_comments);
