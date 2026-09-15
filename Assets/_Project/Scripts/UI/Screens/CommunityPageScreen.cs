@@ -68,8 +68,11 @@ namespace UrbanLegendBureau.UI
         [Tooltip("사이트 이름. 목록용과 글용 머리말이 따로 있어 여러 개다.")]
         [SerializeField] private TMP_Text[] _siteTexts;
 
-        [Tooltip("게시판 이름. 사이트 이름과 짝이다.")]
-        [SerializeField] private TMP_Text[] _boardTexts;
+        [Tooltip("목록 화면의 게시판 이름. 여러 글이 섞여 있으므로 전체 게시판이다.")]
+        [SerializeField] private TMP_Text _boardListText;
+
+        [Tooltip("글 화면의 게시판 이름. 그 글이 올라온 게시판이다.")]
+        [SerializeField] private TMP_Text _boardPostText;
 
         [Header("게시글")]
         [SerializeField] private TMP_Text _titleText;
@@ -123,7 +126,8 @@ namespace UrbanLegendBureau.UI
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
-        private const string BoardTextId = "ui.net.board_free";
+        private const string BoardPostTextId = "ui.net.board_free";
+        private const string BoardListTextId = "ui.net.board_all";
         private const string MetaTextId = "ui.net.post_meta";
         private const string CommentHeaderTextId = "ui.net.comment_header";
         private const string ChoiceHeaderTextId = "ui.net.choice_header";
@@ -142,6 +146,10 @@ namespace UrbanLegendBureau.UI
         private List<CommunityComment> _comments = new List<CommunityComment>();
         private IReadOnlyList<TutorialCommentChoice> _choices;
         private Func<TutorialCommentChoice, string> _choiceLabelProvider;
+        private Func<TutorialCommentChoice, string> _choiceNoteProvider;
+
+        /// <summary>선택지 카드 안 오른쪽 아래 글자의 이름. 본문과 가르는 기준이다.</summary>
+        private const string ChoiceNoteName = "Text_Note";
         private Action<TutorialCommentChoice> _onChoice;
         private Func<string> _noticeProvider;
 
@@ -203,10 +211,12 @@ namespace UrbanLegendBureau.UI
         /// <summary>댓글 선택지를 건다. null이나 빈 목록을 주면 선택 영역이 사라진다.</summary>
         public void BindChoices(IReadOnlyList<TutorialCommentChoice> choices,
             Func<TutorialCommentChoice, string> labelProvider,
-            Action<TutorialCommentChoice> onChoice)
+            Action<TutorialCommentChoice> onChoice,
+            Func<TutorialCommentChoice, string> noteProvider = null)
         {
             _choices = choices;
             _choiceLabelProvider = labelProvider;
+            _choiceNoteProvider = noteProvider;
             _onChoice = onChoice;
             Refresh();
         }
@@ -305,7 +315,8 @@ namespace UrbanLegendBureau.UI
 
             if (_windowTitleText != null) _windowTitleText.text = loc.Get(WindowTitleTextId);
             SetAll(_siteTexts, loc.Get(SiteTextId));
-            SetAll(_boardTexts, loc.Get(BoardTextId));
+            if (_boardListText != null) _boardListText.text = loc.Get(BoardListTextId);
+            if (_boardPostText != null) _boardPostText.text = loc.Get(BoardPostTextId);
 
             if (_showingBoard)
             {
@@ -466,8 +477,21 @@ namespace UrbanLegendBureau.UI
                 item.gameObject.name = "Choice_" + choice.ChoiceId;
                 item.gameObject.SetActive(true);
 
-                var label = item.GetComponentInChildren<TMP_Text>(true);
-                if (label != null && _choiceLabelProvider != null) label.text = _choiceLabelProvider(choice);
+                // 카드 안에는 글자가 둘이다. 본문과 오른쪽 아래의 단서다.
+                // 이름으로 갈라야 순서가 바뀌어도 엉뚱한 칸에 들어가지 않는다.
+                foreach (var text in item.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.name == ChoiceNoteName)
+                    {
+                        string note = _choiceNoteProvider != null ? _choiceNoteProvider(choice) : string.Empty;
+                        text.text = note;
+                        text.gameObject.SetActive(!string.IsNullOrEmpty(note));
+                    }
+                    else if (_choiceLabelProvider != null)
+                    {
+                        text.text = _choiceLabelProvider(choice);
+                    }
+                }
 
                 var captured = choice;
                 item.onClick.RemoveAllListeners();

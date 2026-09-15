@@ -1084,7 +1084,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, 18f, new RectOffset(Inset, Inset, 68, 62));
+            AddStack(titleBand, 18f, new RectOffset(Inset, Inset, 44, 52));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
@@ -1093,7 +1093,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
             bodyArea.transform.SetParent(postBlock.transform, false);
-            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 80, 68));
+            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 52, 68));
 
             var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
@@ -1104,7 +1104,7 @@ namespace UrbanLegendBureau.EditorTools
             reactionRow.transform.SetParent(bodyArea.transform, false);
             var reactionLayout = reactionRow.AddComponent<HorizontalLayoutGroup>();
             reactionLayout.spacing = 20f;
-            reactionLayout.padding = new RectOffset(0, 0, 96, 0);   // 글 칸 맨 아래에 붙인다
+            reactionLayout.padding = new RectOffset(0, 0, 140, 0);   // 글 칸 맨 아래에 붙인다
             reactionLayout.childAlignment = TextAnchor.MiddleCenter;
             reactionLayout.childControlWidth = false;
             reactionLayout.childControlHeight = false;
@@ -1185,10 +1185,23 @@ namespace UrbanLegendBureau.EditorTools
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
             var ctRt = (RectTransform)choiceTemplate.transform;
-            ctRt.sizeDelta = new Vector2(pageWidth - 108f, 62f);
+            ctRt.sizeDelta = new Vector2(pageWidth - 108f, 76f);
             var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
                 Vector2.zero, new Vector2(pageWidth - 156f, 46f), TextAlignmentOptions.Left);
             StretchInside(ctLabel.rectTransform, 24f, 24f, 8f, 8f);
+
+            // 현장 조사가 필요하다는 표시. 댓글 글자에 붙이지 않고 칸 오른쪽 아래에 따로 둔다.
+            var ctNote = AddText(choiceTemplate.transform, "Note", 19f, UIFontWeight.Medium,
+                new Color(0.62f, 0.24f, 0.24f),
+                Vector2.zero, new Vector2(360f, 26f), TextAlignmentOptions.BottomRight);
+            var ctNoteRt = ctNote.rectTransform;
+            ctNoteRt.anchorMin = new Vector2(1f, 0f);
+            ctNoteRt.anchorMax = new Vector2(1f, 0f);
+            ctNoteRt.pivot = new Vector2(1f, 0f);
+            ctNoteRt.anchoredPosition = new Vector2(-24f, 8f);
+            ctNoteRt.sizeDelta = new Vector2(360f, 26f);
+            ctNote.raycastTarget = false;
+
             choiceTemplate.SetActive(false);
 
             var commentScroll = pageScroll;
@@ -1202,7 +1215,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_boardRoot").objectReferenceValue = boardRoot;
             so.FindProperty("_boardEntryTemplate").objectReferenceValue = boardButton;
             SetTextArray(so.FindProperty("_siteTexts"), boardSiteText, siteText);
-            SetTextArray(so.FindProperty("_boardTexts"), boardBoardText, boardText);
+            so.FindProperty("_boardListText").objectReferenceValue = boardBoardText;
+            so.FindProperty("_boardPostText").objectReferenceValue = boardText;
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_metaText").objectReferenceValue = metaText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;

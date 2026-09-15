@@ -321,7 +321,7 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId,
                 TutorialPostLikes, TutorialPostDislikes);
             _communityScreen.BindComments(_comments);
-            _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected);
+            _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected, BuildChoiceNote);
             _communityScreen.BindReactions(OnLikeToggled, OnDislikeToggled);
             _communityScreen.ShowNotice(null);
             _communityScreen.ShowBoard(false);       // 목록에서 글로 들어간다
@@ -490,12 +490,17 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private string BuildChoiceLabel(TutorialCommentChoice choice)
         {
-            if (choice == null) return string.Empty;
+            return choice == null ? string.Empty : _loc.Get(choice.BodyTextId);
+        }
 
-            string text = _loc.Get(choice.BodyTextId);
-            if (!CanUseChoice(choice)) text += "  [" + _loc.Get("ui.action.locked") + "]";
-
-            return text;
+        /// <summary>
+        /// 선택지 칸 오른쪽 아래의 단서. 아직 쓸 수 없는 댓글에만 붙는다.
+        /// 댓글 글자에 섞지 않는다. 그건 실제로 올라갈 내용이 아니기 때문이다.
+        /// </summary>
+        private string BuildChoiceNote(TutorialCommentChoice choice)
+        {
+            if (choice == null || CanUseChoice(choice)) return string.Empty;
+            return "[" + _loc.Get("ui.action.locked") + "]";
         }
 
         /// <summary>

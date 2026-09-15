@@ -290,6 +290,7 @@ tutorial.line.005	.......시간 없으니까 빨리 설명할게	.......No time.
 # --- 조정: 인터넷 커뮤니티 ---
 ui.net.site_name	괴담넷	LegendNet	커뮤니티 이름
 ui.net.board_free	실화게시판	True stories	
+ui.net.board_all	전체게시판	All boards	
 ui.net.author_anon	익명	Anonymous	
 ui.net.author_nick_1	퇴근길전사	LastTrainRider	
 ui.net.author_nick_2	새벽세시	ThreeAM	
