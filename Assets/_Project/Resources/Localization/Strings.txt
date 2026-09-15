@@ -289,7 +289,7 @@ tutorial.line.005	.......시간 없으니까 빨리 설명할게	.......No time.
 
 # --- 조정: 인터넷 커뮤니티 ---
 ui.net.site_name	괴담넷	LegendNet	커뮤니티 이름
-ui.net.board_free	자유게시판	Open board	
+ui.net.board_free	실화게시판	True stories	
 ui.net.author_anon	익명	Anonymous	
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
@@ -327,7 +327,7 @@ ui.desktop.app_memo	메모장	Notepad	아직 기능 없음
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
 ui.desktop.app_gallery	갤러리	Gallery	아직 기능 없음
-ui.net.window_title	괴담넷 - 자유게시판	LegendNet - Open board	창 제목 표시줄
+ui.net.window_title	괴담넷	LegendNet	창 제목 표시줄
 ui.net.hot_mark	인기	HOT	인기글 표시
 board.subway.meta	익명    조회 1284    댓글 3	Anonymous    views 1284    comments 3	
 board.filler.001	오늘 지하철에서 지갑 주웠는데 어디에 맡기나요	Found a wallet on the subway today. Where do I hand it in?	목록 채우기

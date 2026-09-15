@@ -257,9 +257,12 @@ namespace UrbanLegendBureau.UI
             ApplyReactionColors();
         }
 
+        // 좋아요와 싫어요는 같이 눌린 상태가 될 수 없다.
+        // 한쪽을 누르면 다른 쪽은 알아서 풀린다. 실제 커뮤니티가 그렇게 동작한다.
         private void OnLikeClicked()
         {
             _likePressed = !_likePressed;
+            if (_likePressed) _dislikePressed = false;
             Refresh();
             _onLike?.Invoke(_likePressed);
         }
@@ -267,6 +270,7 @@ namespace UrbanLegendBureau.UI
         private void OnDislikeClicked()
         {
             _dislikePressed = !_dislikePressed;
+            if (_dislikePressed) _likePressed = false;
             Refresh();
             _onDislike?.Invoke(_dislikePressed);
         }

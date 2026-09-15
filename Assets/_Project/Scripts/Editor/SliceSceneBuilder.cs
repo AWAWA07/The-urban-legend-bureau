@@ -1056,10 +1056,19 @@ namespace UrbanLegendBureau.EditorTools
             pageScroll.movementType = ScrollRect.MovementType.Clamped;
             pageScroll.scrollSensitivity = 40f;
 
-            // 오른쪽 끝의 막대. 지금 어디쯤 보고 있는지 알려 준다.
-            var bar = BuildVerticalScrollbar(postView.transform, TitleBarHeight);
+            // 오른쪽 끝의 막대. 지금 어디쯤 보고 있는지 알려 주고, 화살표로도 움직인다.
+            var bar = BuildVerticalScrollbar(postView.transform, TitleBarHeight,
+                out var scrollNudge, out var scrollUp, out var scrollDown);
             pageScroll.verticalScrollbar = bar;
             pageScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+            var nudgeSo = new SerializedObject(scrollNudge);
+            nudgeSo.Update();
+            nudgeSo.FindProperty("_target").objectReferenceValue = pageScroll;
+            nudgeSo.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddPersistentListener(scrollUp.GetComponent<Button>().onClick, scrollNudge.StepUp);
+            UnityEventTools.AddPersistentListener(scrollDown.GetComponent<Button>().onClick, scrollNudge.StepDown);
 
             // 머리말도 함께 굴러간다. 남는 것은 맨 위 창 제목 표시줄뿐이다.
             var pageHeader = BuildCommunityHeader(page.transform, ContentInset, out var siteText, out var boardText);
@@ -1522,11 +1531,13 @@ namespace UrbanLegendBureau.EditorTools
         /// 오른쪽 끝에 세우는 막대. 실제 브라우저의 그것과 같은 자리다.
         /// 굴러갈 것이 없으면 스스로 사라진다(AutoHide).
         /// </summary>
-        private static Scrollbar BuildVerticalScrollbar(Transform parent, float topInset)
+        private static Scrollbar BuildVerticalScrollbar(Transform parent, float topInset, out ScrollNudge nudge,
+            out GameObject upButton, out GameObject downButton)
         {
-            const float Width = 22f;
+            const float Width = 34f;       // 실제 창의 막대처럼 화살표가 들어갈 만큼
+            const float ArrowSize = 34f;
 
-            var track = CreatePanel(parent, "Scrollbar", new Color(0.90f, 0.90f, 0.92f, 1f));
+            var track = CreatePanel(parent, "Scrollbar", new Color(0.965f, 0.965f, 0.975f, 1f));
             var rt = (RectTransform)track.transform;
             rt.anchorMin = new Vector2(1f, 0f);
             rt.anchorMax = new Vector2(1f, 1f);
@@ -1534,11 +1545,25 @@ namespace UrbanLegendBureau.EditorTools
             rt.anchoredPosition = new Vector2(0f, -topInset);
             rt.sizeDelta = new Vector2(Width, -topInset);
 
+            // 왼쪽 가장자리의 가는 선. 내용과 막대를 가른다.
+            var edge = CreatePanel(track.transform, "Edge", new Color(0.86f, 0.87f, 0.90f, 1f));
+            var edgeRt = (RectTransform)edge.transform;
+            edgeRt.anchorMin = new Vector2(0f, 0f);
+            edgeRt.anchorMax = new Vector2(0f, 1f);
+            edgeRt.pivot = new Vector2(0f, 0.5f);
+            edgeRt.anchoredPosition = Vector2.zero;
+            edgeRt.sizeDelta = new Vector2(1f, 0f);
+            edge.GetComponent<Image>().raycastTarget = false;
+
+            upButton = BuildScrollArrow(track.transform, "Btn_ScrollUp", "▲", 1f, ArrowSize);
+            downButton = BuildScrollArrow(track.transform, "Btn_ScrollDown", "▼", 0f, ArrowSize);
+
+            // 손잡이가 오르내리는 자리. 위아래 화살표만큼 비켜 둔다.
             var slide = new GameObject("SlidingArea", typeof(RectTransform));
             slide.transform.SetParent(track.transform, false);
-            StretchInside((RectTransform)slide.transform, 2f, 2f, 2f, 2f);
+            StretchInside((RectTransform)slide.transform, 6f, 6f, ArrowSize + 4f, ArrowSize + 4f);
 
-            var handle = CreatePanel(slide.transform, "Handle", new Color(0.48f, 0.50f, 0.55f, 1f));
+            var handle = CreatePanel(slide.transform, "Handle", new Color(0.55f, 0.56f, 0.60f, 1f));
             var handleRt = (RectTransform)handle.transform;
             handleRt.sizeDelta = Vector2.zero;
 
@@ -1546,7 +1571,31 @@ namespace UrbanLegendBureau.EditorTools
             bar.direction = Scrollbar.Direction.BottomToTop;
             bar.handleRect = handleRt;
             bar.targetGraphic = handle.GetComponent<Image>();
+
+            nudge = track.AddComponent<ScrollNudge>();
             return bar;
+        }
+
+        /// <summary>막대 끝의 화살표 한 개. 위는 pivotY 1, 아래는 0 으로 붙인다.</summary>
+        private static GameObject BuildScrollArrow(Transform parent, string name, string glyph,
+            float pivotY, float size)
+        {
+            var go = CreatePanel(parent, name, new Color(0.92f, 0.92f, 0.94f, 1f));
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0.5f, pivotY);
+            rt.anchorMax = new Vector2(0.5f, pivotY);
+            rt.pivot = new Vector2(0.5f, pivotY);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(size, size);
+
+            var button = go.AddComponent<Button>();
+            button.targetGraphic = go.GetComponent<Image>();
+
+            var label = AddText(go.transform, "Label", 18f, UIFontWeight.Bold, new Color(0.35f, 0.36f, 0.40f),
+                Vector2.zero, new Vector2(size, size), TextAlignmentOptions.Center);
+            label.text = glyph;
+            label.raycastTarget = false;
+            return go;
         }
 
         /// <summary>
