@@ -46,6 +46,9 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private Color _brightColor = Color.white;
         [SerializeField] private Color _dimColor = new Color(0.32f, 0.32f, 0.38f, 1f);
 
+        [Tooltip("나레이션 글자색. 인물의 말이 아니라는 것을 색으로 구분한다.")]
+        [SerializeField] private Color _narrationColor = new Color(0.98f, 0.92f, 0.66f, 1f);
+
         private const string HintTextId = "ui.dialogue.hint";
 
         private Func<string> _lineProvider;
@@ -78,8 +81,11 @@ namespace UrbanLegendBureau.UI
 
             if (_left != null && _left.image != null) _leftDesignPosition = _left.image.rectTransform.anchoredPosition;
             if (_right != null && _right.image != null) _rightDesignPosition = _right.image.rectTransform.anchoredPosition;
+            if (_lineText != null) _lineDefaultColor = _lineText.color;
             _homesCaptured = true;
         }
+
+        private Color _lineDefaultColor = Color.white;
 
         /// <summary>
         /// 왼쪽 인물만 나와 있을 때는 화면 가운데에 세운다.
@@ -111,9 +117,33 @@ namespace UrbanLegendBureau.UI
             _nameProvider = nameProvider;
             _lineProvider = lineProvider;
 
+            if (_lineText != null) _lineText.color = _lineDefaultColor;
+
             // 밝기를 먼저 정하고 등장 여부를 나중에 본다.
             // 등장 연출이 지금 정한 색을 목표로 삼아야 색이 덮이지 않는다.
             ApplySpeaker(speakerIsLeft, speakerAlpha);
+            SetCharactersVisible(leftVisible, rightVisible);
+            Refresh();
+        }
+
+        /// <summary>
+        /// 인물의 말이 아닌 나레이션 한 줄.
+        ///
+        /// 말하는 사람이 없으므로 이름도 비우고 강조 움직임도 하지 않는다.
+        /// 글자색만 달라서 대사와 구분된다. 인물은 서 있던 그대로 둔다.
+        /// </summary>
+        public void ShowNarration(Func<string> lineProvider, bool leftVisible = true, bool rightVisible = true)
+        {
+            _nameProvider = null;
+            _lineProvider = lineProvider;
+
+            StopMotion();
+            if (_lineText != null) _lineText.color = _narrationColor;
+
+            // 나레이션 동안에는 아무도 말하지 않으므로 모두 어둡게 둔다.
+            if (_left != null && _left.image != null) _left.image.color = _dimColor;
+            if (_right != null && _right.image != null) _right.image.color = _dimColor;
+
             SetCharactersVisible(leftVisible, rightVisible);
             Refresh();
         }

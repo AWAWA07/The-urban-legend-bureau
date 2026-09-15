@@ -61,7 +61,13 @@ namespace UrbanLegendBureau.Systems
         };
 
         private static readonly bool[] LineIsHanyoung = { true, true, true, false, true };
-        private static readonly float[] LineBrightness = { 0.15f, 0.55f, 1f, 1f, 1f };
+        private static readonly float[] LineBrightness = { 1f, 0.55f, 1f, 1f, 1f };
+
+        /// <summary>
+        /// 한영이 화면에 있는가.
+        /// 첫 대사("...")는 어둠 속에서 목소리만 들린다. 모습은 다음 대사부터 드러난다.
+        /// </summary>
+        private static readonly bool[] LineHanyoungVisible = { false, true, true, true, true };
 
         /// <summary>
         /// 차지한이 화면에 있는가.
@@ -165,7 +171,7 @@ namespace UrbanLegendBureau.Systems
                 () => _loc.Get(nameId),
                 () => _loc.Get(lineId),
                 brightness,
-                leftVisible: true,
+                leftVisible: LineHanyoungVisible[_lineIndex],
                 rightVisible: chajihanVisible);
         }
 
@@ -259,6 +265,24 @@ namespace UrbanLegendBureau.Systems
                 rightVisible: false);
 
             Debug.Log("[TutorialDirector] 한영 대사 | " + lineTextId + " -> 끝나면 " + after);
+        }
+
+        /// <summary>
+        /// 인물의 말이 아닌 나레이션을 같은 상자에 띄운다.
+        /// 대화 화면을 그대로 쓰되 이름을 비우고 글자색만 달리한다.
+        /// </summary>
+        private void ShowNarration(string lineTextId, AfterTalk after)
+        {
+            if (_talkScreen == null) return;
+
+            _afterTalk = after;
+            _talkScreen.SetAdvanceHandler(OnTalkAdvanced);
+
+            if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
+
+            _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: true, rightVisible: false);
+
+            Debug.Log("[TutorialDirector] 나레이션 | " + lineTextId + " -> 끝나면 " + after);
         }
 
         /// <summary>한영의 말을 넘겼을 때. 말이 끝나야 다음 상태로 간다.</summary>
@@ -389,8 +413,8 @@ namespace UrbanLegendBureau.Systems
             AcceptCorrectComment(choice);
             _pendingChoice = null;
 
-            // 결과를 한영이 마무리 짓고, 그 말이 끝나면 튜토리얼이 끝난다.
-            ShowTalk(DoneTextId, AfterTalk.Finish);
+            // 마무리는 한영의 말이 아니라 상황 설명이다. 나레이션으로 띄운다.
+            ShowNarration(DoneTextId, AfterTalk.Finish);
         }
 
         private void AcceptCorrectComment(TutorialCommentChoice choice)
