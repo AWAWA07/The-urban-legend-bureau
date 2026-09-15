@@ -33,11 +33,15 @@ namespace UrbanLegendBureau.Data
         [Tooltip("게임에 존재하는 모든 인터넷 페이지.")]
         [SerializeField] private List<WebPageSO> _webPages = new List<WebPageSO>();
 
+        [Tooltip("게임에 존재하는 모든 조사 행동.")]
+        [SerializeField] private List<InvestigationActionSO> _investigationActions = new List<InvestigationActionSO>();
+
         public IReadOnlyList<CaseSO> Cases => _cases;
         public IReadOnlyList<LegendSO> Legends => _legends;
         public IReadOnlyList<RuleSO> Rules => _rules;
         public IReadOnlyList<ClueSO> Clues => _clues;
         public IReadOnlyList<WebPageSO> WebPages => _webPages;
+        public IReadOnlyList<InvestigationActionSO> InvestigationActions => _investigationActions;
 
         public int CaseCount => _cases != null ? _cases.Count : 0;
         public int LegendCount => _legends != null ? _legends.Count : 0;

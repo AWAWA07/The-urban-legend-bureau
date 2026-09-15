@@ -29,6 +29,7 @@ namespace UrbanLegendBureau.EditorTools
             var rules = Collect<RuleSO>();
             var clues = Collect<ClueSO>();
             var webPages = Collect<WebPageSO>();
+            var actions = Collect<InvestigationActionSO>();
 
             var so = new SerializedObject(catalog);
             so.Update();
@@ -37,6 +38,7 @@ namespace UrbanLegendBureau.EditorTools
             Fill(so, "_rules", rules);
             Fill(so, "_clues", clues);
             Fill(so, "_webPages", webPages);
+            Fill(so, "_investigationActions", actions);
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EditorUtility.SetDirty(catalog);
@@ -45,12 +47,14 @@ namespace UrbanLegendBureau.EditorTools
             var message = "[GameDataCatalogBuilder] 사건 " + cases.Count + " / 괴담 " + legends.Count +
                           " / 규칙 " + rules.Count +
                           " / 단서 " + clues.Count +
-                          " / 게시글 " + webPages.Count + " 등록";
+                          " / 게시글 " + webPages.Count +
+                          " / 조사행동 " + actions.Count + " 등록";
             foreach (var c in cases) message += "\n  사건  " + c.Id;
             foreach (var l in legends) message += "\n  괴담  " + l.Id;
             foreach (var r in rules) message += "\n  규칙  " + r.Id;
             foreach (var c in clues) message += "\n  단서  " + c.Id;
             foreach (var w in webPages) message += "\n  게시글 " + w.Id;
+            foreach (var a in actions) message += "\n  조사행동 " + a.Id;
             Debug.Log(message);
             return message;
         }

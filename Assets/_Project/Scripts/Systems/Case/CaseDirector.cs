@@ -24,6 +24,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _titleScreen;
         [SerializeField] private CaseListScreen _caseListScreen;
         [SerializeField] private TextPanelScreen _bureauScreen;
+        [SerializeField] private ActionListScreen _actionListScreen;
         [SerializeField] private InternetListScreen _internetListScreen;
         [SerializeField] private InternetPageScreen _internetPageScreen;
         [SerializeField] private TextPanelScreen _fieldHudScreen;
@@ -50,6 +51,7 @@ namespace UrbanLegendBureau.Systems
         private ExorcismService _exorcism;
         private CaseService _cases;
         private InvestigationTimeService _time;
+        private InvestigationActionService _actions;
         private LocalizationService _loc;
 
         private CaseSO _case;
@@ -107,6 +109,9 @@ namespace UrbanLegendBureau.Systems
         private const string CaseListHintTextId = "ui.case.list_hint";
         private const string CaseCompletedMarkTextId = "ui.case.completed_mark";
         private const string ViewSpreadTextId = "spread.feedback.view";
+        private const string ActionListTitleTextId = "ui.action.title";
+        private const string ActionListHintTextId = "ui.action.hint";
+        private const string ActionLockedMarkTextId = "ui.action.locked";
         private const string ElapsedTextId = "ui.time.elapsed";
         private const string ActionCountTextId = "ui.time.actions";
         private const string SpreadWarningTitleTextId = "spread.warning.title";
@@ -123,6 +128,7 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _exorcism);
             ServiceRegistry.TryGet(out _cases);
             ServiceRegistry.TryGet(out _time);
+            ServiceRegistry.TryGet(out _actions);
             ServiceRegistry.TryGet(out _loc);
 
             if (_ui == null || _save == null || _legends == null || _loc == null)
@@ -248,6 +254,96 @@ namespace UrbanLegendBureau.Systems
             _ui.Replace(_bureauScreen);
 
             Debug.Log($"[CaseDirector] 사건 시작 | caseId={_caseId} step={CaseFlow.GetStep(_save)}");
+        }
+
+        // ------------------------------------------------------------- 조사 행동
+
+        /// <summary>사무실 화면의 조사 행동 버튼. 이 사건에서 고를 수 있는 행동을 나열한다.</summary>
+        public void OnOpenActionsClicked()
+        {
+            if (_actions == null || _actionListScreen == null) return;
+
+            var list = _actions.GetActionsForLegend(_legend);
+
+            _actionListScreen.Bind(
+                ActionListTitleTextId, ActionListHintTextId,
+                list, BuildActionLabel, OnActionSelected, BuildStatusBlock);
+
+            if (_ui.Contains(_actionListScreen)) _actionListScreen.Refresh();
+            else _ui.Replace(_actionListScreen);
+
+            Debug.Log($"[CaseDirector] 조사 행동 목록 | {list.Count}개 | step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>항목 문구: 행동 이름 + 설명. 지금 할 수 없는 행동은 표시를 붙인다.</summary>
+        private string BuildActionLabel(InvestigationActionSO action)
+        {
+            if (action == null) return string.Empty;
+
+            string name = _loc.Get(action.ActionNameTextId);
+            if (_actions != null && !_actions.CanPerform(_save, action))
+            {
+                name += "  [" + _loc.Get(ActionLockedMarkTextId) + "]";
+            }
+
+            var desc = _loc.Get(action.DescriptionTextId);
+            return string.IsNullOrEmpty(desc) ? name : name + "\n" + desc;
+        }
+
+        /// <summary>
+        /// 행동을 골랐을 때.
+        /// 조건 판정과 시간/확산 처리는 서비스가 하고, 여기서는 결과를 화면에 옮긴다.
+        /// </summary>
+        private void OnActionSelected(InvestigationActionSO action)
+        {
+            if (_actions == null || action == null) return;
+
+            var result = _actions.Perform(_save, _caseId, _legendId, action);
+
+            // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
+            bool ruleShown = false;
+            if (result.GotNewClue) ruleShown = TryDeduceRules();
+
+            _actionListScreen.Bind(
+                ActionListTitleTextId, ActionListHintTextId,
+                _actions.GetActionsForLegend(_legend), BuildActionLabel, OnActionSelected, BuildStatusBlock);
+
+            var captured = result;
+            _actionListScreen.ShowResult(() => BuildActionResultLine(captured));
+
+            Debug.Log($"[CaseDirector] 조사 행동 결과 | {action.ActionId} -> " +
+                      (result.Success ? "성공" : "차단(" + result.Failure + ")") +
+                      $" | {result.ActionCount}회 / {result.ElapsedMinutes}분" +
+                      (ruleShown ? " | 규칙 추론" : string.Empty));
+        }
+
+        /// <summary>결과 문구 + 확산이 움직였다면 변화까지 한 줄로 만든다.</summary>
+        private string BuildActionResultLine(InvestigationActionResult result)
+        {
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(result.MessageTextId));
+
+            if (result.Success && result.GotNewClue)
+            {
+                sb.Append("\n- ");
+                sb.Append(ResolveClueText(result.AcquiredClueId));
+            }
+
+            if (result.Spread.Changed)
+            {
+                sb.Append("   ");
+                sb.Append(_loc.Get(LabelSpreadTextId));
+                sb.Append($" {result.Spread.PreviousRate:F0}% → {result.Spread.CurrentRate:F0}%");
+            }
+
+            return sb.ToString();
+        }
+
+        /// <summary>조사 행동 화면의 돌아가기 버튼. 사무실로 돌아간다.</summary>
+        public void OnActionsBackClicked()
+        {
+            _bureauScreen.BindWithBodyProvider(BureauTitleTextId, BuildLegendBriefing);
+            _ui.Replace(_bureauScreen);
         }
 
         /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>

@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8aea6b7b1884b5e409289baeba504105, type: 3}
+  m_Name: action_test_005
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.InvestigationActionSO
+  _actionId: action_test_005
+  _actionNameTextId: action.test.005.name
+  _descriptionTextId: action.test.005.desc
+  _resultTextId: action.test.005.result
+  _actionKind: 6
+  _minutesOverride: 0
+  _useSpreadOverride: 0
+  _spreadOverride: 0
+  _requiredClueIds: []
+  _requireStep: 1
+  _requiredStep: 2
+  _rewardClueId: clue_test_003
+  _advanceStep: 1
+  _stepOnSuccess: 3

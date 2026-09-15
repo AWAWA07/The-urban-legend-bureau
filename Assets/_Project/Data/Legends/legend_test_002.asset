@@ -23,3 +23,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: fbfcfed9f316e4243a344e26e21fd3fc, type: 2}
   _webPages:
   - {fileID: 11400000, guid: 225ad01d109ae504f89de82416d38f79, type: 2}
+  _investigationActions:
+  - {fileID: 11400000, guid: f1f389d3df3b5d947a1bb0dfaa9a74f8, type: 2}
+  - {fileID: 11400000, guid: 5faa49e96e6693448ae7cac87dc543ba, type: 2}

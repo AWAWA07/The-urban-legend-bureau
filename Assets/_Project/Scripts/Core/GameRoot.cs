@@ -98,6 +98,10 @@ namespace UrbanLegendBureau.Core
             var investigationTime = new InvestigationTimeService(spread);
             ServiceRegistry.Register(investigationTime);
 
+            // 플레이어가 고르는 조사 행동. 시간/확산은 위 서비스에 맡긴다.
+            var investigationActions = new InvestigationActionService(_gameDataCatalog, investigationTime);
+            ServiceRegistry.Register(investigationActions);
+
             // --- 초기화 ---
             InitializeService(localization);
             InitializeService(input);
@@ -111,6 +115,7 @@ namespace UrbanLegendBureau.Core
             InitializeService(exorcism);
             InitializeService(cases);
             InitializeService(investigationTime);
+            InitializeService(investigationActions);
 
             IsBooted = true;
 
@@ -184,6 +189,11 @@ namespace UrbanLegendBureau.Core
             if (Instance != this) return;
 
             // 등록 역순으로 종료한다.
+            if (ServiceRegistry.TryGet<InvestigationActionService>(out var investigationActions))
+            {
+                investigationActions.Shutdown();
+            }
+
             if (ServiceRegistry.TryGet<InvestigationTimeService>(out var investigationTime))
             {
                 investigationTime.Shutdown();

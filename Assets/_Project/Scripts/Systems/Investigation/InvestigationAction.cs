@@ -22,6 +22,18 @@ namespace UrbanLegendBureau.Systems
         ClueFound = 3,
 
         /// <summary>봉인 시도. 확산 처리는 기존 봉인 규칙이 맡는다.</summary>
-        Seal = 4
+        Seal = 4,
+
+        // --- 16단계: 플레이어가 직접 고르는 조사 행동 ---
+        // 값은 저장에 들어가지 않지만 데이터 에셋이 가리키므로 한 번 정한 숫자를 바꾸지 않는다.
+
+        /// <summary>인터넷 검색. 글을 여는 것이 아니라 정보만 훑는다.</summary>
+        InternetSearch = 5,
+
+        /// <summary>물건/증거 조사. 현장의 특정 대상을 들여다본다.</summary>
+        EvidenceInspect = 6,
+
+        /// <summary>영적 흔적 조사. 가장 크게 건드리는 만큼 더 퍼진다.</summary>
+        SpiritTrace = 7
     }
 }

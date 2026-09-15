@@ -51,6 +51,7 @@ namespace UrbanLegendBureau.EditorTools
             var rules = LoadAll<RuleSO>();
             var clues = LoadAll<ClueSO>();
             var pages = LoadAll<WebPageSO>();
+            var actions = LoadAll<InvestigationActionSO>();
 
             var report = new Report();
             var sb = new StringBuilder();
@@ -63,6 +64,7 @@ namespace UrbanLegendBureau.EditorTools
             CheckIds(rules, "RuleSO", report, sb);
             CheckIds(clues, "ClueSO", report, sb);
             CheckIds(pages, "WebPageSO", report, sb);
+            CheckIds(actions, "InvestigationActionSO", report, sb);
 
             // --- 텍스트 ID ---
             var localization = LoadLocalization();
@@ -91,6 +93,25 @@ namespace UrbanLegendBureau.EditorTools
                 CheckNoNulls(l, l.Rules, "rules", report, sb);
                 CheckNoNulls(l, l.Clues, "clues", report, sb);
                 CheckNoNulls(l, l.WebPages, "webPages", report, sb);
+                CheckNoNulls(l, l.InvestigationActions, "investigationActions", report, sb);
+            }
+
+            foreach (var a in actions)
+            {
+                CheckTextId(a, a.ActionNameTextId, "actionNameTextId", localization, report, sb);
+                CheckTextId(a, a.DescriptionTextId, "descriptionTextId", localization, report, sb);
+                CheckReferencedClueIds(a, a.RequiredClueIds, "requiredClueIds", clueIds, report, sb);
+
+                // 결과 문구는 비워 둘 수 있다. 비우면 공용 문구를 쓴다.
+                if (!string.IsNullOrEmpty(a.ResultTextId) && !localization.Has(a.ResultTextId))
+                {
+                    Warning(report, sb, a, "resultTextId '" + a.ResultTextId + "' 가 Localization 테이블에 없다.");
+                }
+
+                if (a.HasRewardClue && !clueIds.Contains(a.RewardClueId))
+                {
+                    Error(report, sb, a, "rewardClueId '" + a.RewardClueId + "' 에 해당하는 ClueSO 가 없다.");
+                }
             }
 
             foreach (var r in rules)
@@ -130,7 +151,7 @@ namespace UrbanLegendBureau.EditorTools
 
             report.Summary =
                 "Case " + cases.Count + " / Legend " + legends.Count + " / Rule " + rules.Count +
-                " / Clue " + clues.Count + " / WebPage " + pages.Count;
+                " / Clue " + clues.Count + " / WebPage " + pages.Count + " / Action " + actions.Count;
             report.Text = report.Summary + "\n" + sb;
             return report;
         }

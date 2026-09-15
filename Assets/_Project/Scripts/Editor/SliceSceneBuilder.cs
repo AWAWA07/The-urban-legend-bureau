@@ -101,6 +101,7 @@ namespace UrbanLegendBureau.EditorTools
             var title = BuildPanelScreen("Screen_Title", UILayer.Screen, out var titleButtons, true);
             var bureau = BuildPanelScreen("Screen_Bureau", UILayer.Screen, out var bureauButtons, true);
             var caseList = BuildCaseListScreen("Screen_CaseList");
+            var actionList = BuildActionListScreen("Screen_Actions", out var actionButtons);
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildHudScreen("Screen_FieldHud");
@@ -111,6 +112,8 @@ namespace UrbanLegendBureau.EditorTools
             var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
 
             var btnStart = CreateButton(titleButtons, "Btn_StartCase", "ui.case.btn_cases");
+            var btnActions = CreateButton(bureauButtons, "Btn_Actions", "ui.action.btn_actions");
+            var btnActionsBack = CreateButton(actionButtons, "Btn_ActionsBack", "ui.action.btn_back");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
             var btnField = CreateButton(internetButtons, "Btn_EnterField", "ui.slice.btn_enter_field");
             var btnCensor = CreateButton(pageButtons, "Btn_Censor", "ui.net.btn_censor");
@@ -130,6 +133,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_titleScreen").objectReferenceValue = title;
             dso.FindProperty("_caseListScreen").objectReferenceValue = caseList;
             dso.FindProperty("_bureauScreen").objectReferenceValue = bureau;
+            dso.FindProperty("_actionListScreen").objectReferenceValue = actionList;
             dso.FindProperty("_internetListScreen").objectReferenceValue = internetList;
             dso.FindProperty("_internetPageScreen").objectReferenceValue = internetPage;
             dso.FindProperty("_fieldHudScreen").objectReferenceValue = fieldHud;
@@ -144,6 +148,8 @@ namespace UrbanLegendBureau.EditorTools
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnOpenCaseListClicked);
+            UnityEventTools.AddPersistentListener(btnActions.GetComponent<Button>().onClick, director.OnOpenActionsClicked);
+            UnityEventTools.AddPersistentListener(btnActionsBack.GetComponent<Button>().onClick, director.OnActionsBackClicked);
             UnityEventTools.AddPersistentListener(btnInternet.GetComponent<Button>().onClick, director.OnInternetResearchClicked);
             UnityEventTools.AddPersistentListener(btnField.GetComponent<Button>().onClick, director.OnEnterFieldClicked);
             // 상세 화면이 검열 버튼을 직접 숨기고 보여야 하므로 참조를 넘겨 둔다.
@@ -352,6 +358,68 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>인터넷 게시글 목록 화면. 항목 버튼은 템플릿을 복제해 런타임에 만든다.</summary>
+        /// <summary>조사 행동 선택 화면. 목록 구성은 인터넷 목록과 같고 결과 표시줄이 하나 더 있다.</summary>
+        private static ActionListScreen BuildActionListScreen(string name, out Transform buttonRow)
+        {
+            var go = CreatePanel(null, name, PanelColor);
+            StretchFull(go);
+
+            var screen = go.AddComponent<ActionListScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 400f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
+            var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 330f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
+            var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
+                new Vector2(0f, -250f), new Vector2(1500f, 90f), TextAlignmentOptions.Center);
+            var resultText = AddText(go.transform, "Result", 30f, UIFontWeight.Medium, WarnColor,
+                new Vector2(0f, -330f), new Vector2(1500f, 80f), TextAlignmentOptions.Center);
+
+            var listGo = new GameObject("List", typeof(RectTransform));
+            listGo.transform.SetParent(go.transform, false);
+            var listRt = (RectTransform)listGo.transform;
+            listRt.anchorMin = new Vector2(0.5f, 0.5f);
+            listRt.anchorMax = new Vector2(0.5f, 0.5f);
+            listRt.pivot = new Vector2(0.5f, 1f);
+            listRt.anchoredPosition = new Vector2(0f, 270f);
+            listRt.sizeDelta = new Vector2(1200f, 480f);
+            var listLayout = listGo.AddComponent<VerticalLayoutGroup>();
+            listLayout.spacing = 14f;
+            listLayout.childAlignment = TextAnchor.UpperCenter;
+            listLayout.childControlWidth = false;
+            listLayout.childControlHeight = false;
+            listLayout.childForceExpandWidth = false;
+            listLayout.childForceExpandHeight = false;
+
+            var template = CreatePanel(listGo.transform, "ItemTemplate", ButtonColor);
+            var templateButton = template.AddComponent<Button>();
+            templateButton.targetGraphic = template.GetComponent<Image>();
+            var trt = (RectTransform)template.transform;
+            trt.sizeDelta = new Vector2(1100f, 110f);
+            var tLabel = AddText(template.transform, "ItemLabel", 26f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(1060f, 90f), TextAlignmentOptions.Center);
+            var tlrt = (RectTransform)tLabel.transform;
+            tlrt.anchorMin = Vector2.zero;
+            tlrt.anchorMax = Vector2.one;
+            tlrt.offsetMin = new Vector2(20f, 6f);
+            tlrt.offsetMax = new Vector2(-20f, -6f);
+            template.SetActive(false);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_footerText").objectReferenceValue = footerText;
+            so.FindProperty("_statsText").objectReferenceValue = statsText;
+            so.FindProperty("_resultText").objectReferenceValue = resultText;
+            so.FindProperty("_listRoot").objectReferenceValue = listRt;
+            so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
+            return screen;
+        }
+
         private static InternetListScreen BuildInternetListScreen(string name, out Transform buttonRow)
         {
             var go = CreatePanel(null, name, PanelColor);

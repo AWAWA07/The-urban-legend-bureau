@@ -41,6 +41,9 @@ namespace UrbanLegendBureau.Data
         [Tooltip("이 괴담과 관련해 인터넷에 존재하는 글들.")]
         [SerializeField] private List<WebPageSO> _webPages = new List<WebPageSO>();
 
+        [Tooltip("이 괴담을 조사할 때 고를 수 있는 조사 행동들.")]
+        [SerializeField] private List<InvestigationActionSO> _investigationActions = new List<InvestigationActionSO>();
+
         public string Id => _legendId;
         public string LegendId => _legendId;
         public string NameTextId => _nameTextId;
@@ -54,6 +57,7 @@ namespace UrbanLegendBureau.Data
         public IReadOnlyList<RuleSO> Rules => _rules;
         public IReadOnlyList<ClueSO> Clues => _clues;
         public IReadOnlyList<WebPageSO> WebPages => _webPages;
+        public IReadOnlyList<InvestigationActionSO> InvestigationActions => _investigationActions;
 
         private void OnValidate()
         {

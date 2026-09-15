@@ -91,7 +91,14 @@ namespace UrbanLegendBureau.UI
 
             for (int i = 0; i < _spawned.Count; i++)
             {
-                if (_spawned[i] != null) Destroy(_spawned[i].gameObject);
+                if (_spawned[i] == null) continue;
+
+                // Destroy는 프레임 끝에 처리된다. 같은 프레임에 다시 그리면 옛 항목이 남아 두 번 보인다.
+                // 목록에서 떼어 내고 꺼 둔 다음 파괴한다.
+                var old = _spawned[i].gameObject;
+                old.transform.SetParent(null, false);
+                old.SetActive(false);
+                Destroy(old);
             }
             _spawned.Clear();
 

@@ -79,6 +79,13 @@ namespace UrbanLegendBureau.Systems
                 case InvestigationAction.ClueFound: return ClueFoundSpread;
                 case InvestigationAction.PageCensor: return CensorSpread;
                 case InvestigationAction.Seal: return SealSpread;
+
+                // 16단계에서 플레이어가 직접 고르는 행동들.
+                // 데이터가 값을 덮어쓸 수 있지만 기본값은 여기서 정한다.
+                case InvestigationAction.InternetSearch: return InternetViewSpread;
+                case InvestigationAction.EvidenceInspect: return ClueFoundSpread;
+                case InvestigationAction.SpiritTrace: return FieldSearchSpread;
+
                 default: return 0f;
             }
         }
@@ -94,6 +101,16 @@ namespace UrbanLegendBureau.Systems
         public InvestigationTickResult RegisterAction(SaveService save, string caseId, string legendId,
             InvestigationAction action)
         {
+            return RegisterAction(save, caseId, legendId, action, MinutesPerAction, GetSpreadCost(action));
+        }
+
+        /// <summary>
+        /// 시간과 확산량을 직접 지정해 행동을 기록한다.
+        /// 행동 데이터(InvestigationActionSO)가 기본값을 덮어쓸 때 쓴다.
+        /// </summary>
+        public InvestigationTickResult RegisterAction(SaveService save, string caseId, string legendId,
+            InvestigationAction action, int minutes, float spreadCost)
+        {
             if (save == null || save.Current == null || string.IsNullOrEmpty(caseId))
             {
                 return InvestigationTickResult.Failed(0, 0);
@@ -103,10 +120,10 @@ namespace UrbanLegendBureau.Systems
             if (state == null) return InvestigationTickResult.Failed(0, 0);
 
             state.actionCount++;
-            state.elapsedMinutes += MinutesPerAction;
+            state.elapsedMinutes += Mathf.Max(0, minutes);
 
             var spreadChange = default(SpreadChangeResult);
-            float cost = GetSpreadCost(action);
+            float cost = Mathf.Max(0f, spreadCost);
 
             if (cost > 0f && _spread != null && !string.IsNullOrEmpty(legendId))
             {
