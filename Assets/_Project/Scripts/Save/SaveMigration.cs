@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 3;
+        public const int CurrentVersion = 4;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -70,6 +70,15 @@ namespace UrbanLegendBureau.Save
                     data.currentStepIndex = V3CompletedStep;
                 }
                 data.saveVersion = 3;
+            }
+
+            if (data.saveVersion == 3)
+            {
+                // v4에서 사건별 조사 경과(caseTimes)가 추가됐다.
+                // 구버전 저장본에는 이 기록이 없다. 빈 목록으로 두면
+                // 각 사건은 0회 / 0분에서 시작한다. 잃는 진행은 없다.
+                data.caseTimes ??= new System.Collections.Generic.List<CaseTimeState>();
+                data.saveVersion = 4;
             }
 
             if (data.saveVersion < CurrentVersion)

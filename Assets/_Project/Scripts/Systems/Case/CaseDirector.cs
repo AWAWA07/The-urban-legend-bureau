@@ -49,6 +49,7 @@ namespace UrbanLegendBureau.Systems
         private BeliefService _belief;
         private ExorcismService _exorcism;
         private CaseService _cases;
+        private InvestigationTimeService _time;
         private LocalizationService _loc;
 
         private CaseSO _case;
@@ -106,6 +107,8 @@ namespace UrbanLegendBureau.Systems
         private const string CaseListHintTextId = "ui.case.list_hint";
         private const string CaseCompletedMarkTextId = "ui.case.completed_mark";
         private const string ViewSpreadTextId = "spread.feedback.view";
+        private const string ElapsedTextId = "ui.time.elapsed";
+        private const string ActionCountTextId = "ui.time.actions";
         private const string SpreadWarningTitleTextId = "spread.warning.title";
 
         private void Start()
@@ -119,6 +122,7 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _belief);
             ServiceRegistry.TryGet(out _exorcism);
             ServiceRegistry.TryGet(out _cases);
+            ServiceRegistry.TryGet(out _time);
             ServiceRegistry.TryGet(out _loc);
 
             if (_ui == null || _save == null || _legends == null || _loc == null)
@@ -234,6 +238,12 @@ namespace UrbanLegendBureau.Systems
                 Debug.Log($"[CaseDirector] 초기 확산도 설정 | {_legendId} = {_legend.InitialSpreadRate}");
             }
 
+            // 처음 여는 사건만 시간을 0부터 센다. 진행 중이던 사건은 저장된 경과를 이어간다.
+            if (firstTime && _time != null)
+            {
+                _time.ResetCase(_save, _caseId);
+            }
+
             _bureauScreen.BindWithBodyProvider(BureauTitleTextId, BuildLegendBriefing);
             _ui.Replace(_bureauScreen);
 
@@ -247,7 +257,7 @@ namespace UrbanLegendBureau.Systems
 
             _internetListScreen.Bind(
                 InternetTitleTextId, InternetFooterTextId,
-                GetCasePages(), BuildPageListLabel, OnPageSelected, BuildStatsLine);
+                GetCasePages(), BuildPageListLabel, OnPageSelected, BuildStatusBlock);
 
             _ui.Replace(_internetListScreen);
             Debug.Log($"[CaseDirector] 인터넷 조사 | 게시글 {GetCasePages().Count}개 | step={CaseFlow.GetStep(_save)}");
@@ -260,6 +270,9 @@ namespace UrbanLegendBureau.Systems
         private void OnPageSelected(WebPageSO page)
         {
             string feedbackId = null;
+
+            // 글을 여는 것 자체가 조사 행동이다. 이미 본 글을 다시 열어도 시간은 흐른다.
+            RegisterAction(InvestigationAction.InternetView);
 
             if (page != null && _internet != null && _spread != null
                 && _internet.ShouldSpreadOnView(_save.Current, page.PageId))
@@ -278,7 +291,7 @@ namespace UrbanLegendBureau.Systems
                 }
             }
 
-            _internetPageScreen.Bind(page, BuildPageStatus, CanCensor, BuildStatsLine);
+            _internetPageScreen.Bind(page, BuildPageStatus, CanCensor, BuildStatusBlock);
             if (feedbackId != null)
             {
                 var change = _lastSpreadChange;
@@ -311,6 +324,9 @@ namespace UrbanLegendBureau.Systems
             if (page == null || _internet == null) return;
 
             float beliefBefore = GetBelief();
+
+            // 검열도 조사 행동이다. 확산 증감은 아래 기존 검열 규칙이 그대로 맡는다.
+            RegisterAction(InvestigationAction.PageCensor);
 
             var result = _internet.TryCensorPage(_save, page.PageId);
             string feedbackId = ApplyCensorOutcome(page, result);
@@ -389,6 +405,37 @@ namespace UrbanLegendBureau.Systems
                    $"    {_loc.Get(LabelBeliefTextId)}: {GetBelief():F0}";
         }
 
+        /// <summary>사건 경과 시간 / 조사 행동 횟수 표시줄.</summary>
+        private string BuildTimeLine()
+        {
+            if (_time == null || _case == null) return string.Empty;
+
+            int minutes = _time.GetElapsedMinutes(_save.Current, _caseId);
+            int actions = _time.GetActionCount(_save.Current, _caseId);
+
+            return _loc.Get(ElapsedTextId, minutes) + "    " + _loc.Get(ActionCountTextId, actions);
+        }
+
+        /// <summary>시간 + 수치를 두 줄로 묶는다. 조사 화면들이 공통으로 쓴다.</summary>
+        private string BuildStatusBlock()
+        {
+            var time = BuildTimeLine();
+            return string.IsNullOrEmpty(time) ? BuildStatsLine() : time + "\n" + BuildStatsLine();
+        }
+
+        /// <summary>
+        /// 조사 행동 하나를 사건 시간에 반영한다.
+        ///
+        /// 확산 증감은 행동 종류에 따라 InvestigationTimeService가 정한다.
+        /// 검열/봉인처럼 이미 자기 확산 규칙을 가진 행동은 시간만 흐르므로,
+        /// 같은 행동에 확산이 두 번 붙지 않는다.
+        /// </summary>
+        private void RegisterAction(InvestigationAction action)
+        {
+            if (_time == null || _case == null) return;
+            _time.RegisterAction(_save, _caseId, _legendId, action);
+        }
+
         /// <summary>상세 화면의 목록 복귀 버튼.</summary>
         public void OnPageBackClicked()
         {
@@ -409,7 +456,7 @@ namespace UrbanLegendBureau.Systems
                 var warningId = level.ToWarningTextId();
                 _warningPopupScreen.BindWithBodyProvider(
                     SpreadWarningTitleTextId,
-                    () => _loc.Get(warningId) + "\n\n" + BuildStatsLine());
+                    () => _loc.Get(warningId) + "\n\n" + BuildStatusBlock());
                 _ui.Push(_warningPopupScreen);
 
                 Debug.Log($"[CaseDirector] 현장 진입 경고 | 확산 {GetSpread():F0}% ({level})");
@@ -430,7 +477,9 @@ namespace UrbanLegendBureau.Systems
         {
             CaseFlow.SetStep(_save, CaseStep.FieldInvestigation);
 
-            _fieldHudScreen.Bind(FieldTitleTextId, FieldHintTextId);
+            _fieldHudScreen.BindWithBodyProvider(
+                FieldTitleTextId,
+                () => _loc.Get(FieldHintTextId) + "\n\n" + BuildStatusBlock());
             _ui.Replace(_fieldHudScreen);
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
@@ -485,6 +534,10 @@ namespace UrbanLegendBureau.Systems
         {
             if (_exorcism == null) return;
 
+            // 봉인 시도도 조사 행동이다. 성공하면 아래에서 확산이 0이 되므로
+            // 여기서는 시간만 흐르게 두고 확산은 건드리지 않는다.
+            RegisterAction(InvestigationAction.Seal);
+
             var result = _exorcism.TrySeal(_save.Current, _legendId);
 
             if (result.IsSuccess())
@@ -538,7 +591,7 @@ namespace UrbanLegendBureau.Systems
             var sb = new StringBuilder();
 
             if (_legend != null) sb.AppendLine(_loc.Get(_legend.NameTextId));
-            sb.AppendLine(BuildStatsLine());
+            sb.AppendLine(BuildStatusBlock());
             sb.AppendLine();
 
             sb.Append(BuildRuleListWithMarks());
@@ -609,6 +662,11 @@ namespace UrbanLegendBureau.Systems
             if (point == null) return;
 
             point.MarkInvestigated();
+
+            // 현장을 한 곳 뒤지는 것이 조사 행동 한 번이다.
+            // 새 단서를 찾았는지에 따라 확산량만 달라진다. 행동은 어느 쪽이든 한 번이다.
+            bool newClue = point.HasClue && !CaseFlow.HasClue(_save, point.ClueId);
+            RegisterAction(newClue ? InvestigationAction.ClueFound : InvestigationAction.FieldSearch);
 
             if (!point.HasClue)
             {
@@ -710,6 +768,8 @@ namespace UrbanLegendBureau.Systems
             sb.AppendLine();
             sb.AppendLine(_loc.Get(LabelRiskTextId) + ": " + _loc.Get(_legend.RiskLevelTextId));
             sb.AppendLine();
+            sb.AppendLine(BuildStatusBlock());
+            sb.AppendLine();
             sb.Append(_loc.Get(_legend.DescriptionTextId));
             return sb.ToString();
         }
@@ -724,6 +784,14 @@ namespace UrbanLegendBureau.Systems
         private string BuildResultBody()
         {
             var sb = new StringBuilder();
+
+            var time = BuildTimeLine();
+            if (!string.IsNullOrEmpty(time))
+            {
+                sb.AppendLine(time);
+                sb.AppendLine();
+            }
+
             sb.AppendLine(_loc.Get(LabelClueTextId));
 
             var acquired = _save.Current.acquiredClueIds;

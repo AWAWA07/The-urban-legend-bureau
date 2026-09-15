@@ -94,6 +94,10 @@ namespace UrbanLegendBureau.Core
             var cases = new CaseService(_gameDataCatalog);
             ServiceRegistry.Register(cases);
 
+            // 조사 행동으로 흐르는 사건 시간. 확산 계산은 SpreadService에 맡긴다.
+            var investigationTime = new InvestigationTimeService(spread);
+            ServiceRegistry.Register(investigationTime);
+
             // --- 초기화 ---
             InitializeService(localization);
             InitializeService(input);
@@ -106,6 +110,7 @@ namespace UrbanLegendBureau.Core
             InitializeService(belief);
             InitializeService(exorcism);
             InitializeService(cases);
+            InitializeService(investigationTime);
 
             IsBooted = true;
 
@@ -179,6 +184,11 @@ namespace UrbanLegendBureau.Core
             if (Instance != this) return;
 
             // 등록 역순으로 종료한다.
+            if (ServiceRegistry.TryGet<InvestigationTimeService>(out var investigationTime))
+            {
+                investigationTime.Shutdown();
+            }
+
             if (ServiceRegistry.TryGet<CaseService>(out var cases))
             {
                 cases.Shutdown();

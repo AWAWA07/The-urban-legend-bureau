@@ -48,6 +48,7 @@ namespace UrbanLegendBureau.Dev
             yield return RunSaveTest();
             yield return RunLegendDataTest();
             yield return RunSpreadLevelTest();
+            yield return RunInvestigationTimeTest();
 
             if (_failures.Count == 0)
             {
@@ -352,6 +353,52 @@ namespace UrbanLegendBureau.Dev
             Expect(!SpreadLevel.Spreading.NeedsFieldWarning(), "Spreading 이 경고 대상으로 판정됐다.");
             Expect(SpreadLevel.Dangerous.NeedsFieldWarning(), "Dangerous 가 경고 대상이 아니다.");
             Expect(SpreadLevel.Critical.NeedsFieldWarning(), "Critical 이 경고 대상이 아니다.");
+
+            yield return null;
+        }
+
+        /// <summary>
+        /// 조사 행동으로 사건 시간이 흐르는지, 사건끼리 섞이지 않는지 확인한다.
+        /// 실제 저장에 손대지 않도록 임시 SaveData를 따로 만들어 쓴다.
+        /// </summary>
+        private IEnumerator RunInvestigationTimeTest()
+        {
+            if (!ServiceRegistry.TryGet<InvestigationTimeService>(out var time))
+            {
+                Fail("InvestigationTimeService 미등록");
+                yield break;
+            }
+
+            if (!ServiceRegistry.TryGet<SaveService>(out var save) || save.Current == null)
+            {
+                Fail("SaveService 미등록");
+                yield break;
+            }
+
+            const string caseA = "smoke_case_a";
+            const string caseB = "smoke_case_b";
+
+            var data = save.Current;
+            Expect(time.GetActionCount(data, caseA) == 0, "기록이 없는 사건의 행동 횟수가 0이 아니다.");
+
+            time.RegisterAction(save, caseA, null, InvestigationAction.InternetView);
+            time.RegisterAction(save, caseA, null, InvestigationAction.FieldSearch);
+            time.RegisterAction(save, caseB, null, InvestigationAction.InternetView);
+
+            Expect(time.GetActionCount(data, caseA) == 2, "행동 2회를 기록했는데 횟수가 맞지 않는다.");
+            Expect(time.GetElapsedMinutes(data, caseA) == InvestigationTimeService.MinutesPerAction * 2,
+                "경과 시간이 행동 횟수와 맞지 않는다.");
+            Expect(time.GetActionCount(data, caseB) == 1, "다른 사건의 행동 횟수가 섞였다.");
+
+            time.ResetCase(save, caseA);
+            Expect(time.GetActionCount(data, caseA) == 0, "초기화 후에도 행동 횟수가 남아 있다.");
+            Expect(time.GetActionCount(data, caseB) == 1, "한 사건을 초기화했더니 다른 사건까지 지워졌다.");
+
+            Debug.Log($"{Tag} InvestigationTime | 행동 1회 = {InvestigationTimeService.MinutesPerAction}분 | " +
+                      $"사건별 분리 확인 (A={time.GetActionCount(data, caseA)}회 B={time.GetActionCount(data, caseB)}회)");
+
+            // 테스트용 항목은 남기지 않는다.
+            data.caseTimes.RemoveAll(s => s != null && (s.caseId == caseA || s.caseId == caseB));
 
             yield return null;
         }

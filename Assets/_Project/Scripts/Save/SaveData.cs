@@ -23,6 +23,29 @@ namespace UrbanLegendBureau.Save
         }
     }
 
+    /// <summary>
+    /// 사건 하나의 조사 경과. 실제 플레이 시간이 아니라 조사 행동으로 흐르는 사건 내 시간이다.
+    /// 사건마다 따로 들고 있어야 다른 사건의 경과가 섞이지 않는다.
+    /// </summary>
+    [Serializable]
+    public class CaseTimeState
+    {
+        public string caseId;
+
+        /// <summary>이 사건에서 수행한 조사 행동 횟수.</summary>
+        public int actionCount;
+
+        /// <summary>사건 경과 시간(분).</summary>
+        public int elapsedMinutes;
+
+        public CaseTimeState() { }
+
+        public CaseTimeState(string caseId)
+        {
+            this.caseId = caseId;
+        }
+    }
+
     /// <summary>사건과 무관하게 이어지는 전역 수치.</summary>
     [Serializable]
     public class GlobalState
@@ -71,6 +94,9 @@ namespace UrbanLegendBureau.Save
         public List<string> deducedRuleIds = new List<string>();
         public List<string> censoredPageIds = new List<string>();
 
+        // --- 사건 경과 시간 (v4) ---
+        public List<CaseTimeState> caseTimes = new List<CaseTimeState>();
+
         // --- 괴담 ---
         public List<LegendState> legendStates = new List<LegendState>();
 
@@ -89,6 +115,7 @@ namespace UrbanLegendBureau.Save
             deducedRuleIds ??= new List<string>();
             censoredPageIds ??= new List<string>();
             legendStates ??= new List<LegendState>();
+            caseTimes ??= new List<CaseTimeState>();
             storyFlags ??= new List<string>();
             global ??= new GlobalState();
             settings ??= new SettingsData();
@@ -105,6 +132,23 @@ namespace UrbanLegendBureau.Save
 
             var state = new LegendState(legendId);
             legendStates.Add(state);
+            return state;
+        }
+
+        /// <summary>사건의 경과 기록을 찾거나 없으면 만들어 돌려준다.</summary>
+        public CaseTimeState GetOrCreateCaseTime(string caseId)
+        {
+            if (string.IsNullOrEmpty(caseId)) return null;
+
+            caseTimes ??= new List<CaseTimeState>();
+
+            for (int i = 0; i < caseTimes.Count; i++)
+            {
+                if (caseTimes[i] != null && caseTimes[i].caseId == caseId) return caseTimes[i];
+            }
+
+            var state = new CaseTimeState(caseId);
+            caseTimes.Add(state);
             return state;
         }
     }
