@@ -315,3 +315,4 @@ tutorial.reaction.1	찾아보니까 원래 글이랑 내용이 다른데?	I look
 tutorial.reaction.2	주작 아니냐 이거	This is made up, right?	
 tutorial.reaction.3	막차 시간표 보고 왔는데 맞는 말이네	I checked the timetable. They have a point	
 tutorial.btn_finish	튜토리얼 종료	Finish tutorial	
+tutorial.line.006	미안한데 바로 일 좀 시켜도 될까?	Sorry, but can I put you to work right away?	한영, 차지한 등장 직전

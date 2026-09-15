@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UrbanLegendBureau.Core;
@@ -56,24 +57,25 @@ namespace UrbanLegendBureau.Systems
             "tutorial.line.001",
             "tutorial.line.002",
             "tutorial.line.003",
+            "tutorial.line.006",   // 나중에 끼워 넣은 줄. ID 번호가 아니라 이 순서가 실제 순서다.
             "tutorial.line.004",
             "tutorial.line.005",
         };
 
-        private static readonly bool[] LineIsHanyoung = { true, true, true, false, true };
-        private static readonly float[] LineBrightness = { 1f, 0.55f, 1f, 1f, 1f };
+        private static readonly bool[] LineIsHanyoung = { true, true, true, true, false, true };
+        private static readonly float[] LineBrightness = { 1f, 0.55f, 1f, 1f, 1f, 1f };
 
         /// <summary>
         /// 한영이 화면에 있는가.
         /// 첫 대사("...")는 어둠 속에서 목소리만 들린다. 모습은 다음 대사부터 드러난다.
         /// </summary>
-        private static readonly bool[] LineHanyoungVisible = { false, true, true, true, true };
+        private static readonly bool[] LineHanyoungVisible = { false, true, true, true, true, true };
 
         /// <summary>
         /// 차지한이 화면에 있는가.
         /// 처음 세 대사는 한영만 나온다. 차지한은 자기 첫 대사에서 처음 모습을 드러낸다.
         /// </summary>
-        private static readonly bool[] LineChajihanVisible = { false, false, false, true, true };
+        private static readonly bool[] LineChajihanVisible = { false, false, false, false, true, true };
 
         // --- 커뮤니티 ---
         private const string TutorialPostViews = "1284";
@@ -280,7 +282,8 @@ namespace UrbanLegendBureau.Systems
 
             if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
 
-            _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: true, rightVisible: false);
+            // 나레이션에는 인물을 세우지 않는다. 대사 상자만 남는다.
+            _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: false, rightVisible: false);
 
             Debug.Log("[TutorialDirector] 나레이션 | " + lineTextId + " -> 끝나면 " + after);
         }
@@ -410,16 +413,32 @@ namespace UrbanLegendBureau.Systems
             var choice = _pendingChoice;
             if (choice == null) return;
 
-            AcceptCorrectComment(choice);
             _pendingChoice = null;
-
-            // 마무리는 한영의 말이 아니라 상황 설명이다. 나레이션으로 띄운다.
-            ShowNarration(DoneTextId, AfterTalk.Finish);
+            StartCoroutine(PlayCorrectSequence(choice));
         }
 
-        private void AcceptCorrectComment(TutorialCommentChoice choice)
+        /// <summary>반응이 하나씩 붙는 간격(초).</summary>
+        private const float ReactionInterval = 0.8f;
+
+        /// <summary>마지막 반응과 나레이션 사이의 뜸.</summary>
+        private const float NarrationDelay = 1.2f;
+
+        private static readonly string[] ReactionTextIds =
         {
-            if (_censored) return;    // 믿음도가 두 번 깎이지 않게 한다
+            "tutorial.reaction.1",
+            "tutorial.reaction.2",
+            "tutorial.reaction.3",
+        };
+
+        /// <summary>
+        /// 정답을 고른 뒤의 연출.
+        ///
+        /// 한 번에 다 붙이지 않고 댓글 -> 반응 하나씩 -> 뜸 -> 나레이션 순으로 흘린다.
+        /// 사람들이 실제로 읽고 반응하는 것처럼 보이게 하기 위해서다.
+        /// </summary>
+        private IEnumerator PlayCorrectSequence(TutorialCommentChoice choice)
+        {
+            if (_censored) yield break;    // 믿음도가 두 번 깎이지 않게 한다
             _censored = true;
 
             float before = _belief != null ? _belief.GetBeliefLevel(_sandbox.Current) : 0f;
@@ -431,29 +450,43 @@ namespace UrbanLegendBureau.Systems
                 censorResult = _internet.TryCensorPage(_sandbox, _tutorialPage.PageId);
             }
 
-            // 플레이어의 댓글이 실제로 달린다.
+            // 플레이어의 댓글이 먼저 올라간다.
             _comments.Add(new CommunityComment
             {
                 AuthorTextId = PlayerNameTextId,
                 BodyTextId = choice.BodyTextId,
                 IsPlayer = true,
             });
+            _communityScreen.BindComments(_comments);
+            _communityScreen.BindChoices(null, null, null);      // 고를 것이 없어진다
 
-            // 사람들이 반응한다. 이 반응이 믿음을 깎는 이유다.
-            _comments.Add(new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.reaction.1" });
-            _comments.Add(new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.reaction.2" });
-            _comments.Add(new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.reaction.3" });
+            yield return new WaitForSecondsRealtime(ReactionInterval);
+
+            // 사람들이 하나씩 반응한다. 이 반응이 믿음을 깎는 이유다.
+            for (int i = 0; i < ReactionTextIds.Length; i++)
+            {
+                _comments.Add(new CommunityComment
+                {
+                    AuthorTextId = "ui.net.author_anon",
+                    BodyTextId = ReactionTextIds[i],
+                });
+                _communityScreen.BindComments(_comments);
+
+                yield return new WaitForSecondsRealtime(ReactionInterval);
+            }
 
             if (_belief != null) _belief.TryReduceBelief(_sandbox.Current, TutorialBeliefDrop);
             float after = _belief != null ? _belief.GetBeliefLevel(_sandbox.Current) : 0f;
-
-            _communityScreen.BindComments(_comments);
-            _communityScreen.BindChoices(null, null, null);      // 고를 것이 없어진다
 
             _finished = true;
 
             Debug.Log($"[TutorialDirector] 정답 댓글 | 검열={censorResult} | " +
                       $"믿음 {before:F0} -> {after:F0} (튜토리얼 전용 저장본)");
+
+            yield return new WaitForSecondsRealtime(NarrationDelay);
+
+            // 마무리는 한영의 말이 아니라 상황 설명이다. 인물 없이 상자만 띄운다.
+            ShowNarration(DoneTextId, AfterTalk.Finish);
         }
 
         // ------------------------------------------------------------- 종료
