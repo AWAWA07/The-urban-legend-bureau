@@ -65,8 +65,11 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private Button _boardEntryTemplate;
 
         [Header("머리말")]
-        [SerializeField] private TMP_Text _siteText;
-        [SerializeField] private TMP_Text _boardText;
+        [Tooltip("사이트 이름. 목록용과 글용 머리말이 따로 있어 여러 개다.")]
+        [SerializeField] private TMP_Text[] _siteTexts;
+
+        [Tooltip("게시판 이름. 사이트 이름과 짝이다.")]
+        [SerializeField] private TMP_Text[] _boardTexts;
 
         [Header("게시글")]
         [SerializeField] private TMP_Text _titleText;
@@ -207,13 +210,23 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
+        /// <summary>같은 문구를 쓰는 칸이 여럿이라 한 번에 채운다.</summary>
+        private static void SetAll(TMP_Text[] targets, string text)
+        {
+            if (targets == null) return;
+            for (int i = 0; i < targets.Length; i++)
+            {
+                if (targets[i] != null) targets[i].text = text;
+            }
+        }
+
         public void Refresh()
         {
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
             if (_windowTitleText != null) _windowTitleText.text = loc.Get(WindowTitleTextId);
-            if (_siteText != null) _siteText.text = loc.Get(SiteTextId);
-            if (_boardText != null) _boardText.text = loc.Get(BoardTextId);
+            SetAll(_siteTexts, loc.Get(SiteTextId));
+            SetAll(_boardTexts, loc.Get(BoardTextId));
 
             if (_showingBoard)
             {

@@ -79,7 +79,7 @@ namespace UrbanLegendBureau.UI
             var previous = Current;
             if (previous != null)
             {
-                previous.SetCovered(true, screen.HidesUnderlying);
+                previous.SetCovered(true, screen.HidesUnderlying, screen.KeepsUnderlyingUsable);
             }
 
             _stack.Add(screen);
@@ -108,7 +108,7 @@ namespace UrbanLegendBureau.UI
             var next = Current;
             if (next != null)
             {
-                next.SetCovered(false, top.HidesUnderlying);
+                next.SetCovered(false, top.HidesUnderlying, top.KeepsUnderlyingUsable);
             }
 
             LogStack($"Pop({top.ScreenId})");
@@ -132,7 +132,7 @@ namespace UrbanLegendBureau.UI
             var previous = Current;
             if (previous != null)
             {
-                previous.SetCovered(true, screen.HidesUnderlying);
+                previous.SetCovered(true, screen.HidesUnderlying, screen.KeepsUnderlyingUsable);
             }
 
             _stack.Add(screen);

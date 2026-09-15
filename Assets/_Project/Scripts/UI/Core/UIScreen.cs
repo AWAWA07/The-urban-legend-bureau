@@ -26,12 +26,17 @@ namespace UrbanLegendBureau.UI
         [Tooltip("끄면 ESC / 뒤로가기로 닫히지 않는다. 진행 중 차단 화면에 사용한다.")]
         [SerializeField] private bool _closableByBack = true;
 
+        [Tooltip("켜면 이 화면이 열려 있어도 아래 화면을 그대로 쓸 수 있다. " +
+                 "아래 화면 위에 대사만 얹는 경우에 쓴다. 기본은 꺼 둔다.")]
+        [SerializeField] private bool _keepsUnderlyingUsable;
+
         private CanvasGroup _canvasGroup;
 
         public string ScreenId => string.IsNullOrEmpty(_screenId) ? name : _screenId;
         public UILayer Layer => _layer;
         public bool HidesUnderlying => _hidesUnderlying;
         public bool ClosableByBack => _closableByBack;
+        public bool KeepsUnderlyingUsable => _keepsUnderlyingUsable;
         public bool IsOpen { get; private set; }
 
         protected virtual void Awake()
@@ -70,8 +75,11 @@ namespace UrbanLegendBureau.UI
             gameObject.SetActive(false);
         }
 
-        /// <summary>다른 화면에 덮였을 때. 숨기거나 입력만 막는다.</summary>
-        internal void SetCovered(bool covered, bool hide)
+        /// <summary>
+        /// 다른 화면에 덮였을 때. 숨기거나 입력만 막는다.
+        /// keepUsable 이면 덮여 있어도 입력을 막지 않는다. 위 화면이 대사만 얹는 경우다.
+        /// </summary>
+        internal void SetCovered(bool covered, bool hide, bool keepUsable = false)
         {
             if (!IsOpen) return;
 
@@ -82,7 +90,7 @@ namespace UrbanLegendBureau.UI
             else
             {
                 gameObject.SetActive(true);
-                SetInteractable(!covered);
+                SetInteractable(!covered || keepUsable);
             }
 
             OnCoveredChanged(covered);

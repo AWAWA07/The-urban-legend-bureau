@@ -754,11 +754,27 @@ namespace UrbanLegendBureau.EditorTools
             ConfigureScreen(screen, name,
                 fullScreen ? UILayer.Screen : UILayer.Popup,
                 fullScreen,     // 겹침 대화는 아래 화면을 가리지 않는다
-                false);
+                false,
+                !fullScreen);   // 겹침 대화 중에도 아래 화면(괴담넷)을 그대로 쓸 수 있어야 한다
 
-            // 화면 전체를 덮는 진행 버튼. 마우스 클릭과 터치가 같은 경로로 들어온다.
+            // 진행 버튼. 마우스 클릭과 터치가 같은 경로로 들어온다.
+            //
+            // 대화만 있는 화면은 어디를 눌러도 넘어가게 화면 전체를 덮는다.
+            // 겹침 대화는 아래 화면(예: 괴담넷)을 만질 수 있어야 하므로 대사 상자 자리만 덮는다.
+            // 전체를 덮으면 아래 화면의 누름과 끌기를 전부 가로채 굴러가지 않는다.
             var advanceGo = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
-            StretchFull(advanceGo);
+            if (fullScreen)
+            {
+                StretchFull(advanceGo);
+            }
+            else
+            {
+                var advanceRt = (RectTransform)advanceGo.transform;
+                advanceRt.anchorMin = new Vector2(0.5f, 0.5f);
+                advanceRt.anchorMax = new Vector2(0.5f, 0.5f);
+                advanceRt.anchoredPosition = new Vector2(0f, -340f);   // 대사 상자와 같은 자리
+                advanceRt.sizeDelta = new Vector2(1600f, 300f);
+            }
             var advance = advanceGo.AddComponent<Button>();
             var advanceImage = advanceGo.GetComponent<Image>();
             advance.targetGraphic = advanceImage;
@@ -957,45 +973,22 @@ namespace UrbanLegendBureau.EditorTools
             closeLabel.text = "X";
             closeLabel.raycastTarget = false;
 
-            var header = CreatePanel(go.transform, "Header", new Color(0.20f, 0.24f, 0.34f, 1f));
-            var headerRt = (RectTransform)header.transform;
-            headerRt.anchorMin = new Vector2(0f, 1f);
-            headerRt.anchorMax = new Vector2(1f, 1f);
-            headerRt.pivot = new Vector2(0.5f, 1f);
-            headerRt.anchoredPosition = new Vector2(0f, -56f);   // 제목 표시줄 아래
-            headerRt.sizeDelta = new Vector2(0f, 90f);
-
-            // 머리말 글자는 아래 게시글 본문(폭 1700, 좌우 가운데)의 왼쪽 선에 맞춘다.
-            // 좌표를 직접 주면 화면 폭이 달라질 때 가장자리에 붙어 잘린다.
-            const float contentMargin = (1920f - 1700f) * 0.5f;    // = 110
-
-            // 사이트 이름과 게시판 이름을 나란히 붙인다.
-            // 가로 배치에 맡겨야 언어가 바뀌어 글자 길이가 달라져도 간격이 유지된다.
-            var headerRow = new GameObject("HeaderRow", typeof(RectTransform));
-            headerRow.transform.SetParent(header.transform, false);
-            var rowRt = (RectTransform)headerRow.transform;
-            rowRt.anchorMin = new Vector2(0f, 0f);
-            rowRt.anchorMax = new Vector2(1f, 1f);
-            rowRt.offsetMin = new Vector2(contentMargin, 10f);
-            rowRt.offsetMax = new Vector2(-contentMargin, -10f);
-
-            var rowLayout = headerRow.AddComponent<HorizontalLayoutGroup>();
-            rowLayout.spacing = 20f;
-            rowLayout.childAlignment = TextAnchor.MiddleLeft;
-            rowLayout.childControlWidth = true;
-            rowLayout.childControlHeight = true;
-            rowLayout.childForceExpandWidth = false;
-            rowLayout.childForceExpandHeight = false;
-
-            var siteText = AddText(headerRow.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
-                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
-            var boardText = AddText(headerRow.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
-                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
-
             // --- 게시판 목록 보기 ---
             var boardView = new GameObject("BoardView", typeof(RectTransform));
             boardView.transform.SetParent(go.transform, false);
             StretchFull(boardView);
+
+            // 목록 화면의 머리말은 제 자리에 고정이다. 글 화면의 머리말은 따로 두어 함께 굴러간다.
+            // 머리말 글자는 아래 내용(폭 1700, 좌우 가운데)의 왼쪽 선에 맞춘다.
+            const float contentMargin = (1920f - 1700f) * 0.5f;    // = 110
+            var boardHeader = BuildCommunityHeader(boardView.transform, contentMargin,
+                out var boardSiteText, out var boardBoardText);
+            var boardHeaderRt = (RectTransform)boardHeader.transform;
+            boardHeaderRt.anchorMin = new Vector2(0f, 1f);
+            boardHeaderRt.anchorMax = new Vector2(1f, 1f);
+            boardHeaderRt.pivot = new Vector2(0.5f, 1f);
+            boardHeaderRt.anchoredPosition = new Vector2(0f, -56f);   // 제목 표시줄 아래
+            boardHeaderRt.sizeDelta = new Vector2(0f, 90f);
 
             var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 330f),
                 new Vector2(1700f, 520f), 12f);
@@ -1016,11 +1009,15 @@ namespace UrbanLegendBureau.EditorTools
 
             // 실제 커뮤니티 글 화면처럼 화면 전체가 한 장으로 굴러간다.
             // 글과 댓글은 회색 틈이 아니라 굵은 가로선으로 나눈다. 실제 화면이 그렇게 나눈다.
-            const float pageWidth = 1700f;
+            const float pageWidth = 1920f;   // 화면 폭을 그대로 쓴다. 좌우에 회색이 비치지 않는다
 
-            // 흰 종이. 머리말 아래부터 화면 맨 아래까지 채운다.
+            // 글이 가장자리에 붙지 않도록 안쪽으로 들이는 만큼. 머리말과 본문이 같은 선에 선다.
+            const int Inset = 110;
+            const float ContentInset = Inset;
+
+            // 흰 종이. 창 제목 표시줄 아래부터 화면 맨 아래까지 채운다.
             // 여기를 비워 두면 대화 상자 둘레가 휑하게 남아 창이 도중에 끊긴 것처럼 보인다.
-            const float PaperTop = 394f;        // 머리말(56 + 90) 바로 아래
+            const float PaperTop = 484f;        // 창 제목 표시줄(56) 바로 아래
             const float PaperBottom = -540f;    // 화면 맨 아래
 
             var paper = CreatePanel(postView.transform, "Paper", new Color(1f, 1f, 1f, 1f));
@@ -1031,9 +1028,11 @@ namespace UrbanLegendBureau.EditorTools
             paperRt.anchoredPosition = new Vector2(0f, PaperTop);
             paperRt.sizeDelta = new Vector2(pageWidth, PaperTop - PaperBottom);
 
-            // 굴러가는 자리. 대화 상자 위까지만 쓴다. 그 아래는 흰 종이가 이어 받는다.
-            const float ViewTop = 394f;
-            const float ViewBottom = -182f;     // 대화 상자 위로 8 남긴다
+            // 굴러가는 자리. 창 제목 표시줄만 남기고 그 아래는 머리말까지 전부 함께 내려간다.
+            // 아래로도 화면 끝까지 쓴다. 남는 흰 자리 없이 내용이 꽉 찬다.
+            // 대화 상자는 그 위에 얹히지만 내용이 함께 굴러가므로 가려진 곳도 올려서 볼 수 있다.
+            const float ViewTop = 484f;
+            const float ViewBottom = -540f;
             const float ViewHeight = ViewTop - ViewBottom;
 
             var pageViewport = new GameObject("PageViewport", typeof(RectTransform));
@@ -1045,6 +1044,12 @@ namespace UrbanLegendBureau.EditorTools
             cvRt.anchoredPosition = new Vector2(0f, ViewTop);
             cvRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
             pageViewport.AddComponent<RectMask2D>();
+
+            // 끄는 손을 받는 판. 보이지는 않지만 눌림은 받는다.
+            // 이것이 없으면 글자나 칸이 없는 빈 곳을 잡았을 때 아무 일도 일어나지 않는다.
+            var grab = pageViewport.AddComponent<Image>();
+            grab.color = new Color(1f, 1f, 1f, 0f);
+            grab.raycastTarget = true;
 
             // 굴러가는 내용 전체.
             var page = new GameObject("Page", typeof(RectTransform));
@@ -1065,6 +1070,13 @@ namespace UrbanLegendBureau.EditorTools
             pageScroll.movementType = ScrollRect.MovementType.Clamped;
             pageScroll.scrollSensitivity = 40f;
 
+            // 머리말도 함께 굴러간다. 남는 것은 맨 위 창 제목 표시줄뿐이다.
+            var pageHeader = BuildCommunityHeader(page.transform, ContentInset, out var siteText, out var boardText);
+            var pageHeaderElement = pageHeader.AddComponent<LayoutElement>();
+            pageHeaderElement.minHeight = 90f;
+            pageHeaderElement.preferredHeight = 90f;
+            pageHeaderElement.flexibleHeight = 0f;
+
             // --- 글 묶음 ---
             var postBlock = new GameObject("PostBlock", typeof(RectTransform));
             postBlock.transform.SetParent(page.transform, false);
@@ -1072,7 +1084,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, 8f, new RectOffset(32, 32, 24, 22));
+            AddStack(titleBand, 14f, new RectOffset(Inset, Inset, 44, 40));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
@@ -1081,7 +1093,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
             bodyArea.transform.SetParent(postBlock.transform, false);
-            AddStack(bodyArea, 0f, new RectOffset(32, 32, 30, 34));
+            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 52, 68));
 
             var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
@@ -1092,7 +1104,7 @@ namespace UrbanLegendBureau.EditorTools
             // --- 댓글 묶음 ---
             var commentBlock = new GameObject("CommentBlock", typeof(RectTransform));
             commentBlock.transform.SetParent(page.transform, false);
-            AddStack(commentBlock, 14f, new RectOffset(32, 32, 22, 26));
+            AddStack(commentBlock, 18f, new RectOffset(Inset, Inset, 44, 40));
 
             var commentHeader = AddText(commentBlock.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 32f), TextAlignmentOptions.Left);
@@ -1173,8 +1185,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_postView").objectReferenceValue = postView;
             so.FindProperty("_boardRoot").objectReferenceValue = boardRoot;
             so.FindProperty("_boardEntryTemplate").objectReferenceValue = boardButton;
-            so.FindProperty("_siteText").objectReferenceValue = siteText;
-            so.FindProperty("_boardText").objectReferenceValue = boardText;
+            SetTextArray(so.FindProperty("_siteTexts"), boardSiteText, siteText);
+            SetTextArray(so.FindProperty("_boardTexts"), boardBoardText, boardText);
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_metaText").objectReferenceValue = metaText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
@@ -1463,7 +1475,7 @@ namespace UrbanLegendBureau.EditorTools
         // ------------------------------------------------------------- 헬퍼
 
         private static void ConfigureScreen(UIScreen screen, string id, UILayer layer,
-            bool hidesUnderlying, bool closableByBack)
+            bool hidesUnderlying, bool closableByBack, bool keepsUnderlyingUsable = false)
         {
             var so = new SerializedObject(screen);
             so.Update();
@@ -1471,6 +1483,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_layer").enumValueIndex = (int)layer;
             so.FindProperty("_hidesUnderlying").boolValue = hidesUnderlying;
             so.FindProperty("_closableByBack").boolValue = closableByBack;
+            so.FindProperty("_keepsUnderlyingUsable").boolValue = keepsUnderlyingUsable;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -1492,6 +1505,53 @@ namespace UrbanLegendBureau.EditorTools
             image.color = color;
             image.raycastTarget = color.a > 0.01f;
             return go;
+        }
+
+        /// <summary>같은 문구를 쓰는 칸 여러 개를 배열 속성에 한 번에 넣는다.</summary>
+        private static void SetTextArray(SerializedProperty property, params TextMeshProUGUI[] texts)
+        {
+            if (property == null) return;
+
+            property.arraySize = texts != null ? texts.Length : 0;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = texts[i];
+            }
+        }
+
+        /// <summary>
+        /// 괴담넷 머리말 한 줄. 목록 화면과 글 화면이 하나씩 따로 쓴다.
+        /// 자리(고정이냐 함께 굴러가느냐)는 부르는 쪽이 정한다.
+        ///
+        /// 사이트 이름과 게시판 이름은 가로 배치에 맡긴다.
+        /// 언어가 바뀌어 글자 길이가 달라져도 간격이 유지되기 때문이다.
+        /// </summary>
+        private static GameObject BuildCommunityHeader(Transform parent, float sideMargin,
+            out TextMeshProUGUI site, out TextMeshProUGUI board)
+        {
+            var header = CreatePanel(parent, "Header", new Color(0.20f, 0.24f, 0.34f, 1f));
+
+            var row = new GameObject("HeaderRow", typeof(RectTransform));
+            row.transform.SetParent(header.transform, false);
+            var rowRt = (RectTransform)row.transform;
+            rowRt.anchorMin = new Vector2(0f, 0f);
+            rowRt.anchorMax = new Vector2(1f, 1f);
+            rowRt.offsetMin = new Vector2(sideMargin, 10f);
+            rowRt.offsetMax = new Vector2(-sideMargin, -10f);
+
+            var rowLayout = row.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.spacing = 20f;
+            rowLayout.childAlignment = TextAnchor.MiddleLeft;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+
+            site = AddText(row.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
+            board = AddText(row.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
+                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
+            return header;
         }
 
         /// <summary>
