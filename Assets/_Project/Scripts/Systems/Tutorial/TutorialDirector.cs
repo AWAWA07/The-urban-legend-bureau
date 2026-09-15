@@ -22,6 +22,10 @@ namespace UrbanLegendBureau.Systems
     {
         [Header("화면")]
         [SerializeField] private DialogueScreen _dialogueScreen;
+
+        [Tooltip("커뮤니티 화면 위에 겹쳐 쓰는 대화 화면. 같은 DialogueScreen을 재사용한다.")]
+        [SerializeField] private DialogueScreen _talkScreen;
+
         [SerializeField] private CommunityPageScreen _communityScreen;
 
         [Header("연결")]
@@ -58,6 +62,12 @@ namespace UrbanLegendBureau.Systems
 
         private static readonly bool[] LineIsHanyoung = { true, true, true, false, true };
         private static readonly float[] LineBrightness = { 0.15f, 0.55f, 1f, 1f, 1f };
+
+        /// <summary>
+        /// 차지한이 화면에 있는가.
+        /// 처음 세 대사는 한영만 나온다. 차지한은 자기 첫 대사에서 처음 모습을 드러낸다.
+        /// </summary>
+        private static readonly bool[] LineChajihanVisible = { false, false, false, true, true };
 
         // --- 커뮤니티 ---
         private const string TutorialPostViews = "1284";
@@ -148,7 +158,9 @@ namespace UrbanLegendBureau.Systems
             _dialogueScreen.ShowLine(hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(lineId),
-                brightness);
+                brightness,
+                leftVisible: true,
+                rightVisible: LineChajihanVisible[_lineIndex]);
         }
 
         /// <summary>화면을 눌렀을 때. 한 번의 입력은 한 줄만 넘긴다.</summary>
@@ -168,6 +180,21 @@ namespace UrbanLegendBureau.Systems
 
         // ------------------------------------------------------------- 커뮤니티
 
+        /// <summary>한영의 말이 끝난 뒤 무엇을 할 것인가.</summary>
+        private enum AfterTalk
+        {
+            /// <summary>다시 댓글을 고르게 한다.</summary>
+            BackToChoices,
+
+            /// <summary>고른 댓글을 실제로 올린다.</summary>
+            PostComment,
+
+            /// <summary>튜토리얼을 끝낸다.</summary>
+            Finish
+        }
+
+        private AfterTalk _afterTalk;
+
         private void OpenCommunity()
         {
             if (_communityScreen == null)
@@ -179,7 +206,7 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId);
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected);
-            _communityScreen.ShowNotice(() => _loc.Get(ChoiceHintTextId));
+            _communityScreen.ShowNotice(null);
 
             // 대화 화면을 확실히 닫는다. 위에 팝업이 떠 있어도 스택에 남지 않게 한다.
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
@@ -188,6 +215,62 @@ namespace UrbanLegendBureau.Systems
             else _ui.Replace(_communityScreen);
 
             Debug.Log("[TutorialDirector] 커뮤니티 화면 | 댓글 선택 " + _choices.Count + "개");
+
+            // 설명은 일반 문구가 아니라 한영이 직접 말한다.
+            ShowTalk(ChoiceHintTextId, AfterTalk.BackToChoices);
+        }
+
+        // ------------------------------------------------------------- 한영의 말
+
+        /// <summary>
+        /// 커뮤니티 화면 위에 한영을 띄우고 한 줄 말하게 한다.
+        ///
+        /// 대화 화면을 새로 만들지 않고 같은 DialogueScreen을 쓴다.
+        /// 이 화면은 아래를 가리지 않는 팝업이라 커뮤니티가 그대로 보이고,
+        /// 화면 전체를 덮는 진행 버튼이 있어 말하는 동안에는 선택지를 누를 수 없다.
+        /// </summary>
+        private void ShowTalk(string lineTextId, AfterTalk after)
+        {
+            if (_talkScreen == null)
+            {
+                Debug.LogError("[TutorialDirector] 커뮤니티용 대화 화면이 연결되지 않았다.");
+                return;
+            }
+
+            _afterTalk = after;
+
+            _talkScreen.SetAdvanceHandler(OnTalkAdvanced);
+            _talkScreen.ShowLine(true,
+                () => _loc.Get(HanyoungNameTextId),
+                () => _loc.Get(lineTextId),
+                1f,
+                leftVisible: true,
+                rightVisible: false);
+
+            if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
+
+            Debug.Log("[TutorialDirector] 한영 대사 | " + lineTextId + " -> 끝나면 " + after);
+        }
+
+        /// <summary>한영의 말을 넘겼을 때. 말이 끝나야 다음 상태로 간다.</summary>
+        private void OnTalkAdvanced()
+        {
+            if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
+
+            switch (_afterTalk)
+            {
+                case AfterTalk.PostComment:
+                    PostCorrectComment();
+                    break;
+
+                case AfterTalk.Finish:
+                    FinishTutorial();
+                    break;
+
+                default:
+                    // 다시 고를 수 있는 상태로 돌아간다. 선택지는 그대로 남아 있다.
+                    break;
+            }
         }
 
         private void BuildComments()
@@ -262,24 +345,44 @@ namespace UrbanLegendBureau.Systems
             if (!CanUseChoice(choice))
             {
                 // 조건이 모자라면 아무것도 일어나지 않는다. 선택지는 그대로 남는다.
-                _communityScreen.ShowNotice(() =>
-                    _loc.Get(NeedFieldTextId) + "\n" + _loc.Get(NeedFieldHanyoungTextId));
+                // 화면에는 이유를 적어 두고, 설명은 한영이 직접 한다.
+                _communityScreen.ShowNotice(() => _loc.Get(NeedFieldTextId));
+                ShowTalk(NeedFieldHanyoungTextId, AfterTalk.BackToChoices);
+
                 Debug.Log($"[TutorialDirector] 댓글 잠김 | {choice.ChoiceId} (필요 단서 {choice.RequiredClueId})");
                 return;
             }
 
+            _communityScreen.ShowNotice(null);
+
             if (choice.Kind != TutorialCommentKind.Debunk)
             {
                 // 틀린 선택이다. 사건 실패도, 게임오버도 아니다. 다시 고르면 된다.
-                _communityScreen.ShowNotice(() => _loc.Get(WrongTextId));
+                ShowTalk(WrongTextId, AfterTalk.BackToChoices);
                 Debug.Log($"[TutorialDirector] 잘못된 댓글 | {choice.ChoiceId} (되돌릴 수 있는 선택)");
                 return;
             }
 
-            AcceptCorrectComment(choice);
+            // 정답이다. 칭찬을 먼저 듣고, 말이 끝나면 댓글이 올라간다.
+            _pendingChoice = choice;
+            ShowTalk(CorrectTextId, AfterTalk.PostComment);
         }
 
         // ------------------------------------------------------------- 정답 처리
+
+        private TutorialCommentChoice _pendingChoice;
+
+        private void PostCorrectComment()
+        {
+            var choice = _pendingChoice;
+            if (choice == null) return;
+
+            AcceptCorrectComment(choice);
+            _pendingChoice = null;
+
+            // 결과를 한영이 마무리 짓고, 그 말이 끝나면 튜토리얼이 끝난다.
+            ShowTalk(DoneTextId, AfterTalk.Finish);
+        }
 
         private void AcceptCorrectComment(TutorialCommentChoice choice)
         {
@@ -313,7 +416,6 @@ namespace UrbanLegendBureau.Systems
 
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(null, null, null);      // 고를 것이 없어진다
-            _communityScreen.ShowNotice(() => _loc.Get(CorrectTextId) + "\n" + _loc.Get(DoneTextId));
 
             _finished = true;
 
@@ -323,8 +425,13 @@ namespace UrbanLegendBureau.Systems
 
         // ------------------------------------------------------------- 종료
 
-        /// <summary>커뮤니티 화면의 종료 버튼. 튜토리얼을 끝내고 타이틀로 돌아간다.</summary>
-        public void OnFinishClicked()
+        /// <summary>
+        /// 튜토리얼을 끝내고 타이틀로 돌아간다.
+        ///
+        /// 플레이어가 임의로 부를 수 있는 종료 버튼은 없다.
+        /// 정해진 흐름(정답 댓글 -> 반응 -> 한영의 마무리)이 끝나야 여기로 온다.
+        /// </summary>
+        public void FinishTutorial()
         {
             if (!IsRunning) return;
 
@@ -333,6 +440,7 @@ namespace UrbanLegendBureau.Systems
             // 튜토리얼 전용 저장본은 그냥 버린다. 파일로 쓴 적이 없다.
             _sandbox = null;
 
+            if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
             if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 

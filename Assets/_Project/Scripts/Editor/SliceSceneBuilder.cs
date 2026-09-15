@@ -155,8 +155,9 @@ namespace UrbanLegendBureau.EditorTools
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
             var help = BuildPanelScreen("Screen_Help", UILayer.Screen, out var helpButtons, true);
             var settings = BuildSettingsScreen("Screen_Settings", out var settingsButtons);
-            var dialogue = BuildDialogueScreen("Screen_Dialogue");
-            var community = BuildCommunityScreen("Screen_Community", out var communityButtons);
+            var dialogue = BuildDialogueScreen("Screen_Dialogue", true);
+            var talk = BuildDialogueScreen("Screen_TutorialTalk", false);
+            var community = BuildCommunityScreen("Screen_Community");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
             var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
@@ -167,8 +168,6 @@ namespace UrbanLegendBureau.EditorTools
             var btnQuit = CreateButton(titleButtons, "Btn_Quit", "ui.title.quit");
             var btnHelpBack = CreateButton(helpButtons, "Btn_HelpBack", "ui.common.back");
             var btnSettingsBack = CreateButton(settingsButtons, "Btn_SettingsBack", "ui.common.back");
-            var btnTutorialDone = CreateButton(communityButtons, "Btn_TutorialDone", "tutorial.btn_finish");
-
             // 타이틀은 버튼이 네 개라 기본 버튼 폭(400)으로는 줄을 넘는다.
             // 폭을 줄이고 줄 자체를 넓혀 1920 기준 가운데에 모두 들어오게 한다.
             StyleTitleScreen(title, new[] { btnStart, btnHelp, btnSettings, btnQuit }, titleButtons);
@@ -226,6 +225,7 @@ namespace UrbanLegendBureau.EditorTools
             var tso = new SerializedObject(tutorial);
             tso.Update();
             tso.FindProperty("_dialogueScreen").objectReferenceValue = dialogue;
+            tso.FindProperty("_talkScreen").objectReferenceValue = talk;
             tso.FindProperty("_communityScreen").objectReferenceValue = community;
             tso.FindProperty("_caseDirector").objectReferenceValue = director;
             tso.FindProperty("_tutorialPage").objectReferenceValue =
@@ -237,7 +237,6 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_tutorial").objectReferenceValue = tutorial;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            UnityEventTools.AddPersistentListener(btnTutorialDone.GetComponent<Button>().onClick, tutorial.OnFinishClicked);
             UnityEventTools.AddPersistentListener(btnActions.GetComponent<Button>().onClick, director.OnOpenActionsClicked);
             UnityEventTools.AddPersistentListener(btnActionsBack.GetComponent<Button>().onClick, director.OnActionsBackClicked);
             UnityEventTools.AddPersistentListener(btnInternet.GetComponent<Button>().onClick, director.OnInternetResearchClicked);
@@ -734,14 +733,23 @@ namespace UrbanLegendBureau.EditorTools
             return slider;
         }
 
-        /// <summary>튜토리얼 대화 화면. 배경은 검은색, 인물은 좌우에 세운다.</summary>
-        private static DialogueScreen BuildDialogueScreen(string name)
+        /// <summary>
+        /// 튜토리얼 대화 화면.
+        ///
+        /// fullScreen이면 검은 배경 위에 두 인물을 세우는 단독 화면이다.
+        /// 아니면 아래 화면(커뮤니티)을 가리지 않는 겹침 대화가 된다. 구성은 같다.
+        /// </summary>
+        private static DialogueScreen BuildDialogueScreen(string name, bool fullScreen)
         {
-            var go = CreatePanel(null, name, new Color(0.02f, 0.02f, 0.03f, 1f));
+            var go = CreatePanel(null, name,
+                fullScreen ? new Color(0.02f, 0.02f, 0.03f, 1f) : new Color(0f, 0f, 0f, 0f));
             StretchFull(go);
 
             var screen = go.AddComponent<DialogueScreen>();
-            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+            ConfigureScreen(screen, name,
+                fullScreen ? UILayer.Screen : UILayer.Popup,
+                fullScreen,     // 겹침 대화는 아래 화면을 가리지 않는다
+                false);
 
             // 화면 전체를 덮는 진행 버튼. 마우스 클릭과 터치가 같은 경로로 들어온다.
             var advanceGo = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
@@ -753,30 +761,46 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
 
-            var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
-            var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
+            // 겹침 대화에서는 인물을 한쪽으로 몰아 커뮤니티 글과 선택지를 가리지 않게 한다.
+            float leftX = fullScreen ? -520f : -720f;
+            float rightX = fullScreen ? 520f : 720f;
+            var left = CreateCharacterImage(go.transform, "Char_Left", leftX, "placeholder_hanyoung");
+            var right = CreateCharacterImage(go.transform, "Char_Right", rightX, "placeholder_chajihan");
+
+            if (!fullScreen)
+            {
+                // 겹침일 때는 인물을 조금 작게 두어 화면을 덜 차지하게 한다.
+                left.rectTransform.sizeDelta = new Vector2(300f, 600f);
+                right.rectTransform.sizeDelta = new Vector2(300f, 600f);
+                left.rectTransform.anchoredPosition = new Vector2(leftX, -120f);
+                right.rectTransform.anchoredPosition = new Vector2(rightX, -120f);
+            }
 
             var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
             var boxRt = (RectTransform)box.transform;
             boxRt.anchorMin = new Vector2(0.5f, 0.5f);
             boxRt.anchorMax = new Vector2(0.5f, 0.5f);
-            boxRt.anchoredPosition = new Vector2(0f, -340f);
-            boxRt.sizeDelta = new Vector2(1600f, 300f);
+            boxRt.anchoredPosition = new Vector2(0f, fullScreen ? -340f : -390f);
+            boxRt.sizeDelta = new Vector2(1600f, fullScreen ? 300f : 200f);
 
             // 상자 안쪽 여백을 기준으로 붙인다. 좌표를 손으로 계산하면 상자 밖으로 나간다.
+            // 상자 높이가 달라져도 세 줄이 겹치지 않도록 높이에서 되짚어 계산한다.
+            float boxH = boxRt.sizeDelta.y;
+            const float nameH = 50f, hintH = 28f, pad = 20f;
+
             var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(nameText.rectTransform, 48f, 48f, 24f, 214f);
+            StretchInside(nameText.rectTransform, 48f, 48f, pad, boxH - pad - nameH);
 
             var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
-            StretchInside(lineText.rectTransform, 48f, 48f, 92f, 64f);
+            StretchInside(lineText.rectTransform, 48f, 48f, pad + nameH + 10f, pad + hintH + 8f);
             lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 긴 대사는 상자 안에서 줄바꿈
             lineText.overflowMode = TextOverflowModes.Truncate;
 
             var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.BottomRight);
-            StretchInside(hintText.rectTransform, 48f, 48f, 246f, 18f);
+            StretchInside(hintText.rectTransform, 48f, 48f, boxH - pad - hintH, pad - 6f);
 
             // 대사 상자를 눌러도 넘어가야 하므로 진행 버튼을 맨 위로 올린다.
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
@@ -816,7 +840,7 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>인터넷 커뮤니티 게시글 화면.</summary>
-        private static CommunityPageScreen BuildCommunityScreen(string name, out Transform buttonRow)
+        private static CommunityPageScreen BuildCommunityScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.94f, 0.94f, 0.95f, 1f));   // 커뮤니티는 밝은 배경
             StretchFull(go);
@@ -875,8 +899,9 @@ namespace UrbanLegendBureau.EditorTools
             ctlRt.offsetMax = new Vector2(-16f, -6f);
             choiceTemplate.SetActive(false);
 
-            var noticeText = AddText(go.transform, "Notice", 28f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                new Vector2(0f, -340f), new Vector2(1700f, 90f), TextAlignmentOptions.Center);
+            // 안내는 선택지 바로 위에 둔다. 아래쪽은 한영의 대화 상자가 쓰는 자리라 비워 둔다.
+            var noticeText = AddText(go.transform, "Notice", 26f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
+                new Vector2(460f, 116f), new Vector2(820f, 44f), TextAlignmentOptions.Left);
 
             var so = new SerializedObject(screen);
             so.Update();
@@ -894,7 +919,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_noticeText").objectReferenceValue = noticeText;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -430f), new Vector2(900f, 100f));
+            // 버튼 줄은 두지 않는다. 튜토리얼을 임의로 끝낼 수 없고, 흐름이 알아서 다음으로 넘어간다.
             return screen;
         }
 

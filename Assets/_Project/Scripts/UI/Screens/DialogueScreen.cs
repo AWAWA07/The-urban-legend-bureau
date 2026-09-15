@@ -61,6 +61,12 @@ namespace UrbanLegendBureau.UI
         private const float MotionDuration = 0.3f;
         private const float MotionHeight = 18f;
 
+        /// <summary>인물이 처음 나타날 때 서서히 드러나는 시간. 갑자기 튀어나오지 않게 한다.</summary>
+        private const float AppearDuration = 0.25f;
+
+        private Coroutine _leftAppear;
+        private Coroutine _rightAppear;
+
         /// <summary>
         /// 한 줄을 보여준다.
         ///
@@ -68,13 +74,70 @@ namespace UrbanLegendBureau.UI
         /// 문구는 만드는 방법(Func)으로 받는다. 언어가 바뀌어도 다시 조립된다.
         /// </summary>
         public void ShowLine(bool speakerIsLeft, Func<string> nameProvider, Func<string> lineProvider,
-            float speakerAlpha = 1f)
+            float speakerAlpha = 1f, bool leftVisible = true, bool rightVisible = true)
         {
             _nameProvider = nameProvider;
             _lineProvider = lineProvider;
 
+            // 밝기를 먼저 정하고 등장 여부를 나중에 본다.
+            // 등장 연출이 지금 정한 색을 목표로 삼아야 색이 덮이지 않는다.
             ApplySpeaker(speakerIsLeft, speakerAlpha);
+            SetCharactersVisible(leftVisible, rightVisible);
             Refresh();
+        }
+
+        /// <summary>
+        /// 누가 화면에 있는지 정한다.
+        ///
+        /// 아직 등장하지 않은 인물은 아예 숨긴다. 어둡게 두는 것과 다르다.
+        /// 숨어 있던 인물이 나타날 때는 잠깐 사이에 서서히 드러난다.
+        /// </summary>
+        public void SetCharactersVisible(bool leftVisible, bool rightVisible)
+        {
+            ApplyVisible(_left, leftVisible, ref _leftAppear);
+            ApplyVisible(_right, rightVisible, ref _rightAppear);
+        }
+
+        private void ApplyVisible(DialogueCharacter character, bool visible, ref Coroutine appear)
+        {
+            if (character == null || character.image == null) return;
+
+            var go = character.image.gameObject;
+            bool wasVisible = go.activeSelf;
+
+            if (!visible)
+            {
+                if (appear != null) { StopCoroutine(appear); appear = null; }
+                go.SetActive(false);
+                return;
+            }
+
+            go.SetActive(true);
+
+            // 이미 나와 있던 인물은 다시 나타나는 연출을 하지 않는다.
+            if (wasVisible) return;
+
+            if (appear != null) StopCoroutine(appear);
+            appear = isActiveAndEnabled ? StartCoroutine(AppearFade(character.image)) : null;
+        }
+
+        /// <summary>등장 연출. 한 번만 돌고 끝난다.</summary>
+        private IEnumerator AppearFade(Image image)
+        {
+            var target = image.color;
+            float t = 0f;
+            while (t < AppearDuration)
+            {
+                t += Time.unscaledDeltaTime;
+                if (image == null) yield break;
+
+                var c = target;
+                c.a = target.a * Mathf.Clamp01(t / AppearDuration);
+                image.color = c;
+                yield return null;
+            }
+
+            if (image != null) image.color = target;
         }
 
         /// <summary>화면을 눌렀을 때 부를 것을 지정한다.</summary>
