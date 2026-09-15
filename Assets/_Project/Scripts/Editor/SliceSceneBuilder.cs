@@ -1056,6 +1056,11 @@ namespace UrbanLegendBureau.EditorTools
             pageScroll.movementType = ScrollRect.MovementType.Clamped;
             pageScroll.scrollSensitivity = 40f;
 
+            // 오른쪽 끝의 막대. 지금 어디쯤 보고 있는지 알려 준다.
+            var bar = BuildVerticalScrollbar(postView.transform, TitleBarHeight);
+            pageScroll.verticalScrollbar = bar;
+            pageScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
             // 머리말도 함께 굴러간다. 남는 것은 맨 위 창 제목 표시줄뿐이다.
             var pageHeader = BuildCommunityHeader(page.transform, ContentInset, out var siteText, out var boardText);
             var pageHeaderElement = pageHeader.AddComponent<LayoutElement>();
@@ -1089,16 +1094,16 @@ namespace UrbanLegendBureau.EditorTools
             var reactionRow = new GameObject("Reactions", typeof(RectTransform));
             reactionRow.transform.SetParent(bodyArea.transform, false);
             var reactionLayout = reactionRow.AddComponent<HorizontalLayoutGroup>();
-            reactionLayout.spacing = 16f;
-            reactionLayout.padding = new RectOffset(0, 0, 40, 0);
+            reactionLayout.spacing = 20f;
+            reactionLayout.padding = new RectOffset(0, 0, 96, 0);   // 글 칸 맨 아래에 붙인다
             reactionLayout.childAlignment = TextAnchor.MiddleCenter;
             reactionLayout.childControlWidth = false;
             reactionLayout.childControlHeight = false;
             reactionLayout.childForceExpandWidth = false;
             reactionLayout.childForceExpandHeight = false;
 
-            var likeText = AddReactionChip(reactionRow.transform, "Like", ink);
-            var dislikeText = AddReactionChip(reactionRow.transform, "Dislike", dim);
+            var likeText = AddReactionChip(reactionRow.transform, "Like", ink, out var likeButton);
+            var dislikeText = AddReactionChip(reactionRow.transform, "Dislike", ink, out var dislikeButton);
 
             // 글과 댓글을 가르는 굵은 선.
             AddStackRule(page.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
@@ -1194,6 +1199,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
             so.FindProperty("_likeText").objectReferenceValue = likeText;
             so.FindProperty("_dislikeText").objectReferenceValue = dislikeText;
+            so.FindProperty("_likeButton").objectReferenceValue = likeButton;
+            so.FindProperty("_dislikeButton").objectReferenceValue = dislikeButton;
             so.FindProperty("_commentHeaderText").objectReferenceValue = commentHeader;
             so.FindProperty("_commentRoot").objectReferenceValue = commentRoot;
             so.FindProperty("_commentTemplate").objectReferenceValue = commentTemplate;
@@ -1511,15 +1518,62 @@ namespace UrbanLegendBureau.EditorTools
             return go;
         }
 
-        /// <summary>본문 아래 반응 하나. 테두리 없는 옅은 칸에 글자만 둔다.</summary>
-        private static TextMeshProUGUI AddReactionChip(Transform parent, string name, Color textColor)
+        /// <summary>
+        /// 오른쪽 끝에 세우는 막대. 실제 브라우저의 그것과 같은 자리다.
+        /// 굴러갈 것이 없으면 스스로 사라진다(AutoHide).
+        /// </summary>
+        private static Scrollbar BuildVerticalScrollbar(Transform parent, float topInset)
+        {
+            const float Width = 22f;
+
+            var track = CreatePanel(parent, "Scrollbar", new Color(0.90f, 0.90f, 0.92f, 1f));
+            var rt = (RectTransform)track.transform;
+            rt.anchorMin = new Vector2(1f, 0f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -topInset);
+            rt.sizeDelta = new Vector2(Width, -topInset);
+
+            var slide = new GameObject("SlidingArea", typeof(RectTransform));
+            slide.transform.SetParent(track.transform, false);
+            StretchInside((RectTransform)slide.transform, 2f, 2f, 2f, 2f);
+
+            var handle = CreatePanel(slide.transform, "Handle", new Color(0.48f, 0.50f, 0.55f, 1f));
+            var handleRt = (RectTransform)handle.transform;
+            handleRt.sizeDelta = Vector2.zero;
+
+            var bar = track.AddComponent<Scrollbar>();
+            bar.direction = Scrollbar.Direction.BottomToTop;
+            bar.handleRect = handleRt;
+            bar.targetGraphic = handle.GetComponent<Image>();
+            return bar;
+        }
+
+        /// <summary>
+        /// 본문 아래 반응 하나. 옅은 칸에 표시와 숫자를 함께 둔다.
+        /// 누르면 눌린 상태가 되고 한 번 더 누르면 풀린다. 그 판정은 화면 쪽이 한다.
+        /// </summary>
+        private static TextMeshProUGUI AddReactionChip(Transform parent, string name, Color textColor,
+            out Button button)
         {
             var chip = CreatePanel(parent, name, new Color(0.955f, 0.958f, 0.97f, 1f));
             var rt = (RectTransform)chip.transform;
-            rt.sizeDelta = new Vector2(220f, 68f);
+            rt.sizeDelta = new Vector2(250f, 76f);
+
+            button = chip.AddComponent<Button>();
+            button.targetGraphic = chip.GetComponent<Image>();
+
+            // 눌린 상태를 배경색으로 보여줄 것이라 버튼 자체의 색 변화는 끈다.
+            // 그러지 않으면 두 색이 서로 덮어써 눌렸는지 알 수 없게 된다.
+            var colors = button.colors;
+            colors.normalColor = Color.white;
+            colors.highlightedColor = new Color(0.94f, 0.94f, 0.94f, 1f);
+            colors.pressedColor = new Color(0.86f, 0.86f, 0.86f, 1f);
+            colors.selectedColor = Color.white;
+            button.colors = colors;
 
             var label = AddText(chip.transform, "Label", 24f, UIFontWeight.Medium, textColor,
-                Vector2.zero, new Vector2(220f, 68f), TextAlignmentOptions.Center);
+                Vector2.zero, new Vector2(250f, 76f), TextAlignmentOptions.Center);
             label.raycastTarget = false;
             StretchInside(label.rectTransform, 12f, 12f, 8f, 8f);
             return label;

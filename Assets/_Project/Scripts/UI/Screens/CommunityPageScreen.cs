@@ -76,9 +76,17 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _metaText;
         [SerializeField] private TMP_Text _bodyText;
 
-        [Tooltip("본문 아래 반응. 지금은 숫자만 보여주고 누를 수는 없다.")]
+        [Tooltip("본문 아래 반응. 누르면 눌린 상태가 되고 한 번 더 누르면 풀린다.")]
         [SerializeField] private TMP_Text _likeText;
         [SerializeField] private TMP_Text _dislikeText;
+        [SerializeField] private Button _likeButton;
+        [SerializeField] private Button _dislikeButton;
+
+        [Tooltip("누르지 않은 반응 칸의 배경색.")]
+        [SerializeField] private Color _reactionIdleColor = new Color(0.955f, 0.958f, 0.97f, 1f);
+
+        [Tooltip("누른 반응 칸의 배경색.")]
+        [SerializeField] private Color _reactionPressedColor = new Color(0.82f, 0.87f, 0.97f, 1f);
 
         [Header("댓글")]
         [SerializeField] private TMP_Text _commentHeaderText;
@@ -126,6 +134,10 @@ namespace UrbanLegendBureau.UI
         private int _views;
         private int _likes;
         private int _dislikes;
+        private bool _likePressed;
+        private bool _dislikePressed;
+        private Action<bool> _onLike;
+        private Action<bool> _onDislike;
         private string _postTimeTextId;
         private List<CommunityComment> _comments = new List<CommunityComment>();
         private IReadOnlyList<TutorialCommentChoice> _choices;
@@ -172,6 +184,8 @@ namespace UrbanLegendBureau.UI
             _views = views;
             _likes = likes;
             _dislikes = dislikes;
+            _likePressed = false;
+            _dislikePressed = false;
             _postTimeTextId = postTimeTextId;
 
             // 새 글이므로 맨 위부터 보여준다.
@@ -220,6 +234,57 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
+        /// <summary>
+        /// 좋아요와 싫어요를 눌렀을 때 할 일을 건다.
+        /// 넘겨주는 값은 "지금 눌린 상태인가"다. 취소일 때는 false 가 간다.
+        /// </summary>
+        public void BindReactions(Action<bool> onLike, Action<bool> onDislike)
+        {
+            _onLike = onLike;
+            _onDislike = onDislike;
+
+            if (_likeButton != null)
+            {
+                _likeButton.onClick.RemoveAllListeners();
+                _likeButton.onClick.AddListener(OnLikeClicked);
+            }
+            if (_dislikeButton != null)
+            {
+                _dislikeButton.onClick.RemoveAllListeners();
+                _dislikeButton.onClick.AddListener(OnDislikeClicked);
+            }
+
+            ApplyReactionColors();
+        }
+
+        private void OnLikeClicked()
+        {
+            _likePressed = !_likePressed;
+            Refresh();
+            _onLike?.Invoke(_likePressed);
+        }
+
+        private void OnDislikeClicked()
+        {
+            _dislikePressed = !_dislikePressed;
+            Refresh();
+            _onDislike?.Invoke(_dislikePressed);
+        }
+
+        private void ApplyReactionColors()
+        {
+            if (_likeButton != null)
+            {
+                var image = _likeButton.GetComponent<Image>();
+                if (image != null) image.color = _likePressed ? _reactionPressedColor : _reactionIdleColor;
+            }
+            if (_dislikeButton != null)
+            {
+                var image = _dislikeButton.GetComponent<Image>();
+                if (image != null) image.color = _dislikePressed ? _reactionPressedColor : _reactionIdleColor;
+            }
+        }
+
         /// <summary>같은 문구를 쓰는 칸이 여럿이라 한 번에 채운다.</summary>
         private static void SetAll(TMP_Text[] targets, string text)
         {
@@ -262,8 +327,9 @@ namespace UrbanLegendBureau.UI
                         string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
             }
 
-            if (_likeText != null) _likeText.text = loc.Get(LikeTextId, _likes);
-            if (_dislikeText != null) _dislikeText.text = loc.Get(DislikeTextId, _dislikes);
+            if (_likeText != null) _likeText.text = loc.Get(LikeTextId, _likes + (_likePressed ? 1 : 0));
+            if (_dislikeText != null) _dislikeText.text = loc.Get(DislikeTextId, _dislikes + (_dislikePressed ? 1 : 0));
+            ApplyReactionColors();
 
             if (_commentHeaderText != null) _commentHeaderText.text = loc.Get(CommentHeaderTextId, _comments.Count);
             if (_choiceHeaderText != null)

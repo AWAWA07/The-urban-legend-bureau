@@ -89,6 +89,8 @@ namespace UrbanLegendBureau.Systems
         private const string PcLine1TextId = "tutorial.pc.001";
         private const string PcLine2TextId = "tutorial.pc.002";
         private const string PcLine3TextId = "tutorial.pc.003";
+        private const string LikeWarnTextId = "tutorial.pc.like_warn";
+        private const string DislikeGoodTextId = "tutorial.pc.dislike_good";
 
         /// <summary>바탕화면에서 괴담넷 아이콘을 가리키는 ID. 씬의 아이콘 설정과 같아야 한다.</summary>
         public const string NetAppId = "gwedamnet";
@@ -320,6 +322,7 @@ namespace UrbanLegendBureau.Systems
                 TutorialPostLikes, TutorialPostDislikes);
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected);
+            _communityScreen.BindReactions(OnLikeToggled, OnDislikeToggled);
             _communityScreen.ShowNotice(null);
             _communityScreen.ShowBoard(false);       // 목록에서 글로 들어간다
 
@@ -333,6 +336,23 @@ namespace UrbanLegendBureau.Systems
 
             // 설명은 일반 문구가 아니라 한영이 직접 말한다.
             ShowTalk(PcLine3TextId, AfterTalk.BackToChoices, showCharacter: false);
+        }
+
+        /// <summary>
+        /// 좋아요를 눌렀을 때. 한영이 말린다.
+        /// 취소했을 때는 아무 말도 하지 않는다. 같은 말을 두 번 들을 이유가 없다.
+        /// </summary>
+        private void OnLikeToggled(bool pressed)
+        {
+            if (!pressed) return;
+            ShowTalk(LikeWarnTextId, AfterTalk.BackToChoices);
+        }
+
+        /// <summary>싫어요를 눌렀을 때. 한영이 맞장구를 친다.</summary>
+        private void OnDislikeToggled(bool pressed)
+        {
+            if (!pressed) return;
+            ShowTalk(DislikeGoodTextId, AfterTalk.BackToChoices);
         }
 
         // ------------------------------------------------------------- 한영의 말
