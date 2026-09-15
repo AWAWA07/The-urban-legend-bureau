@@ -1015,34 +1015,20 @@ namespace UrbanLegendBureau.EditorTools
             const int Inset = 110;
             const float ContentInset = Inset;
 
-            // 흰 종이. 창 제목 표시줄 아래부터 화면 맨 아래까지 채운다.
-            // 여기를 비워 두면 대화 상자 둘레가 휑하게 남아 창이 도중에 끊긴 것처럼 보인다.
-            const float PaperTop = 484f;        // 창 제목 표시줄(56) 바로 아래
-            const float PaperBottom = -540f;    // 화면 맨 아래
+            // 흰 종이와 굴러가는 자리는 창 제목 표시줄 아래를 전부 차지한다.
+            // 좌우와 아래는 부모에 앵커로 맞춘다. 숫자로 폭을 주면 화면 크기에 따라
+            // 가장자리에 머리카락 같은 틈이 남는다.
+            const float TitleBarHeight = 56f;
 
             var paper = CreatePanel(postView.transform, "Paper", new Color(1f, 1f, 1f, 1f));
-            var paperRt = (RectTransform)paper.transform;
-            paperRt.anchorMin = new Vector2(0.5f, 0.5f);
-            paperRt.anchorMax = new Vector2(0.5f, 0.5f);
-            paperRt.pivot = new Vector2(0.5f, 1f);
-            paperRt.anchoredPosition = new Vector2(0f, PaperTop);
-            paperRt.sizeDelta = new Vector2(pageWidth, PaperTop - PaperBottom);
+            StretchInside((RectTransform)paper.transform, 0f, 0f, TitleBarHeight, 0f);
 
             // 굴러가는 자리. 창 제목 표시줄만 남기고 그 아래는 머리말까지 전부 함께 내려간다.
-            // 아래로도 화면 끝까지 쓴다. 남는 흰 자리 없이 내용이 꽉 찬다.
             // 대화 상자는 그 위에 얹히지만 내용이 함께 굴러가므로 가려진 곳도 올려서 볼 수 있다.
-            const float ViewTop = 484f;
-            const float ViewBottom = -540f;
-            const float ViewHeight = ViewTop - ViewBottom;
-
             var pageViewport = new GameObject("PageViewport", typeof(RectTransform));
             pageViewport.transform.SetParent(postView.transform, false);
             var cvRt = (RectTransform)pageViewport.transform;
-            cvRt.anchorMin = new Vector2(0.5f, 0.5f);
-            cvRt.anchorMax = new Vector2(0.5f, 0.5f);
-            cvRt.pivot = new Vector2(0.5f, 1f);
-            cvRt.anchoredPosition = new Vector2(0f, ViewTop);
-            cvRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
+            StretchInside(cvRt, 0f, 0f, TitleBarHeight, 0f);
             pageViewport.AddComponent<RectMask2D>();
 
             // 끄는 손을 받는 판. 보이지는 않지만 눌림은 받는다.
@@ -1055,11 +1041,11 @@ namespace UrbanLegendBureau.EditorTools
             var page = new GameObject("Page", typeof(RectTransform));
             page.transform.SetParent(pageViewport.transform, false);
             var pageRt = (RectTransform)page.transform;
-            pageRt.anchorMin = new Vector2(0.5f, 1f);
-            pageRt.anchorMax = new Vector2(0.5f, 1f);
+            pageRt.anchorMin = new Vector2(0f, 1f);
+            pageRt.anchorMax = new Vector2(1f, 1f);
             pageRt.pivot = new Vector2(0.5f, 1f);
             pageRt.anchoredPosition = Vector2.zero;
-            pageRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
+            pageRt.sizeDelta = new Vector2(0f, 0f);   // 폭은 굴러가는 자리에 맞춘다
             AddStack(page, 0f, new RectOffset(0, 0, 0, 0));
 
             var pageScroll = pageViewport.AddComponent<ScrollRect>();

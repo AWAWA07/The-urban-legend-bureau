@@ -358,7 +358,10 @@ namespace UrbanLegendBureau.UI
                 else if (_comments.Count > _shownCommentCount) _commentScroll.verticalNormalizedPosition = 0f;
             }
 
-            _shownCommentCount = _comments.Count;
+            // 글을 걸고 댓글을 거는 것이 두 번에 나뉘어 들어온다.
+            // 댓글이 아직 하나도 없는 사이 단계를 "처음"으로 계속 두어야
+            // 뒤따라 들어오는 첫 댓글 묶음을 새 댓글로 잘못 보지 않는다.
+            if (_comments.Count > 0) _shownCommentCount = _comments.Count;
         }
 
         /// <summary>마지막으로 그린 댓글 수. 새로 달렸는지 가리는 데만 쓴다. 음수면 글을 막 열었다는 뜻이다.</summary>
