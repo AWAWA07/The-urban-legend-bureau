@@ -973,34 +973,102 @@ namespace UrbanLegendBureau.EditorTools
             closeLabel.text = "X";
             closeLabel.raycastTarget = false;
 
+            // 글자를 안쪽으로 들이는 만큼. 글 화면과 같은 선에 선다.
+            const int BoardInset = 150;
+
             // --- 게시판 목록 보기 ---
             var boardView = new GameObject("BoardView", typeof(RectTransform));
             boardView.transform.SetParent(go.transform, false);
             StretchFull(boardView);
 
-            // 목록 화면의 머리말은 제 자리에 고정이다. 글 화면의 머리말은 따로 두어 함께 굴러간다.
-            // 머리말 글자는 아래 내용(폭 1700, 좌우 가운데)의 왼쪽 선에 맞춘다.
-            const float contentMargin = (1920f - 1700f) * 0.5f;    // = 110
-            var boardHeader = BuildCommunityHeader(boardView.transform, contentMargin,
-                out var boardSiteText, out var boardBoardText);
-            var boardHeaderRt = (RectTransform)boardHeader.transform;
-            boardHeaderRt.anchorMin = new Vector2(0f, 1f);
-            boardHeaderRt.anchorMax = new Vector2(1f, 1f);
-            boardHeaderRt.pivot = new Vector2(0.5f, 1f);
-            boardHeaderRt.anchoredPosition = new Vector2(0f, -56f);   // 제목 표시줄 아래
-            boardHeaderRt.sizeDelta = new Vector2(0f, 90f);
+            // 목록 화면도 글 화면과 똑같이 만든다.
+            // 창 제목 표시줄만 남고 머리말부터 글 줄까지 한 장으로 끌려 내려간다.
+            const float BoardBarHeight = 56f;
 
-            var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 330f),
-                new Vector2(1700f, 520f), 12f);
-            var boardControls = boardRoot.gameObject.AddComponent<CanvasGroup>();
-            var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(0.99f, 0.99f, 1f, 1f));
+            var boardPaper = CreatePanel(boardView.transform, "Paper", new Color(1f, 1f, 1f, 1f));
+            StretchInside((RectTransform)boardPaper.transform, 0f, 0f, BoardBarHeight, 0f);
+
+            var boardViewport = new GameObject("PageViewport", typeof(RectTransform));
+            boardViewport.transform.SetParent(boardView.transform, false);
+            var bvRt = (RectTransform)boardViewport.transform;
+            StretchInside(bvRt, 0f, 0f, BoardBarHeight, 0f);
+            boardViewport.AddComponent<RectMask2D>();
+
+            var boardGrab = boardViewport.AddComponent<Image>();
+            boardGrab.color = new Color(1f, 1f, 1f, 0f);
+            boardGrab.raycastTarget = true;
+
+            var boardPage = new GameObject("Page", typeof(RectTransform));
+            boardPage.transform.SetParent(boardViewport.transform, false);
+            var bpRt = (RectTransform)boardPage.transform;
+            bpRt.anchorMin = new Vector2(0f, 1f);
+            bpRt.anchorMax = new Vector2(1f, 1f);
+            bpRt.pivot = new Vector2(0.5f, 1f);
+            bpRt.anchoredPosition = Vector2.zero;
+            bpRt.sizeDelta = Vector2.zero;
+            AddStack(boardPage, 0f, new RectOffset(0, 0, 0, 0));
+
+            var boardControls = boardPage.AddComponent<CanvasGroup>();
+
+            var boardScroll = boardViewport.AddComponent<ScrollRect>();
+            boardScroll.viewport = bvRt;
+            boardScroll.content = bpRt;
+            boardScroll.horizontal = false;
+            boardScroll.vertical = true;
+            boardScroll.movementType = ScrollRect.MovementType.Clamped;
+            boardScroll.scrollSensitivity = 40f;
+
+            var boardBar = BuildVerticalScrollbar(boardView.transform, BoardBarHeight,
+                out var boardNudge, out var boardUp, out var boardDown);
+            boardScroll.verticalScrollbar = boardBar;
+            boardScroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
+
+            var boardNudgeSo = new SerializedObject(boardNudge);
+            boardNudgeSo.Update();
+            boardNudgeSo.FindProperty("_target").objectReferenceValue = boardScroll;
+            boardNudgeSo.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddPersistentListener(boardUp.GetComponent<Button>().onClick, boardNudge.StepUp);
+            UnityEventTools.AddPersistentListener(boardDown.GetComponent<Button>().onClick, boardNudge.StepDown);
+
+            var boardHeader = BuildCommunityHeader(boardPage.transform, BoardInset,
+                out var boardSiteText, out var boardBoardText);
+            var boardHeaderElement = boardHeader.AddComponent<LayoutElement>();
+            boardHeaderElement.minHeight = 90f;
+            boardHeaderElement.preferredHeight = 90f;
+            boardHeaderElement.flexibleHeight = 0f;
+
+            // 글 줄을 담는 칸. 위아래로 여백을 두고 그 안에서 줄이 쌓인다.
+            var boardList = new GameObject("Posts", typeof(RectTransform));
+            boardList.transform.SetParent(boardPage.transform, false);
+            var boardRoot = (RectTransform)boardList.transform;
+            var boardListLayout = boardList.AddComponent<VerticalLayoutGroup>();
+            boardListLayout.spacing = 0f;
+            boardListLayout.padding = new RectOffset(BoardInset, BoardInset, 28, 40);
+            boardListLayout.childAlignment = TextAnchor.UpperCenter;
+            boardListLayout.childControlWidth = true;
+            boardListLayout.childControlHeight = false;
+            boardListLayout.childForceExpandWidth = true;
+            boardListLayout.childForceExpandHeight = false;
+
+            var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(1f, 1f, 1f, 0f));
             var boardButton = boardTemplate.AddComponent<Button>();
             boardButton.targetGraphic = boardTemplate.GetComponent<Image>();
             var btRt = (RectTransform)boardTemplate.transform;
-            btRt.sizeDelta = new Vector2(1700f, 100f);
+            btRt.sizeDelta = new Vector2(0f, 104f);
             var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
                 Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
-            StretchInside(btLabel.rectTransform, 32f, 32f, 12f, 12f);
+            StretchInside(btLabel.rectTransform, 12f, 12f, 12f, 18f);
+
+            // 글 사이를 가르는 가는 선. 댓글과 같은 방식이다.
+            var btRule = CreatePanel(boardTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
+            var btRuleRt = (RectTransform)btRule.transform;
+            btRuleRt.anchorMin = new Vector2(0f, 0f);
+            btRuleRt.anchorMax = new Vector2(1f, 0f);
+            btRuleRt.pivot = new Vector2(0.5f, 0f);
+            btRuleRt.anchoredPosition = Vector2.zero;
+            btRuleRt.sizeDelta = new Vector2(0f, 2f);
+            btRule.GetComponent<Image>().raycastTarget = false;
             boardTemplate.SetActive(false);
 
             // --- 글 하나를 펼친 보기 ---

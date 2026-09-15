@@ -294,7 +294,7 @@ ui.net.board_all	전체게시판	All boards
 ui.net.author_anon	익명	Anonymous	
 ui.net.author_nick_1	퇴근길전사	LastTrainRider	
 ui.net.author_nick_2	새벽세시	ThreeAM	
-ui.net.author_nick_3	심야택시	NightCab	
+ui.net.author_nick_3	그렇게해서못받은돈만300억	NeverGotPaid	
 ui.net.author_nick_4	오늘도야근	StillAtWork	
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
@@ -350,3 +350,17 @@ tutorial.pc.003	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰�
 tutorial.pc.like_warn	사람들 믿음도를 떨어트려야 하는데 굳이 좋아요를 안 누르는게 낫지 않을까?	We need belief to drop. Maybe do not hit Like.	
 tutorial.pc.dislike_good	싫어요를 눌러서 사람들 동조 시키는 것도 좋은 방법이야	Hitting Dislike to sway people is a fine move too.	
 ui.net.author_player	{0}(차지한)	{0} (Chajihan)	내가 쓴 댓글의 작성자 표기
+
+# --- 괴담넷: 게시판 목록 채우기 (추가) ---
+board.filler.004	우리 회사 엘리베이터 4층에서 항상 혼자 열림	Our office elevator always opens by itself on the 4th floor	
+board.filler.004.meta	익명    조회 203    댓글 7	Anonymous    views 203    comments 7	
+board.filler.005	중고거래 하다가 이상한 사람 만난 썰	Story about the odd person I met at a used-goods trade	
+board.filler.005.meta	익명    조회 157    댓글 12	Anonymous    views 157    comments 12	
+board.filler.006	새벽에 복도에서 발소리 나는데 아무도 없음	Footsteps in the hallway at dawn but nobody is there	
+board.filler.006.meta	익명    조회 96    댓글 4	Anonymous    views 96    comments 4	
+board.filler.007	고양이가 자꾸 빈 벽을 쳐다봐요	My cat keeps staring at an empty wall	
+board.filler.007.meta	익명    조회 340    댓글 19	Anonymous    views 340    comments 19	
+board.filler.008	버스 막차 놓쳐서 두 시간 걸어옴	Missed the last bus and walked for two hours	
+board.filler.008.meta	익명    조회 28    댓글 1	Anonymous    views 28    comments 1	
+board.filler.009	이 사진 뭔가 이상하지 않나요	Is there something off about this photo?	
+board.filler.009.meta	익명    조회 512    댓글 23	Anonymous    views 512    comments 23	
