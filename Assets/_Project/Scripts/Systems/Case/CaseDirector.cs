@@ -206,7 +206,8 @@ namespace UrbanLegendBureau.Systems
         {
             if (_field != null) _field.SetFieldVisible(false);
 
-            _titleScreen.Bind(TitleTextId, TitleBodyTextId, TitleFooterNewTextId);
+            // 타이틀 아래에는 아무 문구도 두지 않는다. 제목과 버튼만 남긴다.
+            _titleScreen.Bind(TitleTextId, null, null);
 
             if (_ui.Count == 0) _ui.Push(_titleScreen);
             else _ui.Replace(_titleScreen);

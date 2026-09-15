@@ -168,6 +168,10 @@ namespace UrbanLegendBureau.EditorTools
             var btnHelpBack = CreateButton(helpButtons, "Btn_HelpBack", "ui.common.back");
             var btnSettingsBack = CreateButton(settingsButtons, "Btn_SettingsBack", "ui.common.back");
             var btnTutorialDone = CreateButton(communityButtons, "Btn_TutorialDone", "tutorial.btn_finish");
+
+            // 타이틀은 버튼이 네 개라 기본 버튼 폭(400)으로는 줄을 넘는다.
+            // 폭을 줄이고 줄 자체를 넓혀 1920 기준 가운데에 모두 들어오게 한다.
+            StyleTitleScreen(title, new[] { btnStart, btnHelp, btnSettings, btnQuit }, titleButtons);
             var btnActions = CreateButton(bureauButtons, "Btn_Actions", "ui.action.btn_actions");
             var btnActionsBack = CreateButton(actionButtons, "Btn_ActionsBack", "ui.action.btn_back");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
@@ -542,6 +546,109 @@ namespace UrbanLegendBureau.EditorTools
             return screen;
         }
 
+        /// <summary>
+        /// 타이틀 화면을 다듬는다.
+        ///
+        /// 고치는 것 두 가지:
+        ///  1. 버튼 네 개(각 400 + 간격)가 줄 폭 900을 넘어 오른쪽으로 밀려 잘리던 문제.
+        ///     HorizontalLayoutGroup은 자식이 줄보다 넓으면 가운데로 모으지 못하고 왼쪽부터 늘어놓는다.
+        ///     그래서 버튼을 좁히고 줄을 넓혀 실제로 들어가게 만든다.
+        ///  2. 타이틀 아래 문구 제거와 어두운 배경. 본문/꼬리말은 CaseDirector가 비워서 넘긴다.
+        /// </summary>
+        private static void StyleTitleScreen(TextPanelScreen title, GameObject[] buttons, Transform buttonRow)
+        {
+            // --- 배경 ---
+            var image = title.GetComponent<Image>();
+            if (image != null)
+            {
+                var bg = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/UI/Sprites/title_background.png");
+                if (bg != null)
+                {
+                    image.sprite = bg;
+                    image.color = Color.white;
+                    image.type = Image.Type.Simple;
+                    image.preserveAspect = false;
+                }
+                else
+                {
+                    image.color = new Color(0.03f, 0.035f, 0.06f, 1f);
+                }
+            }
+
+            // --- 제목 ---
+            var titleText = title.transform.Find("Text_Title") as RectTransform;
+            if (titleText != null)
+            {
+                titleText.anchoredPosition = new Vector2(0f, 200f);
+                titleText.sizeDelta = new Vector2(1600f, 200f);
+
+                var tmp = titleText.GetComponent<TMP_Text>();
+                tmp.fontSize = 132f;
+                tmp.font = LoadFont(UIFontWeight.Bold);
+                tmp.characterSpacing = 6f;
+
+                // 색 번짐(글리치) 흉내. 같은 글자를 청록/붉은색으로 살짝 어긋나게 깔아 둔다.
+                CreateTitleGhost(title.transform, "Text_TitleGhostCyan", titleText,
+                    new Vector2(-7f, 3f), new Color(0.35f, 0.85f, 1f, 0.34f), -2);
+                CreateTitleGhost(title.transform, "Text_TitleGhostRed", titleText,
+                    new Vector2(7f, -3f), new Color(1f, 0.28f, 0.34f, 0.30f), -1);
+                titleText.SetAsLastSibling();
+            }
+
+            // --- 버튼 ---
+            var row = (RectTransform)buttonRow;
+            row.anchoredPosition = new Vector2(0f, -330f);
+            row.sizeDelta = new Vector2(1400f, 110f);
+
+            var layout = row.GetComponent<HorizontalLayoutGroup>();
+            if (layout != null)
+            {
+                layout.spacing = 28f;
+                layout.childAlignment = TextAnchor.MiddleCenter;
+            }
+
+            foreach (var button in buttons)
+            {
+                ((RectTransform)button.transform).sizeDelta = new Vector2(300f, 96f);
+            }
+
+            // 버튼 줄을 마지막으로 올려 배경/유령 글자가 덮지 않게 한다.
+            row.SetAsLastSibling();
+        }
+
+        /// <summary>제목 뒤에 깔리는 색 번짐 글자. 같은 String ID를 쓰므로 언어가 바뀌어도 따라간다.</summary>
+        private static void CreateTitleGhost(Transform parent, string name, RectTransform source,
+            Vector2 offset, Color color, int siblingOffset)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = source.anchorMin;
+            rt.anchorMax = source.anchorMax;
+            rt.pivot = source.pivot;
+            rt.anchoredPosition = source.anchoredPosition + offset;
+            rt.sizeDelta = source.sizeDelta;
+
+            var src = source.GetComponent<TMP_Text>();
+            var tmp = go.AddComponent<TextMeshProUGUI>();
+            tmp.font = src.font;
+            tmp.fontSize = src.fontSize;
+            tmp.characterSpacing = src.characterSpacing;
+            tmp.alignment = src.alignment;
+            tmp.color = color;
+            tmp.raycastTarget = false;
+
+            // 표시 문구는 Localization이 채운다. 제목과 같은 ID를 쓴다.
+            var localized = go.AddComponent<LocalizedText>();
+            var lso = new SerializedObject(localized);
+            lso.Update();
+            lso.FindProperty("_textId").stringValue = "ui.slice.title";
+            lso.ApplyModifiedPropertiesWithoutUndo();
+
+            go.transform.SetSiblingIndex(Mathf.Max(0, source.GetSiblingIndex() + siblingOffset));
+        }
+
         /// <summary>설정 화면. 슬라이더 두 개뿐이다.</summary>
         private static SettingsScreen BuildSettingsScreen(string name, out Transform buttonRow)
         {
@@ -640,7 +747,11 @@ namespace UrbanLegendBureau.EditorTools
             var advanceGo = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
             StretchFull(advanceGo);
             var advance = advanceGo.AddComponent<Button>();
-            advance.targetGraphic = advanceGo.GetComponent<Image>();
+            var advanceImage = advanceGo.GetComponent<Image>();
+            advance.targetGraphic = advanceImage;
+
+            // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
+            advanceImage.raycastTarget = true;
 
             var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
@@ -652,12 +763,24 @@ namespace UrbanLegendBureau.EditorTools
             boxRt.anchoredPosition = new Vector2(0f, -340f);
             boxRt.sizeDelta = new Vector2(1600f, 300f);
 
+            // 상자 안쪽 여백을 기준으로 붙인다. 좌표를 손으로 계산하면 상자 밖으로 나간다.
             var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
-                new Vector2(-660f, 100f), new Vector2(400f, 60f), TextAlignmentOptions.Left);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(nameText.rectTransform, 48f, 48f, 24f, 214f);
+
             var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
-                new Vector2(0f, -10f), new Vector2(1500f, 160f), TextAlignmentOptions.TopLeft);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            StretchInside(lineText.rectTransform, 48f, 48f, 92f, 64f);
+            lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 긴 대사는 상자 안에서 줄바꿈
+            lineText.overflowMode = TextOverflowModes.Truncate;
+
             var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
-                new Vector2(620f, -110f), new Vector2(400f, 40f), TextAlignmentOptions.Right);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.BottomRight);
+            StretchInside(hintText.rectTransform, 48f, 48f, 246f, 18f);
+
+            // 대사 상자를 눌러도 넘어가야 하므로 진행 버튼을 맨 위로 올린다.
+            // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
+            advanceGo.transform.SetAsLastSibling();
 
             var so = new SerializedObject(screen);
             so.Update();
@@ -1075,6 +1198,19 @@ namespace UrbanLegendBureau.EditorTools
             image.color = color;
             image.raycastTarget = color.a > 0.01f;
             return go;
+        }
+
+        /// <summary>
+        /// 부모 안쪽에 여백만큼 띄워 붙인다.
+        /// 앵커를 부모에 맞추므로 부모 크기가 바뀌어도 안쪽에 남는다.
+        /// </summary>
+        private static void StretchInside(RectTransform rt, float left, float right, float top, float bottom)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.offsetMin = new Vector2(left, bottom);
+            rt.offsetMax = new Vector2(-right, -top);
         }
 
         private static void StretchFull(GameObject go)

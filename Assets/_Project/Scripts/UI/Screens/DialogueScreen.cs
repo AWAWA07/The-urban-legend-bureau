@@ -56,6 +56,11 @@ namespace UrbanLegendBureau.UI
         private RectTransform _speakerRect;
         private Vector2 _speakerHome;
 
+        // --- 강조 움직임 ---
+        // 대사가 시작될 때 한 번만 짧게 움직이고 멈춘다. 계속 떠 있는 연출은 쓰지 않는다.
+        private const float MotionDuration = 0.3f;
+        private const float MotionHeight = 18f;
+
         /// <summary>
         /// 한 줄을 보여준다.
         ///
@@ -140,6 +145,10 @@ namespace UrbanLegendBureau.UI
             StartMotion(speaker);
         }
 
+        /// <summary>
+        /// 새 화자의 강조 움직임을 시작한다.
+        /// 이전 움직임은 먼저 끊고 위치를 되돌린다. 대사가 이어져도 위치가 누적되지 않는다.
+        /// </summary>
         private void StartMotion(DialogueCharacter speaker)
         {
             StopMotion();
@@ -163,21 +172,31 @@ namespace UrbanLegendBureau.UI
             _speakerRect = null;
         }
 
-        /// <summary>말하는 동안 아주 조금 위아래로 움직인다. 눈에 거슬리지 않을 정도만.</summary>
+        /// <summary>
+        /// 대사가 시작될 때 딱 한 번, 위로 조금 올라갔다 제자리로 돌아온다.
+        /// 끝나면 코루틴이 종료되므로 그 뒤로는 완전히 멈춘다.
+        /// </summary>
         private IEnumerator SpeakMotion()
         {
-            const float amplitude = 10f;
-            const float speed = 2.4f;
+            var rect = _speakerRect;
+            var home = _speakerHome;
 
             float t = 0f;
-            while (true)
+            while (t < MotionDuration)
             {
-                t += Time.unscaledDeltaTime * speed;
-                if (_speakerRect == null) yield break;
+                t += Time.unscaledDeltaTime;
+                if (rect == null) yield break;
 
-                _speakerRect.anchoredPosition = _speakerHome + new Vector2(0f, Mathf.Sin(t) * amplitude);
+                // 0 -> 1 -> 0. 올라갔다가 그대로 내려온다.
+                float phase = Mathf.Clamp01(t / MotionDuration);
+                float lift = Mathf.Sin(phase * Mathf.PI);
+                rect.anchoredPosition = home + new Vector2(0f, lift * MotionHeight);
                 yield return null;
             }
+
+            // 계산 오차가 남지 않도록 원래 위치를 그대로 다시 넣는다.
+            if (rect != null) rect.anchoredPosition = home;
+            _motion = null;
         }
     }
 }
