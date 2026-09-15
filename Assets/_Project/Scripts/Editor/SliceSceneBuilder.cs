@@ -1011,43 +1011,52 @@ namespace UrbanLegendBureau.EditorTools
             postView.transform.SetParent(go.transform, false);
             StretchFull(postView);
 
-            // 본문 영역의 세로 리듬. 아래쪽 -190 아래는 한영의 대화 상자가 쓰는 자리라 비워 둔다.
-            const float columnWidth = 800f;      // 두 단의 폭
-            const float columnGap = 60f;         // 두 단 사이 간격
-            const float leftX = -(columnWidth + columnGap) * 0.5f;    // -430
-            const float rightX = (columnWidth + columnGap) * 0.5f;    //  430
+            // 실제 커뮤니티 글 화면의 자리 배치를 따른다.
+            // 위에서부터 제목 -> 작성자 정보 -> 구분선 -> 본문 -> 구분선 -> "댓글 N" -> 댓글 목록.
+            // 게시판 이름(괴담넷 | 자유게시판)은 위 머리말 줄이 이미 맡고 있으므로 따로 두지 않는다.
+            // 댓글 입력칸에 해당하는 것이 이 게임에서는 "댓글 쓰기" 선택지다. 자리가 모자라 오른쪽에 상자로 둔다.
+            const float contentLeft = -850f;     // 폭 1700 을 가운데 둔 왼쪽 선
+            const float readWidth = 1000f;       // 글과 댓글이 쓰는 폭
+            const float writeWidth = 660f;       // 댓글 쓰기 상자 폭
+            const float columnGap = 40f;
+            const float readX = contentLeft + readWidth * 0.5f;                          // -350
+            const float writeX = contentLeft + readWidth + columnGap + writeWidth * 0.5f; //  520
 
-            // 글 머리(제목/정보/본문)는 폭 전체를 쓰고, 그 아래에서만 두 단으로 갈라진다.
-            // 본문이 폭 전체인 채 오른쪽 단과 같은 높이에 있으면 글자가 겹친다.
-            // 여백은 가까운 것끼리 좁게, 묶음이 바뀌는 곳은 넓게 준다.
+            // 제목 높이는 씬에서 직접 옮긴 값(340)을 그대로 쓴다.
+            const float TitleY = 340f;
+
             var titleText = AddText(postView.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
-                new Vector2(0f, 346f), new Vector2(1700f, 54f), TextAlignmentOptions.Left);       // 319~373
+                new Vector2(readX, TitleY), new Vector2(readWidth, 54f), TextAlignmentOptions.Left);   // 313~367
             var metaText = AddText(postView.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
-                new Vector2(0f, 298f), new Vector2(1700f, 30f), TextAlignmentOptions.Left);       // 283~313, 제목과 6
+                new Vector2(readX, 294f), new Vector2(readWidth, 30f), TextAlignmentOptions.Left);     // 279~309, 제목과 4
+
+            AddRule(postView.transform, readX, 268f, readWidth);
+
             var bodyText = AddText(postView.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
-                new Vector2(0f, 228f), new Vector2(1700f, 86f), TextAlignmentOptions.TopLeft);    // 185~271, 정보와 12
+                new Vector2(readX, 206f), new Vector2(readWidth, 110f), TextAlignmentOptions.TopLeft); // 151~261
 
-            // --- 여기부터 두 단. 왼쪽은 달린 댓글, 오른쪽은 댓글 쓰기 ---
-            const float SectionTop = 150f;     // 머리말 줄 (본문과 35)
-            const float ListTop = 118f;        // 목록 시작 (머리말과 15)
-            const float ListHeight = 300f;     // 아래 -182 에서 끝난다. 대화 상자 위로 8 남긴다.
+            AddRule(postView.transform, readX, 142f, readWidth);
 
-            var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(leftX, SectionTop), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);
+            // --- 댓글 ---
+            const float ListTop = 96f;          // 목록 시작
+            const float ListHeight = 278f;      // 아래 -182 에서 끝난다. 대화 상자 위로 8 남긴다.
 
-            // 댓글은 늘어나므로 잘라 보여주고 스크롤한다. 실제 커뮤니티도 그렇게 동작한다.
+            var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
+                new Vector2(readX, 120f), new Vector2(readWidth, 32f), TextAlignmentOptions.Left);     // 104~136
+
+            // 댓글은 늘어나므로 잘라 보여주고 끌어서 내린다. 실제 커뮤니티도 그렇게 동작한다.
             var commentViewport = new GameObject("CommentsViewport", typeof(RectTransform));
             commentViewport.transform.SetParent(postView.transform, false);
             var cvRt = (RectTransform)commentViewport.transform;
             cvRt.anchorMin = new Vector2(0.5f, 0.5f);
             cvRt.anchorMax = new Vector2(0.5f, 0.5f);
             cvRt.pivot = new Vector2(0.5f, 1f);
-            cvRt.anchoredPosition = new Vector2(leftX, ListTop);
-            cvRt.sizeDelta = new Vector2(columnWidth, ListHeight);
+            cvRt.anchoredPosition = new Vector2(readX, ListTop);
+            cvRt.sizeDelta = new Vector2(readWidth, ListHeight);
             commentViewport.AddComponent<RectMask2D>();
 
             var commentRoot = CreateVerticalList(commentViewport.transform, "Comments", Vector2.zero,
-                new Vector2(columnWidth, ListHeight), 10f);
+                new Vector2(readWidth, ListHeight), 0f);
             commentRoot.anchorMin = new Vector2(0.5f, 1f);
             commentRoot.anchorMax = new Vector2(0.5f, 1f);
             commentRoot.pivot = new Vector2(0.5f, 1f);
@@ -1063,33 +1072,48 @@ namespace UrbanLegendBureau.EditorTools
             commentScroll.movementType = ScrollRect.MovementType.Clamped;
             commentScroll.scrollSensitivity = 30f;
 
-            // 댓글 한 줄을 카드로 둔다. 배경이 있어야 어디까지가 한 댓글인지 눈에 들어온다.
-            var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 1f));
+            // 댓글 한 줄. 실제 커뮤니티처럼 칸을 나누는 것은 배경색이 아니라 아래쪽 가는 선이다.
+            var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 0f));
             var comRt = (RectTransform)commentTemplate.transform;
-            comRt.sizeDelta = new Vector2(columnWidth, 74f);
+            comRt.sizeDelta = new Vector2(readWidth, 76f);
             var comLabel = AddText(commentTemplate.transform, "Label", 22f, UIFontWeight.Regular, ink,
-                Vector2.zero, new Vector2(columnWidth - 40f, 62f), TextAlignmentOptions.TopLeft);
-            StretchInside(comLabel.rectTransform, 20f, 20f, 8f, 8f);
+                Vector2.zero, new Vector2(readWidth - 24f, 64f), TextAlignmentOptions.TopLeft);
+            StretchInside(comLabel.rectTransform, 12f, 12f, 8f, 12f);
+            var comRule = CreatePanel(commentTemplate.transform, "Rule", new Color(0.84f, 0.85f, 0.88f, 1f));
+            var comRuleRt = (RectTransform)comRule.transform;
+            comRuleRt.anchorMin = new Vector2(0f, 0f);
+            comRuleRt.anchorMax = new Vector2(1f, 0f);
+            comRuleRt.pivot = new Vector2(0.5f, 0f);
+            comRuleRt.anchoredPosition = Vector2.zero;
+            comRuleRt.sizeDelta = new Vector2(0f, 1f);
             commentTemplate.SetActive(false);
 
-            // 오른쪽: 댓글 쓰기. 왼쪽 댓글과 같은 높이에서 시작한다.
-            var choiceHeader = AddText(postView.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(rightX, SectionTop), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);
+            // --- 오른쪽: 댓글 쓰기 상자. 실제 화면의 댓글 입력칸 자리에 해당한다. ---
+            var writeBox = CreatePanel(postView.transform, "WriteBox", new Color(0.985f, 0.985f, 0.99f, 1f));
+            var wbRt = (RectTransform)writeBox.transform;
+            wbRt.anchorMin = new Vector2(0.5f, 0.5f);
+            wbRt.anchorMax = new Vector2(0.5f, 0.5f);
+            wbRt.pivot = new Vector2(0.5f, 1f);
+            wbRt.anchoredPosition = new Vector2(writeX, 322f);
+            wbRt.sizeDelta = new Vector2(writeWidth, 504f);
 
-            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(rightX, ListTop),
-                new Vector2(columnWidth, ListHeight), 13f);
+            var choiceHeader = AddText(postView.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, ink,
+                new Vector2(writeX, 262f), new Vector2(writeWidth - 40f, 32f), TextAlignmentOptions.Left);
 
-            // 안내는 오른쪽 머리말 위. 본문 아래 빈 자리라 무엇과도 겹치지 않는다.
+            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(writeX, 234f),
+                new Vector2(writeWidth - 40f, 416f), 12f);
+
+            // 안내는 상자 위. 본문 아래 빈 자리라 무엇과도 겹치지 않는다.
             var noticeText = AddText(postView.transform, "Notice", 24f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                new Vector2(rightX, 190f), new Vector2(columnWidth, 30f), TextAlignmentOptions.Left);
-            var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
+                new Vector2(writeX, 300f), new Vector2(writeWidth - 40f, 30f), TextAlignmentOptions.Left);
+            var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.88f, 0.90f, 0.94f, 1f));
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
             var ctRt = (RectTransform)choiceTemplate.transform;
-            ctRt.sizeDelta = new Vector2(columnWidth, 104f);
+            ctRt.sizeDelta = new Vector2(writeWidth - 40f, 104f);
             var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(columnWidth - 48f, 92f), TextAlignmentOptions.Left);
-            StretchInside(ctLabel.rectTransform, 24f, 24f, 12f, 12f);
+                Vector2.zero, new Vector2(writeWidth - 84f, 88f), TextAlignmentOptions.Left);
+            StretchInside(ctLabel.rectTransform, 20f, 20f, 8f, 8f);
             choiceTemplate.SetActive(false);
 
             var so = new SerializedObject(screen);
@@ -1419,6 +1443,20 @@ namespace UrbanLegendBureau.EditorTools
             image.color = color;
             image.raycastTarget = color.a > 0.01f;
             return go;
+        }
+
+        /// <summary>글과 댓글을 나누는 가는 선. 실제 커뮤니티 화면이 칸을 나누는 방식이다.</summary>
+        private static void AddRule(Transform parent, float x, float y, float width)
+        {
+            var rule = CreatePanel(parent, "Rule", new Color(0.80f, 0.82f, 0.86f, 1f));
+            var rt = (RectTransform)rule.transform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(x, y);
+            rt.sizeDelta = new Vector2(width, 1f);
+            var img = rule.GetComponent<Image>();
+            if (img != null) img.raycastTarget = false;
         }
 
         /// <summary>

@@ -218,7 +218,14 @@ namespace UrbanLegendBureau.UI
                 return;     // 목록을 보는 중에는 글 내용을 그릴 것이 없다
             }
 
-            if (_titleText != null) _titleText.text = _page != null ? loc.Get(_page.TitleTextId) : string.Empty;
+            if (_titleText != null)
+            {
+                // 실제 커뮤니티처럼 제목 옆에 댓글 수를 붙인다.
+                _titleText.text = _page == null
+                    ? string.Empty
+                    : loc.Get(_page.TitleTextId) +
+                      " <size=72%><color=#C0392B>[" + _comments.Count + "]</color></size>";
+            }
             if (_bodyText != null) _bodyText.text = _page != null ? loc.Get(_page.BodyTextId) : string.Empty;
 
             if (_metaText != null)
