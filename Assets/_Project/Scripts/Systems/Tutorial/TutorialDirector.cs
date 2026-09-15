@@ -441,11 +441,13 @@ namespace UrbanLegendBureau.Systems
 
         private void BuildComments()
         {
+            // 전부 익명이면 사람이 모인 곳처럼 보이지 않는다. 닉네임을 쓰는 사람도 섞어 둔다.
             _comments = new List<CommunityComment>
             {
-                new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.comment.existing_1" },
+                new CommunityComment { AuthorTextId = "ui.net.author_nick_1", BodyTextId = "tutorial.comment.existing_1" },
                 new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.comment.existing_2" },
-                new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.comment.existing_3" },
+                new CommunityComment { AuthorTextId = "ui.net.author_nick_2", BodyTextId = "tutorial.comment.existing_3" },
+                new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.comment.existing_4" },
             };
         }
 
@@ -481,15 +483,19 @@ namespace UrbanLegendBureau.Systems
             };
         }
 
-        /// <summary>선택지 문구. 조건이 모자란 것은 표시를 붙인다.</summary>
+        /// <summary>
+        /// 선택지 문구. 실제로 올라갈 댓글 그대로만 보여준다.
+        /// 무엇을 노리는 댓글인지는 적지 않는다. 플레이어가 읽고 스스로 판단할 일이다.
+        /// 조건이 모자란 것만 그 사실을 덧붙인다.
+        /// </summary>
         private string BuildChoiceLabel(TutorialCommentChoice choice)
         {
             if (choice == null) return string.Empty;
 
-            string text = _loc.Get(choice.SummaryTextId);
+            string text = _loc.Get(choice.BodyTextId);
             if (!CanUseChoice(choice)) text += "  [" + _loc.Get("ui.action.locked") + "]";
 
-            return text + "\n" + _loc.Get(choice.BodyTextId);
+            return text;
         }
 
         /// <summary>

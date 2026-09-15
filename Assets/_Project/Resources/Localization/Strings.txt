@@ -291,6 +291,8 @@ tutorial.line.005	.......시간 없으니까 빨리 설명할게	.......No time.
 ui.net.site_name	괴담넷	LegendNet	커뮤니티 이름
 ui.net.board_free	실화게시판	True stories	
 ui.net.author_anon	익명	Anonymous	
+ui.net.author_nick_1	퇴근길전사	LastTrainRider	
+ui.net.author_nick_2	새벽세시	ThreeAM	
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
 ui.net.comment_header	댓글 {0}	Comments {0}	
@@ -302,6 +304,7 @@ ui.net.choice_header	댓글 쓰기	Write a comment
 tutorial.comment.existing_1	나도 저 시간대 타봤는데 아무 일 없었음	I ride at that hour too and nothing ever happened	
 tutorial.comment.existing_2	무섭다 진짜... 막차 못 타겠네	This is terrifying. I am never taking the last train again	
 tutorial.comment.existing_3	어느 역인지 알려주세요	Which station was it? Please tell us	
+tutorial.comment.existing_4	구라즐 ㅋㅋ	Fake lol	
 tutorial.comment.hint	자, 이 셋 중에 뭘 선택해야 할까?	All right. Which of these three do you pick?	한영
 tutorial.comment.wrong	이런 애가 무슨 엘리트라고.. 다시 한번 해봐	And they called this one elite... try again.	한영
 tutorial.comment.need_field	현장조사가 필요합니다.	This requires a site investigation.	

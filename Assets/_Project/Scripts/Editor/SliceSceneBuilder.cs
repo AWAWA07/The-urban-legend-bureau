@@ -1012,7 +1012,7 @@ namespace UrbanLegendBureau.EditorTools
             const float pageWidth = 1920f;   // 화면 폭을 그대로 쓴다. 좌우에 회색이 비치지 않는다
 
             // 글이 가장자리에 붙지 않도록 안쪽으로 들이는 만큼. 머리말과 본문이 같은 선에 선다.
-            const int Inset = 110;
+            const int Inset = 150;
             const float ContentInset = Inset;
 
             // 흰 종이와 굴러가는 자리는 창 제목 표시줄 아래를 전부 차지한다.
@@ -1084,7 +1084,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, 16f, new RectOffset(Inset, Inset, 56, 52));
+            AddStack(titleBand, 18f, new RectOffset(Inset, Inset, 68, 62));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
@@ -1093,7 +1093,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
             bodyArea.transform.SetParent(postBlock.transform, false);
-            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 64, 56));
+            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 80, 68));
 
             var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
@@ -1141,7 +1141,7 @@ namespace UrbanLegendBureau.EditorTools
             commentLayout.childForceExpandHeight = false;
 
             // 댓글 한 줄. 실제 커뮤니티처럼 칸을 나누는 것은 배경색이 아니라 아래쪽 가는 선이다.
-            // 선은 3 만큼 둔다. 1 로 두면 화면을 줄여 그릴 때 어떤 줄은 아예 사라진다.
+            // 선은 2 만큼 둔다. 1 로 두면 화면을 줄여 그릴 때 어떤 줄은 아예 사라진다.
             var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 0f));
             var comRt = (RectTransform)commentTemplate.transform;
             comRt.sizeDelta = new Vector2(pageWidth - 64f, 82f);
@@ -1154,7 +1154,7 @@ namespace UrbanLegendBureau.EditorTools
             comRuleRt.anchorMax = new Vector2(1f, 0f);
             comRuleRt.pivot = new Vector2(0.5f, 0f);
             comRuleRt.anchoredPosition = Vector2.zero;
-            comRuleRt.sizeDelta = new Vector2(0f, 3f);
+            comRuleRt.sizeDelta = new Vector2(0f, 2f);
             comRule.GetComponent<Image>().raycastTarget = false;
             commentTemplate.SetActive(false);
 
@@ -1185,9 +1185,9 @@ namespace UrbanLegendBureau.EditorTools
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
             var ctRt = (RectTransform)choiceTemplate.transform;
-            ctRt.sizeDelta = new Vector2(pageWidth - 108f, 72f);
+            ctRt.sizeDelta = new Vector2(pageWidth - 108f, 62f);
             var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(pageWidth - 156f, 56f), TextAlignmentOptions.Left);
+                Vector2.zero, new Vector2(pageWidth - 156f, 46f), TextAlignmentOptions.Left);
             StretchInside(ctLabel.rectTransform, 24f, 24f, 8f, 8f);
             choiceTemplate.SetActive(false);
 
