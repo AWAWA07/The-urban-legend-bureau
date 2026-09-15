@@ -761,46 +761,38 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
 
-            // 겹침 대화에서는 인물을 한쪽으로 몰아 커뮤니티 글과 선택지를 가리지 않게 한다.
-            float leftX = fullScreen ? -520f : -720f;
-            float rightX = fullScreen ? 520f : 720f;
-            var left = CreateCharacterImage(go.transform, "Char_Left", leftX, "placeholder_hanyoung");
-            var right = CreateCharacterImage(go.transform, "Char_Right", rightX, "placeholder_chajihan");
-
-            if (!fullScreen)
-            {
-                // 겹침일 때는 인물을 조금 작게 두어 화면을 덜 차지하게 한다.
-                left.rectTransform.sizeDelta = new Vector2(300f, 600f);
-                right.rectTransform.sizeDelta = new Vector2(300f, 600f);
-                left.rectTransform.anchoredPosition = new Vector2(leftX, -120f);
-                right.rectTransform.anchoredPosition = new Vector2(rightX, -120f);
-            }
+            // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
+            // 배경만 투명할 뿐 대화 자체는 같은 모습이어야 한다.
+            var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
+            var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
             var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
             var boxRt = (RectTransform)box.transform;
             boxRt.anchorMin = new Vector2(0.5f, 0.5f);
             boxRt.anchorMax = new Vector2(0.5f, 0.5f);
-            boxRt.anchoredPosition = new Vector2(0f, fullScreen ? -340f : -390f);
-            boxRt.sizeDelta = new Vector2(1600f, fullScreen ? 300f : 200f);
+            boxRt.anchoredPosition = new Vector2(0f, -340f);
+            boxRt.sizeDelta = new Vector2(1600f, 300f);
 
             // 상자 안쪽 여백을 기준으로 붙인다. 좌표를 손으로 계산하면 상자 밖으로 나간다.
             // 상자 높이가 달라져도 세 줄이 겹치지 않도록 높이에서 되짚어 계산한다.
             float boxH = boxRt.sizeDelta.y;
             const float nameH = 50f, hintH = 28f, pad = 20f;
 
+            const float textLeft = 48f;
+
             var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(nameText.rectTransform, 48f, 48f, pad, boxH - pad - nameH);
+            StretchInside(nameText.rectTransform, textLeft, 48f, pad, boxH - pad - nameH);
 
             var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
-            StretchInside(lineText.rectTransform, 48f, 48f, pad + nameH + 10f, pad + hintH + 8f);
+            StretchInside(lineText.rectTransform, textLeft, 48f, pad + nameH + 10f, pad + hintH + 8f);
             lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 긴 대사는 상자 안에서 줄바꿈
             lineText.overflowMode = TextOverflowModes.Truncate;
 
             var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.BottomRight);
-            StretchInside(hintText.rectTransform, 48f, 48f, boxH - pad - hintH, pad - 6f);
+            StretchInside(hintText.rectTransform, textLeft, 48f, boxH - pad - hintH, pad - 6f);
 
             // 대사 상자를 눌러도 넘어가야 하므로 진행 버튼을 맨 위로 올린다.
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
@@ -859,10 +851,17 @@ namespace UrbanLegendBureau.EditorTools
             headerRt.anchoredPosition = Vector2.zero;
             headerRt.sizeDelta = new Vector2(0f, 90f);
 
+            // 머리말 글자는 아래 게시글 본문(폭 1700, 좌우 가운데)의 왼쪽 선에 맞춘다.
+            // 좌표를 직접 주면 화면 폭이 달라질 때 가장자리에 붙어 잘린다.
+            const float contentMargin = (1920f - 1700f) * 0.5f;    // = 110
+
             var siteText = AddText(header.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
-                new Vector2(-760f, 0f), new Vector2(400f, 70f), TextAlignmentOptions.Left);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(siteText.rectTransform, contentMargin, 1920f - contentMargin - 340f, 10f, 10f);
+
             var boardText = AddText(header.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
-                new Vector2(-380f, 0f), new Vector2(400f, 70f), TextAlignmentOptions.Left);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(boardText.rectTransform, contentMargin + 360f, 1920f - contentMargin - 360f - 420f, 10f, 10f);
 
             var titleText = AddText(go.transform, "PostTitle", 44f, UIFontWeight.Bold, ink,
                 new Vector2(0f, 360f), new Vector2(1700f, 70f), TextAlignmentOptions.Left);
@@ -880,10 +879,11 @@ namespace UrbanLegendBureau.EditorTools
                 Vector2.zero, new Vector2(800f, 66f), TextAlignmentOptions.TopLeft);
             commentTemplate.gameObject.SetActive(false);
 
+            // 댓글 쓰기 영역은 댓글 목록보다 위에서 시작한다. 아래쪽은 대화 상자 자리다.
             var choiceHeader = AddText(go.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(460f, 70f), new Vector2(820f, 40f), TextAlignmentOptions.Left);
+                new Vector2(460f, 160f), new Vector2(820f, 40f), TextAlignmentOptions.Left);
 
-            var choiceRoot = CreateVerticalList(go.transform, "Choices", new Vector2(460f, 30f),
+            var choiceRoot = CreateVerticalList(go.transform, "Choices", new Vector2(460f, 120f),
                 new Vector2(820f, 320f), 10f);
             var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
             var choiceButton = choiceTemplate.AddComponent<Button>();
@@ -901,7 +901,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 안내는 선택지 바로 위에 둔다. 아래쪽은 한영의 대화 상자가 쓰는 자리라 비워 둔다.
             var noticeText = AddText(go.transform, "Notice", 26f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                new Vector2(460f, 116f), new Vector2(820f, 44f), TextAlignmentOptions.Left);
+                new Vector2(460f, 206f), new Vector2(820f, 44f), TextAlignmentOptions.Left);
 
             var so = new SerializedObject(screen);
             so.Update();

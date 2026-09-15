@@ -67,6 +67,38 @@ namespace UrbanLegendBureau.UI
         private Coroutine _leftAppear;
         private Coroutine _rightAppear;
 
+        // 씬에 배치된 원래 자리. 혼자 나올 때 가운데로 옮겼다가 되돌리는 데 쓴다.
+        private Vector2 _leftDesignPosition;
+        private Vector2 _rightDesignPosition;
+        private bool _homesCaptured;
+
+        protected override void Awake()
+        {
+            base.Awake();
+
+            if (_left != null && _left.image != null) _leftDesignPosition = _left.image.rectTransform.anchoredPosition;
+            if (_right != null && _right.image != null) _rightDesignPosition = _right.image.rectTransform.anchoredPosition;
+            _homesCaptured = true;
+        }
+
+        /// <summary>
+        /// 왼쪽 인물만 나와 있을 때는 화면 가운데에 세운다.
+        /// 상대가 등장하면 원래 자리로 돌아간다. 대사를 보이기 전에 불러야 한다.
+        /// </summary>
+        public void SetSoloLayout(bool solo)
+        {
+            if (!_homesCaptured || _left == null || _left.image == null) return;
+
+            // 움직이던 중이면 먼저 끝낸다.
+            // 그러지 않으면 움직임이 기억하던 옛 자리로 되돌려 방금 정한 위치를 덮어쓴다.
+            StopMotion();
+
+            var rt = _left.image.rectTransform;
+            rt.anchoredPosition = solo
+                ? new Vector2(0f, _leftDesignPosition.y)
+                : _leftDesignPosition;
+        }
+
         /// <summary>
         /// 한 줄을 보여준다.
         ///

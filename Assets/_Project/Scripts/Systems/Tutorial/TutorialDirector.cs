@@ -155,12 +155,18 @@ namespace UrbanLegendBureau.Systems
             string nameId = hanyoung ? HanyoungNameTextId : ChajihanNameTextId;
             float brightness = LineBrightness[_lineIndex];
 
+            bool chajihanVisible = LineChajihanVisible[_lineIndex];
+
+            // 차지한이 나오기 전에는 한영이 화면 가운데에 선다. 등장한 뒤에는 원래 자리로 돌아간다.
+            // 자리를 먼저 잡아야 강조 움직임이 옳은 위치에서 시작한다.
+            _dialogueScreen.SetSoloLayout(!chajihanVisible);
+
             _dialogueScreen.ShowLine(hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(lineId),
                 brightness,
                 leftVisible: true,
-                rightVisible: LineChajihanVisible[_lineIndex]);
+                rightVisible: chajihanVisible);
         }
 
         /// <summary>화면을 눌렀을 때. 한 번의 입력은 한 줄만 넘긴다.</summary>
@@ -238,16 +244,19 @@ namespace UrbanLegendBureau.Systems
             }
 
             _afterTalk = after;
-
             _talkScreen.SetAdvanceHandler(OnTalkAdvanced);
+
+            // 화면을 먼저 올린다.
+            // 꺼져 있는 화면에 대사를 넣으면 강조 움직임 코루틴이 시작되지 못한다.
+            if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
+
+            _talkScreen.SetSoloLayout(false);   // 겹침 대화는 정해진 자리를 그대로 쓴다
             _talkScreen.ShowLine(true,
                 () => _loc.Get(HanyoungNameTextId),
                 () => _loc.Get(lineTextId),
                 1f,
                 leftVisible: true,
                 rightVisible: false);
-
-            if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
 
             Debug.Log("[TutorialDirector] 한영 대사 | " + lineTextId + " -> 끝나면 " + after);
         }
