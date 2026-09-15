@@ -1070,7 +1070,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, 14f, new RectOffset(Inset, Inset, 44, 40));
+            AddStack(titleBand, 16f, new RectOffset(Inset, Inset, 56, 52));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
@@ -1079,10 +1079,26 @@ namespace UrbanLegendBureau.EditorTools
 
             var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
             bodyArea.transform.SetParent(postBlock.transform, false);
-            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 52, 68));
+            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 64, 56));
 
             var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
+
+            // 본문 아래 반응. 실제 커뮤니티가 본문과 댓글 사이에 두는 자리다.
+            // 지금은 숫자만 보여준다. 누르는 기능은 나중에 붙인다.
+            var reactionRow = new GameObject("Reactions", typeof(RectTransform));
+            reactionRow.transform.SetParent(bodyArea.transform, false);
+            var reactionLayout = reactionRow.AddComponent<HorizontalLayoutGroup>();
+            reactionLayout.spacing = 16f;
+            reactionLayout.padding = new RectOffset(0, 0, 40, 0);
+            reactionLayout.childAlignment = TextAnchor.MiddleCenter;
+            reactionLayout.childControlWidth = false;
+            reactionLayout.childControlHeight = false;
+            reactionLayout.childForceExpandWidth = false;
+            reactionLayout.childForceExpandHeight = false;
+
+            var likeText = AddReactionChip(reactionRow.transform, "Like", ink);
+            var dislikeText = AddReactionChip(reactionRow.transform, "Dislike", dim);
 
             // 글과 댓글을 가르는 굵은 선.
             AddStackRule(page.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
@@ -1176,6 +1192,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_metaText").objectReferenceValue = metaText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
+            so.FindProperty("_likeText").objectReferenceValue = likeText;
+            so.FindProperty("_dislikeText").objectReferenceValue = dislikeText;
             so.FindProperty("_commentHeaderText").objectReferenceValue = commentHeader;
             so.FindProperty("_commentRoot").objectReferenceValue = commentRoot;
             so.FindProperty("_commentTemplate").objectReferenceValue = commentTemplate;
@@ -1491,6 +1509,20 @@ namespace UrbanLegendBureau.EditorTools
             image.color = color;
             image.raycastTarget = color.a > 0.01f;
             return go;
+        }
+
+        /// <summary>본문 아래 반응 하나. 테두리 없는 옅은 칸에 글자만 둔다.</summary>
+        private static TextMeshProUGUI AddReactionChip(Transform parent, string name, Color textColor)
+        {
+            var chip = CreatePanel(parent, name, new Color(0.955f, 0.958f, 0.97f, 1f));
+            var rt = (RectTransform)chip.transform;
+            rt.sizeDelta = new Vector2(220f, 68f);
+
+            var label = AddText(chip.transform, "Label", 24f, UIFontWeight.Medium, textColor,
+                Vector2.zero, new Vector2(220f, 68f), TextAlignmentOptions.Center);
+            label.raycastTarget = false;
+            StretchInside(label.rectTransform, 12f, 12f, 8f, 8f);
+            return label;
         }
 
         /// <summary>같은 문구를 쓰는 칸 여러 개를 배열 속성에 한 번에 넣는다.</summary>

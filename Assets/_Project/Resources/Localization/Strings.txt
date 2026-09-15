@@ -294,6 +294,8 @@ ui.net.author_anon	익명	Anonymous
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
 ui.net.comment_header	댓글 {0}	Comments {0}	
+ui.net.like	좋아요 {0}	Like {0}	
+ui.net.dislike	싫어요 {0}	Dislike {0}	
 ui.net.choice_header	댓글 쓰기	Write a comment	
 
 # --- 조정: 튜토리얼 댓글 ---

@@ -76,6 +76,10 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _metaText;
         [SerializeField] private TMP_Text _bodyText;
 
+        [Tooltip("본문 아래 반응. 지금은 숫자만 보여주고 누를 수는 없다.")]
+        [SerializeField] private TMP_Text _likeText;
+        [SerializeField] private TMP_Text _dislikeText;
+
         [Header("댓글")]
         [SerializeField] private TMP_Text _commentHeaderText;
         [SerializeField] private RectTransform _commentRoot;
@@ -115,9 +119,13 @@ namespace UrbanLegendBureau.UI
         private const string MetaTextId = "ui.net.post_meta";
         private const string CommentHeaderTextId = "ui.net.comment_header";
         private const string ChoiceHeaderTextId = "ui.net.choice_header";
+        private const string LikeTextId = "ui.net.like";
+        private const string DislikeTextId = "ui.net.dislike";
 
         private WebPageSO _page;
         private int _views;
+        private int _likes;
+        private int _dislikes;
         private string _postTimeTextId;
         private List<CommunityComment> _comments = new List<CommunityComment>();
         private IReadOnlyList<TutorialCommentChoice> _choices;
@@ -158,10 +166,12 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>게시글을 건다. 조회수와 작성 시각은 화면에 보이기 위한 값이다.</summary>
-        public void BindPage(WebPageSO page, int views, string postTimeTextId)
+        public void BindPage(WebPageSO page, int views, string postTimeTextId, int likes = 0, int dislikes = 0)
         {
             _page = page;
             _views = views;
+            _likes = likes;
+            _dislikes = dislikes;
             _postTimeTextId = postTimeTextId;
 
             // 새 글이므로 맨 위부터 보여준다.
@@ -251,6 +261,9 @@ namespace UrbanLegendBureau.UI
                     : loc.Get(MetaTextId, loc.Get("ui.net.author_anon"), _views, _comments.Count,
                         string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
             }
+
+            if (_likeText != null) _likeText.text = loc.Get(LikeTextId, _likes);
+            if (_dislikeText != null) _dislikeText.text = loc.Get(DislikeTextId, _dislikes);
 
             if (_commentHeaderText != null) _commentHeaderText.text = loc.Get(CommentHeaderTextId, _comments.Count);
             if (_choiceHeaderText != null)

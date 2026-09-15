@@ -82,6 +82,8 @@ namespace UrbanLegendBureau.Systems
 
         // --- 커뮤니티 ---
         private const string TutorialPostViews = "1284";
+        private const int TutorialPostLikes = 12;
+        private const int TutorialPostDislikes = 2;
         private const string PostTimeTextId = "ui.net.post_time_tutorial";
         private const string ChoiceHintTextId = "tutorial.comment.hint";
         private const string PcLine1TextId = "tutorial.pc.001";
@@ -314,7 +316,8 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId);
+            _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId,
+                TutorialPostLikes, TutorialPostDislikes);
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected);
             _communityScreen.ShowNotice(null);
