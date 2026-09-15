@@ -1015,12 +1015,24 @@ namespace UrbanLegendBureau.EditorTools
             StretchFull(postView);
 
             // 실제 커뮤니티 글 화면처럼 화면 전체가 한 장으로 굴러간다.
-            // 글 묶음과 댓글 묶음을 흰 판 두 개로 나눠 회색 배경이 사이로 보이게 한다.
-            // 그래야 어디까지가 글이고 어디부터가 댓글인지 눈에 바로 들어온다.
+            // 글과 댓글은 회색 틈이 아니라 굵은 가로선으로 나눈다. 실제 화면이 그렇게 나눈다.
             const float pageWidth = 1700f;
 
-            // 굴러가는 자리. 머리말 바로 아래부터 화면 아래까지 쓴다.
-            const float ViewTop = 374f;
+            // 흰 종이. 머리말 아래부터 화면 맨 아래까지 채운다.
+            // 여기를 비워 두면 대화 상자 둘레가 휑하게 남아 창이 도중에 끊긴 것처럼 보인다.
+            const float PaperTop = 394f;        // 머리말(56 + 90) 바로 아래
+            const float PaperBottom = -540f;    // 화면 맨 아래
+
+            var paper = CreatePanel(postView.transform, "Paper", new Color(1f, 1f, 1f, 1f));
+            var paperRt = (RectTransform)paper.transform;
+            paperRt.anchorMin = new Vector2(0.5f, 0.5f);
+            paperRt.anchorMax = new Vector2(0.5f, 0.5f);
+            paperRt.pivot = new Vector2(0.5f, 1f);
+            paperRt.anchoredPosition = new Vector2(0f, PaperTop);
+            paperRt.sizeDelta = new Vector2(pageWidth, PaperTop - PaperBottom);
+
+            // 굴러가는 자리. 대화 상자 위까지만 쓴다. 그 아래는 흰 종이가 이어 받는다.
+            const float ViewTop = 394f;
             const float ViewBottom = -182f;     // 대화 상자 위로 8 남긴다
             const float ViewHeight = ViewTop - ViewBottom;
 
@@ -1043,7 +1055,7 @@ namespace UrbanLegendBureau.EditorTools
             pageRt.pivot = new Vector2(0.5f, 1f);
             pageRt.anchoredPosition = Vector2.zero;
             pageRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
-            AddStack(page, 16f, new RectOffset(0, 0, 0, 0));
+            AddStack(page, 0f, new RectOffset(0, 0, 0, 0));
 
             var pageScroll = pageViewport.AddComponent<ScrollRect>();
             pageScroll.viewport = cvRt;
@@ -1054,27 +1066,38 @@ namespace UrbanLegendBureau.EditorTools
             pageScroll.scrollSensitivity = 40f;
 
             // --- 글 묶음 ---
-            var postBlock = CreatePanel(page.transform, "PostBlock", new Color(1f, 1f, 1f, 1f));
-            AddStack(postBlock, 10f, new RectOffset(32, 32, 26, 30));
+            var postBlock = new GameObject("PostBlock", typeof(RectTransform));
+            postBlock.transform.SetParent(page.transform, false);
+            AddStack(postBlock, 0f, new RectOffset(0, 0, 0, 0));
 
-            var titleText = AddText(postBlock.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
+            // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
+            var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
+            AddStack(titleBand, 8f, new RectOffset(32, 32, 24, 22));
+
+            var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
-            var metaText = AddText(postBlock.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
+            var metaText = AddText(titleBand.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
                 Vector2.zero, new Vector2(pageWidth - 64f, 30f), TextAlignmentOptions.Left);
 
-            AddStackRule(postBlock.transform, new Color(0.86f, 0.87f, 0.90f, 1f), 2f);
+            var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
+            bodyArea.transform.SetParent(postBlock.transform, false);
+            AddStack(bodyArea, 0f, new RectOffset(32, 32, 30, 34));
 
-            var bodyText = AddText(postBlock.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
+            var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
 
-            // --- 댓글 묶음. 글과 떨어진 별개의 판이다. ---
-            var commentBlock = CreatePanel(page.transform, "CommentBlock", new Color(1f, 1f, 1f, 1f));
+            // 글과 댓글을 가르는 굵은 선.
+            AddStackRule(page.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
+
+            // --- 댓글 묶음 ---
+            var commentBlock = new GameObject("CommentBlock", typeof(RectTransform));
+            commentBlock.transform.SetParent(page.transform, false);
             AddStack(commentBlock, 14f, new RectOffset(32, 32, 22, 26));
 
             var commentHeader = AddText(commentBlock.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 32f), TextAlignmentOptions.Left);
 
-            AddStackRule(commentBlock.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
+            AddStackRule(commentBlock.transform, new Color(0.86f, 0.87f, 0.90f, 1f), 2f);
 
             // 댓글 덩어리. 칸 높이는 카드가 정한다.
             var comments = new GameObject("Comments", typeof(RectTransform));
