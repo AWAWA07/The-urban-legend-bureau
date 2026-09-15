@@ -122,20 +122,36 @@ namespace UrbanLegendBureau.Systems
         public InvestigationFailure CheckRequirements(SaveService save, InvestigationActionSO action)
         {
             if (action == null) return InvestigationFailure.NotFound;
+            return CheckRequirements(save, action.RequiredClueIds, action.RequireStep, action.RequiredStep);
+        }
+
+        /// <summary>
+        /// 조사 지점의 해금 조건을 본다.
+        /// 행동과 조건 형태가 같으므로 같은 판정을 쓴다. 조건 규칙이 두 벌로 갈라지지 않게 한다.
+        /// </summary>
+        public InvestigationFailure CheckPointRequirements(SaveService save, InvestigationPoint point)
+        {
+            if (point == null) return InvestigationFailure.NotFound;
+            return CheckRequirements(save, point.RequiredClueIds, point.RequireStep, point.RequiredStep);
+        }
+
+        /// <summary>단서 보유 / 사건 단계 조건을 본다. 행동과 지점이 공유한다.</summary>
+        private InvestigationFailure CheckRequirements(SaveService save, IReadOnlyList<string> requiredClueIds,
+            bool requireStep, CaseStep requiredStep)
+        {
             if (save == null || save.Current == null) return InvestigationFailure.NoSaveData;
 
-            var required = action.RequiredClueIds;
-            if (required != null)
+            if (requiredClueIds != null)
             {
-                for (int i = 0; i < required.Count; i++)
+                for (int i = 0; i < requiredClueIds.Count; i++)
                 {
-                    var clueId = required[i];
+                    var clueId = requiredClueIds[i];
                     if (string.IsNullOrEmpty(clueId)) continue;
                     if (!save.Current.acquiredClueIds.Contains(clueId)) return InvestigationFailure.MissingClue;
                 }
             }
 
-            if (action.RequireStep && CaseFlow.GetStep(save) < action.RequiredStep)
+            if (requireStep && CaseFlow.GetStep(save) < requiredStep)
             {
                 return InvestigationFailure.StepNotReached;
             }

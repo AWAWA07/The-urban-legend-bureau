@@ -23,6 +23,7 @@ namespace UrbanLegendBureau.EditorTools
         private const string ActionAssetPath = "Assets/InputSystem_Actions.inputactions";
         private const string CatalogPath = "Assets/_Project/Data/Config/GameDataCatalog.asset";
         private const string FontFolder = "Assets/_Project/UI/Fonts/Pretendard/";
+        private const string ActionFolder = "Assets/_Project/Data/Actions/";
 
         private static readonly Color BackColor = new Color(0.06f, 0.06f, 0.09f);
         private static readonly Color PanelColor = new Color(0.11f, 0.12f, 0.17f, 0.97f);
@@ -76,12 +77,26 @@ namespace UrbanLegendBureau.EditorTools
             // --- 두 번째 사건의 현장 ---
             var fieldRoot2 = new GameObject("FieldRoot_Legend2");
             BuildFieldBackground(fieldRoot2.transform);
-            BuildPoint(fieldRoot2.transform, "InvestigationPoint_Panel", new Vector2(-3.6f, -0.6f),
+            var panel = BuildPoint(fieldRoot2.transform, "InvestigationPoint_Panel", new Vector2(-3.6f, -0.6f),
                 new Vector2(1.6f, 2.6f), new Color(0.42f, 0.46f, 0.52f),
                 "field.test.panel", "field.test.panel.result", "clue_test_003");
-            BuildPoint(fieldRoot2.transform, "InvestigationPoint_Mirror", new Vector2(3.4f, 0.4f),
+            var mirror = BuildPoint(fieldRoot2.transform, "InvestigationPoint_Mirror", new Vector2(3.4f, 0.4f),
                 new Vector2(2.4f, 3.2f), new Color(0.30f, 0.38f, 0.42f),
                 "field.test.mirror", "field.test.mirror.result", null);
+
+            // --- 지점별 조사 방법과 해금 조건 (17단계) ---
+            // 지점이 어떤 조사 방법을 허용하는지는 여기서 정한다. 모든 지점에서 모든 행동을 할 수 없다.
+            ConfigurePoint(desk, "point_desk",
+                new[] { "action_test_002", "action_test_006" }, null, false, CaseStep.Started);
+            ConfigurePoint(phone, "point_phone",
+                new[] { "action_test_006" }, null, false, CaseStep.Started);
+            // 벽은 책상에서 얻은 단서가 있어야 조사할 수 있다.
+            ConfigurePoint(wall, "point_wall",
+                new[] { "action_test_003" }, new[] { "clue_test_001" }, false, CaseStep.Started);
+            ConfigurePoint(panel, "point_panel",
+                new[] { "action_test_005" }, null, false, CaseStep.Started);
+            ConfigurePoint(mirror, "point_mirror",
+                new[] { "action_test_006" }, null, false, CaseStep.Started);
 
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();
@@ -104,7 +119,7 @@ namespace UrbanLegendBureau.EditorTools
             var actionList = BuildActionListScreen("Screen_Actions", out var actionButtons);
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
-            var fieldHud = BuildHudScreen("Screen_FieldHud");
+            var fieldHud = BuildHudScreen("Screen_FieldHud", out var fieldButtons);
             var exorcism = BuildPanelScreen("Screen_Exorcism", UILayer.Screen, out var exorcismButtons, true);
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
@@ -118,6 +133,7 @@ namespace UrbanLegendBureau.EditorTools
             var btnField = CreateButton(internetButtons, "Btn_EnterField", "ui.slice.btn_enter_field");
             var btnCensor = CreateButton(pageButtons, "Btn_Censor", "ui.net.btn_censor");
             var btnPageBack = CreateButton(pageButtons, "Btn_PageBack", "ui.net.btn_back");
+            var btnFieldDone = CreateButton(fieldButtons, "Btn_FieldDone", "ui.field.btn_done");
             var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
             var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
             var btnBack = CreateButton(resultButtons, "Btn_BackToTitle", "ui.slice.btn_back_to_title");
@@ -160,6 +176,7 @@ namespace UrbanLegendBureau.EditorTools
 
             UnityEventTools.AddPersistentListener(btnCensor.GetComponent<Button>().onClick, director.OnCensorClicked);
             UnityEventTools.AddPersistentListener(btnPageBack.GetComponent<Button>().onClick, director.OnPageBackClicked);
+            UnityEventTools.AddPersistentListener(btnFieldDone.GetComponent<Button>().onClick, director.OnFieldDoneClicked);
             UnityEventTools.AddPersistentListener(btnSeal.GetComponent<Button>().onClick, director.OnSealClicked);
             UnityEventTools.AddPersistentListener(btnSealOk.GetComponent<Button>().onClick, director.OnExorcismConfirmClicked);
             UnityEventTools.AddPersistentListener(btnBack.GetComponent<Button>().onClick, director.OnBackToTitleClicked);
@@ -177,6 +194,39 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         // ------------------------------------------------------------- 현장
+
+        /// <summary>조사 지점에 조사 방법과 해금 조건을 붙인다. 행동 데이터는 ID로 찾아 직접 참조로 넣는다.</summary>
+        private static void ConfigurePoint(GameObject pointGo, string pointId,
+            string[] actionIds, string[] requiredClueIds, bool requireStep, CaseStep requiredStep)
+        {
+            var point = pointGo.GetComponent<InvestigationPoint>();
+            if (point == null) return;
+
+            var so = new SerializedObject(point);
+            so.Update();
+            so.FindProperty("_pointId").stringValue = pointId;
+
+            var actions = so.FindProperty("_actions");
+            actions.arraySize = actionIds != null ? actionIds.Length : 0;
+            for (int i = 0; i < actions.arraySize; i++)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<UrbanLegendBureau.Data.InvestigationActionSO>(
+                    ActionFolder + actionIds[i] + ".asset");
+                if (asset == null) Debug.LogError("[SliceSceneBuilder] 조사 행동을 찾지 못했다: " + actionIds[i]);
+                actions.GetArrayElementAtIndex(i).objectReferenceValue = asset;
+            }
+
+            var clues = so.FindProperty("_requiredClueIds");
+            clues.arraySize = requiredClueIds != null ? requiredClueIds.Length : 0;
+            for (int i = 0; i < clues.arraySize; i++)
+            {
+                clues.GetArrayElementAtIndex(i).stringValue = requiredClueIds[i];
+            }
+
+            so.FindProperty("_requireStep").boolValue = requireStep;
+            so.FindProperty("_requiredStep").enumValueIndex = (int)requiredStep;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
 
         private static void BuildFieldBackground(Transform parent)
         {
@@ -535,7 +585,7 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>현장 HUD. 배경을 가리지 않도록 투명하게 둔다.</summary>
-        private static TextPanelScreen BuildHudScreen(string name)
+        private static TextPanelScreen BuildHudScreen(string name, out Transform buttonRow)
         {
             var go = CreatePanel(null, name, Color.clear);
             StretchFull(go);
@@ -554,6 +604,9 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0f, 355f), new Vector2(1400f, 60f), TextAlignmentOptions.Center);
 
             BindScreenTexts(screen, titleText, bodyText, null);
+
+            // 현장에서 조사를 끝내고 봉인으로 넘어가는 버튼 자리.
+            buttonRow = CreateButtonRow(safe.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
             return screen;
         }
 

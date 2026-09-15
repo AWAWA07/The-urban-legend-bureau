@@ -63,6 +63,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현재 사건이 다루는 괴담 ID.</summary>
         private string _legendId => _case != null ? _case.LegendId : string.Empty;
         private string _pendingClueId;
+
+        /// <summary>지금 조사 방법을 고르고 있는 현장 지점. 사무실에서 열었으면 null.</summary>
+        private InvestigationPoint _activePoint;
         private string _sealFeedbackTextId;
         private SpreadChangeResult _lastSpreadChange;
 
@@ -112,6 +115,7 @@ namespace UrbanLegendBureau.Systems
         private const string ActionListTitleTextId = "ui.action.title";
         private const string ActionListHintTextId = "ui.action.hint";
         private const string ActionLockedMarkTextId = "ui.action.locked";
+        private const string PointBlockedTextId = "ui.field.point_locked";
         private const string ElapsedTextId = "ui.time.elapsed";
         private const string ActionCountTextId = "ui.time.actions";
         private const string SpreadWarningTitleTextId = "spread.warning.title";
@@ -159,6 +163,9 @@ namespace UrbanLegendBureau.Systems
         private bool SelectCase(CaseSO caseData)
         {
             if (caseData == null) return false;
+
+            // 사건이 바뀌면 이전 사건의 현장 맥락은 버린다. 사건끼리 상태가 섞이지 않게 한다.
+            _activePoint = null;
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
@@ -263,16 +270,69 @@ namespace UrbanLegendBureau.Systems
         {
             if (_actions == null || _actionListScreen == null) return;
 
-            var list = _actions.GetActionsForLegend(_legend);
-
-            _actionListScreen.Bind(
-                ActionListTitleTextId, ActionListHintTextId,
-                list, BuildActionLabel, OnActionSelected, BuildStatusBlock);
+            _activePoint = null;
+            BindActionScreen();
 
             if (_ui.Contains(_actionListScreen)) _actionListScreen.Refresh();
             else _ui.Replace(_actionListScreen);
 
-            Debug.Log($"[CaseDirector] 조사 행동 목록 | {list.Count}개 | step={CaseFlow.GetStep(_save)}");
+            Debug.Log($"[CaseDirector] 조사 행동 목록 | {CurrentActions().Count}개 | step={CaseFlow.GetStep(_save)}");
+        }
+
+        /// <summary>현장 지점을 골랐을 때. 그 지점에서 가능한 조사 방법만 보여준다.</summary>
+        private void OpenPointActions(InvestigationPoint point)
+        {
+            if (_actions == null || _actionListScreen == null) return;
+
+            _activePoint = point;
+            if (_field != null) _field.SetFieldVisible(false);
+
+            BindActionScreen();
+
+            if (_ui.Contains(_actionListScreen)) _actionListScreen.Refresh();
+            else _ui.Replace(_actionListScreen);
+
+            Debug.Log($"[CaseDirector] 조사 지점 | {point.PointId} | 조사 방법 {point.Actions.Count}개");
+        }
+
+        /// <summary>지금 고를 수 있는 조사 행동. 지점을 고른 상태면 그 지점의 목록이다.</summary>
+        private List<InvestigationActionSO> CurrentActions()
+        {
+            if (_activePoint == null) return _actions.GetActionsForLegend(_legend);
+
+            var list = new List<InvestigationActionSO>();
+            foreach (var action in _activePoint.Actions)
+            {
+                if (action != null) list.Add(action);
+            }
+            return list;
+        }
+
+        /// <summary>행동 화면을 현재 맥락에 맞춰 다시 채운다. 제목은 지점 이름이 있으면 그것을 쓴다.</summary>
+        private void BindActionScreen()
+        {
+            string titleId = _activePoint != null && !string.IsNullOrEmpty(_activePoint.NameTextId)
+                ? _activePoint.NameTextId
+                : ActionListTitleTextId;
+
+            _actionListScreen.Bind(
+                titleId, ActionListHintTextId,
+                CurrentActions(), BuildActionLabel, OnActionSelected, BuildStatusBlock);
+        }
+
+        /// <summary>조건이 막은 지점. 시간도 확산도 움직이지 않는다.</summary>
+        private void ShowPointBlocked(InvestigationPoint point, InvestigationFailure failure)
+        {
+            string reasonId = InvestigationActionService.FailureTextId(failure);
+            string nameId = point.NameTextId;
+
+            _cluePopupScreen.BindWithBodyProvider(
+                PointBlockedTextId,
+                () => _loc.Get(nameId) + "\n\n" + _loc.Get(reasonId));
+            _ui.Push(_cluePopupScreen);
+            _pendingClueId = null;
+
+            Debug.Log($"[CaseDirector] 조사 지점 잠김 | {point.PointId} -> {failure} (시간/확산 변화 없음)");
         }
 
         /// <summary>항목 문구: 행동 이름 + 설명. 지금 할 수 없는 행동은 표시를 붙인다.</summary>
@@ -300,13 +360,14 @@ namespace UrbanLegendBureau.Systems
 
             var result = _actions.Perform(_save, _caseId, _legendId, action);
 
+            // 조사한 지점은 눈으로 구분되게 표시한다. 조건에 막혀 실행되지 않았다면 표시하지 않는다.
+            if (result.Success && _activePoint != null) _activePoint.MarkInvestigated();
+
             // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
             bool ruleShown = false;
             if (result.GotNewClue) ruleShown = TryDeduceRules();
 
-            _actionListScreen.Bind(
-                ActionListTitleTextId, ActionListHintTextId,
-                _actions.GetActionsForLegend(_legend), BuildActionLabel, OnActionSelected, BuildStatusBlock);
+            BindActionScreen();
 
             var captured = result;
             _actionListScreen.ShowResult(() => BuildActionResultLine(captured));
@@ -339,11 +400,42 @@ namespace UrbanLegendBureau.Systems
             return sb.ToString();
         }
 
-        /// <summary>조사 행동 화면의 돌아가기 버튼. 사무실로 돌아간다.</summary>
+        /// <summary>
+        /// 조사 행동 화면의 돌아가기 버튼.
+        /// 현장 지점에서 들어왔으면 현장으로, 사무실에서 들어왔으면 사무실로 돌아간다.
+        /// </summary>
         public void OnActionsBackClicked()
         {
+            if (_activePoint != null)
+            {
+                _activePoint = null;
+                ShowFieldHud();
+                return;
+            }
+
+            if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
+
             _bureauScreen.BindWithBodyProvider(BureauTitleTextId, BuildLegendBriefing);
-            _ui.Replace(_bureauScreen);
+
+            if (_ui.Count == 0) _ui.Push(_bureauScreen);
+            else _ui.Replace(_bureauScreen);
+        }
+
+        /// <summary>현장 화면을 연다. 사건 단계는 건드리지 않는다. 지점 조사에서 돌아올 때 쓴다.</summary>
+        private void ShowFieldHud()
+        {
+            // 조사 방법 화면을 먼저 확실히 닫는다.
+            // Replace는 최상단만 바꾸므로, 위에 팝업이 떠 있으면 조사 화면이 스택에 남는다.
+            if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
+
+            _fieldHudScreen.BindWithBodyProvider(
+                FieldTitleTextId,
+                () => _loc.Get(FieldHintTextId) + "\n\n" + BuildStatusBlock());
+
+            if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
+            else _ui.Replace(_fieldHudScreen);
+
+            if (_field != null) _field.SetFieldVisible(true, _legendId);
         }
 
         /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>
@@ -573,12 +665,9 @@ namespace UrbanLegendBureau.Systems
         {
             CaseFlow.SetStep(_save, CaseStep.FieldInvestigation);
 
-            _fieldHudScreen.BindWithBodyProvider(
-                FieldTitleTextId,
-                () => _loc.Get(FieldHintTextId) + "\n\n" + BuildStatusBlock());
-            _ui.Replace(_fieldHudScreen);
+            _activePoint = null;
+            ShowFieldHud();
 
-            if (_field != null) _field.SetFieldVisible(true, _legendId);
             Debug.Log($"[CaseDirector] 현장 진입 | 확산 {GetSpread():F0}% step={CaseFlow.GetStep(_save)}");
         }
 
@@ -602,10 +691,29 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
-        /// <summary>규칙 팝업의 확인 버튼. 규칙을 알았으니 봉인 단계로 넘어간다.</summary>
+        /// <summary>
+        /// 규칙 팝업의 확인 버튼.
+        ///
+        /// 현장 지점에서 조사하다 규칙을 알아낸 경우에는 현장으로 돌아간다.
+        /// 단서 하나를 찾았다고 조사가 끝나는 것은 아니다. 봉인으로 넘어갈지는 플레이어가 정한다.
+        /// </summary>
         public void OnRulePopupConfirmClicked()
         {
             _ui.Close(_rulePopupScreen);
+
+            if (_activePoint != null)
+            {
+                _activePoint = null;
+                ShowFieldHud();
+                return;
+            }
+
+            ShowExorcism();
+        }
+
+        /// <summary>현장 화면의 조사 종료 버튼. 봉인 단계로 넘어간다.</summary>
+        public void OnFieldDoneClicked()
+        {
             ShowExorcism();
         }
 
@@ -615,6 +723,7 @@ namespace UrbanLegendBureau.Systems
         {
             CaseFlow.SetStep(_save, CaseStep.Exorcism);
 
+            _activePoint = null;
             if (_field != null) _field.SetFieldVisible(false);
 
             _sealFeedbackTextId = null;
@@ -747,6 +856,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>결과 화면의 타이틀 복귀 버튼.</summary>
         public void OnBackToTitleClicked()
         {
+            _activePoint = null;
             if (_field != null) _field.SetFieldVisible(false);
             ShowTitle();
         }
@@ -756,6 +866,27 @@ namespace UrbanLegendBureau.Systems
         private void OnPointInvestigated(InvestigationPoint point)
         {
             if (point == null) return;
+
+            // --- 해금 조건 ---
+            // 막힌 지점은 아무것도 일어나지 않는다. 시간도 확산도 움직이지 않고 조사 표시도 남기지 않는다.
+            if (_actions != null)
+            {
+                var block = _actions.CheckPointRequirements(_save, point);
+                if (block != InvestigationFailure.None)
+                {
+                    ShowPointBlocked(point, block);
+                    return;
+                }
+            }
+
+            // --- 조사 방법이 있는 지점 ---
+            // 지점을 고르는 것은 이동일 뿐이라 시간을 쓰지 않는다.
+            // 사건 시간과 확산은 이어서 고르는 조사 행동 하나에만 붙는다. 이중 계산을 피하기 위해서다.
+            if (point.HasActions)
+            {
+                OpenPointActions(point);
+                return;
+            }
 
             point.MarkInvestigated();
 

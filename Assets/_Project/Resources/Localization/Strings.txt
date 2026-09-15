@@ -192,3 +192,11 @@ action.test.004.result	비슷한 제보가 몇 건 더 있다.	A few more report
 action.test.005.name	물건 조사	Inspect the object	
 action.test.005.desc	조작판을 자세히 들여다본다. 인터넷 조사를 먼저 해야 한다.	Examine the panel closely. Requires web research first.	
 action.test.005.result	조작판에서 이상한 자국을 찾았다.	There are odd marks on the panel.	
+
+# --- 17단계: 현장 조사 지점 ---
+ui.field.point_locked	조사할 수 없다	Cannot investigate	지점 해금 조건 실패 제목
+ui.field.point_hint	조사할 방법을 선택하세요.	Choose how to investigate.	
+action.test.006.name	사진 촬영	Take photos	
+action.test.006.desc	현장을 사진으로 남긴다.	Record the site in photographs.	
+action.test.006.result	사진에는 특별히 이상한 것이 찍히지 않았다.	Nothing unusual shows up in the photos.	
+ui.field.btn_done	조사 종료	Finish investigation	현장에서 봉인 단계로
