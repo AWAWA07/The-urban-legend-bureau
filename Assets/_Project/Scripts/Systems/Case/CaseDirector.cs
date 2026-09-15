@@ -246,6 +246,22 @@ namespace UrbanLegendBureau.Systems
             _ui.Replace(_helpScreen);
         }
 
+        /// <summary>
+        /// 설명 화면의 튜토리얼 다시 보기 버튼.
+        /// 이미 본 사람도 처음부터 다시 돌릴 수 있게 한다. 저장본은 건드리지 않는다.
+        /// 튜토리얼은 제 전용 저장본에서 돌기 때문이다.
+        /// </summary>
+        public void OnReplayTutorialClicked()
+        {
+            if (_tutorial == null)
+            {
+                Debug.LogWarning("[CaseDirector] 튜토리얼이 연결되지 않았다. 씬을 다시 빌드할 것.");
+                return;
+            }
+
+            _tutorial.StartTutorial();
+        }
+
         /// <summary>타이틀의 세팅 버튼.</summary>
         public void OnOpenSettingsClicked()
         {

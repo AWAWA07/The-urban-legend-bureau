@@ -167,6 +167,8 @@ namespace UrbanLegendBureau.EditorTools
             var btnHelp = CreateButton(titleButtons, "Btn_Help", "ui.title.help");
             var btnSettings = CreateButton(titleButtons, "Btn_Settings", "ui.title.settings");
             var btnQuit = CreateButton(titleButtons, "Btn_Quit", "ui.title.quit");
+            // 설명 화면에서 튜토리얼을 다시 돌릴 수 있게 한다. 저장본을 지우지 않아도 처음부터 볼 수 있다.
+            var btnHelpTutorial = CreateButton(helpButtons, "Btn_HelpTutorial", "ui.title.tutorial_replay");
             var btnHelpBack = CreateButton(helpButtons, "Btn_HelpBack", "ui.common.back");
             var btnSettingsBack = CreateButton(settingsButtons, "Btn_SettingsBack", "ui.common.back");
             // 타이틀은 버튼이 네 개라 기본 버튼 폭(400)으로는 줄을 넘는다.
@@ -217,6 +219,7 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnHelp.GetComponent<Button>().onClick, director.OnOpenHelpClicked);
             UnityEventTools.AddPersistentListener(btnSettings.GetComponent<Button>().onClick, director.OnOpenSettingsClicked);
             UnityEventTools.AddPersistentListener(btnQuit.GetComponent<Button>().onClick, director.OnQuitClicked);
+            UnityEventTools.AddPersistentListener(btnHelpTutorial.GetComponent<Button>().onClick, director.OnReplayTutorialClicked);
             UnityEventTools.AddPersistentListener(btnHelpBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
             UnityEventTools.AddPersistentListener(btnSettingsBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
 

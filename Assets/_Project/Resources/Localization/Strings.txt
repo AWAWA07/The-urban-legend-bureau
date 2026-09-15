@@ -271,6 +271,7 @@ action.subway.compare.result	최초 목격담에 없던 문장이 나중 글에�
 # --- 조정: 타이틀 / 설정 ---
 ui.title.start	시작	Start	
 ui.title.help	설명	About	
+ui.title.tutorial_replay	튜토리얼 다시 보기	Replay tutorial	
 ui.help.body_placeholder	설명은 아직 준비 중입니다.	The briefing is not written yet.	내용은 이후 단계에서 채운다
 ui.settings.title	세팅	Settings	
 ui.settings.bgm	배경음 볼륨    {0}	Music volume    {0}	
