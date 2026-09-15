@@ -22,6 +22,8 @@ namespace UrbanLegendBureau.Systems
     {
         [Header("화면")]
         [SerializeField] private TextPanelScreen _titleScreen;
+        [SerializeField] private TextPanelScreen _helpScreen;
+        [SerializeField] private SettingsScreen _settingsScreen;
         [SerializeField] private CaseListScreen _caseListScreen;
         [SerializeField] private TextPanelScreen _bureauScreen;
         [SerializeField] private ActionListScreen _actionListScreen;
@@ -41,6 +43,9 @@ namespace UrbanLegendBureau.Systems
 
         [Header("현장")]
         [SerializeField] private FieldController _field;
+
+        [Header("튜토리얼")]
+        [SerializeField] private TutorialDirector _tutorial;
 
         private UIService _ui;
         private SaveService _save;
@@ -126,6 +131,9 @@ namespace UrbanLegendBureau.Systems
         private const string ElapsedTextId = "ui.time.elapsed";
         private const string ActionCountTextId = "ui.time.actions";
         private const string SpreadWarningTitleTextId = "spread.warning.title";
+        private const string HelpTitleTextId = "ui.title.help";
+        private const string HelpBodyTextId = "ui.help.body_placeholder";
+        private const string HelpFooterTextId = "ui.common.back";
 
         private void Start()
         {
@@ -202,6 +210,64 @@ namespace UrbanLegendBureau.Systems
 
             if (_ui.Count == 0) _ui.Push(_titleScreen);
             else _ui.Replace(_titleScreen);
+        }
+
+        // ------------------------------------------------------------- 타이틀 메뉴
+
+        /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
+        public void ShowTitleScreen()
+        {
+            ShowTitle();
+        }
+
+        /// <summary>
+        /// 타이틀의 시작 버튼.
+        /// 처음이면 튜토리얼부터, 이미 봤으면 사건 목록으로 간다.
+        /// 봤는지 여부는 기존 storyFlags 가 들고 있다.
+        /// </summary>
+        public void OnStartClicked()
+        {
+            if (_tutorial != null && !TutorialDirector.HasSeenTutorial())
+            {
+                _tutorial.StartTutorial();
+                return;
+            }
+
+            OnOpenCaseListClicked();
+        }
+
+        /// <summary>타이틀의 설명 버튼. 내용은 아직 비어 있다.</summary>
+        public void OnOpenHelpClicked()
+        {
+            if (_helpScreen == null) return;
+
+            _helpScreen.Bind(HelpTitleTextId, HelpBodyTextId, HelpFooterTextId);
+            _ui.Replace(_helpScreen);
+        }
+
+        /// <summary>타이틀의 세팅 버튼.</summary>
+        public void OnOpenSettingsClicked()
+        {
+            if (_settingsScreen == null) return;
+            _ui.Replace(_settingsScreen);
+        }
+
+        /// <summary>설명/세팅 화면의 돌아가기 버튼.</summary>
+        public void OnBackToTitleFromMenuClicked()
+        {
+            ShowTitle();
+        }
+
+        /// <summary>
+        /// 타이틀의 종료 버튼.
+        /// 플랫폼 분기는 PlatformInfo 안에서만 한다. WebGL에서는 조용히 무시된다.
+        /// </summary>
+        public void OnQuitClicked()
+        {
+            if (!PlatformInfo.QuitApplication())
+            {
+                Debug.Log("[CaseDirector] 종료할 수 없는 플랫폼이다. 타이틀에 그대로 머문다.");
+            }
         }
 
         /// <summary>타이틀의 사건 목록 버튼. 선택 가능한 사건을 나열한다.</summary>

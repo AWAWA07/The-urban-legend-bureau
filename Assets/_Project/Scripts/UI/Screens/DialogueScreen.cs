@@ -1,0 +1,183 @@
+using System;
+using System.Collections;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+using UrbanLegendBureau.Core;
+using UrbanLegendBureau.Localization;
+
+namespace UrbanLegendBureau.UI
+{
+    /// <summary>대화에 나오는 인물. 스프라이트는 인스펙터에서 갈아 끼운다.</summary>
+    [Serializable]
+    public class DialogueCharacter
+    {
+        [Tooltip("이름의 Localization String ID.")]
+        public string nameTextId;
+
+        [Tooltip("임시 이미지. 실제 캐릭터가 생기면 이것만 바꾸면 된다.")]
+        public Image image;
+    }
+
+    /// <summary>
+    /// 튜토리얼 대화 화면.
+    ///
+    /// 두 인물을 좌우에 세우고, 말하는 쪽을 밝게, 듣는 쪽을 어둡게 둔다.
+    /// 말하는 인물은 아주 조금 움직인다. 코루틴으로 처리한다. 외부 트윈 패키지는 쓰지 않는다.
+    ///
+    /// 다음 대사로 넘기는 것은 화면을 눌렀을 때다. 마우스와 터치를 구분하지 않는다.
+    /// 기존 UI 버튼(전체를 덮는 투명 버튼)을 쓰므로 EventSystem 경로를 그대로 탄다.
+    /// </summary>
+    public class DialogueScreen : UIScreen
+    {
+        [Header("인물")]
+        [SerializeField] private DialogueCharacter _left;
+        [SerializeField] private DialogueCharacter _right;
+
+        [Header("대사 상자")]
+        [SerializeField] private TMP_Text _nameText;
+        [SerializeField] private TMP_Text _lineText;
+        [SerializeField] private TMP_Text _hintText;
+
+        [Tooltip("화면 전체를 덮는 진행 버튼.")]
+        [SerializeField] private Button _advanceButton;
+
+        [Header("밝기")]
+        [SerializeField] private Color _brightColor = Color.white;
+        [SerializeField] private Color _dimColor = new Color(0.32f, 0.32f, 0.38f, 1f);
+
+        private const string HintTextId = "ui.dialogue.hint";
+
+        private Func<string> _lineProvider;
+        private Func<string> _nameProvider;
+        private Action _onAdvance;
+
+        private Coroutine _motion;
+        private RectTransform _speakerRect;
+        private Vector2 _speakerHome;
+
+        /// <summary>
+        /// 한 줄을 보여준다.
+        ///
+        /// speakerIsLeft 로 어느 쪽이 말하는지 정한다.
+        /// 문구는 만드는 방법(Func)으로 받는다. 언어가 바뀌어도 다시 조립된다.
+        /// </summary>
+        public void ShowLine(bool speakerIsLeft, Func<string> nameProvider, Func<string> lineProvider,
+            float speakerAlpha = 1f)
+        {
+            _nameProvider = nameProvider;
+            _lineProvider = lineProvider;
+
+            ApplySpeaker(speakerIsLeft, speakerAlpha);
+            Refresh();
+        }
+
+        /// <summary>화면을 눌렀을 때 부를 것을 지정한다.</summary>
+        public void SetAdvanceHandler(Action onAdvance)
+        {
+            _onAdvance = onAdvance;
+
+            if (_advanceButton != null)
+            {
+                _advanceButton.onClick.RemoveAllListeners();
+                _advanceButton.onClick.AddListener(OnAdvanceClicked);
+            }
+        }
+
+        private void OnAdvanceClicked()
+        {
+            // 한 번의 입력으로 두 대사가 넘어가지 않게, 처리는 호출 측에 맡기고 여기서는 한 번만 알린다.
+            var handler = _onAdvance;
+            if (handler != null) handler();
+        }
+
+        protected override void OnOpen()
+        {
+            EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
+            Refresh();
+        }
+
+        protected override void OnClose()
+        {
+            EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
+            StopMotion();
+        }
+
+        private void OnLanguageChanged(LanguageChangedEvent evt)
+        {
+            Refresh();
+        }
+
+        public void Refresh()
+        {
+            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
+
+            if (_nameText != null) _nameText.text = _nameProvider != null ? _nameProvider() : string.Empty;
+            if (_lineText != null) _lineText.text = _lineProvider != null ? _lineProvider() : string.Empty;
+            if (_hintText != null) _hintText.text = loc.Get(HintTextId);
+        }
+
+        // ------------------------------------------------------------- 연출
+
+        /// <summary>
+        /// 말하는 쪽을 밝게, 듣는 쪽을 어둡게 한다.
+        /// speakerAlpha 는 "아직 어둠 속에 있는" 연출에 쓴다. 1이면 완전히 밝다.
+        /// </summary>
+        private void ApplySpeaker(bool speakerIsLeft, float speakerAlpha)
+        {
+            var speaker = speakerIsLeft ? _left : _right;
+            var listener = speakerIsLeft ? _right : _left;
+
+            if (speaker != null && speaker.image != null)
+            {
+                speaker.image.color = Color.Lerp(_dimColor, _brightColor, Mathf.Clamp01(speakerAlpha));
+            }
+            if (listener != null && listener.image != null)
+            {
+                listener.image.color = _dimColor;
+            }
+
+            StartMotion(speaker);
+        }
+
+        private void StartMotion(DialogueCharacter speaker)
+        {
+            StopMotion();
+            if (speaker == null || speaker.image == null) return;
+
+            _speakerRect = speaker.image.rectTransform;
+            _speakerHome = _speakerRect.anchoredPosition;
+            if (isActiveAndEnabled) _motion = StartCoroutine(SpeakMotion());
+        }
+
+        private void StopMotion()
+        {
+            if (_motion != null)
+            {
+                StopCoroutine(_motion);
+                _motion = null;
+            }
+
+            // 움직이던 인물을 제자리에 돌려놓는다. 다음 대사에서 어긋난 위치로 시작하지 않게 한다.
+            if (_speakerRect != null) _speakerRect.anchoredPosition = _speakerHome;
+            _speakerRect = null;
+        }
+
+        /// <summary>말하는 동안 아주 조금 위아래로 움직인다. 눈에 거슬리지 않을 정도만.</summary>
+        private IEnumerator SpeakMotion()
+        {
+            const float amplitude = 10f;
+            const float speed = 2.4f;
+
+            float t = 0f;
+            while (true)
+            {
+                t += Time.unscaledDeltaTime * speed;
+                if (_speakerRect == null) yield break;
+
+                _speakerRect.anchoredPosition = _speakerHome + new Vector2(0f, Mathf.Sin(t) * amplitude);
+                yield return null;
+            }
+        }
+    }
+}

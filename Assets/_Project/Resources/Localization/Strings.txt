@@ -267,3 +267,51 @@ action.subway.platform_trace.result	승강장에서는 건질 것이 없었다. 
 action.subway.compare.name	게시글 대조	Compare the posts	사무실 전용
 action.subway.compare.desc	확보한 게시글을 나란히 놓고 어느 대목이 나중에 붙었는지 본다.	Lay the posts side by side and find which lines were added later.	
 action.subway.compare.result	최초 목격담에 없던 문장이 나중 글에서 늘어나 있다.	Sentences absent from the first account have multiplied in the later ones.	
+
+# --- 조정: 타이틀 / 설정 ---
+ui.title.start	시작	Start	
+ui.title.help	설명	About	
+ui.help.body_placeholder	설명은 아직 준비 중입니다.	The briefing is not written yet.	내용은 이후 단계에서 채운다
+ui.settings.title	세팅	Settings	
+ui.settings.bgm	배경음 볼륨    {0}	Music volume    {0}	
+ui.settings.sfx	효과음 볼륨    {0}	Sound volume    {0}	
+
+# --- 조정: 튜토리얼 대화 ---
+ui.dialogue.hint	화면을 눌러 계속	Tap to continue	
+tutorial.char.hanyoung	한영	Hanyoung	
+tutorial.char.chajihan	차지한	Chajihan	
+tutorial.line.001	...	...	
+tutorial.line.002	....차지한?	....Chajihan?	
+tutorial.line.003	이번에 부서 옮긴 차지한 맞지?	You are the Chajihan who just transferred in, right?	
+tutorial.line.004	...제가 급하게 부서 이동이 되서 그런데 설명 해주실 수 있나요?	...My transfer went through in a hurry. Could you walk me through it?	
+tutorial.line.005	.......시간 없으니까 빨리 설명할게	.......No time. I will make this quick.	
+
+# --- 조정: 인터넷 커뮤니티 ---
+ui.net.site_name	괴담넷	LegendNet	커뮤니티 이름
+ui.net.board_free	자유게시판	Open board	
+ui.net.author_anon	익명	Anonymous	
+ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
+ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
+ui.net.comment_header	댓글 {0}	Comments {0}	
+ui.net.choice_header	댓글 쓰기	Write a comment	
+
+# --- 조정: 튜토리얼 댓글 ---
+tutorial.comment.existing_1	나도 저 시간대 타봤는데 아무 일 없었음	I ride at that hour too and nothing ever happened	
+tutorial.comment.existing_2	무섭다 진짜... 막차 못 타겠네	This is terrifying. I am never taking the last train again	
+tutorial.comment.existing_3	어느 역인지 알려주세요	Which station was it? Please tell us	
+tutorial.comment.hint	자, 이 셋 중에 뭘 선택해야 할까?	All right. Which of these three do you pick?	한영
+tutorial.comment.wrong	이런 애가 무슨 엘리트라고.. 다시 한번 해봐	And they called this one elite... try again.	한영
+tutorial.comment.need_field	현장조사가 필요합니다.	This requires a site investigation.	
+tutorial.comment.need_field_hanyoung	좋은 선택지긴 하지만 이건 직접 현장 조사를 해야돼	Not a bad answer, but you have to go to the site for that one.	한영
+tutorial.comment.correct	그래 잘했어 너, 쓸만한데?	Good. You might be useful after all.	한영
+tutorial.comment.done	댓글이 등록되었습니다. 사람들이 이야기를 덜 믿기 시작합니다.	Your comment is posted. People are starting to believe the story less.	
+tutorial.choice.1.summary	1. 괴담을 키우는 댓글	1. A comment that feeds the story	
+tutorial.choice.1.body	저도 봤어요. 그거 보면 진짜 큰일 난대요. 절대 쳐다보지 마세요.	I saw it too. They say something terrible happens if you look. Never look at it.	
+tutorial.choice.2.summary	2. 괴담이 사실이 아님을 짚는 댓글	2. A comment that debunks the story	
+tutorial.choice.2.body	그 시간엔 해당 노선 막차가 이미 끊깁니다. 다른 글이랑 내용도 계속 달라지네요.	The last train on that line is long gone by then. The details keep changing between posts, too.	
+tutorial.choice.3.summary	3. 대처 방법을 알려주는 댓글	3. A comment that tells people what to do	
+tutorial.choice.3.body	혹시 겪으면 그 자리를 확인하지 마세요. 그냥 내리면 됩니다.	If it happens, do not check the seat. Just get off.	
+tutorial.reaction.1	찾아보니까 원래 글이랑 내용이 다른데?	I looked it up. This does not match the original post	
+tutorial.reaction.2	주작 아니냐 이거	This is made up, right?	
+tutorial.reaction.3	막차 시간표 보고 왔는데 맞는 말이네	I checked the timetable. They have a point	
+tutorial.btn_finish	튜토리얼 종료	Finish tutorial	

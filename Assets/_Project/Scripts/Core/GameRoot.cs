@@ -102,6 +102,10 @@ namespace UrbanLegendBureau.Core
             var investigationActions = new InvestigationActionService(_gameDataCatalog, investigationTime);
             ServiceRegistry.Register(investigationActions);
 
+            // 볼륨 설정. 값은 기존 SaveData.settings 에 들어가므로 저장 이후에 초기화한다.
+            var audio = new UrbanLegendBureau.Audio.AudioService();
+            ServiceRegistry.Register(audio);
+
             // --- 초기화 ---
             InitializeService(localization);
             InitializeService(input);
@@ -116,6 +120,7 @@ namespace UrbanLegendBureau.Core
             InitializeService(cases);
             InitializeService(investigationTime);
             InitializeService(investigationActions);
+            InitializeService(audio);
 
             IsBooted = true;
 
@@ -189,6 +194,11 @@ namespace UrbanLegendBureau.Core
             if (Instance != this) return;
 
             // 등록 역순으로 종료한다.
+            if (ServiceRegistry.TryGet<UrbanLegendBureau.Audio.AudioService>(out var audio))
+            {
+                audio.Shutdown();
+            }
+
             if (ServiceRegistry.TryGet<InvestigationActionService>(out var investigationActions))
             {
                 investigationActions.Shutdown();

@@ -153,11 +153,21 @@ namespace UrbanLegendBureau.EditorTools
             var fieldHud = BuildHudScreen("Screen_FieldHud", out var fieldButtons);
             var exorcism = BuildPanelScreen("Screen_Exorcism", UILayer.Screen, out var exorcismButtons, true);
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
+            var help = BuildPanelScreen("Screen_Help", UILayer.Screen, out var helpButtons, true);
+            var settings = BuildSettingsScreen("Screen_Settings", out var settingsButtons);
+            var dialogue = BuildDialogueScreen("Screen_Dialogue");
+            var community = BuildCommunityScreen("Screen_Community", out var communityButtons);
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
             var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
 
-            var btnStart = CreateButton(titleButtons, "Btn_StartCase", "ui.case.btn_cases");
+            var btnStart = CreateButton(titleButtons, "Btn_Start", "ui.title.start");
+            var btnHelp = CreateButton(titleButtons, "Btn_Help", "ui.title.help");
+            var btnSettings = CreateButton(titleButtons, "Btn_Settings", "ui.title.settings");
+            var btnQuit = CreateButton(titleButtons, "Btn_Quit", "ui.title.quit");
+            var btnHelpBack = CreateButton(helpButtons, "Btn_HelpBack", "ui.common.back");
+            var btnSettingsBack = CreateButton(settingsButtons, "Btn_SettingsBack", "ui.common.back");
+            var btnTutorialDone = CreateButton(communityButtons, "Btn_TutorialDone", "tutorial.btn_finish");
             var btnActions = CreateButton(bureauButtons, "Btn_Actions", "ui.action.btn_actions");
             var btnActionsBack = CreateButton(actionButtons, "Btn_ActionsBack", "ui.action.btn_back");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
@@ -180,6 +190,8 @@ namespace UrbanLegendBureau.EditorTools
             var dso = new SerializedObject(director);
             dso.Update();
             dso.FindProperty("_titleScreen").objectReferenceValue = title;
+            dso.FindProperty("_helpScreen").objectReferenceValue = help;
+            dso.FindProperty("_settingsScreen").objectReferenceValue = settings;
             dso.FindProperty("_caseListScreen").objectReferenceValue = caseList;
             dso.FindProperty("_bureauScreen").objectReferenceValue = bureau;
             dso.FindProperty("_actionListScreen").objectReferenceValue = actionList;
@@ -197,7 +209,31 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_field").objectReferenceValue = field;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
-            UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnOpenCaseListClicked);
+            UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
+            UnityEventTools.AddPersistentListener(btnHelp.GetComponent<Button>().onClick, director.OnOpenHelpClicked);
+            UnityEventTools.AddPersistentListener(btnSettings.GetComponent<Button>().onClick, director.OnOpenSettingsClicked);
+            UnityEventTools.AddPersistentListener(btnQuit.GetComponent<Button>().onClick, director.OnQuitClicked);
+            UnityEventTools.AddPersistentListener(btnHelpBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
+            UnityEventTools.AddPersistentListener(btnSettingsBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
+
+            // --- 튜토리얼 ---
+            var tutorialGo = new GameObject("TutorialDirector");
+            var tutorial = tutorialGo.AddComponent<TutorialDirector>();
+            var tso = new SerializedObject(tutorial);
+            tso.Update();
+            tso.FindProperty("_dialogueScreen").objectReferenceValue = dialogue;
+            tso.FindProperty("_communityScreen").objectReferenceValue = community;
+            tso.FindProperty("_caseDirector").objectReferenceValue = director;
+            tso.FindProperty("_tutorialPage").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<UrbanLegendBureau.Data.WebPageSO>(
+                    "Assets/_Project/Data/WebPages/web_subway_001.asset");
+            tso.ApplyModifiedPropertiesWithoutUndo();
+
+            dso.Update();
+            dso.FindProperty("_tutorial").objectReferenceValue = tutorial;
+            dso.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddPersistentListener(btnTutorialDone.GetComponent<Button>().onClick, tutorial.OnFinishClicked);
             UnityEventTools.AddPersistentListener(btnActions.GetComponent<Button>().onClick, director.OnOpenActionsClicked);
             UnityEventTools.AddPersistentListener(btnActionsBack.GetComponent<Button>().onClick, director.OnActionsBackClicked);
             UnityEventTools.AddPersistentListener(btnInternet.GetComponent<Button>().onClick, director.OnInternetResearchClicked);
@@ -504,6 +540,262 @@ namespace UrbanLegendBureau.EditorTools
 
             buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
             return screen;
+        }
+
+        /// <summary>설정 화면. 슬라이더 두 개뿐이다.</summary>
+        private static SettingsScreen BuildSettingsScreen(string name, out Transform buttonRow)
+        {
+            var go = CreatePanel(null, name, PanelColor);
+            StretchFull(go);
+
+            var screen = go.AddComponent<SettingsScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 300f), new Vector2(1200f, 100f), TextAlignmentOptions.Center);
+            var bgmLabel = AddText(go.transform, "BgmLabel", 34f, UIFontWeight.Medium, TextColor,
+                new Vector2(-260f, 120f), new Vector2(560f, 60f), TextAlignmentOptions.Left);
+            var sfxLabel = AddText(go.transform, "SfxLabel", 34f, UIFontWeight.Medium, TextColor,
+                new Vector2(-260f, -40f), new Vector2(560f, 60f), TextAlignmentOptions.Left);
+
+            var bgmSlider = CreateSlider(go.transform, "Slider_Bgm", new Vector2(240f, 120f));
+            var sfxSlider = CreateSlider(go.transform, "Slider_Sfx", new Vector2(240f, -40f));
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_bgmLabel").objectReferenceValue = bgmLabel;
+            so.FindProperty("_sfxLabel").objectReferenceValue = sfxLabel;
+            so.FindProperty("_bgmSlider").objectReferenceValue = bgmSlider;
+            so.FindProperty("_sfxSlider").objectReferenceValue = sfxSlider;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -300f), new Vector2(900f, 110f));
+            return screen;
+        }
+
+        /// <summary>볼륨 슬라이더. UI 기본 구성 요소만 쓴다.</summary>
+        private static Slider CreateSlider(Transform parent, string name, Vector2 position)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(600f, 40f);
+
+            var slider = go.AddComponent<Slider>();
+
+            var background = CreatePanel(go.transform, "Background", new Color(0.18f, 0.19f, 0.25f, 1f));
+            var bgRt = (RectTransform)background.transform;
+            bgRt.anchorMin = new Vector2(0f, 0.25f);
+            bgRt.anchorMax = new Vector2(1f, 0.75f);
+            bgRt.offsetMin = Vector2.zero;
+            bgRt.offsetMax = Vector2.zero;
+
+            var fillArea = new GameObject("Fill Area", typeof(RectTransform));
+            fillArea.transform.SetParent(go.transform, false);
+            var faRt = (RectTransform)fillArea.transform;
+            faRt.anchorMin = new Vector2(0f, 0.25f);
+            faRt.anchorMax = new Vector2(1f, 0.75f);
+            faRt.offsetMin = new Vector2(10f, 0f);
+            faRt.offsetMax = new Vector2(-10f, 0f);
+
+            var fill = CreatePanel(fillArea.transform, "Fill", AccentColor);
+            var fillRt = (RectTransform)fill.transform;
+            fillRt.anchorMin = Vector2.zero;
+            fillRt.anchorMax = new Vector2(0f, 1f);
+            fillRt.sizeDelta = new Vector2(20f, 0f);
+
+            var handleArea = new GameObject("Handle Slide Area", typeof(RectTransform));
+            handleArea.transform.SetParent(go.transform, false);
+            var haRt = (RectTransform)handleArea.transform;
+            haRt.anchorMin = new Vector2(0f, 0f);
+            haRt.anchorMax = new Vector2(1f, 1f);
+            haRt.offsetMin = new Vector2(10f, 0f);
+            haRt.offsetMax = new Vector2(-10f, 0f);
+
+            var handle = CreatePanel(handleArea.transform, "Handle", TextColor);
+            var handleRt = (RectTransform)handle.transform;
+            handleRt.sizeDelta = new Vector2(36f, 40f);
+
+            slider.fillRect = fillRt;
+            slider.handleRect = handleRt;
+            slider.targetGraphic = handle.GetComponent<Image>();
+            slider.direction = Slider.Direction.LeftToRight;
+            return slider;
+        }
+
+        /// <summary>튜토리얼 대화 화면. 배경은 검은색, 인물은 좌우에 세운다.</summary>
+        private static DialogueScreen BuildDialogueScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.02f, 0.02f, 0.03f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<DialogueScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            // 화면 전체를 덮는 진행 버튼. 마우스 클릭과 터치가 같은 경로로 들어온다.
+            var advanceGo = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
+            StretchFull(advanceGo);
+            var advance = advanceGo.AddComponent<Button>();
+            advance.targetGraphic = advanceGo.GetComponent<Image>();
+
+            var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
+            var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
+
+            var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
+            var boxRt = (RectTransform)box.transform;
+            boxRt.anchorMin = new Vector2(0.5f, 0.5f);
+            boxRt.anchorMax = new Vector2(0.5f, 0.5f);
+            boxRt.anchoredPosition = new Vector2(0f, -340f);
+            boxRt.sizeDelta = new Vector2(1600f, 300f);
+
+            var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
+                new Vector2(-660f, 100f), new Vector2(400f, 60f), TextAlignmentOptions.Left);
+            var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
+                new Vector2(0f, -10f), new Vector2(1500f, 160f), TextAlignmentOptions.TopLeft);
+            var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
+                new Vector2(620f, -110f), new Vector2(400f, 40f), TextAlignmentOptions.Right);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_left").FindPropertyRelative("nameTextId").stringValue = "tutorial.char.hanyoung";
+            so.FindProperty("_left").FindPropertyRelative("image").objectReferenceValue = left;
+            so.FindProperty("_right").FindPropertyRelative("nameTextId").stringValue = "tutorial.char.chajihan";
+            so.FindProperty("_right").FindPropertyRelative("image").objectReferenceValue = right;
+            so.FindProperty("_nameText").objectReferenceValue = nameText;
+            so.FindProperty("_lineText").objectReferenceValue = lineText;
+            so.FindProperty("_hintText").objectReferenceValue = hintText;
+            so.FindProperty("_advanceButton").objectReferenceValue = advance;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return screen;
+        }
+
+        /// <summary>임시 캐릭터 이미지. 스프라이트 참조만 갈아 끼우면 실제 아트로 바뀐다.</summary>
+        private static Image CreateCharacterImage(Transform parent, string name, float x, string spriteName)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(x, 60f);
+            rt.sizeDelta = new Vector2(420f, 840f);
+
+            var image = go.AddComponent<Image>();
+            image.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/UI/Sprites/" + spriteName + ".png");
+            image.preserveAspect = true;
+            image.raycastTarget = false;     // 진행 버튼을 가리지 않게 한다
+            return image;
+        }
+
+        /// <summary>인터넷 커뮤니티 게시글 화면.</summary>
+        private static CommunityPageScreen BuildCommunityScreen(string name, out Transform buttonRow)
+        {
+            var go = CreatePanel(null, name, new Color(0.94f, 0.94f, 0.95f, 1f));   // 커뮤니티는 밝은 배경
+            StretchFull(go);
+
+            var screen = go.AddComponent<CommunityPageScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var ink = new Color(0.12f, 0.12f, 0.14f);
+            var dim = new Color(0.42f, 0.44f, 0.48f);
+
+            var header = CreatePanel(go.transform, "Header", new Color(0.20f, 0.24f, 0.34f, 1f));
+            var headerRt = (RectTransform)header.transform;
+            headerRt.anchorMin = new Vector2(0f, 1f);
+            headerRt.anchorMax = new Vector2(1f, 1f);
+            headerRt.pivot = new Vector2(0.5f, 1f);
+            headerRt.anchoredPosition = Vector2.zero;
+            headerRt.sizeDelta = new Vector2(0f, 90f);
+
+            var siteText = AddText(header.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
+                new Vector2(-760f, 0f), new Vector2(400f, 70f), TextAlignmentOptions.Left);
+            var boardText = AddText(header.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
+                new Vector2(-380f, 0f), new Vector2(400f, 70f), TextAlignmentOptions.Left);
+
+            var titleText = AddText(go.transform, "PostTitle", 44f, UIFontWeight.Bold, ink,
+                new Vector2(0f, 360f), new Vector2(1700f, 70f), TextAlignmentOptions.Left);
+            var metaText = AddText(go.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
+                new Vector2(0f, 310f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
+            var bodyText = AddText(go.transform, "PostBody", 30f, UIFontWeight.Regular, ink,
+                new Vector2(0f, 190f), new Vector2(1700f, 190f), TextAlignmentOptions.TopLeft);
+
+            var commentHeader = AddText(go.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
+                new Vector2(0f, 70f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
+
+            var commentRoot = CreateVerticalList(go.transform, "Comments", new Vector2(-440f, 30f),
+                new Vector2(820f, 320f), 8f);
+            var commentTemplate = AddText(commentRoot, "CommentTemplate", 24f, UIFontWeight.Regular, ink,
+                Vector2.zero, new Vector2(800f, 66f), TextAlignmentOptions.TopLeft);
+            commentTemplate.gameObject.SetActive(false);
+
+            var choiceHeader = AddText(go.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
+                new Vector2(460f, 70f), new Vector2(820f, 40f), TextAlignmentOptions.Left);
+
+            var choiceRoot = CreateVerticalList(go.transform, "Choices", new Vector2(460f, 30f),
+                new Vector2(820f, 320f), 10f);
+            var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
+            var choiceButton = choiceTemplate.AddComponent<Button>();
+            choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
+            var ctRt = (RectTransform)choiceTemplate.transform;
+            ctRt.sizeDelta = new Vector2(800f, 96f);
+            var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
+                Vector2.zero, new Vector2(770f, 86f), TextAlignmentOptions.Left);
+            var ctlRt = (RectTransform)ctLabel.transform;
+            ctlRt.anchorMin = Vector2.zero;
+            ctlRt.anchorMax = Vector2.one;
+            ctlRt.offsetMin = new Vector2(16f, 6f);
+            ctlRt.offsetMax = new Vector2(-16f, -6f);
+            choiceTemplate.SetActive(false);
+
+            var noticeText = AddText(go.transform, "Notice", 28f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
+                new Vector2(0f, -340f), new Vector2(1700f, 90f), TextAlignmentOptions.Center);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_siteText").objectReferenceValue = siteText;
+            so.FindProperty("_boardText").objectReferenceValue = boardText;
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_metaText").objectReferenceValue = metaText;
+            so.FindProperty("_bodyText").objectReferenceValue = bodyText;
+            so.FindProperty("_commentHeaderText").objectReferenceValue = commentHeader;
+            so.FindProperty("_commentRoot").objectReferenceValue = commentRoot;
+            so.FindProperty("_commentTemplate").objectReferenceValue = commentTemplate;
+            so.FindProperty("_choiceHeaderText").objectReferenceValue = choiceHeader;
+            so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
+            so.FindProperty("_choiceTemplate").objectReferenceValue = choiceButton;
+            so.FindProperty("_noticeText").objectReferenceValue = noticeText;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -430f), new Vector2(900f, 100f));
+            return screen;
+        }
+
+        /// <summary>세로로 쌓이는 목록 영역.</summary>
+        private static RectTransform CreateVerticalList(Transform parent, string name, Vector2 position,
+            Vector2 size, float spacing)
+        {
+            var go = new GameObject(name, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0.5f, 0.5f);
+            rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = size;
+
+            var layout = go.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = spacing;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = false;
+            layout.childControlHeight = false;
+            layout.childForceExpandWidth = false;
+            layout.childForceExpandHeight = false;
+            return rt;
         }
 
         /// <summary>규칙 추론 화면. 왼쪽에 확보한 단서, 가운데에 규칙 후보 목록.</summary>
