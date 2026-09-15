@@ -160,6 +160,9 @@ namespace UrbanLegendBureau.UI
             _page = page;
             _views = views;
             _postTimeTextId = postTimeTextId;
+
+            // 새 글이므로 맨 위부터 보여준다.
+            _shownCommentCount = -1;
             Refresh();
         }
 
@@ -326,20 +329,27 @@ namespace UrbanLegendBureau.UI
                 _spawnedComments.Add(item);
             }
 
-            // 새 댓글이 붙으면 맨 아래가 보이게 한다. 방금 달린 것이 화면 밖에 있으면 안 된다.
+            // 굴러가는 것은 화면 한 장 전체다.
+            // 높이가 아직 갱신되지 않은 채로 위치를 잡으면 엉뚱한 곳에 멈추므로 배치를 먼저 확정한다.
             if (_commentScroll != null)
             {
-                // 목록 높이가 아직 갱신되지 않은 채로 위치를 잡으면 엉뚱한 곳에 멈춘다.
-                // 배치를 먼저 확정한 뒤 맨 아래로 내린다.
                 Canvas.ForceUpdateCanvases();
-                // 댓글 쓰기 칸까지 한 덩어리로 굴러가므로 덩어리 전체를 다시 배치한다.
+
                 var content = _commentScroll.content;
                 if (content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(content);
                 else if (_commentRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentRoot);
 
-                _commentScroll.verticalNormalizedPosition = 0f;
+                // 글을 막 열었으면 맨 위, 즉 제목부터 보여준다.
+                // 그 뒤에 댓글이 새로 달렸을 때만 맨 아래로 내려 방금 달린 것을 보여준다.
+                if (_shownCommentCount < 0) _commentScroll.verticalNormalizedPosition = 1f;
+                else if (_comments.Count > _shownCommentCount) _commentScroll.verticalNormalizedPosition = 0f;
             }
+
+            _shownCommentCount = _comments.Count;
         }
+
+        /// <summary>마지막으로 그린 댓글 수. 새로 달렸는지 가리는 데만 쓴다. 음수면 글을 막 열었다는 뜻이다.</summary>
+        private int _shownCommentCount = -1;
 
         private void RebuildChoices()
         {

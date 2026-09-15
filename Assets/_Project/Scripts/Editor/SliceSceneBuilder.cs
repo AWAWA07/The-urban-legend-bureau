@@ -1014,71 +1014,73 @@ namespace UrbanLegendBureau.EditorTools
             postView.transform.SetParent(go.transform, false);
             StretchFull(postView);
 
-            // 실제 커뮤니티 글 화면의 자리 배치를 따른다. 한 단으로 쭉 내려간다.
-            // 제목 -> 작성자 정보 -> 구분선 -> 본문 -> 구분선 -> "댓글 N" -> 댓글들 -> 댓글 쓰기.
-            // 게시판 이름(괴담넷 | 자유게시판)은 위 머리말 줄이 이미 맡고 있으므로 따로 두지 않는다.
-            //
-            // 댓글 쓰기는 댓글 목록의 맨 아래에 붙어 함께 굴러간다.
-            // 댓글이 많으면 끝까지 내려야 쓰는 칸이 보인다. 실제 커뮤니티가 그렇다.
-            const float readWidth = 1700f;       // 글과 댓글이 쓰는 폭. 오른쪽에 남는 자리를 두지 않는다.
-            const float readX = 0f;
+            // 실제 커뮤니티 글 화면처럼 화면 전체가 한 장으로 굴러간다.
+            // 글 묶음과 댓글 묶음을 흰 판 두 개로 나눠 회색 배경이 사이로 보이게 한다.
+            // 그래야 어디까지가 글이고 어디부터가 댓글인지 눈에 바로 들어온다.
+            const float pageWidth = 1700f;
 
-            // 제목 높이는 씬에서 직접 옮긴 값(340)을 그대로 쓴다.
-            const float TitleY = 340f;
+            // 굴러가는 자리. 머리말 바로 아래부터 화면 아래까지 쓴다.
+            const float ViewTop = 374f;
+            const float ViewBottom = -182f;     // 대화 상자 위로 8 남긴다
+            const float ViewHeight = ViewTop - ViewBottom;
 
-            var titleText = AddText(postView.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
-                new Vector2(readX, TitleY), new Vector2(readWidth, 54f), TextAlignmentOptions.Left);   // 313~367
-            var metaText = AddText(postView.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
-                new Vector2(readX, 294f), new Vector2(readWidth, 30f), TextAlignmentOptions.Left);     // 279~309
-
-            AddRule(postView.transform, readX, 268f, readWidth);
-
-            var bodyText = AddText(postView.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
-                new Vector2(readX, 206f), new Vector2(readWidth, 110f), TextAlignmentOptions.TopLeft); // 151~261
-
-            AddRule(postView.transform, readX, 142f, readWidth);
-
-            var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
-                new Vector2(readX, 120f), new Vector2(readWidth, 32f), TextAlignmentOptions.Left);     // 104~136
-
-            // --- 여기부터 끌어서 내리는 자리. 댓글과 댓글 쓰기가 한 덩어리로 굴러간다. ---
-            const float ListTop = 96f;          // 목록 시작
-            const float ListHeight = 278f;      // 아래 -182 에서 끝난다. 대화 상자 위로 8 남긴다.
-
-            var commentViewport = new GameObject("CommentsViewport", typeof(RectTransform));
-            commentViewport.transform.SetParent(postView.transform, false);
-            var cvRt = (RectTransform)commentViewport.transform;
+            var pageViewport = new GameObject("PageViewport", typeof(RectTransform));
+            pageViewport.transform.SetParent(postView.transform, false);
+            var cvRt = (RectTransform)pageViewport.transform;
             cvRt.anchorMin = new Vector2(0.5f, 0.5f);
             cvRt.anchorMax = new Vector2(0.5f, 0.5f);
             cvRt.pivot = new Vector2(0.5f, 1f);
-            cvRt.anchoredPosition = new Vector2(readX, ListTop);
-            cvRt.sizeDelta = new Vector2(readWidth, ListHeight);
-            commentViewport.AddComponent<RectMask2D>();
+            cvRt.anchoredPosition = new Vector2(0f, ViewTop);
+            cvRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
+            pageViewport.AddComponent<RectMask2D>();
 
-            // 굴러가는 내용 전체. 댓글 덩어리와 댓글 쓰기 상자를 위아래로 쌓는다.
-            var thread = new GameObject("Thread", typeof(RectTransform));
-            thread.transform.SetParent(commentViewport.transform, false);
-            var threadRt = (RectTransform)thread.transform;
-            threadRt.anchorMin = new Vector2(0.5f, 1f);
-            threadRt.anchorMax = new Vector2(0.5f, 1f);
-            threadRt.pivot = new Vector2(0.5f, 1f);
-            threadRt.anchoredPosition = Vector2.zero;
-            threadRt.sizeDelta = new Vector2(readWidth, ListHeight);
-            var threadLayout = thread.AddComponent<VerticalLayoutGroup>();
-            threadLayout.spacing = 24f;
-            threadLayout.childAlignment = TextAnchor.UpperCenter;
-            threadLayout.childControlWidth = true;
-            threadLayout.childControlHeight = true;
-            threadLayout.childForceExpandWidth = true;
-            threadLayout.childForceExpandHeight = false;
-            var threadFitter = thread.AddComponent<ContentSizeFitter>();
-            threadFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            // 굴러가는 내용 전체.
+            var page = new GameObject("Page", typeof(RectTransform));
+            page.transform.SetParent(pageViewport.transform, false);
+            var pageRt = (RectTransform)page.transform;
+            pageRt.anchorMin = new Vector2(0.5f, 1f);
+            pageRt.anchorMax = new Vector2(0.5f, 1f);
+            pageRt.pivot = new Vector2(0.5f, 1f);
+            pageRt.anchoredPosition = Vector2.zero;
+            pageRt.sizeDelta = new Vector2(pageWidth, ViewHeight);
+            AddStack(page, 16f, new RectOffset(0, 0, 0, 0));
+
+            var pageScroll = pageViewport.AddComponent<ScrollRect>();
+            pageScroll.viewport = cvRt;
+            pageScroll.content = pageRt;
+            pageScroll.horizontal = false;
+            pageScroll.vertical = true;
+            pageScroll.movementType = ScrollRect.MovementType.Clamped;
+            pageScroll.scrollSensitivity = 40f;
+
+            // --- 글 묶음 ---
+            var postBlock = CreatePanel(page.transform, "PostBlock", new Color(1f, 1f, 1f, 1f));
+            AddStack(postBlock, 10f, new RectOffset(32, 32, 26, 30));
+
+            var titleText = AddText(postBlock.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
+                Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
+            var metaText = AddText(postBlock.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
+                Vector2.zero, new Vector2(pageWidth - 64f, 30f), TextAlignmentOptions.Left);
+
+            AddStackRule(postBlock.transform, new Color(0.86f, 0.87f, 0.90f, 1f), 2f);
+
+            var bodyText = AddText(postBlock.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
+                Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
+
+            // --- 댓글 묶음. 글과 떨어진 별개의 판이다. ---
+            var commentBlock = CreatePanel(page.transform, "CommentBlock", new Color(1f, 1f, 1f, 1f));
+            AddStack(commentBlock, 14f, new RectOffset(32, 32, 22, 26));
+
+            var commentHeader = AddText(commentBlock.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
+                Vector2.zero, new Vector2(pageWidth - 64f, 32f), TextAlignmentOptions.Left);
+
+            AddStackRule(commentBlock.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
 
             // 댓글 덩어리. 칸 높이는 카드가 정한다.
             var comments = new GameObject("Comments", typeof(RectTransform));
-            comments.transform.SetParent(thread.transform, false);
+            comments.transform.SetParent(commentBlock.transform, false);
             var commentRoot = (RectTransform)comments.transform;
-            commentRoot.sizeDelta = new Vector2(readWidth, 0f);
+            commentRoot.sizeDelta = new Vector2(pageWidth - 64f, 0f);
             var commentLayout = comments.AddComponent<VerticalLayoutGroup>();
             commentLayout.spacing = 0f;
             commentLayout.childAlignment = TextAnchor.UpperCenter;
@@ -1087,23 +1089,15 @@ namespace UrbanLegendBureau.EditorTools
             commentLayout.childForceExpandWidth = true;
             commentLayout.childForceExpandHeight = false;
 
-            var commentScroll = commentViewport.AddComponent<ScrollRect>();
-            commentScroll.viewport = cvRt;
-            commentScroll.content = threadRt;
-            commentScroll.horizontal = false;
-            commentScroll.vertical = true;
-            commentScroll.movementType = ScrollRect.MovementType.Clamped;
-            commentScroll.scrollSensitivity = 30f;
-
             // 댓글 한 줄. 실제 커뮤니티처럼 칸을 나누는 것은 배경색이 아니라 아래쪽 가는 선이다.
             // 선은 3 만큼 둔다. 1 로 두면 화면을 줄여 그릴 때 어떤 줄은 아예 사라진다.
             var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 0f));
             var comRt = (RectTransform)commentTemplate.transform;
-            comRt.sizeDelta = new Vector2(readWidth, 76f);
+            comRt.sizeDelta = new Vector2(pageWidth - 64f, 82f);
             var comLabel = AddText(commentTemplate.transform, "Label", 22f, UIFontWeight.Regular, ink,
-                Vector2.zero, new Vector2(readWidth - 24f, 64f), TextAlignmentOptions.TopLeft);
-            StretchInside(comLabel.rectTransform, 12f, 12f, 8f, 14f);
-            var comRule = CreatePanel(commentTemplate.transform, "Rule", new Color(0.82f, 0.84f, 0.88f, 1f));
+                Vector2.zero, new Vector2(pageWidth - 88f, 68f), TextAlignmentOptions.TopLeft);
+            StretchInside(comLabel.rectTransform, 12f, 12f, 10f, 16f);
+            var comRule = CreatePanel(commentTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
             var comRuleRt = (RectTransform)comRule.transform;
             comRuleRt.anchorMin = new Vector2(0f, 0f);
             comRuleRt.anchorMax = new Vector2(1f, 0f);
@@ -1113,30 +1107,21 @@ namespace UrbanLegendBureau.EditorTools
             comRule.GetComponent<Image>().raycastTarget = false;
             commentTemplate.SetActive(false);
 
-            // --- 댓글 쓰기 상자. 댓글 목록 바로 아래에 붙는다. ---
-            var writeBox = CreatePanel(thread.transform, "WriteBox", new Color(0.985f, 0.985f, 0.99f, 1f));
-            var wbLayout = writeBox.AddComponent<VerticalLayoutGroup>();
-            wbLayout.spacing = 12f;
-            wbLayout.padding = new RectOffset(20, 20, 16, 20);
-            wbLayout.childAlignment = TextAnchor.UpperCenter;
-            wbLayout.childControlWidth = true;
-            wbLayout.childControlHeight = true;
-            wbLayout.childForceExpandWidth = true;
-            wbLayout.childForceExpandHeight = false;
-            var wbFitter = writeBox.AddComponent<ContentSizeFitter>();
-            wbFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            // --- 댓글 쓰기 칸. 댓글 목록 맨 아래에 붙는다. ---
+            var writeBox = CreatePanel(commentBlock.transform, "WriteBox", new Color(0.955f, 0.958f, 0.97f, 1f));
+            AddStack(writeBox, 12f, new RectOffset(22, 22, 18, 22));
 
             var choiceHeader = AddText(writeBox.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, ink,
-                Vector2.zero, new Vector2(readWidth - 40f, 32f), TextAlignmentOptions.Left);
+                Vector2.zero, new Vector2(pageWidth - 108f, 32f), TextAlignmentOptions.Left);
 
             // 안내는 쓰는 칸 안, 머리말 바로 아래. 무엇과도 겹치지 않는다.
             var noticeText = AddText(writeBox.transform, "Notice", 24f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                Vector2.zero, new Vector2(readWidth - 40f, 30f), TextAlignmentOptions.Left);
+                Vector2.zero, new Vector2(pageWidth - 108f, 30f), TextAlignmentOptions.Left);
 
             var choices = new GameObject("Choices", typeof(RectTransform));
             choices.transform.SetParent(writeBox.transform, false);
             var choiceRoot = (RectTransform)choices.transform;
-            choiceRoot.sizeDelta = new Vector2(readWidth - 40f, 0f);
+            choiceRoot.sizeDelta = new Vector2(pageWidth - 108f, 0f);
             var choiceLayout = choices.AddComponent<VerticalLayoutGroup>();
             choiceLayout.spacing = 12f;
             choiceLayout.childAlignment = TextAnchor.UpperCenter;
@@ -1149,11 +1134,13 @@ namespace UrbanLegendBureau.EditorTools
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
             var ctRt = (RectTransform)choiceTemplate.transform;
-            ctRt.sizeDelta = new Vector2(readWidth - 40f, 72f);
+            ctRt.sizeDelta = new Vector2(pageWidth - 108f, 72f);
             var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(readWidth - 88f, 56f), TextAlignmentOptions.Left);
+                Vector2.zero, new Vector2(pageWidth - 156f, 56f), TextAlignmentOptions.Left);
             StretchInside(ctLabel.rectTransform, 24f, 24f, 8f, 8f);
             choiceTemplate.SetActive(false);
+
+            var commentScroll = pageScroll;
 
             var so = new SerializedObject(screen);
             so.Update();
@@ -1484,18 +1471,37 @@ namespace UrbanLegendBureau.EditorTools
             return go;
         }
 
-        /// <summary>글과 댓글을 나누는 가는 선. 실제 커뮤니티 화면이 칸을 나누는 방식이다.</summary>
-        private static void AddRule(Transform parent, float x, float y, float width)
+        /// <summary>
+        /// 자식을 위에서 아래로 쌓고, 쌓인 만큼 제 키를 잡는다.
+        /// 글 길이에 따라 칸이 늘어나야 하는 곳에 쓴다. 자리를 숫자로 박지 않아도 된다.
+        /// </summary>
+        private static VerticalLayoutGroup AddStack(GameObject go, float spacing, RectOffset padding)
         {
-            var rule = CreatePanel(parent, "Rule", new Color(0.80f, 0.82f, 0.86f, 1f));
-            var rt = (RectTransform)rule.transform;
-            rt.anchorMin = new Vector2(0.5f, 0.5f);
-            rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = new Vector2(x, y);
-            rt.sizeDelta = new Vector2(width, 1f);
+            var layout = go.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = spacing;
+            layout.padding = padding;
+            layout.childAlignment = TextAnchor.UpperCenter;
+            layout.childControlWidth = true;
+            layout.childControlHeight = true;
+            layout.childForceExpandWidth = true;
+            layout.childForceExpandHeight = false;
+
+            var fitter = go.AddComponent<ContentSizeFitter>();
+            fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            return layout;
+        }
+
+        /// <summary>쌓아 놓은 칸 사이에 끼우는 가로 선. 높이를 직접 알려 줘야 한다.</summary>
+        private static void AddStackRule(Transform parent, Color color, float height)
+        {
+            var rule = CreatePanel(parent, "Rule", color);
             var img = rule.GetComponent<Image>();
             if (img != null) img.raycastTarget = false;
+
+            var element = rule.AddComponent<LayoutElement>();
+            element.minHeight = height;
+            element.preferredHeight = height;
+            element.flexibleHeight = 0f;
         }
 
         /// <summary>
