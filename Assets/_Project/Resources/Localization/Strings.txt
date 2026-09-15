@@ -204,3 +204,19 @@ ui.field.btn_done	조사 종료	Finish investigation	현장에서 봉인 단계�
 # --- 18단계: 조사 비용 표시 ---
 ui.action.cost_time	시간 +{0}분	Time +{0} min	조사 방법 목록의 예상 비용
 ui.action.cost_spread	확산도 +{0}%	Spread +{0}%	
+
+# --- 19단계: 규칙 추론 선택 ---
+ui.rule.screen_title	규칙 추론	Deduction	규칙 추론 화면 제목
+ui.rule.screen_hint	확보한 단서를 근거로 괴담의 규칙을 골라 보세요.	Pick the rule you think holds, based on what you have found.	
+ui.rule.already_mark	확인함	Checked	이미 추론한 규칙 표시
+ui.rule.btn_deduce	규칙 추론	Deduce	현장 HUD 버튼
+ui.rule.btn_back	현장으로	Back to site	
+ui.rule.candidate_found	짚이는 것이 있다	Something clicks	새 단서로 후보가 생겼을 때 팝업 제목
+ui.rule.candidate_hint	지금까지 모은 단서로 세워 볼 수 있는 규칙이 {0}개 있다.
+규칙 추론에서 직접 골라야 한다.	You can now form {0} possible rule(s) from what you have.
+Pick one yourself in Deduction.	
+ui.rule.attempt_correct	규칙을 정확하게 파악했다.	You have the rule right.	
+ui.rule.attempt_wrong	그 규칙은 이 괴담의 규칙이 아니다.	That is not this legend's rule.	
+ui.rule.attempt_known	이미 확인한 규칙이다.	You have already checked this one.	
+ui.rule.attempt_no_clue	아직 근거가 부족하다.	There is not enough to go on yet.	
+ui.rule.attempt_missing	추론할 수 없다.	This cannot be deduced.	

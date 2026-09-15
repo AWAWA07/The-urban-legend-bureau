@@ -117,6 +117,7 @@ namespace UrbanLegendBureau.EditorTools
             var bureau = BuildPanelScreen("Screen_Bureau", UILayer.Screen, out var bureauButtons, true);
             var caseList = BuildCaseListScreen("Screen_CaseList");
             var actionList = BuildActionListScreen("Screen_Actions", out var actionButtons);
+            var ruleList = BuildRuleListScreen("Screen_Rules", out var ruleScreenButtons);
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -133,6 +134,8 @@ namespace UrbanLegendBureau.EditorTools
             var btnField = CreateButton(internetButtons, "Btn_EnterField", "ui.slice.btn_enter_field");
             var btnCensor = CreateButton(pageButtons, "Btn_Censor", "ui.net.btn_censor");
             var btnPageBack = CreateButton(pageButtons, "Btn_PageBack", "ui.net.btn_back");
+            var btnDeduce = CreateButton(fieldButtons, "Btn_Deduce", "ui.rule.btn_deduce");
+            var btnRulesBack = CreateButton(ruleScreenButtons, "Btn_RulesBack", "ui.rule.btn_back");
             var btnFieldDone = CreateButton(fieldButtons, "Btn_FieldDone", "ui.field.btn_done");
             var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
             var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
@@ -155,6 +158,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_fieldHudScreen").objectReferenceValue = fieldHud;
             dso.FindProperty("_cluePopupScreen").objectReferenceValue = cluePopup;
             dso.FindProperty("_rulePopupScreen").objectReferenceValue = rulePopup;
+            dso.FindProperty("_ruleListScreen").objectReferenceValue = ruleList;
             dso.FindProperty("_warningPopupScreen").objectReferenceValue = warningPopup;
             dso.FindProperty("_exorcismScreen").objectReferenceValue = exorcism;
             dso.FindProperty("_sealButton").objectReferenceValue = btnSeal;
@@ -176,6 +180,8 @@ namespace UrbanLegendBureau.EditorTools
 
             UnityEventTools.AddPersistentListener(btnCensor.GetComponent<Button>().onClick, director.OnCensorClicked);
             UnityEventTools.AddPersistentListener(btnPageBack.GetComponent<Button>().onClick, director.OnPageBackClicked);
+            UnityEventTools.AddPersistentListener(btnDeduce.GetComponent<Button>().onClick, director.OnOpenRulesClicked);
+            UnityEventTools.AddPersistentListener(btnRulesBack.GetComponent<Button>().onClick, director.OnRulesBackClicked);
             UnityEventTools.AddPersistentListener(btnFieldDone.GetComponent<Button>().onClick, director.OnFieldDoneClicked);
             UnityEventTools.AddPersistentListener(btnSeal.GetComponent<Button>().onClick, director.OnSealClicked);
             UnityEventTools.AddPersistentListener(btnSealOk.GetComponent<Button>().onClick, director.OnExorcismConfirmClicked);
@@ -461,6 +467,68 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_footerText").objectReferenceValue = footerText;
             so.FindProperty("_statsText").objectReferenceValue = statsText;
+            so.FindProperty("_resultText").objectReferenceValue = resultText;
+            so.FindProperty("_listRoot").objectReferenceValue = listRt;
+            so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
+            return screen;
+        }
+
+        /// <summary>규칙 추론 화면. 왼쪽에 확보한 단서, 가운데에 규칙 후보 목록.</summary>
+        private static RuleListScreen BuildRuleListScreen(string name, out Transform buttonRow)
+        {
+            var go = CreatePanel(null, name, PanelColor);
+            StretchFull(go);
+
+            var screen = go.AddComponent<RuleListScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 420f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
+            var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 355f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
+            var clueText = AddText(go.transform, "Clues", 26f, UIFontWeight.Regular, AccentColor,
+                new Vector2(-620f, 40f), new Vector2(560f, 500f), TextAlignmentOptions.TopLeft);
+            var resultText = AddText(go.transform, "Result", 30f, UIFontWeight.Medium, WarnColor,
+                new Vector2(0f, -330f), new Vector2(1500f, 80f), TextAlignmentOptions.Center);
+
+            var listGo = new GameObject("List", typeof(RectTransform));
+            listGo.transform.SetParent(go.transform, false);
+            var listRt = (RectTransform)listGo.transform;
+            listRt.anchorMin = new Vector2(0.5f, 0.5f);
+            listRt.anchorMax = new Vector2(0.5f, 0.5f);
+            listRt.pivot = new Vector2(0.5f, 1f);
+            listRt.anchoredPosition = new Vector2(180f, 290f);
+            listRt.sizeDelta = new Vector2(1000f, 520f);
+            var listLayout = listGo.AddComponent<VerticalLayoutGroup>();
+            listLayout.spacing = 14f;
+            listLayout.childAlignment = TextAnchor.UpperCenter;
+            listLayout.childControlWidth = false;
+            listLayout.childControlHeight = false;
+            listLayout.childForceExpandWidth = false;
+            listLayout.childForceExpandHeight = false;
+
+            var template = CreatePanel(listGo.transform, "ItemTemplate", ButtonColor);
+            var templateButton = template.AddComponent<Button>();
+            templateButton.targetGraphic = template.GetComponent<Image>();
+            var trt = (RectTransform)template.transform;
+            trt.sizeDelta = new Vector2(960f, 150f);
+            var tLabel = AddText(template.transform, "ItemLabel", 26f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(920f, 130f), TextAlignmentOptions.Left);
+            var tlrt = (RectTransform)tLabel.transform;
+            tlrt.anchorMin = Vector2.zero;
+            tlrt.anchorMax = Vector2.one;
+            tlrt.offsetMin = new Vector2(24f, 8f);
+            tlrt.offsetMax = new Vector2(-24f, -8f);
+            template.SetActive(false);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_footerText").objectReferenceValue = footerText;
+            so.FindProperty("_clueText").objectReferenceValue = clueText;
             so.FindProperty("_resultText").objectReferenceValue = resultText;
             so.FindProperty("_listRoot").objectReferenceValue = listRt;
             so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;

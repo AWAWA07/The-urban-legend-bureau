@@ -91,6 +91,17 @@ namespace UrbanLegendBureau.EditorTools
                 CheckTextId(l, l.RiskLevelTextId, "riskLevel 표시 이름", localization, report, sb);
 
                 CheckNoNulls(l, l.Rules, "rules", report, sb);
+
+                // 정답 규칙이 하나도 없으면 봉인할 방법이 없다.
+                bool hasTrueRule = false;
+                foreach (var r in l.Rules)
+                {
+                    if (r != null && r.IsTrue) hasTrueRule = true;
+                }
+                if (l.Rules.Count > 0 && !hasTrueRule)
+                {
+                    Error(report, sb, l, "정확한 규칙(isTrue)이 하나도 없다. 이 괴담은 봉인할 수 없다.");
+                }
                 CheckNoNulls(l, l.Clues, "clues", report, sb);
                 CheckNoNulls(l, l.WebPages, "webPages", report, sb);
                 CheckNoNulls(l, l.InvestigationActions, "investigationActions", report, sb);
@@ -126,10 +137,25 @@ namespace UrbanLegendBureau.EditorTools
 
             int pointCount = CheckScenePoints(clueIds, report, sb);
 
+            // 어느 괴담에도 속하지 않은 규칙은 후보로 나올 수 없다. 데이터 연결이 빠진 것이다.
+            var rulesInLegends = new HashSet<string>();
+            foreach (var l in legends)
+            {
+                foreach (var r in l.Rules)
+                {
+                    if (r != null && !string.IsNullOrEmpty(r.RuleId)) rulesInLegends.Add(r.RuleId);
+                }
+            }
+
             foreach (var r in rules)
             {
                 CheckTextId(r, r.RuleTextId, "ruleTextId", localization, report, sb);
                 CheckReferencedClueIds(r, r.RequiredClueIds, "requiredClueIds", clueIds, report, sb);
+
+                if (!string.IsNullOrEmpty(r.RuleId) && !rulesInLegends.Contains(r.RuleId))
+                {
+                    Error(report, sb, r, "어느 LegendSO 의 rules 목록에도 들어 있지 않다. 규칙 후보로 나오지 않는다.");
+                }
 
                 for (int i = 0; i < r.Conditions.Count; i++)
                 {

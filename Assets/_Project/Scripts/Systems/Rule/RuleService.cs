@@ -168,6 +168,83 @@ namespace UrbanLegendBureau.Systems
             return result;
         }
 
+        // ------------------------------------------------------------- 후보와 추론 시도
+
+        // 결과 문구 String ID.
+        public const string AttemptCorrectTextId = "ui.rule.attempt_correct";
+        public const string AttemptWrongTextId = "ui.rule.attempt_wrong";
+        public const string AttemptKnownTextId = "ui.rule.attempt_known";
+        public const string AttemptNoClueTextId = "ui.rule.attempt_no_clue";
+        public const string AttemptMissingTextId = "ui.rule.attempt_missing";
+
+        /// <summary>
+        /// 플레이어에게 보여줄 규칙 후보.
+        ///
+        /// GetDeduceableRules 와 다른 점은 이미 확인한 규칙도 포함한다는 것이다.
+        /// 목록에서 사라지면 "골랐던 것"과 "못 고르는 것"을 구분할 수 없다.
+        /// 정답 여부는 여기서 보지 않는다. 근거(단서)를 갖췄는지만 본다.
+        /// </summary>
+        public List<RuleSO> GetRuleCandidates(SaveService save, LegendSO legend, bool includeDeduced = true)
+        {
+            var result = new List<RuleSO>();
+            if (save == null || save.Current == null || legend == null) return result;
+
+            foreach (var rule in legend.Rules)
+            {
+                if (rule == null || string.IsNullOrEmpty(rule.RuleId)) continue;
+                if (!HasAllRequiredClues(save, rule)) continue;
+
+                bool deduced = save.Current.deducedRuleIds.Contains(rule.RuleId);
+                if (deduced && !includeDeduced) continue;
+
+                result.Add(rule);
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// 플레이어가 "이 규칙이 맞다"고 고른 것을 판정한다.
+        ///
+        /// 맞든 틀리든 확인한 규칙으로 기록한다. 틀린 규칙을 지우지 않는 것은
+        /// 12단계에서 정한 설계다. 봉인 단계에서 그 판단의 대가를 치른다.
+        /// 여기서는 확산도나 믿음도를 건드리지 않는다. 그쪽은 다른 시스템의 몫이다.
+        /// </summary>
+        public RuleAttemptResult AttemptRule(SaveService save, string ruleId)
+        {
+            if (save == null || save.Current == null)
+            {
+                return RuleAttemptResult.Blocked(ruleId, RuleAttemptFailure.NoSaveData, AttemptMissingTextId);
+            }
+
+            var rule = GetRuleQuiet(ruleId);
+            if (rule == null)
+            {
+                return RuleAttemptResult.Blocked(ruleId, RuleAttemptFailure.NotFound, AttemptMissingTextId);
+            }
+
+            if (save.Current.deducedRuleIds.Contains(ruleId))
+            {
+                // 이미 확인한 규칙. 다시 기록하지 않는다.
+                return new RuleAttemptResult(true, rule.IsTrue, false, true,
+                    ruleId, RuleAttemptFailure.None, AttemptKnownTextId);
+            }
+
+            if (!HasAllRequiredClues(save, rule))
+            {
+                return RuleAttemptResult.Blocked(ruleId, RuleAttemptFailure.MissingClue, AttemptNoClueTextId);
+            }
+
+            save.Current.deducedRuleIds.Add(ruleId);
+            save.MarkDirty();
+
+            Debug.Log($"[RuleService] 규칙 추론 | {ruleId} -> {(rule.IsTrue ? "정확" : "오류")} " +
+                      $"| 확인한 규칙 {save.Current.deducedRuleIds.Count}개");
+
+            return new RuleAttemptResult(true, rule.IsTrue, true, false,
+                ruleId, RuleAttemptFailure.None,
+                rule.IsTrue ? AttemptCorrectTextId : AttemptWrongTextId);
+        }
+
         // ------------------------------------------------------------- 정답 / 오답
 
         /// <summary>올바른 규칙인가. 없는 규칙이면 false.</summary>

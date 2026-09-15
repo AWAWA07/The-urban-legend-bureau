@@ -30,6 +30,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _fieldHudScreen;
         [SerializeField] private TextPanelScreen _cluePopupScreen;
         [SerializeField] private TextPanelScreen _rulePopupScreen;
+        [SerializeField] private RuleListScreen _ruleListScreen;
         [SerializeField] private TextPanelScreen _warningPopupScreen;
         [SerializeField] private TextPanelScreen _exorcismScreen;
         [SerializeField] private TextPanelScreen _resultScreen;
@@ -86,8 +87,12 @@ namespace UrbanLegendBureau.Systems
         private const string ResultFooterTextId = "ui.slice.result_hint";
         private const string LabelRiskTextId = "ui.slice.label_risk";
         private const string LabelClueTextId = "ui.slice.label_clue";
-        private const string RuleFoundTextId = "ui.slice.rule_found";
         private const string RuleRelatedClueTextId = "ui.slice.rule_related_clue";
+        private const string RuleCandidateFoundTextId = "ui.rule.candidate_found";
+        private const string RuleCandidateHintTextId = "ui.rule.candidate_hint";
+        private const string RuleScreenTitleTextId = "ui.rule.screen_title";
+        private const string RuleScreenHintTextId = "ui.rule.screen_hint";
+        private const string RuleAlreadyMarkTextId = "ui.rule.already_mark";
         private const string RuleListTextId = "ui.slice.rule_list";
         private const string CensorAvailableTextId = "ui.net.censor_available";
         private const string CensorDoneTextId = "ui.net.censor_done";
@@ -378,7 +383,7 @@ namespace UrbanLegendBureau.Systems
 
             // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
             bool ruleShown = false;
-            if (result.GotNewClue) ruleShown = TryDeduceRules();
+            if (result.GotNewClue) ruleShown = NotifyRuleCandidates();
 
             BindActionScreen();
 
@@ -448,9 +453,10 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현장 화면을 연다. 사건 단계는 건드리지 않는다. 지점 조사에서 돌아올 때 쓴다.</summary>
         private void ShowFieldHud()
         {
-            // 조사 방법 화면을 먼저 확실히 닫는다.
-            // Replace는 최상단만 바꾸므로, 위에 팝업이 떠 있으면 조사 화면이 스택에 남는다.
+            // 조사 방법 / 규칙 추론 화면을 먼저 확실히 닫는다.
+            // Replace는 최상단만 바꾸므로, 위에 팝업이 떠 있으면 아래 화면이 스택에 남는다.
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
+            if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
 
             _fieldHudScreen.BindWithBodyProvider(
                 FieldTitleTextId,
@@ -709,7 +715,7 @@ namespace UrbanLegendBureau.Systems
             _pendingClueId = null;
 
             // 단서만으로는 사건이 끝나지 않는다. 규칙을 추론해야 종결할 수 있다.
-            if (!TryDeduceRules())
+            if (!NotifyRuleCandidates())
             {
                 Debug.Log("[CaseDirector] 아직 추론할 수 있는 규칙이 없다. 현장 조사를 계속한다.");
             }
@@ -748,6 +754,7 @@ namespace UrbanLegendBureau.Systems
             CaseFlow.SetStep(_save, CaseStep.Exorcism);
 
             _activePoint = null;
+            if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
             if (_field != null) _field.SetFieldVisible(false);
 
             _sealFeedbackTextId = null;
@@ -944,54 +951,127 @@ namespace UrbanLegendBureau.Systems
         // ------------------------------------------------------------- 규칙 추론
 
         /// <summary>
-        /// 지금 보유한 단서로 추론할 수 있는 규칙을 해금한다.
-        /// 새로 해금한 규칙이 있으면 규칙 팝업을 띄우고 true를 돌려준다.
+        /// 새 단서로 세울 수 있는 규칙이 생겼는지 알린다.
+        ///
+        /// 19단계부터 단서를 얻었다고 규칙이 저절로 확정되지 않는다.
+        /// 여기서는 "추론해 볼 만한 것이 생겼다"만 알리고, 어느 규칙이 맞는지는
+        /// 플레이어가 규칙 추론 화면에서 직접 고른다. 규칙 문장도 여기서 보여주지 않는다.
         /// </summary>
-        private bool TryDeduceRules()
+        private bool NotifyRuleCandidates()
         {
             if (_rules == null) return false;
 
             var candidates = _rules.GetDeduceableRules(_save, _legend);
             if (candidates.Count == 0) return false;
 
-            var deduced = new List<RuleSO>();
-            foreach (var rule in candidates)
-            {
-                if (_rules.TryDeduceRule(_save, rule.RuleId))
-                {
-                    deduced.Add(rule);
-                    Debug.Log($"[CaseDirector] 규칙 해금: {rule.RuleId}");
-                }
-            }
-
-            if (deduced.Count == 0) return false;
-
             CaseFlow.SetStep(_save, CaseStep.RuleDeduction);
 
-            _rulePopupScreen.BindWithBodyProvider(RuleFoundTextId, () => BuildRuleBody(deduced));
+            int count = candidates.Count;
+            _rulePopupScreen.BindWithBodyProvider(
+                RuleCandidateFoundTextId,
+                () => _loc.Get(RuleCandidateHintTextId, count));
             _ui.Push(_rulePopupScreen);
+
+            Debug.Log($"[CaseDirector] 규칙 후보 {count}개 생김 (자동 확정하지 않는다)");
             return true;
         }
 
-        /// <summary>규칙 문구 + 근거가 된 단서를 함께 보여준다.</summary>
-        private string BuildRuleBody(List<RuleSO> rules)
-        {
-            var sb = new StringBuilder();
-            for (int i = 0; i < rules.Count; i++)
-            {
-                var rule = rules[i];
-                if (i > 0) sb.AppendLine();
-                sb.AppendLine(_loc.Get(rule.RuleTextId));
-                sb.AppendLine();
-                sb.AppendLine(_loc.Get(RuleRelatedClueTextId));
+        // ------------------------------------------------------------- 규칙 추론 화면
 
-                var required = rule.RequiredClueIds;
-                for (int c = 0; c < required.Count; c++)
+        /// <summary>현장 화면의 규칙 추론 버튼. 확보한 단서와 규칙 후보를 보여준다.</summary>
+        public void OnOpenRulesClicked()
+        {
+            if (_rules == null || _ruleListScreen == null) return;
+
+            BindRuleScreen();
+
+            if (_ui.Contains(_ruleListScreen)) _ruleListScreen.Refresh();
+            else _ui.Replace(_ruleListScreen);
+
+            Debug.Log($"[CaseDirector] 규칙 추론 화면 | 후보 {_rules.GetRuleCandidates(_save, _legend).Count}개");
+        }
+
+        private void BindRuleScreen()
+        {
+            _ruleListScreen.Bind(
+                RuleScreenTitleTextId, RuleScreenHintTextId,
+                _rules.GetRuleCandidates(_save, _legend),
+                BuildRuleCandidateLabel, OnRuleCandidateSelected, BuildAcquiredClueBlock);
+        }
+
+        /// <summary>
+        /// 후보 항목 문구.
+        /// 규칙 문장과 근거 단서만 보여준다. 정답 여부는 고르기 전에 절대 드러내지 않는다.
+        /// </summary>
+        private string BuildRuleCandidateLabel(RuleSO rule)
+        {
+            if (rule == null) return string.Empty;
+
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(rule.RuleTextId));
+
+            if (_rules.IsRuleDeduced(_save, rule.RuleId))
+            {
+                sb.Append("  [").Append(_loc.Get(RuleAlreadyMarkTextId)).Append("]");
+            }
+
+            var required = rule.RequiredClueIds;
+            if (required != null && required.Count > 0)
+            {
+                sb.Append("\n").Append(_loc.Get(RuleRelatedClueTextId));
+                for (int i = 0; i < required.Count; i++)
                 {
-                    sb.AppendLine("- " + ResolveClueText(required[c]));
+                    if (string.IsNullOrEmpty(required[i])) continue;
+                    sb.Append("\n- ").Append(ResolveClueText(required[i]));
                 }
             }
             return sb.ToString();
+        }
+
+        /// <summary>확보한 단서 목록. 추론의 근거가 무엇인지 한눈에 보이게 한다.</summary>
+        private string BuildAcquiredClueBlock()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(_loc.Get(LabelClueTextId));
+
+            var acquired = _save.Current.acquiredClueIds;
+            int shown = 0;
+
+            if (_legend != null)
+            {
+                foreach (var clue in _legend.Clues)
+                {
+                    if (clue == null || !acquired.Contains(clue.ClueId)) continue;
+                    sb.AppendLine("- " + _loc.Get(clue.ClueTextId));
+                    shown++;
+                }
+            }
+
+            if (shown == 0) sb.AppendLine("- " + _loc.Get(NothingFoundTextId));
+            return sb.ToString();
+        }
+
+        /// <summary>후보를 골랐을 때. 판정은 RuleService가 하고 여기서는 결과를 옮긴다.</summary>
+        private void OnRuleCandidateSelected(RuleSO rule)
+        {
+            if (_rules == null || rule == null) return;
+
+            var result = _rules.AttemptRule(_save, rule.RuleId);
+
+            BindRuleScreen();
+            var captured = result;
+            _ruleListScreen.ShowResult(() => _loc.Get(captured.MessageTextId));
+
+            Debug.Log($"[CaseDirector] 규칙 추론 시도 | {rule.RuleId} -> " +
+                      (result.Success
+                          ? (result.AlreadyDeduced ? "이미 확인함" : (result.IsCorrect ? "정확" : "오류"))
+                          : "불가(" + result.Failure + ")"));
+        }
+
+        /// <summary>규칙 추론 화면의 돌아가기 버튼. 현장으로 돌아가 조사를 이어간다.</summary>
+        public void OnRulesBackClicked()
+        {
+            ShowFieldHud();
         }
 
         private void CompleteCase()
