@@ -76,7 +76,12 @@ namespace UrbanLegendBureau.UI
         [Header("댓글")]
         [SerializeField] private TMP_Text _commentHeaderText;
         [SerializeField] private RectTransform _commentRoot;
-        [SerializeField] private TMP_Text _commentTemplate;
+
+        [Tooltip("복제할 댓글 카드. 안에 글자 하나를 두고 배경으로 줄을 구분한다.")]
+        [SerializeField] private GameObject _commentTemplate;
+
+        [Tooltip("내가 쓴 댓글의 배경색. 남의 댓글과 구분한다.")]
+        [SerializeField] private Color _playerCommentColor = new Color(0.90f, 0.94f, 1f, 1f);
 
         [Header("댓글 선택지")]
         [SerializeField] private TMP_Text _choiceHeaderText;
@@ -284,11 +289,25 @@ namespace UrbanLegendBureau.UI
                 if (comment == null) continue;
 
                 var item = Instantiate(_commentTemplate, _commentRoot);
-                item.gameObject.name = "Comment_" + i;
-                item.gameObject.SetActive(true);
-                item.text = loc.Get(comment.AuthorTextId) + "\n" + loc.Get(comment.BodyTextId);
+                item.name = "Comment_" + i;
+                item.SetActive(true);
 
-                _spawnedComments.Add(item.gameObject);
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null)
+                {
+                    // 작성자는 작고 흐리게, 내용은 그대로. 실제 커뮤니티 댓글처럼 두 줄로 둔다.
+                    label.text = "<size=82%><color=#6B7280>" + loc.Get(comment.AuthorTextId) + "</color></size>\n"
+                                 + loc.Get(comment.BodyTextId);
+                }
+
+                // 내가 쓴 댓글은 배경색으로 구분한다.
+                if (comment.IsPlayer)
+                {
+                    var background = item.GetComponent<Image>();
+                    if (background != null) background.color = _playerCommentColor;
+                }
+
+                _spawnedComments.Add(item);
             }
         }
 

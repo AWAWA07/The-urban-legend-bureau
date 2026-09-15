@@ -966,33 +966,44 @@ namespace UrbanLegendBureau.EditorTools
             // 좌표를 직접 주면 화면 폭이 달라질 때 가장자리에 붙어 잘린다.
             const float contentMargin = (1920f - 1700f) * 0.5f;    // = 110
 
-            var siteText = AddText(header.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(siteText.rectTransform, contentMargin, 1920f - contentMargin - 340f, 10f, 10f);
+            // 사이트 이름과 게시판 이름을 나란히 붙인다.
+            // 가로 배치에 맡겨야 언어가 바뀌어 글자 길이가 달라져도 간격이 유지된다.
+            var headerRow = new GameObject("HeaderRow", typeof(RectTransform));
+            headerRow.transform.SetParent(header.transform, false);
+            var rowRt = (RectTransform)headerRow.transform;
+            rowRt.anchorMin = new Vector2(0f, 0f);
+            rowRt.anchorMax = new Vector2(1f, 1f);
+            rowRt.offsetMin = new Vector2(contentMargin, 10f);
+            rowRt.offsetMax = new Vector2(-contentMargin, -10f);
 
-            var boardText = AddText(header.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(boardText.rectTransform, contentMargin + 360f, 1920f - contentMargin - 360f - 420f, 10f, 10f);
+            var rowLayout = headerRow.AddComponent<HorizontalLayoutGroup>();
+            rowLayout.spacing = 20f;
+            rowLayout.childAlignment = TextAnchor.MiddleLeft;
+            rowLayout.childControlWidth = true;
+            rowLayout.childControlHeight = true;
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = false;
+
+            var siteText = AddText(headerRow.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
+            var boardText = AddText(headerRow.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
+                Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
 
             // --- 게시판 목록 보기 ---
             var boardView = new GameObject("BoardView", typeof(RectTransform));
             boardView.transform.SetParent(go.transform, false);
             StretchFull(boardView);
 
-            var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 300f),
-                new Vector2(1700f, 620f), 10f);
+            var boardRoot = CreateVerticalList(boardView.transform, "Posts", new Vector2(0f, 330f),
+                new Vector2(1700f, 520f), 12f);
             var boardTemplate = CreatePanel(boardRoot, "PostTemplate", new Color(0.99f, 0.99f, 1f, 1f));
             var boardButton = boardTemplate.AddComponent<Button>();
             boardButton.targetGraphic = boardTemplate.GetComponent<Image>();
             var btRt = (RectTransform)boardTemplate.transform;
-            btRt.sizeDelta = new Vector2(1660f, 96f);
+            btRt.sizeDelta = new Vector2(1700f, 100f);
             var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(1600f, 86f), TextAlignmentOptions.Left);
-            var btlRt = (RectTransform)btLabel.transform;
-            btlRt.anchorMin = Vector2.zero;
-            btlRt.anchorMax = Vector2.one;
-            btlRt.offsetMin = new Vector2(24f, 6f);
-            btlRt.offsetMax = new Vector2(-24f, -6f);
+                Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
+            StretchInside(btLabel.rectTransform, 32f, 32f, 12f, 12f);
             boardTemplate.SetActive(false);
 
             // --- 글 하나를 펼친 보기 ---
@@ -1000,45 +1011,53 @@ namespace UrbanLegendBureau.EditorTools
             postView.transform.SetParent(go.transform, false);
             StretchFull(postView);
 
-            var titleText = AddText(postView.transform, "PostTitle", 44f, UIFontWeight.Bold, ink,
-                new Vector2(0f, 360f), new Vector2(1700f, 70f), TextAlignmentOptions.Left);
+            // 본문 영역의 세로 리듬. 아래쪽 -190 아래는 한영의 대화 상자가 쓰는 자리라 비워 둔다.
+            const float columnWidth = 800f;      // 두 단의 폭
+            const float columnGap = 60f;         // 두 단 사이 간격
+            const float leftX = -(columnWidth + columnGap) * 0.5f;    // -430
+            const float rightX = (columnWidth + columnGap) * 0.5f;    //  430
+
+            // 각 줄은 자기 칸 안에서만 그려진다. 칸끼리 최소 12 이상 띄워 글자가 맞닿지 않게 한다.
+            var titleText = AddText(postView.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
+                new Vector2(0f, 344f), new Vector2(1700f, 56f), TextAlignmentOptions.Left);       // 316~372
             var metaText = AddText(postView.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
-                new Vector2(0f, 310f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
-            var bodyText = AddText(postView.transform, "PostBody", 30f, UIFontWeight.Regular, ink,
-                new Vector2(0f, 190f), new Vector2(1700f, 190f), TextAlignmentOptions.TopLeft);
+                new Vector2(0f, 288f), new Vector2(1700f, 30f), TextAlignmentOptions.Left);       // 273~303
+            var bodyText = AddText(postView.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
+                new Vector2(0f, 208f), new Vector2(1700f, 100f), TextAlignmentOptions.TopLeft);   // 158~258
 
+            // 왼쪽: 달린 댓글
             var commentHeader = AddText(postView.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(0f, 70f), new Vector2(1700f, 40f), TextAlignmentOptions.Left);
+                new Vector2(leftX, 126f), new Vector2(columnWidth, 34f), TextAlignmentOptions.Left);   // 109~143
 
-            var commentRoot = CreateVerticalList(postView.transform, "Comments", new Vector2(-440f, 30f),
-                new Vector2(820f, 320f), 8f);
-            var commentTemplate = AddText(commentRoot, "CommentTemplate", 24f, UIFontWeight.Regular, ink,
-                Vector2.zero, new Vector2(800f, 66f), TextAlignmentOptions.TopLeft);
-            commentTemplate.gameObject.SetActive(false);
+            var commentRoot = CreateVerticalList(postView.transform, "Comments", new Vector2(leftX, 94f),
+                new Vector2(columnWidth, 276f), 10f);                                                  // 94~-182
+            // 댓글 한 줄을 카드로 둔다. 배경이 있어야 어디까지가 한 댓글인지 눈에 들어온다.
+            var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 1f));
+            var comRt = (RectTransform)commentTemplate.transform;
+            comRt.sizeDelta = new Vector2(columnWidth, 78f);
+            var comLabel = AddText(commentTemplate.transform, "Label", 23f, UIFontWeight.Regular, ink,
+                Vector2.zero, new Vector2(columnWidth - 40f, 66f), TextAlignmentOptions.TopLeft);
+            StretchInside(comLabel.rectTransform, 20f, 20f, 10f, 10f);
+            commentTemplate.SetActive(false);
 
-            // 댓글 쓰기 영역은 댓글 목록보다 위에서 시작한다. 아래쪽은 대화 상자 자리다.
+            // 오른쪽: 댓글 쓰기. 본문 높이에 맞춰 위에서부터 시작한다.
+            var noticeText = AddText(postView.transform, "Notice", 24f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
+                new Vector2(rightX, 296f), new Vector2(columnWidth, 32f), TextAlignmentOptions.Left);
+
             var choiceHeader = AddText(postView.transform, "ChoiceHeader", 26f, UIFontWeight.SemiBold, dim,
-                new Vector2(460f, 160f), new Vector2(820f, 40f), TextAlignmentOptions.Left);
+                new Vector2(rightX, 252f), new Vector2(columnWidth, 36f), TextAlignmentOptions.Left);
 
-            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(460f, 120f),
-                new Vector2(820f, 320f), 10f);
+            var choiceRoot = CreateVerticalList(postView.transform, "Choices", new Vector2(rightX, 220f),
+                new Vector2(columnWidth, 402f), 14f);
             var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.86f, 0.88f, 0.92f, 1f));
             var choiceButton = choiceTemplate.AddComponent<Button>();
             choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
             var ctRt = (RectTransform)choiceTemplate.transform;
-            ctRt.sizeDelta = new Vector2(800f, 96f);
+            ctRt.sizeDelta = new Vector2(columnWidth, 104f);
             var ctLabel = AddText(choiceTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(770f, 86f), TextAlignmentOptions.Left);
-            var ctlRt = (RectTransform)ctLabel.transform;
-            ctlRt.anchorMin = Vector2.zero;
-            ctlRt.anchorMax = Vector2.one;
-            ctlRt.offsetMin = new Vector2(16f, 6f);
-            ctlRt.offsetMax = new Vector2(-16f, -6f);
+                Vector2.zero, new Vector2(columnWidth - 48f, 92f), TextAlignmentOptions.Left);
+            StretchInside(ctLabel.rectTransform, 24f, 24f, 12f, 12f);
             choiceTemplate.SetActive(false);
-
-            // 안내는 선택지 바로 위에 둔다. 아래쪽은 한영의 대화 상자가 쓰는 자리라 비워 둔다.
-            var noticeText = AddText(postView.transform, "Notice", 26f, UIFontWeight.Medium, new Color(0.62f, 0.24f, 0.24f),
-                new Vector2(460f, 206f), new Vector2(820f, 44f), TextAlignmentOptions.Left);
 
             var so = new SerializedObject(screen);
             so.Update();
