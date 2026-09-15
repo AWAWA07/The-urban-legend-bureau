@@ -13,24 +13,44 @@ MonoBehaviour:
   m_Name: GameDataCatalog
   m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.GameDataCatalogSO
   _cases:
+  - {fileID: 11400000, guid: 8e446bb962bb67f41825790a40d3d9f4, type: 2}
   - {fileID: 11400000, guid: cbd9fd7ab9f3f834aa8878f41028316a, type: 2}
   - {fileID: 11400000, guid: 5a43d89e6ccc6d549a59d7815e3b3652, type: 2}
   _legends:
+  - {fileID: 11400000, guid: c511663e7f3dda44ab4744177ca915d3, type: 2}
   - {fileID: 11400000, guid: 818f1078420be744eacafde4488ab796, type: 2}
   - {fileID: 11400000, guid: 1b0e27b507c5d8343b9641f31da88ae7, type: 2}
   _rules:
+  - {fileID: 11400000, guid: ce0c980c851613d4c80f19f6bf9937c7, type: 2}
+  - {fileID: 11400000, guid: f068abddcd45824459c4402c6f07f3b3, type: 2}
+  - {fileID: 11400000, guid: c79b616d630fe3b4baba16075d754541, type: 2}
   - {fileID: 11400000, guid: d2d23c5a3adc0564e905000ca950fe4a, type: 2}
   - {fileID: 11400000, guid: 999ec248f9b19ed48bc6672889baf234, type: 2}
   - {fileID: 11400000, guid: cbe713e3144d8cc41b1100ca05e11e3b, type: 2}
   _clues:
+  - {fileID: 11400000, guid: 195cac42eb75cf749a6e8f4a0ad2e676, type: 2}
+  - {fileID: 11400000, guid: 105da76b02c8fc54195f1844c7d08e58, type: 2}
+  - {fileID: 11400000, guid: 157f960a8bd49ae4c89bf74f5d3c5892, type: 2}
+  - {fileID: 11400000, guid: 331e31a81b7a66645887ca2f6ab14a9f, type: 2}
+  - {fileID: 11400000, guid: 2d4014cab010cb447bbce8df9fd92fb6, type: 2}
   - {fileID: 11400000, guid: aace8366727ee10418714c6673d6613c, type: 2}
   - {fileID: 11400000, guid: 61d675c168376604f8a8e302d7cc9a5c, type: 2}
   - {fileID: 11400000, guid: fbfcfed9f316e4243a344e26e21fd3fc, type: 2}
   _webPages:
+  - {fileID: 11400000, guid: 11657dc1aa4d16a4f88bd8f3b610b021, type: 2}
+  - {fileID: 11400000, guid: 9011df14f78233849b813ebe7964f227, type: 2}
+  - {fileID: 11400000, guid: 947a42ba24e65e0458b50a75e89b77ad, type: 2}
   - {fileID: 11400000, guid: a5e058e5f8580004a851d4861d38b4bb, type: 2}
   - {fileID: 11400000, guid: caf327726b3155e40a36523c300c8fbe, type: 2}
   - {fileID: 11400000, guid: 225ad01d109ae504f89de82416d38f79, type: 2}
   _investigationActions:
+  - {fileID: 11400000, guid: d8d182cedee42f543a755295acc00137, type: 2}
+  - {fileID: 11400000, guid: 1dcc0e18a9b99704bb9c3aab72a09457, type: 2}
+  - {fileID: 11400000, guid: 0d52872a9d8519d459ab58bca6dda7f1, type: 2}
+  - {fileID: 11400000, guid: 322712816a532f949954d98822f39801, type: 2}
+  - {fileID: 11400000, guid: 2159c5f15f98e2345a1d7b7c5db3cd2b, type: 2}
+  - {fileID: 11400000, guid: 5d4103a22bfde054cb046b8c89331ddf, type: 2}
+  - {fileID: 11400000, guid: b90b4ffad4127524ba9791c773e4114f, type: 2}
   - {fileID: 11400000, guid: 804aef97a83b1f245b32893a8eea1941, type: 2}
   - {fileID: 11400000, guid: d1984e46725f3704989ea6305b29c4f6, type: 2}
   - {fileID: 11400000, guid: 17756692d79f3124d8fd88da2764c250, type: 2}

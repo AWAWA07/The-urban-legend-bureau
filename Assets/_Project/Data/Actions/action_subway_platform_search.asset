@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8aea6b7b1884b5e409289baeba504105, type: 3}
+  m_Name: action_subway_platform_search
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.InvestigationActionSO
+  _actionId: action_subway_platform_search
+  _actionNameTextId: action.subway.platform_search.name
+  _descriptionTextId: action.subway.platform_search.desc
+  _resultTextId: action.subway.platform_search.result
+  _actionKind: 2
+  _usage: 2
+  _minutesOverride: 10
+  _useSpreadOverride: 1
+  _spreadOverride: 1.5
+  _requiredClueIds: []
+  _requireStep: 0
+  _requiredStep: 0
+  _rewardClueId: clue_subway_005
+  _advanceStep: 0
+  _stepOnSuccess: 3

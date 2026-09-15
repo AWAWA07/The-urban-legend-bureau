@@ -98,18 +98,48 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(mirror, "point_mirror",
                 new[] { "action_test_006" }, null, false, CaseStep.Started);
 
+            // --- 실제 사건 1: 막차의 빈자리 (20단계) ---
+            var fieldRootSubway = new GameObject("FieldRoot_Subway");
+            BuildFieldBackground(fieldRootSubway.transform);
+            var seat = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwaySeat", new Vector2(-5.0f, -1.4f),
+                new Vector2(2.6f, 1.8f), new Color(0.32f, 0.36f, 0.48f),
+                "field.subway.seat", "field.subway.seat", null);
+            var window = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayWindow", new Vector2(-1.4f, 1.6f),
+                new Vector2(3.2f, 2.0f), new Color(0.26f, 0.42f, 0.46f),
+                "field.subway.window", "field.subway.window", null);
+            var cctv = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayCctv", new Vector2(2.6f, 2.6f),
+                new Vector2(1.2f, 1.0f), new Color(0.46f, 0.40f, 0.30f),
+                "field.subway.cctv", "field.subway.cctv", null);
+            var platform = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayPlatform", new Vector2(4.6f, -1.8f),
+                new Vector2(3.4f, 1.6f), new Color(0.38f, 0.32f, 0.36f),
+                "field.subway.platform", "field.subway.platform", null);
+
+            // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
+            ConfigurePoint(seat, "point_subway_seat",
+                new[] { "action_subway_seat_search", "action_subway_photo" }, null, false, CaseStep.Started);
+            ConfigurePoint(window, "point_subway_window",
+                new[] { "action_subway_photo", "action_subway_window_trace" }, null, false, CaseStep.Started);
+            ConfigurePoint(cctv, "point_subway_cctv",
+                new[] { "action_subway_cctv_inspect", "action_subway_photo" },
+                new[] { "clue_subway_001" }, false, CaseStep.Started);
+            ConfigurePoint(platform, "point_subway_platform",
+                new[] { "action_subway_platform_search", "action_subway_platform_trace" }, null, false, CaseStep.Started);
+
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();
             var fieldSo = new SerializedObject(field);
             fieldSo.Update();
             var groups = fieldSo.FindProperty("_fieldGroups");
-            groups.arraySize = 2;
+            groups.arraySize = 3;
             var g0 = groups.GetArrayElementAtIndex(0);
             g0.FindPropertyRelative("legendId").stringValue = "legend_test_001";
             g0.FindPropertyRelative("root").objectReferenceValue = fieldRoot;
             var g1 = groups.GetArrayElementAtIndex(1);
             g1.FindPropertyRelative("legendId").stringValue = "legend_test_002";
             g1.FindPropertyRelative("root").objectReferenceValue = fieldRoot2;
+            var g2 = groups.GetArrayElementAtIndex(2);
+            g2.FindPropertyRelative("legendId").stringValue = "legend_subway_last_train";
+            g2.FindPropertyRelative("root").objectReferenceValue = fieldRootSubway;
             fieldSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 화면 ---
