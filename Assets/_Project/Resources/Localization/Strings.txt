@@ -455,3 +455,17 @@ tutorial.brief.041	뭐, 이건 이미 멸망한 수치를 말하는 거라… �
 tutorial.brief.042	근데 저는 퇴마를 할 줄 모르는데…	But I do not know how to exorcise anything.	차지한
 tutorial.brief.043	괜찮아. 퇴마는 거의 내가 다 할 거니까. 컴퓨터 작업이랑 서류 작업만 좀 부탁해.	That is fine. I will handle the exorcisms. You take the computer work and the paperwork.
 tutorial.brief.044	설명은 이 정도만 됐고, 이제 너가 안 믿던 괴담 조사하러 가자.	That is enough explaining. Now let us go look into the legend you did not believe in.
+
+# --- 튜토리얼: 등급 설명 쪽지 (대화 오른쪽) ---
+ui.brief.note.observation.title	관측급    1% ~ 10%	Observation    1% ~ 10%
+ui.brief.note.observation.body	· 소수의 목격담만 존재\n· 이상 현상이 매우 약함\n· 실체 없음. 직접적인 피해 없음\n\n대응 · 수치가 오르는지 감시만	· A few sightings only\n· Very faint phenomena\n· No form, no direct harm\n\nAction · Just watch the number
+ui.brief.note.propagation.title	전파급    11% ~ 30%	Propagation    11% ~ 30%
+ui.brief.note.propagation.body	· 인터넷과 SNS로 빠르게 확산\n· 게시물과 목격담이 증가\n· 겪는 사람이 몇몇 생김 (피해는 미미)\n\n대응 · 위험한 것은 미리 인터넷 검열	· Spreads fast online\n· Posts and sightings rise\n· A few people experience it (harm slight)\n\nAction · Censor the dangerous ones early
+ui.brief.note.erosion.title	침식급    31% ~ 50%	Erosion    31% ~ 50%
+ui.brief.note.erosion.body	· 현실에 직접적인 영향 시작\n· 실제 피해자 발생\n· 괴담의 규칙이 현실에 적용됨\n\n대응 · 검열 필수\n대응 · 귀신에서 나온 것이면 현장 조사	· Starts touching reality\n· Real victims appear\n· The legend's rules apply\n\nAction · Censorship mandatory\nAction · Site visit if it came from a ghost
+ui.brief.note.manifestation.title	현현급    51% ~ 85%	Manifestation    51% ~ 85%
+ui.brief.note.manifestation.body	· 가짜도 현실에 모습을 드러냄\n· 사람들이 직접 경험하게 됨\n· 확산 속도가 급격히 빨라짐\n\n대응 · 현장 조사 필수\n대응 · 필요하면 퇴마	· Even fakes show themselves\n· People meet it directly\n· Spread accelerates sharply\n\nAction · Site visit mandatory\nAction · Exorcise if needed
+ui.brief.note.annihilation.title	멸망급    85% ~ 99%	Annihilation    85% ~ 99%
+ui.brief.note.annihilation.body	· 국가 또는 세계 단위로 확대\n· 확산 통제가 어려움\n· 현실의 법칙이 괴담에 의해 변형됨\n\n대응 · 수단과 방법을 가리지 않음	· National or global scale\n· Spread cannot be contained\n· The laws of reality bend\n\nAction · By any means necessary
+ui.brief.note.unknown.title	???급    100%	???    100%
+ui.brief.note.unknown.body	· 이미 멸망한 뒤를 가리키는 수치\n\n대응 · 없음	· The number after it already ended\n\nAction · None

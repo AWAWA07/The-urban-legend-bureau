@@ -826,6 +826,51 @@ namespace UrbanLegendBureau.EditorTools
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
             advanceGo.transform.SetAsLastSibling();
 
+            // 등급을 설명할 때 오른쪽에 펴는 쪽지. 종이에 적어 둔 것처럼 보이게 한다.
+            var note = CreatePanel(go.transform, "Note", new Color(0.96f, 0.95f, 0.90f, 1f));
+            var noteRt = (RectTransform)note.transform;
+            noteRt.anchorMin = new Vector2(0.5f, 0.5f);
+            noteRt.anchorMax = new Vector2(0.5f, 0.5f);
+            noteRt.pivot = new Vector2(0.5f, 1f);
+            noteRt.anchoredPosition = new Vector2(400f, 480f);
+            noteRt.sizeDelta = new Vector2(660f, 630f);
+
+            var noteInk = new Color(0.14f, 0.13f, 0.12f);
+
+            var noteTitle = AddText(note.transform, "NoteTitle", 40f, UIFontWeight.Bold, noteInk,
+                Vector2.zero, new Vector2(580f, 56f), TextAlignmentOptions.Left);
+            var noteTitleRt = noteTitle.rectTransform;
+            noteTitleRt.anchorMin = new Vector2(0.5f, 1f);
+            noteTitleRt.anchorMax = new Vector2(0.5f, 1f);
+            noteTitleRt.pivot = new Vector2(0.5f, 1f);
+            noteTitleRt.anchoredPosition = new Vector2(0f, -44f);
+            noteTitleRt.sizeDelta = new Vector2(580f, 56f);
+            noteTitle.raycastTarget = false;
+
+            var noteRule = CreatePanel(note.transform, "NoteRule", new Color(0.72f, 0.69f, 0.62f, 1f));
+            var noteRuleRt = (RectTransform)noteRule.transform;
+            noteRuleRt.anchorMin = new Vector2(0.5f, 1f);
+            noteRuleRt.anchorMax = new Vector2(0.5f, 1f);
+            noteRuleRt.pivot = new Vector2(0.5f, 1f);
+            noteRuleRt.anchoredPosition = new Vector2(0f, -112f);
+            noteRuleRt.sizeDelta = new Vector2(580f, 2f);
+            noteRule.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(noteRule, 2f);
+
+            var noteBody = AddText(note.transform, "NoteBody", 28f, UIFontWeight.Regular, noteInk,
+                Vector2.zero, new Vector2(580f, 460f), TextAlignmentOptions.TopLeft);
+            var noteBodyRt = noteBody.rectTransform;
+            noteBodyRt.anchorMin = new Vector2(0.5f, 1f);
+            noteBodyRt.anchorMax = new Vector2(0.5f, 1f);
+            noteBodyRt.pivot = new Vector2(0.5f, 1f);
+            noteBodyRt.anchoredPosition = new Vector2(0f, -140f);
+            noteBodyRt.sizeDelta = new Vector2(580f, 460f);
+            noteBody.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            noteBody.lineSpacing = 22f;
+            noteBody.raycastTarget = false;
+
+            note.SetActive(false);
+
             // 고를 것이 있을 때만 켜지는 자리.
             // 대사 상자 위, 오른쪽 끝에 맞춰 짧게 쌓는다. 말하는 쪽(왼쪽 인물)을 가리지 않는다.
             // 진행 버튼보다 뒤에 만들어야 선택지가 위로 올라와 눌린다.
@@ -871,6 +916,9 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_advanceButton").objectReferenceValue = advance;
             so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
             so.FindProperty("_choiceTemplate").objectReferenceValue = dialogueChoice;
+            so.FindProperty("_noteRoot").objectReferenceValue = note;
+            so.FindProperty("_noteTitle").objectReferenceValue = noteTitle;
+            so.FindProperty("_noteBody").objectReferenceValue = noteBody;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             return screen;

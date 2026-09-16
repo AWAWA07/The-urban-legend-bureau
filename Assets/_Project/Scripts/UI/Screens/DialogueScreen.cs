@@ -43,6 +43,13 @@ namespace UrbanLegendBureau.UI
         [Tooltip("화면 전체를 덮는 진행 버튼.")]
         [SerializeField] private Button _advanceButton;
 
+        [Header("쪽지")]
+        [Tooltip("설명할 때 오른쪽에 펴 두는 쪽지. 필요할 때만 켜진다.")]
+        [SerializeField] private GameObject _noteRoot;
+
+        [SerializeField] private TMP_Text _noteTitle;
+        [SerializeField] private TMP_Text _noteBody;
+
         [Header("선택지")]
         [Tooltip("고를 것이 있을 때만 켜지는 자리.")]
         [SerializeField] private RectTransform _choiceRoot;
@@ -213,6 +220,37 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
+        /// 오른쪽에 쪽지를 편다. 한 영이 무엇을 설명하는지 글로도 남겨 둔다.
+        /// 쪽지가 펴져 있는 동안에는 듣는 사람을 숨긴다. 쪽지가 그 자리를 쓰기 때문이다.
+        /// </summary>
+        public void ShowNote(Func<string> title, Func<string> body)
+        {
+            _noteTitleProvider = title;
+            _noteBodyProvider = body;
+
+            if (_noteRoot != null) _noteRoot.SetActive(true);
+            RefreshNote();
+        }
+
+        /// <summary>쪽지를 접는다.</summary>
+        public void HideNote()
+        {
+            _noteTitleProvider = null;
+            _noteBodyProvider = null;
+
+            if (_noteRoot != null) _noteRoot.SetActive(false);
+        }
+
+        private void RefreshNote()
+        {
+            if (_noteTitle != null && _noteTitleProvider != null) _noteTitle.text = _noteTitleProvider();
+            if (_noteBody != null && _noteBodyProvider != null) _noteBody.text = _noteBodyProvider();
+        }
+
+        private Func<string> _noteTitleProvider;
+        private Func<string> _noteBodyProvider;
+
+        /// <summary>
         /// 고를 것을 내놓는다.
         ///
         /// 고르는 동안에는 화면을 눌러 넘길 수 없다. 대사를 건너뛰고 넘어가면 순서가 엉킨다.
@@ -335,6 +373,8 @@ namespace UrbanLegendBureau.UI
             if (_nameText != null) _nameText.text = _nameProvider != null ? _nameProvider() : string.Empty;
             if (_lineText != null) _lineText.text = _lineProvider != null ? _lineProvider() : string.Empty;
             if (_hintText != null) _hintText.text = loc.Get(HintTextId);
+
+            RefreshNote();
         }
 
         // ------------------------------------------------------------- 연출

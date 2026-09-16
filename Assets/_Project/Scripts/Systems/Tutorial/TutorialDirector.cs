@@ -779,7 +779,16 @@ namespace UrbanLegendBureau.Systems
 
             /// <summary>고른 것에 딸려 나오는 한 영의 대답. 하나만 두면 어느 쪽을 골라도 같다.</summary>
             public string[][] Replies;
+
+            /// <summary>
+            /// 오른쪽에 펴 둘 쪽지. 비워 두면 쪽지를 접는다.
+            /// 같은 등급을 설명하는 마디끼리는 같은 쪽지를 적어 둔다.
+            /// </summary>
+            public string NoteKey;
         }
+
+        /// <summary>쪽지 문구의 앞부분. 뒤에 .title / .body 가 붙는다.</summary>
+        private const string NotePrefix = "ui.brief.note.";
 
         private static readonly BriefingStep[] Briefing =
         {
@@ -837,27 +846,27 @@ namespace UrbanLegendBureau.Systems
             new BriefingStep { TextId = "tutorial.brief.024" },
 
             // --- 등급 설명 ---
-            new BriefingStep { TextId = "tutorial.brief.025" },
-            new BriefingStep { TextId = "tutorial.brief.026" },
-            new BriefingStep { TextId = "tutorial.brief.027" },
-            new BriefingStep { TextId = "tutorial.brief.028" },
-            new BriefingStep { TextId = "tutorial.brief.029" },
-            new BriefingStep { TextId = "tutorial.brief.030" },
-            new BriefingStep { TextId = "tutorial.brief.031" },
-            new BriefingStep { TextId = "tutorial.brief.032" },
-            new BriefingStep { TextId = "tutorial.brief.032b" },
-            new BriefingStep { TextId = "tutorial.brief.033" },
-            new BriefingStep { TextId = "tutorial.brief.034" },
-            new BriefingStep { TextId = "tutorial.brief.035" },
-            new BriefingStep { TextId = "tutorial.brief.035b" },
-            new BriefingStep { TextId = "tutorial.brief.036" },
-            new BriefingStep { TextId = "tutorial.brief.037" },
-            new BriefingStep { TextId = "tutorial.brief.038" },
-            new BriefingStep { TextId = "tutorial.brief.038b" },
-            new BriefingStep { TextId = "tutorial.brief.038c" },
-            new BriefingStep { TextId = "tutorial.brief.039" },
-            new BriefingStep { TextId = "tutorial.brief.040" },
-            new BriefingStep { TextId = "tutorial.brief.041" },
+            new BriefingStep { TextId = "tutorial.brief.025", NoteKey = "observation" },
+            new BriefingStep { TextId = "tutorial.brief.026", NoteKey = "observation" },
+            new BriefingStep { TextId = "tutorial.brief.027", NoteKey = "observation" },
+            new BriefingStep { TextId = "tutorial.brief.028", NoteKey = "propagation" },
+            new BriefingStep { TextId = "tutorial.brief.029", NoteKey = "propagation" },
+            new BriefingStep { TextId = "tutorial.brief.030", NoteKey = "propagation" },
+            new BriefingStep { TextId = "tutorial.brief.031", NoteKey = "erosion" },
+            new BriefingStep { TextId = "tutorial.brief.032", NoteKey = "erosion" },
+            new BriefingStep { TextId = "tutorial.brief.032b", NoteKey = "erosion" },
+            new BriefingStep { TextId = "tutorial.brief.033", NoteKey = "erosion" },
+            new BriefingStep { TextId = "tutorial.brief.034", NoteKey = "manifestation" },
+            new BriefingStep { TextId = "tutorial.brief.035", NoteKey = "manifestation" },
+            new BriefingStep { TextId = "tutorial.brief.035b", NoteKey = "manifestation" },
+            new BriefingStep { TextId = "tutorial.brief.036", NoteKey = "manifestation" },
+            new BriefingStep { TextId = "tutorial.brief.037", NoteKey = "annihilation" },
+            new BriefingStep { TextId = "tutorial.brief.038", NoteKey = "annihilation" },
+            new BriefingStep { TextId = "tutorial.brief.038b", NoteKey = "annihilation" },
+            new BriefingStep { TextId = "tutorial.brief.038c", NoteKey = "annihilation" },
+            new BriefingStep { TextId = "tutorial.brief.039", NoteKey = "annihilation" },
+            new BriefingStep { TextId = "tutorial.brief.040", NoteKey = "unknown" },
+            new BriefingStep { TextId = "tutorial.brief.041", NoteKey = "unknown" },
 
             new BriefingStep { TextId = "tutorial.brief.042", Hanyoung = false },
             new BriefingStep { TextId = "tutorial.brief.043" },
@@ -886,6 +895,7 @@ namespace UrbanLegendBureau.Systems
 
             _dialogueScreen.SetAdvanceHandler(OnAdvanceClicked);
             _dialogueScreen.ClearChoices();
+            _dialogueScreen.HideNote();
 
             if (_ui.Count == 0) _ui.Push(_dialogueScreen);
             else _ui.Replace(_dialogueScreen);
@@ -927,12 +937,26 @@ namespace UrbanLegendBureau.Systems
         {
             string nameId = step.Hanyoung ? HanyoungNameTextId : ChajihanNameTextId;
 
+            // 쪽지가 펴지는 자리는 차지한이 서 있던 자리다. 쪽지를 펴는 동안에는 그를 숨긴다.
+            bool hasNote = !string.IsNullOrEmpty(step.NoteKey);
+            if (hasNote)
+            {
+                var key = step.NoteKey;
+                _dialogueScreen.ShowNote(
+                    () => _loc.Get(NotePrefix + key + ".title"),
+                    () => _loc.Get(NotePrefix + key + ".body"));
+            }
+            else
+            {
+                _dialogueScreen.HideNote();
+            }
+
             _dialogueScreen.ShowLine(step.Hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(step.TextId),
                 1f,
                 leftVisible: true,
-                rightVisible: true);
+                rightVisible: !hasNote);
         }
 
         /// <summary>고를 것을 내놓는다. 고르면 그 말부터 차지한이 하고 대답이 이어진다.</summary>
@@ -986,7 +1010,11 @@ namespace UrbanLegendBureau.Systems
 
             // 컴퓨터 화면에서 나온다. 화살표를 운영체제에 돌려준다.
             GamePointer.SetVisible(false);
-            if (_dialogueScreen != null) _dialogueScreen.ClearChoices();
+            if (_dialogueScreen != null)
+            {
+                _dialogueScreen.ClearChoices();
+                _dialogueScreen.HideNote();
+            }
 
             // 튜토리얼 전용 저장본은 그냥 버린다. 파일로 쓴 적이 없다.
             _sandbox = null;
