@@ -151,6 +151,10 @@ namespace UrbanLegendBureau.Systems
             _censored = false;
             _lineIndex = 0;
             _postBelief = TutorialPostBelief;
+
+            // 게시판 목록을 여기서 만들어 둔다.
+            // 전체 믿음도가 이 목록에서 나오므로 컴퓨터를 켜기 전에 이미 있어야 한다.
+            BuildBoardEntries();
             BuildComments();
             BuildChoices();
 
@@ -253,8 +257,6 @@ namespace UrbanLegendBureau.Systems
         private void OpenCommunityBoard()
         {
             if (_communityScreen == null) return;
-
-            BuildBoardEntries();
 
             _communityScreen.BindWindow(null);        // 튜토리얼 중에는 창을 닫을 수 없다
             _communityScreen.BindBoard(_boardEntries, OnBoardEntryClicked);
@@ -471,11 +473,32 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
-        /// <summary>작업 표시줄에 지금 전체 믿음도를 알린다. 값은 BeliefService 가 들고 있다.</summary>
+        /// <summary>
+        /// 작업 표시줄에 지금 전체 믿음도를 알린다.
+        ///
+        /// 게시판에 올라온 글 전체를 기준으로 삼는다.
+        /// 글 하나하나가 이 괴담을 얼마나 믿게 만들고 있는지를 더해 글 수로 나눈다.
+        /// 괴담과 무관한 글은 0으로 들어가 전체를 끌어내린다. 그것도 실제 몫이다.
+        /// 그래서 괴담 글에 댓글을 달아 몫을 깎으면 이 숫자가 따라 내려간다.
+        /// </summary>
         private void PushBeliefToTaskbar()
         {
-            if (_desktopScreen == null || _belief == null || _sandbox == null) return;
-            _desktopScreen.SetBelief(Mathf.RoundToInt(_belief.GetBeliefLevel(_sandbox.Current)));
+            if (_desktopScreen == null) return;
+            _desktopScreen.SetBelief(CalculateBoardBelief());
+        }
+
+        /// <summary>게시글 전체를 기준으로 낸 믿음도(%).</summary>
+        private int CalculateBoardBelief()
+        {
+            if (_boardEntries == null || _boardEntries.Count == 0) return 0;
+
+            int total = 0;
+            foreach (var entry in _boardEntries)
+            {
+                if (entry != null) total += entry.BeliefPercent;
+            }
+
+            return Mathf.RoundToInt((float)total / _boardEntries.Count);
         }
 
         /// <summary>이 글의 믿음 몫을 목록과 글 화면에 함께 반영한다.</summary>
