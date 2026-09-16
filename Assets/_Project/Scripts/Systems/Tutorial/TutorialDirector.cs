@@ -809,10 +809,12 @@ namespace UrbanLegendBureau.Systems
             {
                 Choices = new[] { "tutorial.brief.q2.a", "tutorial.brief.q2.b" },
 
-                // 어느 쪽을 골라도 한 영의 대답은 같다. 답을 맞히는 자리가 아니기 때문이다.
+                // 스스로 알아챈 쪽에는 짧게 맞장구만 친다.
+                // 아니라고 본 쪽에는 왜 그런지를 마저 설명한다.
                 Replies = new[]
                 {
-                    new[] { "tutorial.brief.q2.1", "tutorial.brief.q2.2" },
+                    new[] { "tutorial.brief.q2.1" },
+                    new[] { "tutorial.brief.q2.2" },
                 },
             },
 
