@@ -1592,27 +1592,37 @@ namespace UrbanLegendBureau.EditorTools
             closeLabel.raycastTarget = false;
 
             // 휴대폰으로 볼 때만 켜지는 시각. 실제 휴대폰처럼 맨 윗줄 오른쪽 끝에 선다.
-            var statusClock = AddText(titleBar.transform, "StatusClock", 24f, UIFontWeight.Medium, TextColor,
+            var statusClock = AddText(titleBar.transform, "StatusClock", 19f, UIFontWeight.Medium, TextColor,
                 Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Right);
             var statusClockRt = statusClock.rectTransform;
             statusClockRt.anchorMin = new Vector2(1f, 0.5f);
             statusClockRt.anchorMax = new Vector2(1f, 0.5f);
             statusClockRt.pivot = new Vector2(1f, 0.5f);
-            statusClockRt.anchoredPosition = new Vector2(-14f, 0f);
+            statusClockRt.anchoredPosition = new Vector2(-4f, 0f);
             statusClockRt.sizeDelta = new Vector2(150f, 36f);
             statusClock.raycastTarget = false;
-            statusClock.gameObject.AddComponent<ClockLabel>();
+            statusClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+
+            // 가운데 카메라 구멍 오른쪽에 시각과 믿음도가 나란히 들어가야 한다.
+            // 오전/오후까지 넣으면 둘을 합한 폭이 그 자리를 넘어 서로 겹친다.
+            var statusClockLabel = statusClock.gameObject.AddComponent<ClockLabel>();
+            var scSo = new SerializedObject(statusClockLabel);
+            scSo.Update();
+            scSo.FindProperty("_short").boolValue = true;
+            scSo.ApplyModifiedPropertiesWithoutUndo();
+
             statusClock.gameObject.SetActive(false);
 
-            // 전체 믿음도는 돌아가기 옆 왼쪽에 둔다. 가운데는 카메라 구멍 자리라 비워 둔다.
-            var statusBelief = AddText(titleBar.transform, "StatusBelief", 24f, UIFontWeight.SemiBold, PhoneBeliefColor,
-                Vector2.zero, new Vector2(170f, 36f), TextAlignmentOptions.Left);
+            // 전체 믿음도는 왼쪽 끝, 돌아가기 바로 옆에 붙인다.
+            // 시각 옆에 붙이면 가운데 카메라 구멍과 시각 사이에 낄 자리가 없어 서로 겹친다.
+            var statusBelief = AddText(titleBar.transform, "StatusBelief", 20f, UIFontWeight.SemiBold, PhoneBeliefColor,
+                Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Left);
             var statusBeliefRt = statusBelief.rectTransform;
             statusBeliefRt.anchorMin = new Vector2(0f, 0.5f);
             statusBeliefRt.anchorMax = new Vector2(0f, 0.5f);
             statusBeliefRt.pivot = new Vector2(0f, 0.5f);
-            statusBeliefRt.anchoredPosition = new Vector2(56f, 0f);
-            statusBeliefRt.sizeDelta = new Vector2(170f, 36f);
+            statusBeliefRt.anchoredPosition = new Vector2(54f, 0f);
+            statusBeliefRt.sizeDelta = new Vector2(150f, 36f);
             statusBelief.raycastTarget = false;
             statusBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
@@ -1952,13 +1962,29 @@ namespace UrbanLegendBureau.EditorTools
 
             // 댓글 한 줄. 실제 커뮤니티처럼 칸을 나누는 것은 배경색이 아니라 아래쪽 가는 선이다.
             // 선 두께는 실제 화면 픽셀로 지킨다(CrispRule). 캔버스 배율에 맡기면 작은 창에서 사라진다.
+            // 댓글 칸 높이도 글마다 다르다. 내용이 길면 그만큼 자란다.
+            // 안쪽 여백은 이 배치가 들고 있다. 좁은 화면에서는 그 여백만 갈아 끼우면 된다.
             var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 0f));
             var comRt = (RectTransform)commentTemplate.transform;
             comRt.sizeDelta = new Vector2(pageWidth - 64f, 82f);
+
+            var comLayout = commentTemplate.AddComponent<VerticalLayoutGroup>();
+            comLayout.padding = new RectOffset(12, 12, 12, 16);
+            comLayout.spacing = 0f;
+            comLayout.childAlignment = TextAnchor.UpperLeft;
+            comLayout.childControlWidth = true;
+            comLayout.childControlHeight = true;
+            comLayout.childForceExpandWidth = true;
+            comLayout.childForceExpandHeight = false;
+
+            var comFitter = commentTemplate.AddComponent<ContentSizeFitter>();
+            comFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
             var comLabel = AddText(commentTemplate.transform, "Label", 22f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 88f, 68f), TextAlignmentOptions.TopLeft);
-            StretchInside(comLabel.rectTransform, 12f, 12f, 10f, 16f);
+
             var comRule = CreatePanel(commentTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
+            comRule.AddComponent<LayoutElement>().ignoreLayout = true;
             var comRuleRt = (RectTransform)comRule.transform;
             comRuleRt.anchorMin = new Vector2(0f, 0f);
             comRuleRt.anchorMax = new Vector2(1f, 0f);
@@ -2474,17 +2500,23 @@ namespace UrbanLegendBureau.EditorTools
             phoneBar.transform.SetAsFirstSibling();   // 노치가 위에 오게
 
             // 휴대폰 시계도 컴퓨터와 같은 시각이다. 흘러가는 것도 같다.
-            // 상태 줄은 곁가지라 작게 둔다. 시각 오른쪽에 전체 믿음도가 붙는다.
-            var phoneClock = AddText(phoneBar.transform, "Clock", 15f, UIFontWeight.Medium, DimTextColor,
+            // 시각과 믿음도는 나란히 왼쪽에 붙인다. 떨어뜨려 놓으면 서로 딴 것으로 보인다.
+            // 가운데는 카메라 구멍 자리라 비워 둔다.
+            var phoneClock = AddText(phoneBar.transform, "Clock", 14f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneClock.rectTransform, 12f, 190f, 6f, 6f);
+            StretchInside(phoneClock.rectTransform, 12f, 216f, 6f, 6f);
             phoneClock.raycastTarget = false;
-            phoneClock.gameObject.AddComponent<ClockLabel>();
+            phoneClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
-            // 믿음도는 오른쪽 끝으로 보낸다. 가운데는 카메라 구멍 자리라 비워 둔다.
-            var phoneBelief = AddText(phoneBar.transform, "Belief", 15f, UIFontWeight.SemiBold, PhoneBeliefColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
-            StretchInside(phoneBelief.rectTransform, 140f, 54f, 6f, 6f);
+            var phoneClockLabel = phoneClock.gameObject.AddComponent<ClockLabel>();
+            var pcSo = new SerializedObject(phoneClockLabel);
+            pcSo.Update();
+            pcSo.FindProperty("_short").boolValue = true;   // 오전/오후까지 넣을 자리가 없다
+            pcSo.ApplyModifiedPropertiesWithoutUndo();
+
+            var phoneBelief = AddText(phoneBar.transform, "Belief", 14f, UIFontWeight.SemiBold, PhoneBeliefColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(phoneBelief.rectTransform, 68f, 150f, 6f, 6f);
             phoneBelief.raycastTarget = false;
             phoneBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 

@@ -516,13 +516,23 @@ namespace UrbanLegendBureau.UI
             // 두 줄(작성자 / 내용)이 들어가는데 세로 화면에서는 내용이 두 줄로 넘어가기도 한다.
             if (_commentTemplate != null)
             {
-                var rt = (RectTransform)_commentTemplate.transform;
-                rt.sizeDelta = new Vector2(rt.sizeDelta.x, phone ? PhoneCommentHeight : DeskCommentHeight);
+                // 칸 높이는 댓글마다 제 내용에 맞춰 자란다. 여기서 정하는 것은 안쪽 여백뿐이다.
+                if (_commentTemplate.GetComponent<VerticalLayoutGroup>() is VerticalLayoutGroup comLayout)
+                {
+                    int pad = phone ? PhoneCommentPad : DeskCommentPad;
+                    comLayout.padding = new RectOffset(12, 12, pad, pad + 4);
+                }
 
                 // 작성자와 내용은 한 덩어리로 붙어 있어야 한 사람의 말로 읽힌다. 줄 사이를 좁힌다.
                 foreach (var label in _commentTemplate.GetComponentsInChildren<TMP_Text>(true))
                 {
                     label.lineSpacing = phone ? PhoneCommentLineSpacing : DeskCommentLineSpacing;
+                }
+
+                if (_commentTemplate.transform.Find("Rule") is Transform rule
+                    && rule.GetComponent<Image>() is Image ruleImage)
+                {
+                    ruleImage.color = phone ? PhoneRuleColor : DeskRuleColor;
                 }
             }
 
@@ -619,8 +629,9 @@ namespace UrbanLegendBureau.UI
         private const float DeskBodyParagraphSpacing = 18f;
         private const float PhoneBodyLineSpacing = 16f;
         private const float PhoneBodyParagraphSpacing = 26f;
-        private const float DeskCommentHeight = 82f;
-        private const float PhoneCommentHeight = 104f;
+        /// <summary>댓글 칸 안쪽 위아래 여백. 칸 높이 자체는 댓글마다 제 내용에 맞춰 자란다.</summary>
+        private const int DeskCommentPad = 12;
+        private const int PhoneCommentPad = 10;
 
         /// <summary>댓글 안의 줄 사이. 작성자와 내용이 한 덩어리로 보이게 좁힌다.</summary>
         private const float DeskCommentLineSpacing = -6f;

@@ -14,6 +14,9 @@ namespace UrbanLegendBureau.UI
     [RequireComponent(typeof(TMP_Text))]
     public class ClockLabel : MonoBehaviour
     {
+        [Tooltip("좁은 상태 줄에서는 오전/오후를 떼고 시각만 적는다.")]
+        [SerializeField] private bool _short;
+
         private TMP_Text _label;
         private int _shownMinute = int.MinValue;
 
@@ -39,8 +42,14 @@ namespace UrbanLegendBureau.UI
         private void Write()
         {
             if (_label == null) return;
-            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
+            if (_short)
+            {
+                _label.text = GameClock.FormatShort();
+                return;
+            }
+
+            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
             _label.text = GameClock.Format(loc);
         }
     }

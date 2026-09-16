@@ -78,18 +78,34 @@ namespace UrbanLegendBureau.Core
         {
             if (loc == null) return string.Empty;
 
-            int total = _startHour * 60 + _startMinute + ElapsedMinutes;
-            int hour24 = (total / 60) % 24;
-            int minute = total % 60;
-
-            bool morning = hour24 < 12;
-            int hour12 = hour24 % 12;
-            if (hour12 == 0) hour12 = 12;
+            Split(out int hour12, out int minute, out bool morning);
 
             return loc.Get(ClockTextId,
                 loc.Get(morning ? AmTextId : PmTextId),
                 hour12.ToString("00"),
                 minute.ToString("00"));
+        }
+
+        /// <summary>
+        /// "02:44" 꼴. 오전/오후를 뗀다.
+        /// 휴대폰 상태 줄처럼 좁은 자리에서 쓴다. 실제 휴대폰도 거기에는 시각만 적는다.
+        /// </summary>
+        public static string FormatShort()
+        {
+            Split(out int hour12, out int minute, out _);
+            return hour12.ToString("00") + ":" + minute.ToString("00");
+        }
+
+        private static void Split(out int hour12, out int minute, out bool morning)
+        {
+            int total = _startHour * 60 + _startMinute + ElapsedMinutes;
+            int hour24 = (total / 60) % 24;
+
+            minute = total % 60;
+            morning = hour24 < 12;
+
+            hour12 = hour24 % 12;
+            if (hour12 == 0) hour12 = 12;
         }
     }
 }
