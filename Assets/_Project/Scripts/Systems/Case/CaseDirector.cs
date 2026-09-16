@@ -291,17 +291,20 @@ namespace UrbanLegendBureau.Systems
         {
             if (_communityScreen == null) return;
 
-            // 손에 든 휴대폰을 눈앞으로 들어 올린 것이다. 작게 떠 있던 쪽은 접는다.
-            if (_fieldHudScreen != null) _fieldHudScreen.SetPhoneOpen(false);
+            // 먼저 켠다. 꺼져 있는 동안에는 캔버스 배율이 실리지 않아 자리를 맞출 수 없다.
+            _ui.Push(_communityScreen);
+            Canvas.ForceUpdateCanvases();
 
-            _communityScreen.SetShape(true);
+            // 휴대폰은 그대로 둔다. 커지지 않고, 들고 있던 그 화면에 괴담넷이 켜진다.
+            var frame = _fieldHudScreen != null ? _fieldHudScreen.PhoneScreenRect : null;
+
+            _communityScreen.SetShape(true, frame);
             _communityScreen.SetControlsEnabled(true);
             _communityScreen.BindWindow(ClosePhoneNet);
             _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
             _communityScreen.ShowNotice(null);
             _communityScreen.ShowBoard(true);
 
-            _ui.Push(_communityScreen);
             Debug.Log("[CaseDirector] 휴대폰으로 괴담넷을 열었다");
         }
 
@@ -326,8 +329,12 @@ namespace UrbanLegendBureau.Systems
             if (entry == null || !entry.Openable || entry.Page == null) return;
 
             _communityScreen.BindPage(entry.Page, 1204, PostTimeTextId, 0, 0, entry.BeliefPercent);
-            _communityScreen.BindComments(null);
-            _communityScreen.BindChoices(null, null, null);   // 현장에서는 댓글을 달지 않는다
+
+            // 댓글은 컴퓨터로 볼 때와 같은 것이다. 플레이어가 단 댓글도 그대로 따라온다.
+            _communityScreen.BindComments(_tutorial != null ? _tutorial.Comments : null);
+
+            // 다만 현장에서는 새 댓글을 달지 않는다. 그것은 컴퓨터 앞에서 하는 일이다.
+            _communityScreen.BindChoices(null, null, null);
             _communityScreen.ShowBoard(false);
         }
 

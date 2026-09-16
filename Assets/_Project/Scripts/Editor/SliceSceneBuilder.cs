@@ -2468,6 +2468,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_speechRoot").objectReferenceValue = speech;
             so.FindProperty("_phoneButton").objectReferenceValue = phoneButton;
             so.FindProperty("_phonePanel").objectReferenceValue = phone;
+            so.FindProperty("_phoneScreen").objectReferenceValue = (RectTransform)phoneScreen.transform;
             so.FindProperty("_phoneCloseButton").objectReferenceValue = phoneCloseButton;
             so.FindProperty("_phoneClockText").objectReferenceValue = phoneClock;
             so.FindProperty("_phoneButtonLabel").objectReferenceValue = phoneBtnLabel;

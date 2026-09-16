@@ -312,6 +312,19 @@ namespace UrbanLegendBureau.Systems
         public UrbanLegendBureau.Data.WebPageSO HotPage => _tutorialPage;
 
         /// <summary>
+        /// 그 글에 달린 댓글. 휴대폰으로 열어도 같은 댓글이 보인다.
+        /// 플레이어가 단 댓글도 이 목록에 들어 있으므로 함께 따라온다.
+        /// </summary>
+        public List<CommunityComment> Comments
+        {
+            get
+            {
+                if (_comments == null) BuildComments();
+                return _comments;
+            }
+        }
+
+        /// <summary>
         /// 게시판 목록. 인기글 하나만 열리고 나머지는 자리를 채운다.
         /// 튜토리얼이 엉뚱한 글로 새지 않게 하기 위해서다.
         /// </summary>

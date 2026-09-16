@@ -51,6 +51,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("눌렀을 때 오른쪽에 펴지는 휴대폰 화면.")]
         [SerializeField] private GameObject _phonePanel;
 
+        [Tooltip("껍데기 안쪽의 화면. 앱을 열면 이 자리에 앱이 켜진다.")]
+        [SerializeField] private RectTransform _phoneScreen;
+
         [SerializeField] private Button _phoneCloseButton;
         [SerializeField] private TMP_Text _phoneClockText;
 
@@ -171,6 +174,12 @@ namespace UrbanLegendBureau.UI
         {
             _onApp = onApp;
         }
+
+        /// <summary>
+        /// 껍데기 안쪽 화면의 자리. 앱은 휴대폰을 키우지 않고 이 자리에 켜진다.
+        /// 여는 쪽이 이 칸에 제 화면을 맞춘다.
+        /// </summary>
+        public RectTransform PhoneScreenRect => _phoneScreen;
 
         private void TogglePhone()
         {

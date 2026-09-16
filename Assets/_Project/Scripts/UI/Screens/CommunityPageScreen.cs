@@ -179,26 +179,70 @@ namespace UrbanLegendBureau.UI
         [Tooltip("세로 화면에서 함께 줄어드는 글자들.")]
         [SerializeField] private TMP_Text[] _scaledTexts;
 
-        [Tooltip("세로 화면에서 쓰는 좌우 여백.")]
-        [SerializeField] private float _phoneInset = 26f;
-
-        [Tooltip("세로 화면에서 글자에 곱하는 비율.")]
-        [SerializeField] private float _phoneFontScale = 0.74f;
-
         [Tooltip("세로 화면의 폭. 실제 휴대폰처럼 가운데에 세워 둔다.")]
         [SerializeField] private float _phoneWidth = 620f;
+
+        [Tooltip("이미 떠 있는 휴대폰 칸에 맞출 때 짜는 폭. 이 폭으로 짜 놓고 통째로 줄인다. "
+               + "좁게 짤수록 줄어든 뒤의 글자가 커진다. 실제 휴대폰처럼 한 줄에 열대여섯 자가 들어가는 폭이다.")]
+        [SerializeField] private float _phoneFitWidth = 380f;
 
         [Tooltip("세로 화면의 위아래 여백.")]
         [SerializeField] private float _phoneMargin = 28f;
 
         [Tooltip("오른쪽 굴림 막대가 차지하는 폭. 세로 화면에서 글이 막대에 물리지 않게 한다.")]
-        [SerializeField] private float _phoneScrollbarWidth = 24f;
+        [SerializeField] private float _phoneScrollbarWidth = 16f;
 
         [Tooltip("컴퓨터 창이 아래에 비워 두는 만큼. 작업 표시줄 자리다.")]
         [SerializeField] private float _taskbarHeight = 64f;
 
         /// <summary>지금 휴대폰으로 보고 있는가.</summary>
         public bool IsPhone { get; private set; }
+
+        /// <summary>세로 화면의 좌우 여백은 폭에 비례한다.</summary>
+        private const float PhoneInsetRatio = 0.042f;
+        private const int MinPhoneInset = 10;
+
+        /// <summary>이 폭이면 글자를 줄이지 않는다. 좁아지는 만큼 함께 줄어든다.</summary>
+        private const float PhoneFontRefWidth = 838f;
+
+        /// <summary>아무리 좁아도 이보다 더 줄이지는 않는다. 읽을 수 없게 된다.</summary>
+        private const float MinPhoneFontScale = 0.75f;
+
+        /// <summary>
+        /// 창을 다른 칸에 딱 맞춘다. 캔버스가 달라도 되도록 화면 좌표로 옮긴다.
+        /// 맞출 수 없으면 false 를 돌려주고 부르는 쪽이 원래 방식으로 돌아간다.
+        /// </summary>
+        private bool FitTo(RectTransform frame)
+        {
+            var parent = _window != null ? _window.parent as RectTransform : null;
+            if (parent == null || frame == null) return false;
+
+            // 꺼져 있는 동안에는 캔버스 배율이 아직 실리지 않아 자리가 엉뚱하게 나온다.
+            // 켠 뒤에 맞춰야 한다.
+            if (!parent.gameObject.activeInHierarchy || !frame.gameObject.activeInHierarchy) return false;
+
+            var corners = new Vector3[4];
+            frame.GetWorldCorners(corners);
+
+            var min = parent.InverseTransformPoint(corners[0]);
+            var max = parent.InverseTransformPoint(corners[2]);
+
+            float width = max.x - min.x;
+            float height = max.y - min.y;
+            if (width <= 1f || height <= 1f) return false;
+
+            // 칸에 맞춰 잘게 다시 짜지 않는다. 늘 같은 폭으로 짜 놓고 통째로 줄인다.
+            // 그래야 여백과 줄 높이와 글자가 한꺼번에 같은 비율로 줄어 배치가 무너지지 않는다.
+            float scale = width / _phoneFitWidth;
+
+            _window.anchorMin = new Vector2(0.5f, 0.5f);
+            _window.anchorMax = new Vector2(0.5f, 0.5f);
+            _window.pivot = new Vector2(0.5f, 0.5f);
+            _window.localScale = new Vector3(scale, scale, 1f);
+            _window.sizeDelta = new Vector2(_phoneFitWidth, height / scale);
+            _window.anchoredPosition = new Vector2((min.x + max.x) * 0.5f, (min.y + max.y) * 0.5f);
+            return true;
+        }
 
         private float[] _deskFontSizes;
         private int _deskInset = -1;
@@ -209,18 +253,30 @@ namespace UrbanLegendBureau.UI
         ///
         /// 내용과 동작은 건드리지 않는다. 창 크기와 좌우 여백과 글자 크기만 바꾼다.
         /// 괴담넷을 하나만 두는 이유가 이것이다. 무엇을 고치든 양쪽에 함께 반영된다.
+        ///
+        /// frame 을 주면 그 자리에 딱 맞춘다. 현장에 이미 떠 있는 휴대폰 화면이 그것이다.
+        /// 그러면 휴대폰이 커지지 않고, 들고 있던 그 화면에 괴담넷이 켜진다.
         /// </summary>
-        public void SetShape(bool phone)
+        public void SetShape(bool phone, RectTransform frame = null)
         {
             CaptureShape();
             IsPhone = phone;
 
-            if (_phoneShell != null) _phoneShell.SetActive(phone);
+            // 이미 껍데기가 있는 자리에 맞출 때는 우리 껍데기를 깔지 않는다.
+            if (_phoneShell != null) _phoneShell.SetActive(phone && frame == null);
+
+            float phoneWidth = _phoneWidth;
 
             if (_window != null)
             {
-                if (phone)
+                if (phone && frame != null && FitTo(frame))
                 {
+                    // 늘 같은 폭으로 짜 두고 통째로 줄인 것이라, 여백과 글자는 그 폭 기준이다.
+                    phoneWidth = _phoneFitWidth;
+                }
+                else if (phone)
+                {
+                    _window.localScale = Vector3.one;
                     // 가운데에 세로로 세운다. 위아래는 화면 끝에서 조금씩 띄운다.
                     _window.anchorMin = new Vector2(0.5f, 0f);
                     _window.anchorMax = new Vector2(0.5f, 1f);
@@ -231,6 +287,7 @@ namespace UrbanLegendBureau.UI
                 else
                 {
                     // 바탕화면 위에 뜬 창. 아래쪽 작업 표시줄 자리는 비워 둔다.
+                    _window.localScale = Vector3.one;
                     _window.anchorMin = Vector2.zero;
                     _window.anchorMax = Vector2.one;
                     _window.pivot = new Vector2(0.5f, 0.5f);
@@ -239,7 +296,10 @@ namespace UrbanLegendBureau.UI
                 }
             }
 
-            int inset = phone ? Mathf.RoundToInt(_phoneInset) : _deskInset;
+            // 좁을수록 여백과 글자를 함께 줄인다. 폭 하나로 정해 두면 어떤 크기에 맞춰도 읽힌다.
+            int inset = phone
+                ? Mathf.Clamp(Mathf.RoundToInt(phoneWidth * PhoneInsetRatio), MinPhoneInset, _deskInset)
+                : _deskInset;
 
             if (_insetGroups != null)
             {
@@ -273,15 +333,138 @@ namespace UrbanLegendBureau.UI
 
             if (_scaledTexts != null && _deskFontSizes != null)
             {
-                float scale = phone ? _phoneFontScale : 1f;
+                float scale = phone
+                    ? Mathf.Clamp(phoneWidth / PhoneFontRefWidth, MinPhoneFontScale, 1f)
+                    : 1f;
                 for (int i = 0; i < _scaledTexts.Length && i < _deskFontSizes.Length; i++)
                 {
                     if (_scaledTexts[i] != null) _scaledTexts[i].fontSize = _deskFontSizes[i] * scale;
                 }
             }
 
+            ApplyChrome(phone, inset);
+
             if (_window != null) LayoutRebuilder.MarkLayoutForRebuild(_window);
         }
+
+        /// <summary>
+        /// 자리를 숫자로 박아 둔 것들. 1920 폭 창을 기준으로 잡혀 있어 좁은 화면에서는 겹친다.
+        /// 창 제목 줄과 게시판 한 줄이 그렇다. 여기서만 따로 맞춘다.
+        /// </summary>
+        private void ApplyChrome(bool phone, int inset)
+        {
+            // --- 창 제목 줄 ---
+            if (_windowTitleText != null)
+            {
+                var rt = _windowTitleText.rectTransform;
+                float right = phone ? PhoneCloseButtonRoom : DeskCloseButtonRoom;
+                rt.offsetMin = new Vector2(phone ? inset : DeskTitleLeft, rt.offsetMin.y);
+                rt.offsetMax = new Vector2(-right, rt.offsetMax.y);
+            }
+
+            if (_closeButton != null)
+            {
+                var rt = (RectTransform)_closeButton.transform;
+                rt.anchoredPosition = new Vector2(phone ? -10f : -70f, 0f);
+                rt.sizeDelta = phone ? new Vector2(44f, 30f) : new Vector2(56f, 40f);
+            }
+
+            // --- 게시판 한 줄 ---
+            // 믿음도가 오른쪽 끝에 얹히므로, 제목이 그 밑으로 들어가지 않게 자리를 비워 준다.
+            if (_boardEntryTemplate != null)
+            {
+                float beliefWidth = phone ? PhoneBoardBeliefWidth : DeskBoardBeliefWidth;
+
+                foreach (var text in _boardEntryTemplate.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    if (text.name == BoardBeliefName)
+                    {
+                        var brt = text.rectTransform;
+                        brt.sizeDelta = new Vector2(beliefWidth, brt.sizeDelta.y);
+                        // 좁은 화면에서는 오른쪽 끝을 굴림 막대가 덮는다. 그만큼 안으로 들인다.
+                        brt.anchoredPosition = new Vector2(
+                            phone ? -(10f + _phoneScrollbarWidth) : -16f, brt.anchoredPosition.y);
+                    }
+                    else if (text.name != BoardMarkName)
+                    {
+                        var lrt = text.rectTransform;
+                        lrt.offsetMax = new Vector2(-(beliefWidth + 16f), lrt.offsetMax.y);
+                    }
+                }
+
+                // 좁은 화면에서는 제목이 두 줄로 넘어간다. 줄 높이를 그만큼 키운다.
+                var row = (RectTransform)_boardEntryTemplate.transform;
+                row.sizeDelta = new Vector2(row.sizeDelta.x, phone ? PhoneBoardRowHeight : DeskBoardRowHeight);
+            }
+
+            // --- 좋아요 / 싫어요 칸 ---
+            // 폭이 숫자로 박혀 있어, 좁은 화면에서는 이 둘이 글 칸 전체를 제 폭만큼 벌려 버린다.
+            // 배치는 자식의 최소 폭보다 좁게 줄이지 못하기 때문이다. 칸부터 줄여야 글이 창 안에 든다.
+            ApplyReactionChip(_likeButton, phone);
+            ApplyReactionChip(_dislikeButton, phone);
+
+            // --- 굴림 막대 ---
+            ApplyScrollbar(_boardScroll, phone);
+            ApplyScrollbar(_commentScroll, phone);
+        }
+
+        private void ApplyReactionChip(Button chip, bool phone)
+        {
+            if (chip == null) return;
+
+            var rt = (RectTransform)chip.transform;
+            rt.sizeDelta = phone
+                ? new Vector2(PhoneReactionWidth, PhoneReactionHeight)
+                : new Vector2(DeskReactionWidth, DeskReactionHeight);
+
+            foreach (var label in chip.GetComponentsInChildren<TMP_Text>(true))
+            {
+                label.rectTransform.sizeDelta = rt.sizeDelta;
+            }
+        }
+
+        private const float DeskReactionWidth = 250f;
+        private const float DeskReactionHeight = 76f;
+        private const float PhoneReactionWidth = 148f;
+        private const float PhoneReactionHeight = 60f;
+
+        /// <summary>
+        /// 굴림 막대. 컴퓨터 창에서는 화살표가 들어간 굵은 막대지만,
+        /// 휴대폰에서는 손가락으로 밀어 넘기는 것이라 가는 선 하나로 줄인다.
+        /// </summary>
+        private void ApplyScrollbar(ScrollRect scroll, bool phone)
+        {
+            var bar = scroll != null ? scroll.verticalScrollbar : null;
+            if (bar == null) return;
+
+            var rt = (RectTransform)bar.transform;
+            rt.sizeDelta = new Vector2(phone ? PhoneScrollbarWidth : DeskScrollbarWidth, rt.sizeDelta.y);
+
+            var up = rt.Find("Btn_ScrollUp");
+            var down = rt.Find("Btn_ScrollDown");
+            if (up != null) up.gameObject.SetActive(!phone);
+            if (down != null) down.gameObject.SetActive(!phone);
+
+            // 화살표를 감추면 손잡이가 오르내릴 자리도 그만큼 넓어진다.
+            if (rt.Find("SlidingArea") is RectTransform slide)
+            {
+                float endPad = phone ? 3f : DeskScrollbarWidth + 4f;
+                float sidePad = phone ? 2f : 6f;
+                slide.offsetMin = new Vector2(sidePad, endPad);
+                slide.offsetMax = new Vector2(-sidePad, -endPad);
+            }
+        }
+
+        private const float DeskScrollbarWidth = 34f;
+        private const float PhoneScrollbarWidth = 10f;
+
+        private const float DeskTitleLeft = 110f;
+        private const float DeskCloseButtonRoom = 260f;
+        private const float PhoneCloseButtonRoom = 64f;
+        private const float DeskBoardBeliefWidth = 320f;
+        private const float PhoneBoardBeliefWidth = 104f;
+        private const float DeskBoardRowHeight = 104f;
+        private const float PhoneBoardRowHeight = 132f;
 
         /// <summary>컴퓨터 창일 때의 값을 한 번만 적어 둔다. 되돌릴 때 쓴다.</summary>
         private void CaptureShape()
@@ -386,6 +569,15 @@ namespace UrbanLegendBureau.UI
                 Canvas.ForceUpdateCanvases();
                 if (_boardScroll.content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_boardScroll.content);
                 _boardScroll.verticalNormalizedPosition = 1f;
+            }
+
+            // 꺼져 있는 동안 창 크기가 바뀌었으면 그 사이의 배치는 밀려 있다.
+            // 켜는 김에 한 번 다시 재운다. 그러지 않으면 예전 폭 그대로 남아 창 밖으로 삐져나온다.
+            if (!showBoard && _commentScroll != null)
+            {
+                Canvas.ForceUpdateCanvases();
+                if (_commentScroll.content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentScroll.content);
+                _commentScroll.verticalNormalizedPosition = 1f;
             }
         }
 
