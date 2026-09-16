@@ -40,7 +40,13 @@ namespace UrbanLegendBureau.UI
             if (_rect == null) _rect = (RectTransform)transform;
             if (_canvas == null) _canvas = GetComponentInParent<Canvas>();
 
-            float scale = _canvas != null && _canvas.scaleFactor > 0.0001f ? _canvas.scaleFactor : 1f;
+            // 캔버스 배율만 보면 안 된다. 중간에 통째로 줄인 것이 있으면 선도 그만큼 얇아져 사라진다.
+            // 휴대폰 안에 접어 넣은 괴담넷이 그렇다. 실제로 실린 배율 전체를 본다.
+            float scale = Mathf.Abs(_rect.lossyScale.y);
+            if (scale < 0.0001f)
+            {
+                scale = _canvas != null && _canvas.scaleFactor > 0.0001f ? _canvas.scaleFactor : 1f;
+            }
             if (Mathf.Approximately(scale, _appliedScale)) return;
 
             _appliedScale = scale;

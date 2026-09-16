@@ -1,0 +1,68 @@
+using UnityEngine;
+using UrbanLegendBureau.Localization;
+
+namespace UrbanLegendBureau.Core
+{
+    /// <summary>
+    /// 그날 밤의 벽시계.
+    ///
+    /// 컴퓨터 작업 표시줄과 휴대폰 상단이 같은 시각을 보여야 한다. 그래서 한 곳에서만 센다.
+    /// 켠 시각에서 실제로 흐른 만큼을 더한다. 실제 시간과 같은 속도로 간다.
+    ///
+    /// 사건 진행에 쓰는 조사 시간(InvestigationTimeService)과는 다른 것이다.
+    /// 저쪽은 조사 행동 수로 가고, 이쪽은 그냥 벽에 걸린 시계다.
+    /// </summary>
+    public static class GameClock
+    {
+        private const string ClockTextId = "ui.desktop.clock";
+        private const string AmTextId = "ui.desktop.am";
+        private const string PmTextId = "ui.desktop.pm";
+
+        private static int _startHour = 2;
+        private static int _startMinute = 44;
+        private static float _origin = -1f;
+
+        /// <summary>몇 시에 시작하는지 정한다. 컴퓨터 화면이 제 값으로 한 번 불러 준다.</summary>
+        public static void Configure(int hour, int minute)
+        {
+            _startHour = hour;
+            _startMinute = minute;
+            if (_origin < 0f) _origin = Time.unscaledTime;
+        }
+
+        /// <summary>처음부터 다시 센다. 새 사건을 시작할 때 쓸 수 있다.</summary>
+        public static void Restart()
+        {
+            _origin = Time.unscaledTime;
+        }
+
+        /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>
+        public static int ElapsedMinutes
+        {
+            get
+            {
+                if (_origin < 0f) _origin = Time.unscaledTime;
+                return Mathf.FloorToInt((Time.unscaledTime - _origin) / 60f);
+            }
+        }
+
+        /// <summary>"오전 02:44" 꼴의 지금 시각.</summary>
+        public static string Format(LocalizationService loc)
+        {
+            if (loc == null) return string.Empty;
+
+            int total = _startHour * 60 + _startMinute + ElapsedMinutes;
+            int hour24 = (total / 60) % 24;
+            int minute = total % 60;
+
+            bool morning = hour24 < 12;
+            int hour12 = hour24 % 12;
+            if (hour12 == 0) hour12 = 12;
+
+            return loc.Get(ClockTextId,
+                loc.Get(morning ? AmTextId : PmTextId),
+                hour12.ToString("00"),
+                minute.ToString("00"));
+        }
+    }
+}

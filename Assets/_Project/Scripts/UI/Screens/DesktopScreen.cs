@@ -48,18 +48,12 @@ namespace UrbanLegendBureau.UI
         private bool _allowAll = true;
         private bool _lockAll;
 
-        private const string ClockTextId = "ui.desktop.clock";
-        private const string AmTextId = "ui.desktop.am";
-        private const string PmTextId = "ui.desktop.pm";
         private const string BeliefTextId = "ui.desktop.belief";
 
         /// <summary>화면에 띄울 전체 믿음도. 판정은 BeliefService 가 하고 여기서는 받기만 한다.</summary>
         private int _belief;
 
-        /// <summary>컴퓨터를 켠 뒤 흐른 시간(초). 실제 시간과 같은 속도로 간다.</summary>
-        private float _elapsed;
-
-        private int _shownMinute = -1;
+        private int _shownMinute = int.MinValue;
 
         /// <summary>작업 표시줄에 띄울 전체 믿음도를 알려 준다.</summary>
         public void SetBelief(int percent)
@@ -68,12 +62,17 @@ namespace UrbanLegendBureau.UI
             RefreshBelief();
         }
 
+        protected override void Awake()
+        {
+            // 시계는 한 곳에서만 센다. 휴대폰도 같은 시각을 보여야 하기 때문이다.
+            base.Awake();
+            GameClock.Configure(_startHour, _startMinute);
+        }
+
         private void Update()
         {
-            _elapsed += Time.unscaledDeltaTime;
-
             // 분이 바뀔 때만 다시 쓴다. 매 프레임 글자를 만들 이유가 없다.
-            int minute = Mathf.FloorToInt(_elapsed / 60f);
+            int minute = GameClock.ElapsedMinutes;
             if (minute == _shownMinute) return;
 
             _shownMinute = minute;
@@ -175,18 +174,7 @@ namespace UrbanLegendBureau.UI
             if (_clockText == null) return;
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
-            int total = _startHour * 60 + _startMinute + Mathf.FloorToInt(_elapsed / 60f);
-            int hour24 = (total / 60) % 24;
-            int minute = total % 60;
-
-            bool morning = hour24 < 12;
-            int hour12 = hour24 % 12;
-            if (hour12 == 0) hour12 = 12;
-
-            _clockText.text = loc.Get(ClockTextId,
-                loc.Get(morning ? AmTextId : PmTextId),
-                hour12.ToString("00"),
-                minute.ToString("00"));
+            _clockText.text = GameClock.Format(loc);
         }
 
         private void RefreshBelief()

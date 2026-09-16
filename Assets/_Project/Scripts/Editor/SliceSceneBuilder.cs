@@ -1554,6 +1554,19 @@ namespace UrbanLegendBureau.EditorTools
             closeLabel.text = "X";
             closeLabel.raycastTarget = false;
 
+            // 휴대폰으로 볼 때만 켜지는 시각. 실제 휴대폰처럼 맨 윗줄 오른쪽 끝에 선다.
+            var statusClock = AddText(titleBar.transform, "StatusClock", 24f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(240f, 36f), TextAlignmentOptions.Right);
+            var statusClockRt = statusClock.rectTransform;
+            statusClockRt.anchorMin = new Vector2(1f, 0.5f);
+            statusClockRt.anchorMax = new Vector2(1f, 0.5f);
+            statusClockRt.pivot = new Vector2(1f, 0.5f);
+            statusClockRt.anchoredPosition = new Vector2(-14f, 0f);
+            statusClockRt.sizeDelta = new Vector2(240f, 36f);
+            statusClock.raycastTarget = false;
+            statusClock.gameObject.AddComponent<ClockLabel>();
+            statusClock.gameObject.SetActive(false);
+
             // 글자를 안쪽으로 들이는 만큼. 글 화면과 같은 선에 선다.
             const int BoardInset = 150;
 
@@ -1957,6 +1970,7 @@ namespace UrbanLegendBureau.EditorTools
             // 내용을 고치면 컴퓨터로 보든 휴대폰으로 보든 함께 바뀐다.
             so.FindProperty("_window").objectReferenceValue = (RectTransform)window.transform;
             so.FindProperty("_phoneShell").objectReferenceValue = phoneShell;
+            so.FindProperty("_statusClockText").objectReferenceValue = statusClock;
             so.FindProperty("_taskbarHeight").floatValue = DesktopTaskbarHeight;
 
             SetObjectList(so.FindProperty("_insetGroups"),
@@ -2380,10 +2394,12 @@ namespace UrbanLegendBureau.EditorTools
             phoneBarRt.sizeDelta = new Vector2(0f, StatusHeight);
             phoneBar.transform.SetAsFirstSibling();   // 노치가 위에 오게
 
+            // 휴대폰 시계도 컴퓨터와 같은 시각이다. 흘러가는 것도 같다.
             var phoneClock = AddText(phoneBar.transform, "Clock", 19f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
             StretchInside(phoneClock.rectTransform, 14f, 190f, 6f, 6f);
             phoneClock.raycastTarget = false;
+            phoneClock.gameObject.AddComponent<ClockLabel>();
 
             var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));
             var phoneCloseRt = (RectTransform)phoneClose.transform;

@@ -149,7 +149,11 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>목록 줄 오른쪽의 믿음도를 맡은 글자의 이름.</summary>
         private const string BoardBeliefName = "Text_Belief";
+        /// <summary>목록 줄의 곁가지(닉네임 / 조회 / 댓글 / 시간)를 제목보다 얼마나 작게 둘 것인가.</summary>
+        private const int MetaSizePercent = 72;
+
         private const string BeliefPercentTextId = "ui.net.belief_percent";
+        private const string BeliefPercentShortTextId = "ui.net.belief_percent_short";
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
@@ -169,6 +173,9 @@ namespace UrbanLegendBureau.UI
 
         [Tooltip("휴대폰으로 볼 때만 뒤에 깔리는 껍데기. 컴퓨터로 볼 때는 꺼진다.")]
         [SerializeField] private GameObject _phoneShell;
+
+        [Tooltip("휴대폰으로 볼 때 맨 윗줄 오른쪽에 뜨는 시각. 컴퓨터로 볼 때는 꺼진다.")]
+        [SerializeField] private TMP_Text _statusClockText;
 
         [Tooltip("좌우 여백을 padding 으로 쓰는 칸들. 세로 화면에서는 여백을 줄인다.")]
         [SerializeField] private LayoutGroup[] _insetGroups;
@@ -197,6 +204,9 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>지금 휴대폰으로 보고 있는가.</summary>
         public bool IsPhone { get; private set; }
+
+        /// <summary>지금 목록을 보고 있는가. 돌아가기가 목록으로 갈지 창을 닫을지 가른다.</summary>
+        public bool IsShowingBoard => _showingBoard;
 
         /// <summary>세로 화면의 좌우 여백은 폭에 비례한다.</summary>
         private const float PhoneInsetRatio = 0.042f;
@@ -301,13 +311,21 @@ namespace UrbanLegendBureau.UI
                 ? Mathf.Clamp(Mathf.RoundToInt(phoneWidth * PhoneInsetRatio), MinPhoneInset, _deskInset)
                 : _deskInset;
 
-            if (_insetGroups != null)
+            // 좌우뿐 아니라 위아래 여백도 함께 줄인다.
+            // 1920 폭 기준으로 잡힌 값이라 좁은 화면에서는 그 자리만 휑하게 벌어진다.
+            if (_insetGroups != null && _deskPads != null)
             {
-                foreach (var group in _insetGroups)
+                float vertical = phone ? PhoneVerticalPadScale : 1f;
+
+                for (int i = 0; i < _insetGroups.Length && i < _deskPads.Length; i++)
                 {
+                    var group = _insetGroups[i];
                     if (group == null) continue;
-                    var p = group.padding;
-                    group.padding = new RectOffset(inset, inset, p.top, p.bottom);
+
+                    var desk = _deskPads[i];
+                    group.padding = new RectOffset(inset, inset,
+                        Mathf.RoundToInt(desk.top * vertical),
+                        Mathf.RoundToInt(desk.bottom * vertical));
                     LayoutRebuilder.MarkLayoutForRebuild((RectTransform)group.transform);
                 }
             }
@@ -322,13 +340,15 @@ namespace UrbanLegendBureau.UI
                 }
             }
 
-            // 믿음도는 배치에서 빠져 있고 오른쪽 끝에 직접 붙는다. 여백을 따로 맞춰 준다.
+            // 믿음도는 배치에서 빠져 있고 오른쪽 위에 직접 붙는다. 여백과 높이를 따로 맞춰 준다.
             // 세로 화면에서는 여백이 좁아 굴림 막대에 물리므로 그 폭만큼 더 들인다.
             if (_postBeliefText != null)
             {
                 var rt = _postBeliefText.rectTransform;
                 float right = inset + (phone ? _phoneScrollbarWidth : 0f);
-                rt.anchoredPosition = new Vector2(-right, rt.anchoredPosition.y);
+                float top = phone ? PhoneBeliefTop : DeskBeliefTop;
+                rt.anchoredPosition = new Vector2(-right, -top);
+                _postBeliefText.alignment = TextAlignmentOptions.TopRight;
             }
 
             if (_scaledTexts != null && _deskFontSizes != null)
@@ -353,20 +373,53 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         private void ApplyChrome(bool phone, int inset)
         {
-            // --- 창 제목 줄 ---
+            // --- 맨 윗줄 ---
+            // 컴퓨터에서는 창 제목 표시줄이고, 휴대폰에서는 상태 줄이다.
+            // 휴대폰에서는 제목과 빨간 X 를 치우고, 왼쪽에 돌아가기, 오른쪽에 시각만 남긴다.
             if (_windowTitleText != null)
             {
+                _windowTitleText.gameObject.SetActive(!phone);
+
                 var rt = _windowTitleText.rectTransform;
-                float right = phone ? PhoneCloseButtonRoom : DeskCloseButtonRoom;
-                rt.offsetMin = new Vector2(phone ? inset : DeskTitleLeft, rt.offsetMin.y);
-                rt.offsetMax = new Vector2(-right, rt.offsetMax.y);
+                rt.offsetMin = new Vector2(DeskTitleLeft, rt.offsetMin.y);
+                rt.offsetMax = new Vector2(-DeskCloseButtonRoom, rt.offsetMax.y);
+            }
+
+            if (_statusClockText != null)
+            {
+                _statusClockText.gameObject.SetActive(phone);
             }
 
             if (_closeButton != null)
             {
                 var rt = (RectTransform)_closeButton.transform;
-                rt.anchoredPosition = new Vector2(phone ? -10f : -70f, 0f);
-                rt.sizeDelta = phone ? new Vector2(44f, 30f) : new Vector2(56f, 40f);
+                var image = _closeButton.GetComponent<Image>();
+
+                if (phone)
+                {
+                    // 왼쪽 끝의 돌아가기. 실제 휴대폰처럼 글자 하나로 둔다.
+                    rt.anchorMin = new Vector2(0f, 0.5f);
+                    rt.anchorMax = new Vector2(0f, 0.5f);
+                    rt.pivot = new Vector2(0f, 0.5f);
+                    rt.anchoredPosition = new Vector2(8f, 0f);
+                    rt.sizeDelta = new Vector2(40f, 36f);
+                    if (image != null) image.color = new Color(1f, 1f, 1f, 0f);
+                }
+                else
+                {
+                    rt.anchorMin = new Vector2(1f, 0.5f);
+                    rt.anchorMax = new Vector2(1f, 0.5f);
+                    rt.pivot = new Vector2(0.5f, 0.5f);
+                    rt.anchoredPosition = new Vector2(-70f, 0f);
+                    rt.sizeDelta = new Vector2(56f, 40f);
+                    if (image != null) image.color = DeskCloseColor;
+                }
+
+                foreach (var label in _closeButton.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    label.text = phone ? "‹" : "X";
+                    label.rectTransform.sizeDelta = rt.sizeDelta;
+                }
             }
 
             // --- 게시판 한 줄 ---
@@ -381,20 +434,44 @@ namespace UrbanLegendBureau.UI
                     {
                         var brt = text.rectTransform;
                         brt.sizeDelta = new Vector2(beliefWidth, brt.sizeDelta.y);
-                        // 좁은 화면에서는 오른쪽 끝을 굴림 막대가 덮는다. 그만큼 안으로 들인다.
-                        brt.anchoredPosition = new Vector2(
-                            phone ? -(10f + _phoneScrollbarWidth) : -16f, brt.anchoredPosition.y);
+
+                        // 세로 화면에서는 제목이 두 줄로 넘어간다. 가운데가 아니라 첫 줄에 맞춰 위에 건다.
+                        // 오른쪽 끝은 굴림 막대가 덮으므로 그만큼 안으로 들인다.
+                        if (phone)
+                        {
+                            brt.anchorMin = new Vector2(1f, 1f);
+                            brt.anchorMax = new Vector2(1f, 1f);
+                            brt.pivot = new Vector2(1f, 1f);
+                            brt.anchoredPosition = new Vector2(-(10f + _phoneScrollbarWidth), -14f);
+                            text.alignment = TextAlignmentOptions.TopRight;
+                        }
+                        else
+                        {
+                            brt.anchorMin = new Vector2(1f, 0.5f);
+                            brt.anchorMax = new Vector2(1f, 0.5f);
+                            brt.pivot = new Vector2(1f, 0.5f);
+                            brt.anchoredPosition = new Vector2(-16f, 6f);
+                            text.alignment = TextAlignmentOptions.Right;
+                        }
                     }
                     else if (text.name != BoardMarkName)
                     {
                         var lrt = text.rectTransform;
-                        lrt.offsetMax = new Vector2(-(beliefWidth + 16f), lrt.offsetMax.y);
+                        lrt.offsetMax = new Vector2(-(beliefWidth + 22f), lrt.offsetMax.y);
                     }
                 }
 
                 // 좁은 화면에서는 제목이 두 줄로 넘어간다. 줄 높이를 그만큼 키운다.
                 var row = (RectTransform)_boardEntryTemplate.transform;
                 row.sizeDelta = new Vector2(row.sizeDelta.x, phone ? PhoneBoardRowHeight : DeskBoardRowHeight);
+            }
+
+            // --- 댓글 카드 ---
+            // 두 줄(작성자 / 내용)이 들어가는데 세로 화면에서는 내용이 두 줄로 넘어가기도 한다.
+            if (_commentTemplate != null)
+            {
+                var rt = (RectTransform)_commentTemplate.transform;
+                rt.sizeDelta = new Vector2(rt.sizeDelta.x, phone ? PhoneCommentHeight : DeskCommentHeight);
             }
 
             // --- 좋아요 / 싫어요 칸 ---
@@ -411,6 +488,15 @@ namespace UrbanLegendBureau.UI
         private void ApplyReactionChip(Button chip, bool phone)
         {
             if (chip == null) return;
+
+            // 본문과 칸 사이를 벌려 두는 자리. 컴퓨터 기준으로 잡혀 있어 좁은 화면에서는 허전하다.
+            if (chip.transform.parent != null
+                && chip.transform.parent.GetComponent<HorizontalLayoutGroup>() is HorizontalLayoutGroup row)
+            {
+                var p = row.padding;
+                row.padding = new RectOffset(p.left, p.right,
+                    phone ? PhoneReactionGap : DeskReactionGap, p.bottom);
+            }
 
             var rt = (RectTransform)chip.transform;
             rt.sizeDelta = phone
@@ -460,11 +546,24 @@ namespace UrbanLegendBureau.UI
 
         private const float DeskTitleLeft = 110f;
         private const float DeskCloseButtonRoom = 260f;
-        private const float PhoneCloseButtonRoom = 64f;
+        private static readonly Color DeskCloseColor = new Color(0.62f, 0.22f, 0.24f, 1f);
         private const float DeskBoardBeliefWidth = 320f;
-        private const float PhoneBoardBeliefWidth = 104f;
+        private const float PhoneBoardBeliefWidth = 58f;
         private const float DeskBoardRowHeight = 104f;
-        private const float PhoneBoardRowHeight = 132f;
+        private const float PhoneBoardRowHeight = 150f;
+        private const float DeskCommentHeight = 82f;
+        private const float PhoneCommentHeight = 104f;
+
+        /// <summary>세로 화면에서 위아래 여백에 곱하는 비율. 1920 폭 기준으로 잡힌 값이라 그대로 두면 너무 넓다.</summary>
+        private const float PhoneVerticalPadScale = 0.55f;
+
+        /// <summary>본문과 좋아요 칸 사이. 컴퓨터에서는 넉넉하지만 좁은 화면에서는 허전하다.</summary>
+        private const int DeskReactionGap = 140;
+        private const int PhoneReactionGap = 46;
+
+        /// <summary>제목 띠 안에서 믿음도가 내려앉는 높이. 작성자 정보 줄과 같은 선에 선다.</summary>
+        private const float DeskBeliefTop = 112f;
+        private const float PhoneBeliefTop = 68f;
 
         /// <summary>컴퓨터 창일 때의 값을 한 번만 적어 둔다. 되돌릴 때 쓴다.</summary>
         private void CaptureShape()
@@ -486,7 +585,19 @@ namespace UrbanLegendBureau.UI
                     _deskFontSizes[i] = _scaledTexts[i] != null ? _scaledTexts[i].fontSize : 24f;
                 }
             }
+
+            if (_insetGroups != null)
+            {
+                _deskPads = new RectOffset[_insetGroups.Length];
+                for (int i = 0; i < _insetGroups.Length; i++)
+                {
+                    var p = _insetGroups[i] != null ? _insetGroups[i].padding : new RectOffset();
+                    _deskPads[i] = new RectOffset(p.left, p.right, p.top, p.bottom);
+                }
+            }
         }
+
+        private RectOffset[] _deskPads;
 
         private WebPageSO _page;
         private int _views;
@@ -742,20 +853,32 @@ namespace UrbanLegendBureau.UI
             }
             if (_bodyText != null) _bodyText.text = _page != null ? loc.Get(_page.BodyTextId) : string.Empty;
 
+            string belief = _beliefPercent > 0 ? loc.Get(BeliefPercentTextId, _beliefPercent) : string.Empty;
+
+            // 믿음도는 컴퓨터에서는 작성자 정보 줄 오른쪽 끝에 따로 선다.
+            // 좁은 화면에서는 그 자리가 없어 글자끼리 겹치므로, 작성자 정보 줄에 이어 붙인다.
+            bool beliefInMeta = IsPhone && !string.IsNullOrEmpty(belief);
+
             if (_metaText != null)
             {
-                _metaText.text = _page == null
+                string meta = _page == null
                     ? string.Empty
                     : loc.Get(MetaTextId, loc.Get("ui.net.author_anon"), _views, _comments.Count,
                         string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
+
+                if (beliefInMeta && !string.IsNullOrEmpty(meta))
+                {
+                    meta += "   <color=#" + ColorUtility.ToHtmlStringRGB(_postBeliefText != null
+                        ? _postBeliefText.color : Color.red) + ">" + belief + "</color>";
+                }
+
+                _metaText.text = meta;
             }
 
             if (_postBeliefText != null)
             {
                 // 괴담과 무관한 글에는 아무것도 적지 않는다.
-                _postBeliefText.text = _beliefPercent > 0
-                    ? loc.Get(BeliefPercentTextId, _beliefPercent)
-                    : string.Empty;
+                _postBeliefText.text = beliefInMeta ? string.Empty : belief;
             }
 
             if (_likeText != null) _likeText.text = loc.Get(LikeTextId, _likes + (_likePressed ? 1 : 0));
@@ -805,8 +928,13 @@ namespace UrbanLegendBureau.UI
                     // 오른쪽의 믿음도. 괴담과 무관한 글에는 붙이지 않는다.
                     if (text.name == BoardBeliefName)
                     {
+                        // 좁은 화면에서는 "믿음도 :" 를 떼고 숫자만 남긴다. 붉은 숫자면 그것으로 안다.
                         bool has = entry.BeliefPercent > 0;
-                        if (has) text.text = loc.Get(BeliefPercentTextId, entry.BeliefPercent);
+                        if (has)
+                        {
+                            text.text = loc.Get(
+                                IsPhone ? BeliefPercentShortTextId : BeliefPercentTextId, entry.BeliefPercent);
+                        }
                         text.gameObject.SetActive(has);
                         continue;
                     }
@@ -814,8 +942,13 @@ namespace UrbanLegendBureau.UI
                     string title = loc.Get(entry.TitleTextId);
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
+                    // 닉네임 / 조회 / 댓글 / 시간은 곁가지다. 제목보다 작고 흐리게 둔다.
                     string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
-                    text.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
+                    text.text = string.IsNullOrEmpty(meta)
+                        ? title
+                        : title + "\n<size=" + MetaSizePercent + "%><color=#6B7280>" + meta + "</color></size>";
+
+                    text.alignment = TextAlignmentOptions.TopLeft;
                 }
 
                 // 모든 줄이 마우스를 올리면 옅은 회색이 된다. 실제 게시판이 그렇다.

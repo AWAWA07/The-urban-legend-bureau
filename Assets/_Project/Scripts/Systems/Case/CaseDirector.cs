@@ -300,12 +300,30 @@ namespace UrbanLegendBureau.Systems
 
             _communityScreen.SetShape(true, frame);
             _communityScreen.SetControlsEnabled(true);
-            _communityScreen.BindWindow(ClosePhoneNet);
+            _communityScreen.BindWindow(OnPhoneBackPressed);
             _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
             _communityScreen.ShowNotice(null);
             _communityScreen.ShowBoard(true);
 
             Debug.Log("[CaseDirector] 휴대폰으로 괴담넷을 열었다");
+        }
+
+        /// <summary>
+        /// 휴대폰 왼쪽 위의 돌아가기.
+        /// 글을 보고 있으면 목록으로, 목록을 보고 있으면 괴담넷을 닫는다. 실제 휴대폰이 그렇게 움직인다.
+        /// </summary>
+        private void OnPhoneBackPressed()
+        {
+            if (_communityScreen == null) return;
+
+            if (!_communityScreen.IsShowingBoard)
+            {
+                _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
+                _communityScreen.ShowBoard(true);
+                return;
+            }
+
+            ClosePhoneNet();
         }
 
         private void ClosePhoneNet()

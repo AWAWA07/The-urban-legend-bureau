@@ -63,7 +63,6 @@ namespace UrbanLegendBureau.UI
         [Tooltip("휴대폰 안의 앱. 컴퓨터 바탕화면과 같은 것들을 세로로 늘어놓는다.")]
         [SerializeField] private List<DesktopIcon> _phoneApps = new List<DesktopIcon>();
 
-        private const string PhoneClockTextId = "ui.phone.clock";
         private const string PhoneButtonTextId = "ui.field.btn_phone";
 
         private Func<string> _tickerProvider;
@@ -226,7 +225,7 @@ namespace UrbanLegendBureau.UI
                 _speakerText.text = string.IsNullOrEmpty(_speakerTextId) ? string.Empty : loc.Get(_speakerTextId);
             }
 
-            if (_phoneClockText != null) _phoneClockText.text = loc.Get(PhoneClockTextId);
+            // 휴대폰 시계는 ClockLabel 이 스스로 쓴다. 여기서 덮어쓰면 멈춘 시각으로 되돌아간다.
             if (_phoneButtonLabel != null) _phoneButtonLabel.text = loc.Get(PhoneButtonTextId);
 
             for (int i = 0; i < _phoneApps.Count; i++)
