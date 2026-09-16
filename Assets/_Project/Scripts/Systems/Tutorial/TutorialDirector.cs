@@ -298,9 +298,14 @@ namespace UrbanLegendBureau.Systems
                     Page = _tutorialPage,
                     BeliefPercent = TutorialPostBelief,
                 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 22 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 31 },
 
                 // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
+                //
+                // 사흘 전에 문을 연 사이트다. 처음 이틀은 글이 드문드문 올라오다가
+                // 요 며칠 사이 부쩍 늘었다. 괴담이 퍼지는 중이라는 것을 글 수로 보여준다.
+
+                // --- 오늘 ---
                 new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta", BeliefPercent = 28 },  // 12분 전
                 new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta", BeliefPercent = 19 },  // 34분 전
                 new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },                      // 1시간 전
@@ -308,7 +313,23 @@ namespace UrbanLegendBureau.Systems
                 new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },                      // 4시간 전
                 new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },                      // 6시간 전
                 new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },                      // 9시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.010", MetaTextId = "board.filler.010.meta" },                      // 11시간 전
+
+                // --- 어제 ---
                 new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },                      // 어제 23:50
+                new CommunityBoardEntry { TitleTextId = "board.filler.011", MetaTextId = "board.filler.011.meta", BeliefPercent = 24 },  // 어제 20:12
+                new CommunityBoardEntry { TitleTextId = "board.filler.012", MetaTextId = "board.filler.012.meta" },                      // 어제 18:33
+                new CommunityBoardEntry { TitleTextId = "board.filler.013", MetaTextId = "board.filler.013.meta", BeliefPercent = 30 },  // 어제 14:05
+                new CommunityBoardEntry { TitleTextId = "board.filler.014", MetaTextId = "board.filler.014.meta" },                      // 어제 09:21
+
+                // --- 이틀 전 ---
+                new CommunityBoardEntry { TitleTextId = "board.filler.015", MetaTextId = "board.filler.015.meta", BeliefPercent = 17 },  // 2일 전 23:40
+                new CommunityBoardEntry { TitleTextId = "board.filler.016", MetaTextId = "board.filler.016.meta" },                      // 2일 전 15:02
+                new CommunityBoardEntry { TitleTextId = "board.filler.017", MetaTextId = "board.filler.017.meta", BeliefPercent = 21 },  // 2일 전 11:18
+
+                // --- 사흘 전. 사이트가 문을 연 날 ---
+                new CommunityBoardEntry { TitleTextId = "board.filler.018", MetaTextId = "board.filler.018.meta", BeliefPercent = 13 },  // 3일 전 10:47
+                new CommunityBoardEntry { TitleTextId = "board.filler.019", MetaTextId = "board.filler.019.meta" },                      // 3일 전 10:00
             };
         }
 
@@ -476,9 +497,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>
         /// 작업 표시줄에 지금 전체 믿음도를 알린다.
         ///
-        /// 게시판에 올라온 글 전체를 기준으로 삼는다.
-        /// 글 하나하나가 이 괴담을 얼마나 믿게 만들고 있는지를 더해 글 수로 나눈다.
-        /// 괴담과 무관한 글은 0으로 들어가 전체를 끌어내린다. 그것도 실제 몫이다.
+        /// 게시판에 올라온 괴담 글 전체를 기준으로 삼는다.
+        /// 글 하나하나가 이 괴담을 얼마나 믿게 만들고 있는지를 더해 그 글 수로 나눈다.
+        /// 괴담과 무관한 글(0%)은 세지 않는다. 믿음과 아무 상관이 없는 글이라 평균을 흐릴 뿐이다.
         /// 그래서 괴담 글에 댓글을 달아 몫을 깎으면 이 숫자가 따라 내려간다.
         /// </summary>
         private void PushBeliefToTaskbar()
@@ -487,18 +508,23 @@ namespace UrbanLegendBureau.Systems
             _desktopScreen.SetBelief(CalculateBoardBelief());
         }
 
-        /// <summary>게시글 전체를 기준으로 낸 믿음도(%).</summary>
+        /// <summary>괴담 글들을 기준으로 낸 믿음도(%).</summary>
         private int CalculateBoardBelief()
         {
-            if (_boardEntries == null || _boardEntries.Count == 0) return 0;
+            if (_boardEntries == null) return 0;
 
             int total = 0;
+            int counted = 0;
+
             foreach (var entry in _boardEntries)
             {
-                if (entry != null) total += entry.BeliefPercent;
+                if (entry == null || entry.BeliefPercent <= 0) continue;
+
+                total += entry.BeliefPercent;
+                counted++;
             }
 
-            return Mathf.RoundToInt((float)total / _boardEntries.Count);
+            return counted == 0 ? 0 : Mathf.RoundToInt((float)total / counted);
         }
 
         /// <summary>이 글의 믿음 몫을 목록과 글 화면에 함께 반영한다.</summary>
