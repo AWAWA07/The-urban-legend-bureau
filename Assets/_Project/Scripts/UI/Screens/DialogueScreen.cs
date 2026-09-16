@@ -145,6 +145,8 @@ namespace UrbanLegendBureau.UI
             _nameProvider = null;
             _lineProvider = lineProvider;
 
+            // 나레이션에는 말하는 사람이 없다. 다음 대사는 다시 움직여야 한다.
+            _hasSpoken = false;
             StopMotion();
             if (_lineText != null) _lineText.color = _narrationColor;
 
@@ -297,6 +299,9 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnOpen()
         {
+            // 화면을 새로 열면 첫 대사는 움직이며 시작한다.
+            _hasSpoken = false;
+
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
             Refresh();
         }
@@ -352,8 +357,18 @@ namespace UrbanLegendBureau.UI
                 listener.image.color = _dimColor;
             }
 
-            StartMotion(speaker);
+            // 강조 움직임은 말하는 사람이 바뀔 때만 준다.
+            // 같은 사람이 여러 마디를 이어 말하는데 매번 들썩이면 보기에 사납다.
+            bool sameSpeaker = _hasSpoken && _lastSpeakerIsLeft == speakerIsLeft;
+            if (!sameSpeaker) StartMotion(speaker);
+
+            _lastSpeakerIsLeft = speakerIsLeft;
+            _hasSpoken = true;
         }
+
+        /// <summary>바로 앞 마디를 누가 말했는가. 같은 사람이면 움직이지 않는다.</summary>
+        private bool _lastSpeakerIsLeft;
+        private bool _hasSpoken;
 
         /// <summary>
         /// 새 화자의 강조 움직임을 시작한다.
