@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
@@ -353,9 +354,17 @@ namespace UrbanLegendBureau.EditorTools
             }
         }
 
+        /// <summary>열차 문이 서는 자리. 스크린도어의 트인 곳과 같은 자리다.</summary>
+        private static readonly float[] TrainDoorX = { -10f, 0f, 10f };
+
+        /// <summary>문 하나가 트인 폭. 문짝 둘이 반씩 나눠 막는다.</summary>
+        private const float DoorGap = 3.6f;
+
         /// <summary>
         /// 타기 전의 승강장. 열차가 들어오기 전까지만 보인다.
-        /// 조사 지점은 없다. 여기서는 기다리기만 한다.
+        ///
+        /// 오른쪽 어둠에서 열차가 미끄러져 들어와 서고, 스크린도어와 열차 문이 함께 열린다.
+        /// 문이 열려야 탈 자리가 켜진다. 그 전에는 눌러 넘어갈 수 없다.
         /// </summary>
         private static GameObject BuildPlatformOutside(Transform parent)
         {
@@ -372,29 +381,128 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "StationSoffit", new Vector2(0f, 3.4f), new Vector2(44f, 0.2f),
                 new Color(0.28f, 0.29f, 0.35f), -7);
 
+            // --- 들어오는 열차 ---
+            // 스크린도어보다 뒤, 터널 어둠보다 앞이다. 통째로 오른쪽에서 미끄러져 들어온다.
+            var leftLeaves = new List<Transform>();
+            var rightLeaves = new List<Transform>();
+
+            var train = new GameObject("TrainExterior");
+            train.transform.SetParent(root.transform, false);
+
+            AddFieldRect(train.transform, "Body", new Vector2(0f, 0.5f), new Vector2(60f, 5.2f),
+                new Color(0.30f, 0.32f, 0.38f), -8);
+            AddFieldRect(train.transform, "Underframe", new Vector2(0f, -2.3f), new Vector2(60f, 1.0f),
+                new Color(0.14f, 0.15f, 0.19f), -8);
+            AddFieldRect(train.transform, "Stripe", new Vector2(0f, 2.55f), new Vector2(60f, 0.36f),
+                new Color(0.55f, 0.45f, 0.24f), -7);
+
+            // 문과 문 사이의 창. 안이 훤히 보이지는 않는다.
+            float[] windowX = { -15f, -5f, 5f, 15f };
+            for (int i = 0; i < windowX.Length; i++)
+            {
+                AddFieldRect(train.transform, "CarWindowFrame_" + i, new Vector2(windowX[i], 1.0f),
+                    new Vector2(2.9f, 2.3f), new Color(0.38f, 0.40f, 0.46f), -7);
+                AddFieldRect(train.transform, "CarWindow_" + i, new Vector2(windowX[i], 1.0f),
+                    new Vector2(2.6f, 2.0f), new Color(0.07f, 0.08f, 0.12f), -6);
+            }
+
+            // 열차 문. 열리면 그 너머로 객실 안이 드러난다.
+            // 안쪽은 평평한 빛이 아니라 천장 / 벽 / 바닥으로 나눈다. 그래야 들여다본 것처럼 보인다.
+            for (int i = 0; i < TrainDoorX.Length; i++)
+            {
+                float x = TrainDoorX[i];
+
+                AddFieldRect(train.transform, "DoorInsideWall_" + i, new Vector2(x, 0.5f),
+                    new Vector2(DoorGap, 5.0f), new Color(0.22f, 0.23f, 0.28f), -8);
+                AddFieldRect(train.transform, "DoorInsideCeiling_" + i, new Vector2(x, 2.5f),
+                    new Vector2(DoorGap, 1.0f), new Color(0.44f, 0.43f, 0.37f), -7);
+                AddFieldRect(train.transform, "DoorInsideFloor_" + i, new Vector2(x, -1.6f),
+                    new Vector2(DoorGap, 1.8f), new Color(0.15f, 0.15f, 0.19f), -7);
+
+                leftLeaves.Add(AddFieldRect(train.transform, "CarDoor_L" + i,
+                    new Vector2(x - DoorGap * 0.25f, 0.5f), new Vector2(DoorGap * 0.5f, 5.0f),
+                    new Color(0.26f, 0.28f, 0.33f), -5).transform);
+                rightLeaves.Add(AddFieldRect(train.transform, "CarDoor_R" + i,
+                    new Vector2(x + DoorGap * 0.25f, 0.5f), new Vector2(DoorGap * 0.5f, 5.0f),
+                    new Color(0.26f, 0.28f, 0.33f), -5).transform);
+            }
+
+            // --- 승강장 쪽 스크린도어 ---
+            // 허리 높이의 낮은 것이라 그 너머로 열차가 그대로 보인다.
+            AddFieldRect(root.transform, "ScreenDoorRail", new Vector2(0f, -0.52f), new Vector2(44f, 0.22f),
+                new Color(0.34f, 0.35f, 0.42f), -4);
+
+            for (int i = 0; i < TrainDoorX.Length; i++)
+            {
+                float x = TrainDoorX[i];
+
+                // 트인 곳을 막는 유리 문짝 둘. 열차 문과 나란히 물러난다.
+                leftLeaves.Add(AddFieldRect(root.transform, "ScreenDoor_L" + i,
+                    new Vector2(x - DoorGap * 0.25f, -1.6f), new Vector2(DoorGap * 0.5f, 2.0f),
+                    new Color(0.24f, 0.27f, 0.32f), -4).transform);
+                rightLeaves.Add(AddFieldRect(root.transform, "ScreenDoor_R" + i,
+                    new Vector2(x + DoorGap * 0.25f, -1.6f), new Vector2(DoorGap * 0.5f, 2.0f),
+                    new Color(0.24f, 0.27f, 0.32f), -4).transform);
+
+                // 트인 곳 양옆의 기둥. 문짝보다 앞에 서서 물러난 문짝을 가린다.
+                AddFieldRect(root.transform, "ScreenDoorPost_A" + i, new Vector2(x - DoorGap * 0.5f, -1.6f),
+                    new Vector2(0.34f, 2.2f), new Color(0.34f, 0.35f, 0.42f), -2);
+                AddFieldRect(root.transform, "ScreenDoorPost_B" + i, new Vector2(x + DoorGap * 0.5f, -1.6f),
+                    new Vector2(0.34f, 2.2f), new Color(0.34f, 0.35f, 0.42f), -2);
+            }
+
+            // 문 사이를 잇는 고정 칸막이. 문짝은 이 뒤로 물러난다.
+            float[] panelX = { -20f, -15f, -5f, 5f, 15f, 20f };
+            for (int i = 0; i < panelX.Length; i++)
+            {
+                AddFieldRect(root.transform, "ScreenPanel_" + i, new Vector2(panelX[i], -1.6f),
+                    new Vector2(6.4f, 2.0f), new Color(0.21f, 0.23f, 0.28f), -3);
+            }
+
             // 발밑. 노란 안전선이 끝에 그어져 있다.
             AddFieldRect(root.transform, "PlatformFloor", new Vector2(0f, -4.1f), new Vector2(44f, 2.9f),
-                new Color(0.23f, 0.23f, 0.27f), -8);
-            AddFieldRect(root.transform, "SafetyLine", new Vector2(0f, -2.78f), new Vector2(44f, 0.26f),
-                new Color(0.72f, 0.62f, 0.26f), -7);
+                new Color(0.23f, 0.23f, 0.27f), -1);
+            AddFieldRect(root.transform, "SafetyLine", new Vector2(0f, -2.72f), new Vector2(44f, 0.26f),
+                new Color(0.72f, 0.62f, 0.26f), 0);
 
-            // 스크린도어. 기둥 사이로 어둠이 보인다.
-            for (int i = -2; i <= 2; i++)
-            {
-                AddFieldRect(root.transform, "ScreenDoorPillar_" + (i + 2), new Vector2(i * 6.2f, 0.4f),
-                    new Vector2(0.6f, 6.2f), new Color(0.26f, 0.27f, 0.33f), -6);
-            }
-            AddFieldRect(root.transform, "ScreenDoorRail", new Vector2(0f, 3.1f), new Vector2(44f, 0.4f),
-                new Color(0.30f, 0.31f, 0.38f), -5);
+            // 역 이름표. 열차와 겹치지 않게 가운데를 피해 건다.
+            AddFieldRect(root.transform, "SignHanger", new Vector2(-5f, 3.05f), new Vector2(0.18f, 0.7f),
+                new Color(0.30f, 0.31f, 0.38f), -3);
+            AddFieldRect(root.transform, "Sign", new Vector2(-5f, 2.2f), new Vector2(5.2f, 1.1f),
+                new Color(0.16f, 0.20f, 0.30f), -3);
 
-            // 역 이름표. 선로 쪽 어둠 위에 걸려 눈에 들어온다.
-            AddFieldRect(root.transform, "SignHanger", new Vector2(0f, 2.85f), new Vector2(0.18f, 0.6f),
-                new Color(0.30f, 0.31f, 0.38f), -5);
-            AddFieldRect(root.transform, "Sign", new Vector2(0f, 2.0f), new Vector2(5.6f, 1.2f),
-                new Color(0.16f, 0.20f, 0.30f), -4);
+            // --- 탈 자리 ---
+            // 가운데 문 앞. 문이 다 열린 뒤에만 켜진다.
+            var boarding = BuildPoint(root.transform, "InvestigationPoint_SubwayBoard", new Vector2(0f, 0.4f),
+                new Vector2(DoorGap - 0.4f, 4.6f), new Color(0.40f, 0.44f, 0.36f),
+                "field.subway.board", "field.subway.board", null);
+            ConfigurePoint(boarding, CaseDirector.BoardingPointId, null, null, false, CaseStep.Started);
+            boarding.SetActive(false);
+
+            var arrival = root.AddComponent<TrainArrival>();
+            var aso = new SerializedObject(arrival);
+            aso.Update();
+            aso.FindProperty("_train").objectReferenceValue = train.transform;
+            aso.FindProperty("_doorSlide").floatValue = DoorGap * 0.5f;
+            aso.FindProperty("_boardingPoint").objectReferenceValue = boarding;
+            SetTransformArray(aso.FindProperty("_leftLeaves"), leftLeaves);
+            SetTransformArray(aso.FindProperty("_rightLeaves"), rightLeaves);
+            aso.ApplyModifiedPropertiesWithoutUndo();
 
             root.SetActive(false);
             return root;
+        }
+
+        /// <summary>문짝 목록을 배열 속성에 넣는다.</summary>
+        private static void SetTransformArray(SerializedProperty property, List<Transform> items)
+        {
+            if (property == null) return;
+
+            property.arraySize = items != null ? items.Count : 0;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+            }
         }
 
         /// <summary>
@@ -550,7 +658,7 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>현장 배경에 까는 네모 하나. 조사 지점이 아니라 그냥 그림이다.</summary>
-        private static void AddFieldRect(Transform parent, string name, Vector2 position, Vector2 size,
+        private static GameObject AddFieldRect(Transform parent, string name, Vector2 position, Vector2 size,
             Color color, int order)
         {
             var go = new GameObject(name);
@@ -563,6 +671,7 @@ namespace UrbanLegendBureau.EditorTools
             sr.size = size;
             sr.color = color;
             sr.sortingOrder = order;
+            return go;
         }
 
         /// <summary>

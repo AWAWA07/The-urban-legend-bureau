@@ -254,13 +254,50 @@ namespace UrbanLegendBureau.Systems
         private string BuildFieldTicker()
         {
             if (_boarded) return _loc.Get(InsideTrainTextId) + "    " + BuildStatusLine();
+
+            // 문이 열렸는데 아직 안 탔으면, 탈 수 있다는 것부터 알린다.
+            var arrival = GetArrival();
+            if (arrival != null && arrival.IsOpen) return _loc.Get(DoorOpenTextId) + "    " + BuildStatusLine();
+
             return BuildStatusLine();
+        }
+
+        /// <summary>지금 현장의 열차 진입 장면. 막차 사건이 아니면 null.</summary>
+        private TrainArrival GetArrival()
+        {
+            if (_field == null || _field.ActiveRoot == null) return null;
+            return _field.ActiveRoot.GetComponentInChildren<TrainArrival>(true);
+        }
+
+        /// <summary>
+        /// 열차를 불러들인다. 튜토리얼이 "열차가 들어온다" 하는 마디에서 부른다.
+        /// 들어와서 서고 문이 열리면 탈 자리가 켜진다. 타는 것은 플레이어가 누를 때다.
+        /// </summary>
+        public void StartTrainArrival()
+        {
+            var arrival = GetArrival();
+            if (arrival == null) return;
+
+            arrival.Opened -= OnTrainDoorsOpened;
+            arrival.Opened += OnTrainDoorsOpened;
+            arrival.Play();
+        }
+
+        private void OnTrainDoorsOpened()
+        {
+            // 튜토리얼이 대사를 걸어 둔 동안에는 그쪽 글이 우선이다. 끝나면 제 글로 돌아온다.
+            if (_tutorial != null && _tutorial.IsRunning) return;
+            RefreshFieldHud();
         }
 
         /// <summary>열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
         private bool _boarded;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
+        private const string DoorOpenTextId = "ui.field.door_open";
+
+        /// <summary>열린 문을 눌러 타는 자리. 현장을 짓는 쪽과 여기가 같은 이름을 써야 한다.</summary>
+        public const string BoardingPointId = "point_subway_board";
 
         /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
         public void ShowTitleScreen()
@@ -598,8 +635,13 @@ namespace UrbanLegendBureau.Systems
             if (_field != null) _field.SetFieldVisible(true, _legendId);
 
             // 열차가 들어오는 장면은 튜토리얼이 한 번만 보여준다.
-            // 그 밖에 현장을 열 때는 이미 열차 안이다. 승강장에는 조사할 것이 없다.
-            if (_tutorial == null || !_tutorial.IsRunning) BoardTrain();
+            // 그 밖에 현장을 열 때는 이미 열차가 서 있고 문이 열려 있다. 누르면 바로 탄다.
+            if (_tutorial == null || !_tutorial.IsRunning)
+            {
+                var arrival = GetArrival();
+                if (arrival != null && !arrival.IsOpen) arrival.SkipToOpen();
+                _fieldHudScreen.Refresh();
+            }
         }
 
         /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>
@@ -1061,6 +1103,13 @@ namespace UrbanLegendBureau.Systems
         private void OnPointInvestigated(InvestigationPoint point)
         {
             if (point == null) return;
+
+            // 열린 문을 누르면 탄다. 이동일 뿐이라 시간도 확산도 쓰지 않는다.
+            if (point.PointId == BoardingPointId)
+            {
+                BoardTrain();
+                return;
+            }
 
             // --- 해금 조건 ---
             // 막힌 지점은 아무것도 일어나지 않는다. 시간도 확산도 움직이지 않고 조사 표시도 남기지 않는다.

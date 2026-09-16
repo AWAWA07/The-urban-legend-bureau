@@ -1078,9 +1078,9 @@ namespace UrbanLegendBureau.Systems
             // 승강장에 서서 문이 열리기를 기다리는 시간은 두지 않는다.
             if (_fieldLineIndex == FieldTrainArrivesAt)
             {
-                // 타는 쪽이 먼저다. 올라타면 위쪽 한 줄이 평소 내용으로 돌아가므로,
-                // 그 뒤에 열차가 들어온다는 알림으로 덮는다.
-                if (_caseDirector != null) _caseDirector.BoardTrain();
+                // 열차를 불러들인다. 남은 대사가 흐르는 동안 들어와 서고 문이 열린다.
+                // 타는 것은 대사가 끝난 뒤 플레이어가 열린 문을 누를 때다.
+                if (_caseDirector != null) _caseDirector.StartTrainArrival();
                 _fieldHud.SetTicker(() => _loc.Get(TrainArrivingTextId));
             }
 
