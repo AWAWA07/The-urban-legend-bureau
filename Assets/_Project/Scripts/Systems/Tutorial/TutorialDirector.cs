@@ -680,15 +680,41 @@ namespace UrbanLegendBureau.Systems
             // 튜토리얼 전용 저장본은 그냥 버린다. 파일로 쓴 적이 없다.
             _sandbox = null;
 
-            if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
-            if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
-            if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
-            if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
-
+            CloseTutorialScreens();
             MarkTutorialSeen();
 
             if (_caseDirector != null) _caseDirector.ShowTitleScreen();
             Debug.Log("[TutorialDirector] 튜토리얼 종료 | 화면 스택 정리 완료");
+        }
+
+        /// <summary>튜토리얼이 쓰던 화면을 전부 닫는다. 스택에 남기지 않는다.</summary>
+        private void CloseTutorialScreens()
+        {
+            if (_ui == null) return;
+
+            if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
+            if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
+            if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
+            if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
+        }
+
+        /// <summary>
+        /// 어디에 있든 튜토리얼을 처음부터 다시 돌린다.
+        ///
+        /// 끝난 것으로 치지 않으므로 저장본의 "봤음" 표시는 건드리지 않는다.
+        /// 돌던 연출과 열려 있던 화면은 먼저 정리한다. 그러지 않으면 화면이 겹쳐 쌓인다.
+        /// </summary>
+        public void RestartTutorial()
+        {
+            StopAllCoroutines();
+
+            GamePointer.SetVisible(false);
+            CloseTutorialScreens();
+
+            IsRunning = false;
+            StartTutorial();
+
+            Debug.Log("[TutorialDirector] 튜토리얼을 처음부터 다시 시작했다.");
         }
 
         /// <summary>

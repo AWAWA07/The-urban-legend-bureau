@@ -238,6 +238,13 @@ namespace UrbanLegendBureau.EditorTools
                     "Assets/_Project/Data/WebPages/web_subway_001.asset");
             tso.ApplyModifiedPropertiesWithoutUndo();
 
+            // 만드는 동안 같은 흐름을 몇 번이고 다시 보게 되므로 단축키를 하나 둔다.
+            var hotkey = tutorialGo.AddComponent<TutorialHotkey>();
+            var hso = new SerializedObject(hotkey);
+            hso.Update();
+            hso.FindProperty("_tutorial").objectReferenceValue = tutorial;
+            hso.ApplyModifiedPropertiesWithoutUndo();
+
             dso.Update();
             dso.FindProperty("_tutorial").objectReferenceValue = tutorial;
             dso.ApplyModifiedPropertiesWithoutUndo();

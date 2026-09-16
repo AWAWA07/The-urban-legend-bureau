@@ -17,7 +17,8 @@ namespace UrbanLegendBureau.EditorTools
     /// </summary>
     public static class TutorialDevMenu
     {
-        private const string MenuPath = "UrbanLegendBureau/Dev/튜토리얼 처음부터 다시 보기";
+        // 뒤의 %#t 는 Ctrl+Shift+T 를 뜻한다. 에디터 어디서나 듣는다.
+        private const string MenuPath = "UrbanLegendBureau/Dev/튜토리얼 처음부터 다시 보기 %#t";
 
         [MenuItem(MenuPath)]
         private static void ResetTutorial()
