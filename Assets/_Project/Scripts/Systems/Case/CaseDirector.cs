@@ -184,6 +184,7 @@ namespace UrbanLegendBureau.Systems
 
             // 사건이 바뀌면 이전 사건의 현장 맥락은 버린다. 사건끼리 상태가 섞이지 않게 한다.
             _activePoint = null;
+            _boarded = false;
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
@@ -244,12 +245,25 @@ namespace UrbanLegendBureau.Systems
         public void RefreshFieldHud()
         {
             if (_fieldHudScreen == null) return;
-
-            _fieldHudScreen.Bind(
-                BuildStatusLine,
-                FieldSpeakerTextId,
-                () => _loc.Get(FieldHintTextId));
+            _fieldHudScreen.Bind(BuildFieldTicker);
         }
+
+        /// <summary>
+        /// 현장 맨 위 한 줄. 열차에 탄 뒤에는 그 사실을 앞에 붙인다.
+        /// </summary>
+        private string BuildFieldTicker()
+        {
+            if (_boarded) return _loc.Get(InsideTrainTextId) + "    " + BuildStatusLine();
+            return BuildStatusLine();
+        }
+
+        /// <summary>승강장을 조사해 열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
+        private bool _boarded;
+
+        private const string InsideTrainTextId = "ui.field.inside_train";
+
+        /// <summary>막차 사건에서 올라타는 계기가 되는 지점.</summary>
+        private const string BoardingPointId = "point_subway_platform";
 
         /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
         public void ShowTitleScreen()
@@ -577,11 +591,9 @@ namespace UrbanLegendBureau.Systems
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
             if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
 
-            // 위쪽 한 줄에는 지금 상황을, 아래 대사 띠에는 무엇을 하면 되는지를 건다.
-            _fieldHudScreen.Bind(
-                BuildStatusLine,
-                FieldSpeakerTextId,
-                () => _loc.Get(FieldHintTextId));
+            // 위쪽 한 줄에만 지금 상황을 건다.
+            // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
+            _fieldHudScreen.Bind(BuildFieldTicker);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
@@ -1025,6 +1037,24 @@ namespace UrbanLegendBureau.Systems
 
         // ------------------------------------------------------------- 현장 조사
 
+        /// <summary>
+        /// 승강장을 조사하면 열차에 올라탄다.
+        /// 현장을 새로 만들지 않고 보이는 것만 갈아 끼운다. 사건 진행과 단서 조건은 그대로다.
+        /// </summary>
+        private void TryBoardTrain(InvestigationPoint point)
+        {
+            if (_boarded || point == null || point.PointId != BoardingPointId) return;
+
+            var swap = point.GetComponentInParent<FieldSceneSwap>();
+            if (swap == null) return;
+
+            swap.SetAfter(true);
+            _boarded = true;
+            RefreshFieldHud();
+
+            Debug.Log("[CaseDirector] 열차에 올라탔다 | 승강장 -> 열차 안");
+        }
+
         private void OnPointInvestigated(InvestigationPoint point)
         {
             if (point == null) return;
@@ -1040,6 +1070,10 @@ namespace UrbanLegendBureau.Systems
                     return;
                 }
             }
+
+            // 승강장에 발을 들이면 열차에 올라탄 것으로 친다.
+            // 그 뒤로는 승강장 대신 열차 안이 보인다.
+            TryBoardTrain(point);
 
             // --- 조사 방법이 있는 지점 ---
             // 지점을 고르는 것은 이동일 뿐이라 시간을 쓰지 않는다.

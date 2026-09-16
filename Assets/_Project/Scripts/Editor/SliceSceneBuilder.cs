@@ -125,6 +125,16 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(platform, "point_subway_platform",
                 new[] { "action_subway_platform_search", "action_subway_platform_trace" }, null, false, CaseStep.Started);
 
+            // 승강장을 조사하면 열차에 올라탄다. 그 뒤로는 승강장 대신 열차 안이 보인다.
+            // 장소를 새로 만들지 않고 보이는 것만 갈아 끼운다.
+            var trainInside = BuildTrainInside(fieldRootSubway.transform);
+            var swap = fieldRootSubway.AddComponent<FieldSceneSwap>();
+            var swapSo = new SerializedObject(swap);
+            swapSo.Update();
+            SetObjectArray(swapSo.FindProperty("_beforeRoots"), platform);
+            SetObjectArray(swapSo.FindProperty("_afterRoots"), trainInside);
+            swapSo.ApplyModifiedPropertiesWithoutUndo();
+
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();
             var fieldSo = new SerializedObject(field);
@@ -183,6 +193,10 @@ namespace UrbanLegendBureau.EditorTools
             var btnDeduce = CreateButton(fieldButtons, "Btn_Deduce", "ui.rule.btn_deduce");
             var btnRulesBack = CreateButton(ruleScreenButtons, "Btn_RulesBack", "ui.rule.btn_back");
             var btnFieldDone = CreateButton(fieldButtons, "Btn_FieldDone", "ui.field.btn_done");
+
+            // 현장 버튼은 장면을 가리지 않게 작게 줄인다.
+            ResizeButton(btnDeduce, new Vector2(280f, 84f), 26f);
+            ResizeButton(btnFieldDone, new Vector2(280f, 84f), 26f);
             var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
             var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
             var btnBack = CreateButton(resultButtons, "Btn_BackToTitle", "ui.slice.btn_back_to_title");
@@ -313,6 +327,95 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_requireStep").boolValue = requireStep;
             so.FindProperty("_requiredStep").enumValueIndex = (int)requiredStep;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>같은 물건 여럿을 배열 속성에 넣는다.</summary>
+        private static void SetObjectArray(SerializedProperty property, params GameObject[] items)
+        {
+            if (property == null) return;
+
+            property.arraySize = items != null ? items.Length : 0;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+            }
+        }
+
+        /// <summary>
+        /// 열차 안. 승강장을 조사해 올라탄 뒤에만 보인다.
+        /// 그림은 아직 없다. 바닥과 문 자리만 네모로 잡아 둔다.
+        /// </summary>
+        private static GameObject BuildTrainInside(Transform parent)
+        {
+            var root = new GameObject("TrainInside");
+            root.transform.SetParent(parent, false);
+
+            AddFieldRect(root.transform, "Floor", new Vector2(0f, -3.6f), new Vector2(44f, 2.2f),
+                new Color(0.17f, 0.17f, 0.21f), -9);
+            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 4.4f), new Vector2(44f, 1.6f),
+                new Color(0.15f, 0.15f, 0.19f), -9);
+            AddFieldRect(root.transform, "Door_Left", new Vector2(-8.2f, 0.2f), new Vector2(2.2f, 5.2f),
+                new Color(0.20f, 0.22f, 0.27f), -8);
+            AddFieldRect(root.transform, "Door_Right", new Vector2(8.2f, 0.2f), new Vector2(2.2f, 5.2f),
+                new Color(0.20f, 0.22f, 0.27f), -8);
+            AddFieldRect(root.transform, "Handrail", new Vector2(0f, 3.2f), new Vector2(16f, 0.18f),
+                new Color(0.34f, 0.35f, 0.40f), -8);
+
+            root.SetActive(false);
+            return root;
+        }
+
+        /// <summary>현장 배경에 까는 네모 하나. 조사 지점이 아니라 그냥 그림이다.</summary>
+        private static void AddFieldRect(Transform parent, string name, Vector2 position, Vector2 size,
+            Color color, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = BuiltinSprite();
+            sr.drawMode = SpriteDrawMode.Sliced;
+            sr.size = size;
+            sr.color = color;
+            sr.sortingOrder = order;
+        }
+
+        /// <summary>휴대폰 안의 앱 하나. 네모와 이름표로 둔다. 컴퓨터 아이콘과 같은 모양이다.</summary>
+        private static Button BuildPhoneIcon(Transform parent, string id, Vector2 position, float size,
+            out TMP_Text label)
+        {
+            var go = new GameObject("App_" + id, typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = new Vector2(size, size + 34f);
+
+            var button = go.AddComponent<Button>();
+
+            var box = CreatePanel(go.transform, "Box", new Color(0.24f, 0.26f, 0.34f, 1f));
+            var boxRt = (RectTransform)box.transform;
+            boxRt.anchorMin = new Vector2(0.5f, 1f);
+            boxRt.anchorMax = new Vector2(0.5f, 1f);
+            boxRt.pivot = new Vector2(0.5f, 1f);
+            boxRt.anchoredPosition = Vector2.zero;
+            boxRt.sizeDelta = new Vector2(size, size);
+            button.targetGraphic = box.GetComponent<Image>();
+
+            label = AddText(go.transform, "Label", 20f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(size + 20f, 30f), TextAlignmentOptions.Center);
+            var labelRt = label.rectTransform;
+            labelRt.anchorMin = new Vector2(0.5f, 0f);
+            labelRt.anchorMax = new Vector2(0.5f, 0f);
+            labelRt.pivot = new Vector2(0.5f, 0f);
+            labelRt.anchoredPosition = Vector2.zero;
+            labelRt.sizeDelta = new Vector2(size + 20f, 30f);
+            label.raycastTarget = false;
+
+            return button;
         }
 
         private static void BuildFieldBackground(Transform parent)
@@ -1737,7 +1840,8 @@ namespace UrbanLegendBureau.EditorTools
             plateRt.anchorMax = new Vector2(0.5f, 1f);
             plateRt.pivot = new Vector2(0.5f, 1f);
             plateRt.anchoredPosition = new Vector2(0f, -24f);
-            plateRt.sizeDelta = new Vector2(1100f, 52f);
+            // 열차에 탄 뒤에는 앞에 한 마디가 더 붙으므로 넉넉히 넓게 둔다.
+            plateRt.sizeDelta = new Vector2(1560f, 52f);
             tickerPlate.GetComponent<Image>().raycastTarget = false;
 
             var tickerText = AddText(tickerPlate.transform, "Ticker", 26f, UIFontWeight.Medium, DimTextColor,
@@ -1765,9 +1869,14 @@ namespace UrbanLegendBureau.EditorTools
             bandEdge.GetComponent<Image>().raycastTarget = false;
             AddCrisp(bandEdge, 2f);
 
+            // 초상과 이름과 대사를 한 묶음으로 둔다. 말하는 사람이 없으면 통째로 꺼진다.
+            var speech = new GameObject("Speech", typeof(RectTransform));
+            speech.transform.SetParent(band.transform, false);
+            StretchFull(speech);
+
             // 초상 자리. 지금은 빈 네모다. 실제 그림이 생기면 이 Image만 갈아 끼운다.
             const float PortraitSize = 240f;
-            var portrait = CreatePanel(band.transform, "Portrait", new Color(0.16f, 0.17f, 0.22f, 1f));
+            var portrait = CreatePanel(speech.transform, "Portrait", new Color(0.16f, 0.17f, 0.22f, 1f));
             var portraitRt = (RectTransform)portrait.transform;
             portraitRt.anchorMin = new Vector2(0f, 0.5f);
             portraitRt.anchorMax = new Vector2(0f, 0.5f);
@@ -1783,7 +1892,7 @@ namespace UrbanLegendBureau.EditorTools
             // 초상 오른쪽에 이름과 대사.
             const float TextLeft = 60f + PortraitSize + 40f;   // 초상 오른쪽 끝에서 띄운다
 
-            var speakerText = AddText(band.transform, "Speaker", 30f, UIFontWeight.Bold, AccentColor,
+            var speakerText = AddText(speech.transform, "Speaker", 30f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
             speakerText.rectTransform.anchorMin = new Vector2(0f, 1f);
             speakerText.rectTransform.anchorMax = new Vector2(0f, 1f);
@@ -1792,7 +1901,7 @@ namespace UrbanLegendBureau.EditorTools
             speakerText.rectTransform.sizeDelta = new Vector2(700f, 42f);
             speakerText.raycastTarget = false;
 
-            var lineText = AddText(band.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
+            var lineText = AddText(speech.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
             lineText.rectTransform.anchorMin = new Vector2(0f, 1f);
             lineText.rectTransform.anchorMax = new Vector2(0f, 1f);
@@ -1803,7 +1912,109 @@ namespace UrbanLegendBureau.EditorTools
             lineText.raycastTarget = false;
 
             // 버튼은 띠 오른쪽 아래에 세운다. 장면도 대사도 가리지 않는다.
-            buttonRow = CreateButtonRow(band.transform, new Vector2(420f, -120f), new Vector2(900f, 110f));
+            buttonRow = CreateButtonRow(band.transform, new Vector2(600f, -110f), new Vector2(660f, 92f));
+
+            // --- 늘 열어 볼 수 있는 휴대폰 ---
+            // 장면 오른쪽에 작은 단추로 붙고, 누르면 오른쪽에 세로로 펴진다.
+            var phoneButtonGo = CreatePanel(safe.transform, "Btn_Phone", new Color(0.18f, 0.19f, 0.24f, 1f));
+            var phoneBtnRt = (RectTransform)phoneButtonGo.transform;
+            phoneBtnRt.anchorMin = new Vector2(1f, 1f);
+            phoneBtnRt.anchorMax = new Vector2(1f, 1f);
+            phoneBtnRt.pivot = new Vector2(1f, 1f);
+            phoneBtnRt.anchoredPosition = new Vector2(-40f, -110f);
+            phoneBtnRt.sizeDelta = new Vector2(120f, 170f);
+
+            var phoneButton = phoneButtonGo.AddComponent<Button>();
+            phoneButton.targetGraphic = phoneButtonGo.GetComponent<Image>();
+
+            var phoneBtnLabel = AddText(phoneButtonGo.transform, "Label", 22f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(120f, 170f), TextAlignmentOptions.Center);
+            phoneBtnLabel.raycastTarget = false;
+            StretchInside(phoneBtnLabel.rectTransform, 8f, 8f, 8f, 8f);
+
+            // 펴진 휴대폰. 세로로 길쭉한 판 하나다.
+            const float PhoneWidth = 520f;
+            const float PhoneHeight = 620f;
+
+            var phone = CreatePanel(safe.transform, "Phone", new Color(0.08f, 0.08f, 0.11f, 1f));
+            var phoneRt = (RectTransform)phone.transform;
+            phoneRt.anchorMin = new Vector2(1f, 1f);
+            phoneRt.anchorMax = new Vector2(1f, 1f);
+            phoneRt.pivot = new Vector2(1f, 1f);
+            phoneRt.anchoredPosition = new Vector2(-40f, -30f);
+            phoneRt.sizeDelta = new Vector2(PhoneWidth, PhoneHeight);
+
+            // 위 상태 줄. 시계와 닫기.
+            var phoneBar = CreatePanel(phone.transform, "StatusBar", new Color(0.13f, 0.13f, 0.17f, 1f));
+            var phoneBarRt = (RectTransform)phoneBar.transform;
+            phoneBarRt.anchorMin = new Vector2(0f, 1f);
+            phoneBarRt.anchorMax = new Vector2(1f, 1f);
+            phoneBarRt.pivot = new Vector2(0.5f, 1f);
+            phoneBarRt.anchoredPosition = Vector2.zero;
+            phoneBarRt.sizeDelta = new Vector2(0f, 56f);
+
+            var phoneClock = AddText(phoneBar.transform, "Clock", 24f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(phoneClock.rectTransform, 20f, 80f, 8f, 8f);
+            phoneClock.raycastTarget = false;
+
+            var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));
+            var phoneCloseRt = (RectTransform)phoneClose.transform;
+            phoneCloseRt.anchorMin = new Vector2(1f, 0.5f);
+            phoneCloseRt.anchorMax = new Vector2(1f, 0.5f);
+            phoneCloseRt.pivot = new Vector2(1f, 0.5f);
+            phoneCloseRt.anchoredPosition = new Vector2(-12f, 0f);
+            phoneCloseRt.sizeDelta = new Vector2(52f, 40f);
+            var phoneCloseButton = phoneClose.AddComponent<Button>();
+            phoneCloseButton.targetGraphic = phoneClose.GetComponent<Image>();
+            var phoneCloseLabel = AddText(phoneClose.transform, "Label", 24f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(52f, 40f), TextAlignmentOptions.Center);
+            phoneCloseLabel.text = "X";
+            phoneCloseLabel.raycastTarget = false;
+
+            // 앱은 컴퓨터 바탕화면과 같은 것들이다. 세로 화면이라 두 줄로 늘어놓는다.
+            var phoneApps = new[]
+            {
+                new[] { "gwedamnet", "ui.desktop.app_net" },
+                new[] { "memo", "ui.desktop.app_memo" },
+                new[] { "archive", "ui.desktop.app_archive" },
+                new[] { "kikitalk", "ui.desktop.app_talk" },
+                new[] { "gallery", "ui.desktop.app_gallery" },
+            };
+
+            var phoneIconTexts = new TMP_Text[phoneApps.Length + 2];
+            var phoneIconButtons = new Button[phoneApps.Length + 2];
+
+            const float IconSize = 120f;
+            const float IconGapX = 30f;
+            const float IconGapY = 40f;
+
+            for (int i = 0; i < phoneApps.Length; i++)
+            {
+                int col = i % 3;
+                int row = i / 3;
+                float x = 50f + col * (IconSize + IconGapX);
+                float y = -90f - row * (IconSize + IconGapY + 30f);
+
+                phoneIconButtons[i] = BuildPhoneIcon(phone.transform, phoneApps[i][0],
+                    new Vector2(x, y), IconSize, out phoneIconTexts[i]);
+            }
+
+            // 실제 휴대폰처럼 전화와 메시지는 맨 아래 줄에 따로 둔다.
+            var dock = CreatePanel(phone.transform, "Dock", new Color(0.13f, 0.13f, 0.17f, 1f));
+            var dockRt = (RectTransform)dock.transform;
+            dockRt.anchorMin = new Vector2(0f, 0f);
+            dockRt.anchorMax = new Vector2(1f, 0f);
+            dockRt.pivot = new Vector2(0.5f, 0f);
+            dockRt.anchoredPosition = Vector2.zero;
+            dockRt.sizeDelta = new Vector2(0f, 150f);
+
+            phoneIconButtons[phoneApps.Length] = BuildPhoneIcon(dock.transform, "call",
+                new Vector2(125f, -8f), IconSize, out phoneIconTexts[phoneApps.Length]);
+            phoneIconButtons[phoneApps.Length + 1] = BuildPhoneIcon(dock.transform, "message",
+                new Vector2(275f, -8f), IconSize, out phoneIconTexts[phoneApps.Length + 1]);
+
+            phone.SetActive(false);
 
             // 튜토리얼이 현장에서 말할 때만 켜지는 진행 버튼. 화면 전체를 덮는다.
             // 맨 나중에 만들어야 대사 띠와 버튼보다 위에 올라와 그 둘까지 막는다.
@@ -1825,7 +2036,32 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_portrait").objectReferenceValue = portrait.GetComponent<Image>();
             so.FindProperty("_speakerText").objectReferenceValue = speakerText;
             so.FindProperty("_lineText").objectReferenceValue = lineText;
+            so.FindProperty("_speechRoot").objectReferenceValue = speech;
+            so.FindProperty("_phoneButton").objectReferenceValue = phoneButton;
+            so.FindProperty("_phonePanel").objectReferenceValue = phone;
+            so.FindProperty("_phoneCloseButton").objectReferenceValue = phoneCloseButton;
+            so.FindProperty("_phoneClockText").objectReferenceValue = phoneClock;
+            so.FindProperty("_phoneButtonLabel").objectReferenceValue = phoneBtnLabel;
+
+            // 앱 이름은 컴퓨터 바탕화면과 같은 문구를 쓴다. 전화와 메시지만 따로 둔다.
+            var appLabelIds = new string[phoneApps.Length + 2];
+            for (int i = 0; i < phoneApps.Length; i++) appLabelIds[i] = phoneApps[i][1];
+            appLabelIds[phoneApps.Length] = "ui.phone.app_call";
+            appLabelIds[phoneApps.Length + 1] = "ui.phone.app_message";
+
+            var appList = so.FindProperty("_phoneApps");
+            appList.arraySize = appLabelIds.Length;
+            for (int i = 0; i < appLabelIds.Length; i++)
+            {
+                var element = appList.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("appId").stringValue = appLabelIds[i];
+                element.FindPropertyRelative("labelTextId").stringValue = appLabelIds[i];
+                element.FindPropertyRelative("button").objectReferenceValue = phoneIconButtons[i];
+                element.FindPropertyRelative("label").objectReferenceValue = phoneIconTexts[i];
+            }
+
             so.ApplyModifiedPropertiesWithoutUndo();
+
 
             ClearDisabledTint(go);
             return screen;
@@ -2144,6 +2380,17 @@ namespace UrbanLegendBureau.EditorTools
             rt.anchoredPosition = position;
             rt.sizeDelta = sizeDelta;
             return text;
+        }
+
+        /// <summary>이미 만든 버튼의 크기와 글자 크기를 바꾼다.</summary>
+        private static void ResizeButton(GameObject button, Vector2 size, float fontSize)
+        {
+            if (button == null) return;
+
+            ((RectTransform)button.transform).sizeDelta = size;
+
+            var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (label != null) label.fontSize = fontSize;
         }
 
         private static GameObject CreateButton(Transform parent, string name, string textId)

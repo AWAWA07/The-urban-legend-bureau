@@ -1080,7 +1080,7 @@ namespace UrbanLegendBureau.Systems
                 _fieldHud.SetTicker(() => _loc.Get(TrainArrivingTextId));
             }
 
-            _fieldHud.ShowTutorialLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced);
+            _fieldHud.ShowLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced);
         }
 
         private void OnFieldLineAdvanced()
@@ -1100,7 +1100,7 @@ namespace UrbanLegendBureau.Systems
             _inFieldTalk = false;
             IsRunning = false;
 
-            if (_fieldHud != null) _fieldHud.EndTutorialLines();
+            if (_fieldHud != null) _fieldHud.ClearSpeech();
             if (_caseDirector != null) _caseDirector.RefreshFieldHud();
 
             Debug.Log("[TutorialDirector] 현장 대사 끝 | 이제부터 평소 조사");

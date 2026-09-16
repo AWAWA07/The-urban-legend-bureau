@@ -478,3 +478,10 @@ tutorial.field.004	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷
 tutorial.field.005	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.	You will be taking notes on your phone too, so keep it handy and follow me.	
 tutorial.field.006	넵, 알겠습니다.	Yes, understood.	차지한
 ui.field.train_arriving	열차가 들어온다.	A train is pulling in.	열차 진입 알림
+
+# --- 현장: 휴대폰 ---
+ui.field.btn_phone	휴대폰	Phone	현장에서 여는 휴대폰
+ui.phone.clock	02:44	02:44	휴대폰 상단 시계(임시)
+ui.phone.app_call	전화	Phone	아직 기능 없음
+ui.phone.app_message	메시지	Messages	아직 기능 없음
+ui.field.inside_train	열차 안. 막차라 사람이 거의 없다.	Inside the train. It is the last one, almost empty.	승강장을 조사해 올라탄 뒤
