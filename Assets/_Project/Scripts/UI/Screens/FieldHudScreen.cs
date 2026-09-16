@@ -34,6 +34,11 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _speakerText;
         [SerializeField] private TMP_Text _lineText;
 
+        [Tooltip("튜토리얼 대사를 넘기는 버튼. 화면 전체를 덮는다. 평소에는 꺼 둔다.")]
+        [SerializeField] private GameObject _advanceRoot;
+
+        [SerializeField] private Button _advanceButton;
+
         private Func<string> _tickerProvider;
         private Func<string> _lineProvider;
         private string _speakerTextId;
@@ -54,6 +59,41 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
+        /// <summary>장면 맨 위 한 줄만 갈아 끼운다. 열차가 들어오는 것 같은 알림에 쓴다.</summary>
+        public void SetTicker(Func<string> ticker)
+        {
+            _tickerProvider = ticker;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 튜토리얼이 현장에서 한 줄 말하게 한다.
+        ///
+        /// 화면 전체를 덮는 버튼이 함께 켜진다. 그 동안에는 조사 지점도 버튼도 눌리지 않는다.
+        /// 현장 입력은 "UI 위를 눌렀는가"를 보고 걸러지므로 이 버튼 하나로 둘 다 막힌다.
+        /// </summary>
+        public void ShowTutorialLine(string speakerTextId, Func<string> line, Action onAdvance)
+        {
+            _speakerTextId = speakerTextId;
+            _lineProvider = line;
+
+            if (_advanceButton != null)
+            {
+                _advanceButton.onClick.RemoveAllListeners();
+                if (onAdvance != null) _advanceButton.onClick.AddListener(() => onAdvance());
+            }
+
+            if (_advanceRoot != null) _advanceRoot.SetActive(true);
+            Refresh();
+        }
+
+        /// <summary>튜토리얼 대사를 끝내고 평소 현장으로 돌려놓는다.</summary>
+        public void EndTutorialLines()
+        {
+            if (_advanceButton != null) _advanceButton.onClick.RemoveAllListeners();
+            if (_advanceRoot != null) _advanceRoot.SetActive(false);
+        }
+
         protected override void OnOpen()
         {
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
@@ -64,6 +104,7 @@ namespace UrbanLegendBureau.UI
         protected override void OnClose()
         {
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
+            EndTutorialLines();
             RestoreCamera();
         }
 

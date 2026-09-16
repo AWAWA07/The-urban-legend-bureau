@@ -152,6 +152,8 @@ namespace UrbanLegendBureau.Systems
             _lineIndex = 0;
             _postBelief = TutorialPostBelief;
             _inBriefing = false;
+            _inFieldTalk = false;
+            _fieldLineIndex = 0;
             _briefingIndex = 0;
             _briefingInsert.Clear();
             _dialogueScreen.ClearChoices();
@@ -210,6 +212,9 @@ namespace UrbanLegendBureau.Systems
         private void OnAdvanceClicked()
         {
             if (!IsRunning) return;
+
+            // 현장 대사는 현장 화면이 제 버튼으로 넘긴다. 여기서는 다루지 않는다.
+            if (_inFieldTalk) return;
 
             // 부서 설명 중이면 그쪽 흐름을 따른다. 첫 대화와 같은 화면을 함께 쓴다.
             if (_inBriefing)
@@ -918,7 +923,7 @@ namespace UrbanLegendBureau.Systems
 
             if (_briefingIndex >= Briefing.Length)
             {
-                FinishTutorial();
+                StartFieldTutorial();
                 return;
             }
 
@@ -992,6 +997,116 @@ namespace UrbanLegendBureau.Systems
             Debug.Log("[TutorialDirector] 부서 설명 선택 | " + step.Choices[picked]);
             ShowBriefingStep();
         }
+
+        // ------------------------------------------------------------- 현장 조사
+
+        /// <summary>튜토리얼이 곧바로 이어 가는 첫 사건. 괴담넷에서 검열한 그 막차 괴담이다.</summary>
+        private const string TutorialCaseId = "case_001_subway";
+
+        /// <summary>현장에서 주고받는 말. 앞의 넷은 열차가 오기 전, 뒤의 둘은 열차가 들어오며.</summary>
+        private static readonly string[] FieldLineTextIds =
+        {
+            "tutorial.field.001",
+            "tutorial.field.002",
+            "tutorial.field.003",
+            "tutorial.field.004",
+            "tutorial.field.005",
+            "tutorial.field.006",
+        };
+
+        private static readonly bool[] FieldLineIsHanyoung = { true, true, false, true, true, false };
+
+        /// <summary>열차가 들어오기 시작하는 마디. 여기서부터 위쪽 알림이 바뀐다.</summary>
+        private const int FieldTrainArrivesAt = 4;
+
+        private const string TrainArrivingTextId = "ui.field.train_arriving";
+
+        private int _fieldLineIndex;
+        private bool _inFieldTalk;
+
+        /// <summary>
+        /// 설명이 끝나면 곧바로 첫 사건의 현장으로 넘어간다.
+        ///
+        /// 여기서부터는 튜토리얼 전용 저장본이 아니라 실제 저장본으로 돈다.
+        /// 실제 사건이 시작되는 것이므로 진행이 남아야 한다.
+        /// </summary>
+        private void StartFieldTutorial()
+        {
+            _inBriefing = false;
+            _dialogueScreen.ClearChoices();
+            _dialogueScreen.HideNote();
+
+            // 여기서 튜토리얼은 제 할 일을 다 했다. 저장본에 봤다고 남긴다.
+            MarkTutorialSeen();
+            _sandbox = null;
+
+            if (_caseDirector == null || !_caseDirector.BeginCaseField(TutorialCaseId))
+            {
+                Debug.LogError("[TutorialDirector] 현장으로 넘어가지 못했다. 사건 데이터를 확인할 것.");
+                FinishTutorial();
+                return;
+            }
+
+            _fieldHud = _caseDirector.FieldHud;
+            if (_fieldHud == null)
+            {
+                Debug.LogError("[TutorialDirector] 현장 화면이 연결되지 않았다.");
+                IsRunning = false;
+                return;
+            }
+
+            _inFieldTalk = true;
+            _fieldLineIndex = 0;
+
+            Debug.Log("[TutorialDirector] 현장 조사 시작 | " + FieldLineTextIds.Length + "마디");
+            ShowFieldLine();
+        }
+
+        private void ShowFieldLine()
+        {
+            if (_fieldLineIndex >= FieldLineTextIds.Length)
+            {
+                EndFieldTutorial();
+                return;
+            }
+
+            bool hanyoung = FieldLineIsHanyoung[_fieldLineIndex];
+            string nameId = hanyoung ? HanyoungNameTextId : ChajihanNameTextId;
+            string lineId = FieldLineTextIds[_fieldLineIndex];
+
+            // 열차가 들어오는 대목부터는 위쪽 알림을 바꿔 그 장면임을 알린다.
+            if (_fieldLineIndex == FieldTrainArrivesAt)
+            {
+                _fieldHud.SetTicker(() => _loc.Get(TrainArrivingTextId));
+            }
+
+            _fieldHud.ShowTutorialLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced);
+        }
+
+        private void OnFieldLineAdvanced()
+        {
+            if (!_inFieldTalk) return;
+
+            _fieldLineIndex++;
+            ShowFieldLine();
+        }
+
+        /// <summary>
+        /// 현장 대사가 끝났다. 여기서부터는 평소 현장 조사다.
+        /// 튜토리얼은 손을 떼고 사건 쪽에 맡긴다.
+        /// </summary>
+        private void EndFieldTutorial()
+        {
+            _inFieldTalk = false;
+            IsRunning = false;
+
+            if (_fieldHud != null) _fieldHud.EndTutorialLines();
+            if (_caseDirector != null) _caseDirector.RefreshFieldHud();
+
+            Debug.Log("[TutorialDirector] 현장 대사 끝 | 이제부터 평소 조사");
+        }
+
+        private UrbanLegendBureau.UI.FieldHudScreen _fieldHud;
 
         // ------------------------------------------------------------- 종료
 

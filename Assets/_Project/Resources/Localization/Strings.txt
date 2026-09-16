@@ -469,3 +469,12 @@ ui.brief.note.annihilation.title	멸망급    85% ~ 99%	Annihilation    85% ~ 99
 ui.brief.note.annihilation.body	· 국가 또는 세계 단위로 확대\n· 확산 통제가 어려움\n· 현실의 법칙이 괴담에 의해 변형됨\n\n대응 · 수단과 방법을 가리지 않음	· National or global scale\n· Spread cannot be contained\n· The laws of reality bend\n\nAction · By any means necessary
 ui.brief.note.unknown.title	???급    100%	???    100%
 ui.brief.note.unknown.body	· 이미 멸망한 뒤를 가리키는 수치\n\n대응 · 없음	· The number after it already ended\n\nAction · None
+
+# --- 튜토리얼: 현장 조사 ---
+tutorial.field.001	우리는 여기서 발생한 게 진짜인지 가짜인지 구별하고 해결법을 찾아볼 거야.	We work out whether what happened here is real or fake, and how to deal with it.	한 영
+tutorial.field.002	귀신 만나고 너무 무서워 하지 말고 ㅋㅋ	Try not to be too scared when you meet a ghost.	
+tutorial.field.003	... 그런 거 없거든요.	...There is no such thing.	차지한
+tutorial.field.004	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷 검열 해 놓은 막차 관련된 괴담이야.	Right. The legend we are after is the last-train one we censored online earlier.	
+tutorial.field.005	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.	You will be taking notes on your phone too, so keep it handy and follow me.	
+tutorial.field.006	넵, 알겠습니다.	Yes, understood.	차지한
+ui.field.train_arriving	열차가 들어온다.	A train is pulling in.	열차 진입 알림

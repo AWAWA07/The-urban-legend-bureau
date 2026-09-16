@@ -218,6 +218,39 @@ namespace UrbanLegendBureau.Systems
 
         // ------------------------------------------------------------- 타이틀 메뉴
 
+        /// <summary>
+        /// 튜토리얼이 곧바로 첫 사건의 현장으로 넘어갈 때 부른다.
+        /// 사건 목록을 거치지 않고 정해진 사건 하나를 열어 현장까지 들어간다.
+        /// </summary>
+        public bool BeginCaseField(string caseId)
+        {
+            if (_cases == null || !_cases.TryGetCase(caseId, out var caseData))
+            {
+                Debug.LogError("[CaseDirector] 사건을 찾지 못했다: " + caseId);
+                return false;
+            }
+
+            if (!SelectCase(caseData)) return false;
+
+            OnStartCaseClicked();
+            OnEnterFieldClicked();
+            return true;
+        }
+
+        /// <summary>현장 화면. 튜토리얼이 대사를 걸기 위해 가져간다.</summary>
+        public FieldHudScreen FieldHud => _fieldHudScreen;
+
+        /// <summary>현장 화면의 글을 평소 내용으로 되돌린다. 튜토리얼 대사가 끝날 때 부른다.</summary>
+        public void RefreshFieldHud()
+        {
+            if (_fieldHudScreen == null) return;
+
+            _fieldHudScreen.Bind(
+                BuildStatusLine,
+                FieldSpeakerTextId,
+                () => _loc.Get(FieldHintTextId));
+        }
+
         /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
         public void ShowTitleScreen()
         {

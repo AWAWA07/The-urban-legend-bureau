@@ -1805,8 +1805,22 @@ namespace UrbanLegendBureau.EditorTools
             // 버튼은 띠 오른쪽 아래에 세운다. 장면도 대사도 가리지 않는다.
             buttonRow = CreateButtonRow(band.transform, new Vector2(420f, -120f), new Vector2(900f, 110f));
 
+            // 튜토리얼이 현장에서 말할 때만 켜지는 진행 버튼. 화면 전체를 덮는다.
+            // 맨 나중에 만들어야 대사 띠와 버튼보다 위에 올라와 그 둘까지 막는다.
+            var fieldAdvance = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
+            StretchFull(fieldAdvance);
+            var fieldAdvanceButton = fieldAdvance.AddComponent<Button>();
+            var fieldAdvanceImage = fieldAdvance.GetComponent<Image>();
+            fieldAdvanceButton.targetGraphic = fieldAdvanceImage;
+
+            // CreatePanel 은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
+            fieldAdvanceImage.raycastTarget = true;
+            fieldAdvance.SetActive(false);
+
             var so = new SerializedObject(screen);
             so.Update();
+            so.FindProperty("_advanceRoot").objectReferenceValue = fieldAdvance;
+            so.FindProperty("_advanceButton").objectReferenceValue = fieldAdvanceButton;
             so.FindProperty("_tickerText").objectReferenceValue = tickerText;
             so.FindProperty("_portrait").objectReferenceValue = portrait.GetComponent<Image>();
             so.FindProperty("_speakerText").objectReferenceValue = speakerText;
