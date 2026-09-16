@@ -257,13 +257,10 @@ namespace UrbanLegendBureau.Systems
             return BuildStatusLine();
         }
 
-        /// <summary>승강장을 조사해 열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
+        /// <summary>열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
         private bool _boarded;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
-
-        /// <summary>막차 사건에서 올라타는 계기가 되는 지점.</summary>
-        private const string BoardingPointId = "point_subway_platform";
 
         /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
         public void ShowTitleScreen()
@@ -599,6 +596,10 @@ namespace UrbanLegendBureau.Systems
             else _ui.Replace(_fieldHudScreen);
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
+
+            // 열차가 들어오는 장면은 튜토리얼이 한 번만 보여준다.
+            // 그 밖에 현장을 열 때는 이미 열차 안이다. 승강장에는 조사할 것이 없다.
+            if (_tutorial == null || !_tutorial.IsRunning) BoardTrain();
         }
 
         /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>
@@ -1038,21 +1039,23 @@ namespace UrbanLegendBureau.Systems
         // ------------------------------------------------------------- 현장 조사
 
         /// <summary>
-        /// 승강장을 조사하면 열차에 올라탄다.
+        /// 열차에 올라탄다. 열차가 들어오는 그 순간에 부른다.
+        ///
         /// 현장을 새로 만들지 않고 보이는 것만 갈아 끼운다. 사건 진행과 단서 조건은 그대로다.
+        /// 조사 지점은 열차 안에 들어 있으므로, 타기 전에는 아무것도 눌리지 않는다.
         /// </summary>
-        private void TryBoardTrain(InvestigationPoint point)
+        public void BoardTrain()
         {
-            if (_boarded || point == null || point.PointId != BoardingPointId) return;
+            if (_boarded || _field == null || _field.ActiveRoot == null) return;
 
-            var swap = point.GetComponentInParent<FieldSceneSwap>();
+            var swap = _field.ActiveRoot.GetComponent<FieldSceneSwap>();
             if (swap == null) return;
 
             swap.SetAfter(true);
             _boarded = true;
             RefreshFieldHud();
 
-            Debug.Log("[CaseDirector] 열차에 올라탔다 | 승강장 -> 열차 안");
+            Debug.Log("[CaseDirector] 열차가 들어왔다 | 승강장 -> 열차 안");
         }
 
         private void OnPointInvestigated(InvestigationPoint point)
@@ -1070,10 +1073,6 @@ namespace UrbanLegendBureau.Systems
                     return;
                 }
             }
-
-            // 승강장에 발을 들이면 열차에 올라탄 것으로 친다.
-            // 그 뒤로는 승강장 대신 열차 안이 보인다.
-            TryBoardTrain(point);
 
             // --- 조사 방법이 있는 지점 ---
             // 지점을 고르는 것은 이동일 뿐이라 시간을 쓰지 않는다.

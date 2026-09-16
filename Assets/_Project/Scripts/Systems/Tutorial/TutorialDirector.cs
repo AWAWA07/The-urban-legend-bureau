@@ -1074,9 +1074,13 @@ namespace UrbanLegendBureau.Systems
             string nameId = hanyoung ? HanyoungNameTextId : ChajihanNameTextId;
             string lineId = FieldLineTextIds[_fieldLineIndex];
 
-            // 열차가 들어오는 대목부터는 위쪽 알림을 바꿔 그 장면임을 알린다.
+            // 열차가 들어오는 대목에서 곧바로 열차 안으로 들어간다.
+            // 승강장에 서서 문이 열리기를 기다리는 시간은 두지 않는다.
             if (_fieldLineIndex == FieldTrainArrivesAt)
             {
+                // 타는 쪽이 먼저다. 올라타면 위쪽 한 줄이 평소 내용으로 돌아가므로,
+                // 그 뒤에 열차가 들어온다는 알림으로 덮는다.
+                if (_caseDirector != null) _caseDirector.BoardTrain();
                 _fieldHud.SetTicker(() => _loc.Get(TrainArrivingTextId));
             }
 

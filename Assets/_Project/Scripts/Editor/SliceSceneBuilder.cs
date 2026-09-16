@@ -101,17 +101,30 @@ namespace UrbanLegendBureau.EditorTools
             // --- 실제 사건 1: 막차의 빈자리 (20단계) ---
             var fieldRootSubway = new GameObject("FieldRoot_Subway");
             BuildFieldBackground(fieldRootSubway.transform);
-            var seat = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwaySeat", new Vector2(-5.0f, -1.4f),
-                new Vector2(2.6f, 1.8f), new Color(0.32f, 0.36f, 0.48f),
+
+            // 타기 전에 보이는 승강장. 여기에는 조사할 것이 없다. 열차를 기다리는 자리다.
+            var platformOutside = BuildPlatformOutside(fieldRootSubway.transform);
+
+            // 열차 안. 조사 지점은 모두 이 안에 들어 있다.
+            // 타기 전에는 이 묶음이 통째로 꺼져 있으므로 아무것도 눌리지 않는다.
+            var trainInside = BuildTrainInside(fieldRootSubway.transform);
+
+            // 지점을 열차 배치에 맞춘다.
+            //   빈자리 - 왼쪽 긴 의자의 한 칸.
+            //   창문   - 오른쪽 긴 의자 위의 창.
+            //   CCTV   - 왼쪽 위 천장 모서리.
+            //   승강장 - 오른쪽 열린 문 너머.
+            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(-6.53f, -1.6f),
+                new Vector2(1.5f, 2.35f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
-            var window = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayWindow", new Vector2(-1.4f, 1.6f),
-                new Vector2(3.2f, 2.0f), new Color(0.26f, 0.42f, 0.46f),
+            var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
+                new Vector2(4.4f, 2.2f), new Color(0.26f, 0.42f, 0.46f),
                 "field.subway.window", "field.subway.window", null);
-            var cctv = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayCctv", new Vector2(2.6f, 2.6f),
-                new Vector2(1.2f, 1.0f), new Color(0.46f, 0.40f, 0.30f),
+            var cctv = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayCctv", new Vector2(-12.8f, 2.6f),
+                new Vector2(1.6f, 1.15f), new Color(0.46f, 0.40f, 0.30f),
                 "field.subway.cctv", "field.subway.cctv", null);
-            var platform = BuildPoint(fieldRootSubway.transform, "InvestigationPoint_SubwayPlatform", new Vector2(4.6f, -1.8f),
-                new Vector2(3.4f, 1.6f), new Color(0.38f, 0.32f, 0.36f),
+            var platform = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayPlatform", new Vector2(10.0f, -0.9f),
+                new Vector2(3.1f, 4.8f), new Color(0.38f, 0.32f, 0.36f),
                 "field.subway.platform", "field.subway.platform", null);
 
             // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
@@ -125,13 +138,12 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(platform, "point_subway_platform",
                 new[] { "action_subway_platform_search", "action_subway_platform_trace" }, null, false, CaseStep.Started);
 
-            // 승강장을 조사하면 열차에 올라탄다. 그 뒤로는 승강장 대신 열차 안이 보인다.
+            // 열차가 들어오면 승강장 대신 열차 안이 보인다.
             // 장소를 새로 만들지 않고 보이는 것만 갈아 끼운다.
-            var trainInside = BuildTrainInside(fieldRootSubway.transform);
             var swap = fieldRootSubway.AddComponent<FieldSceneSwap>();
             var swapSo = new SerializedObject(swap);
             swapSo.Update();
-            SetObjectArray(swapSo.FindProperty("_beforeRoots"), platform);
+            SetObjectArray(swapSo.FindProperty("_beforeRoots"), platformOutside);
             SetObjectArray(swapSo.FindProperty("_afterRoots"), trainInside);
             swapSo.ApplyModifiedPropertiesWithoutUndo();
 
@@ -342,27 +354,199 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>
-        /// 열차 안. 승강장을 조사해 올라탄 뒤에만 보인다.
-        /// 그림은 아직 없다. 바닥과 문 자리만 네모로 잡아 둔다.
+        /// 타기 전의 승강장. 열차가 들어오기 전까지만 보인다.
+        /// 조사 지점은 없다. 여기서는 기다리기만 한다.
+        /// </summary>
+        private static GameObject BuildPlatformOutside(Transform parent)
+        {
+            var root = new GameObject("PlatformOutside");
+            root.transform.SetParent(parent, false);
+
+            // 화면 맨 위 한 줄이 세계 좌표 y 3.8 위를 가린다. 보여야 할 것은 모두 그 아래에 둔다.
+
+            // 선로 쪽은 캄캄하다. 그 위로 역사 벽이 얹힌다.
+            AddFieldRect(root.transform, "TunnelDark", new Vector2(0f, 0.4f), new Vector2(44f, 6.2f),
+                new Color(0.05f, 0.05f, 0.08f), -9);
+            AddFieldRect(root.transform, "StationWall", new Vector2(0f, 4.5f), new Vector2(44f, 2.4f),
+                new Color(0.19f, 0.19f, 0.24f), -8);
+            AddFieldRect(root.transform, "StationSoffit", new Vector2(0f, 3.4f), new Vector2(44f, 0.2f),
+                new Color(0.28f, 0.29f, 0.35f), -7);
+
+            // 발밑. 노란 안전선이 끝에 그어져 있다.
+            AddFieldRect(root.transform, "PlatformFloor", new Vector2(0f, -4.1f), new Vector2(44f, 2.9f),
+                new Color(0.23f, 0.23f, 0.27f), -8);
+            AddFieldRect(root.transform, "SafetyLine", new Vector2(0f, -2.78f), new Vector2(44f, 0.26f),
+                new Color(0.72f, 0.62f, 0.26f), -7);
+
+            // 스크린도어. 기둥 사이로 어둠이 보인다.
+            for (int i = -2; i <= 2; i++)
+            {
+                AddFieldRect(root.transform, "ScreenDoorPillar_" + (i + 2), new Vector2(i * 6.2f, 0.4f),
+                    new Vector2(0.6f, 6.2f), new Color(0.26f, 0.27f, 0.33f), -6);
+            }
+            AddFieldRect(root.transform, "ScreenDoorRail", new Vector2(0f, 3.1f), new Vector2(44f, 0.4f),
+                new Color(0.30f, 0.31f, 0.38f), -5);
+
+            // 역 이름표. 선로 쪽 어둠 위에 걸려 눈에 들어온다.
+            AddFieldRect(root.transform, "SignHanger", new Vector2(0f, 2.85f), new Vector2(0.18f, 0.6f),
+                new Color(0.30f, 0.31f, 0.38f), -5);
+            AddFieldRect(root.transform, "Sign", new Vector2(0f, 2.0f), new Vector2(5.6f, 1.2f),
+                new Color(0.16f, 0.20f, 0.30f), -4);
+
+            root.SetActive(false);
+            return root;
+        }
+
+        /// <summary>
+        /// 열차 안. 열차가 들어온 뒤로 계속 보이는 자리다.
+        ///
+        /// 옆에서 본 객실이다. 아래에 긴 의자 둘, 그 위에 창 둘,
+        /// 가운데와 오른쪽에 문, 왼쪽 위 모서리에 CCTV 자리가 온다.
+        /// 그림은 아직 없다. 네모로만 잡아 둔다.
         /// </summary>
         private static GameObject BuildTrainInside(Transform parent)
         {
             var root = new GameObject("TrainInside");
             root.transform.SetParent(parent, false);
 
-            AddFieldRect(root.transform, "Floor", new Vector2(0f, -3.6f), new Vector2(44f, 2.2f),
-                new Color(0.17f, 0.17f, 0.21f), -9);
-            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 4.4f), new Vector2(44f, 1.6f),
-                new Color(0.15f, 0.15f, 0.19f), -9);
-            AddFieldRect(root.transform, "Door_Left", new Vector2(-8.2f, 0.2f), new Vector2(2.2f, 5.2f),
-                new Color(0.20f, 0.22f, 0.27f), -8);
-            AddFieldRect(root.transform, "Door_Right", new Vector2(8.2f, 0.2f), new Vector2(2.2f, 5.2f),
-                new Color(0.20f, 0.22f, 0.27f), -8);
-            AddFieldRect(root.transform, "Handrail", new Vector2(0f, 3.2f), new Vector2(16f, 0.18f),
-                new Color(0.34f, 0.35f, 0.40f), -8);
+            var wall = new Color(0.19f, 0.20f, 0.25f);
+            var trim = new Color(0.28f, 0.29f, 0.35f);
+            var dark = new Color(0.12f, 0.12f, 0.16f);
+
+            // 객실 껍데기. 벽 / 천장 / 바닥.
+            // 화면 맨 위 한 줄이 세계 좌표 y 3.8 위를 가리므로, 천장은 그보다 아래에서 시작한다.
+            AddFieldRect(root.transform, "Wall", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), wall, -9);
+            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 4.45f), new Vector2(44f, 1.5f),
+                new Color(0.15f, 0.15f, 0.19f), -8);
+            AddFieldRect(root.transform, "CeilingEdge", new Vector2(0f, 3.62f), new Vector2(44f, 0.16f), trim, -7);
+
+            // 천장 형광등. 객실 안이 왜 이 색인지 눈에 잡히게 한다.
+            for (int i = -3; i <= 3; i++)
+            {
+                AddFieldRect(root.transform, "CeilingLamp_" + (i + 3), new Vector2(i * 4.4f, 4.0f),
+                    new Vector2(3.0f, 0.24f), new Color(0.58f, 0.58f, 0.52f), -7);
+            }
+
+            AddFieldRect(root.transform, "Floor", new Vector2(0f, -4.5f), new Vector2(44f, 2.2f),
+                new Color(0.14f, 0.14f, 0.18f), -8);
+            AddFieldRect(root.transform, "FloorEdge", new Vector2(0f, -3.42f), new Vector2(44f, 0.16f), trim, -7);
+
+            // 문. 가운데와 양 끝. 오른쪽 문만 열려 있어 승강장이 보인다.
+            BuildTrainDoor(root.transform, "Door_Center", 0f, false);
+            BuildTrainDoor(root.transform, "Door_Left", -10.0f, false);
+            BuildTrainDoor(root.transform, "Door_Right", 10.0f, true);
+
+            // 긴 의자 둘. 문 사이에 하나씩 들어간다.
+            BuildTrainBench(root.transform, "Bench_Left", -5.0f, 4.6f);
+            BuildTrainBench(root.transform, "Bench_Right", 5.0f, 4.6f);
+
+            // 의자 위의 창. 바깥은 캄캄한 터널이다.
+            BuildTrainWindow(root.transform, "Window_Left", -5.0f, 4.6f);
+            BuildTrainWindow(root.transform, "Window_Right", 5.0f, 4.6f);
+
+            // 손잡이 봉과 거기 매달린 고리들. 봉은 천장에 세운 기둥 둘이 받친다.
+            AddFieldRect(root.transform, "Handrail", new Vector2(0f, 3.0f), new Vector2(17.0f, 0.16f),
+                new Color(0.36f, 0.37f, 0.43f), -5);
+            AddFieldRect(root.transform, "HandrailPost_L", new Vector2(-8.3f, 3.3f), new Vector2(0.14f, 0.8f),
+                new Color(0.34f, 0.35f, 0.41f), -5);
+            AddFieldRect(root.transform, "HandrailPost_R", new Vector2(8.3f, 3.3f), new Vector2(0.14f, 0.8f),
+                new Color(0.34f, 0.35f, 0.41f), -5);
+            for (int i = -4; i <= 4; i++)
+            {
+                if (i == 0) continue;   // 가운데 문 위는 비운다
+                AddFieldRect(root.transform, "Strap_" + (i + 4), new Vector2(i * 1.9f, 2.42f),
+                    new Vector2(0.1f, 1.0f), new Color(0.30f, 0.31f, 0.36f), -5);
+                AddFieldRect(root.transform, "StrapRing_" + (i + 4), new Vector2(i * 1.9f, 1.82f),
+                    new Vector2(0.44f, 0.44f), new Color(0.34f, 0.31f, 0.24f), -5);
+            }
+
+            // 왼쪽 위 모서리의 CCTV. 천장에서 내려온 팔에 매달린다.
+            // 이름표가 맨 위 한 줄에 가리지 않도록 조사 지점을 y 2.6 에 둔다.
+            AddFieldRect(root.transform, "CctvArm", new Vector2(-12.8f, 3.25f), new Vector2(0.28f, 1.0f), trim, -5);
+            AddFieldRect(root.transform, "CctvShade", new Vector2(-12.8f, 2.6f), new Vector2(2.2f, 1.7f), dark, -6);
 
             root.SetActive(false);
             return root;
+        }
+
+        /// <summary>객실 문 한 짝. 열린 문은 안쪽이 승강장 빛으로 밝다.</summary>
+        private static void BuildTrainDoor(Transform parent, string name, float x, bool open)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(x, 0f, 0f);
+
+            // 문틀.
+            AddFieldRect(go.transform, "Frame", new Vector2(0f, -0.6f), new Vector2(4.6f, 6.0f),
+                new Color(0.24f, 0.25f, 0.31f), -7);
+
+            if (open)
+            {
+                // 열린 문. 문짝은 양옆으로 물러나고 가운데는 승강장 불빛이다.
+                AddFieldRect(go.transform, "Opening", new Vector2(0f, -0.6f), new Vector2(3.6f, 5.6f),
+                    new Color(0.30f, 0.29f, 0.27f), -6);
+                AddFieldRect(go.transform, "Leaf_L", new Vector2(-2.1f, -0.6f), new Vector2(0.6f, 5.6f),
+                    new Color(0.20f, 0.21f, 0.26f), -5);
+                AddFieldRect(go.transform, "Leaf_R", new Vector2(2.1f, -0.6f), new Vector2(0.6f, 5.6f),
+                    new Color(0.20f, 0.21f, 0.26f), -5);
+                return;
+            }
+
+            // 닫힌 문. 문짝 둘과 각각의 작은 창.
+            for (int i = 0; i < 2; i++)
+            {
+                float leafX = i == 0 ? -1.05f : 1.05f;
+                AddFieldRect(go.transform, "Leaf_" + i, new Vector2(leafX, -0.6f), new Vector2(2.0f, 5.6f),
+                    new Color(0.21f, 0.22f, 0.27f), -6);
+                AddFieldRect(go.transform, "LeafGlass_" + i, new Vector2(leafX, 0.9f), new Vector2(1.5f, 2.2f),
+                    new Color(0.08f, 0.10f, 0.14f), -5);
+            }
+        }
+
+        /// <summary>긴 의자 하나. 등받이와 앉는 자리와 아래 받침으로 나눈다.</summary>
+        private static void BuildTrainBench(Transform parent, string name, float x, float width)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(x, 0f, 0f);
+
+            var fabric = new Color(0.26f, 0.28f, 0.36f);
+
+            AddFieldRect(go.transform, "Back", new Vector2(0f, -1.35f), new Vector2(width, 1.9f), fabric, -6);
+            AddFieldRect(go.transform, "Seat", new Vector2(0f, -2.45f), new Vector2(width, 0.6f),
+                Color.Lerp(fabric, Color.white, 0.12f), -5);
+            AddFieldRect(go.transform, "Skirt", new Vector2(0f, -3.1f), new Vector2(width, 0.8f),
+                new Color(0.17f, 0.18f, 0.22f), -6);
+
+            // 한 사람 자리를 가르는 금. 빈자리가 어디인지 눈에 들어오게 한다.
+            int slots = Mathf.RoundToInt(width / 1.65f);
+            for (int i = 1; i < slots; i++)
+            {
+                float lineX = -width * 0.5f + i * (width / slots);
+                AddFieldRect(go.transform, "SeatLine_" + i, new Vector2(lineX, -2.0f), new Vector2(0.06f, 2.9f),
+                    new Color(0.19f, 0.20f, 0.26f), -4);
+            }
+
+            // 양 끝의 칸막이.
+            AddFieldRect(go.transform, "Divider_L", new Vector2(-width * 0.5f - 0.2f, -1.7f),
+                new Vector2(0.4f, 3.6f), new Color(0.31f, 0.32f, 0.38f), -4);
+            AddFieldRect(go.transform, "Divider_R", new Vector2(width * 0.5f + 0.2f, -1.7f),
+                new Vector2(0.4f, 3.6f), new Color(0.31f, 0.32f, 0.38f), -4);
+        }
+
+        /// <summary>의자 위의 창 하나. 유리와 테두리와 가운데 세로살.</summary>
+        private static void BuildTrainWindow(Transform parent, string name, float x, float width)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = new Vector3(x, 0.9f, 0f);
+
+            AddFieldRect(go.transform, "Frame", Vector2.zero, new Vector2(width + 0.4f, 2.7f),
+                new Color(0.30f, 0.31f, 0.37f), -7);
+            AddFieldRect(go.transform, "Glass", Vector2.zero, new Vector2(width, 2.3f),
+                new Color(0.07f, 0.09f, 0.13f), -6);
+            AddFieldRect(go.transform, "Mullion", Vector2.zero, new Vector2(0.16f, 2.3f),
+                new Color(0.30f, 0.31f, 0.37f), -5);
         }
 
         /// <summary>현장 배경에 까는 네모 하나. 조사 지점이 아니라 그냥 그림이다.</summary>
@@ -381,6 +565,23 @@ namespace UrbanLegendBureau.EditorTools
             sr.sortingOrder = order;
         }
 
+        /// <summary>
+        /// 휴대폰 옆면의 단추 하나. 껍데기 밖으로 살짝 튀어나온다.
+        /// 눌리지는 않는다. 판때기가 아니라 손에 쥔 물건으로 보이게 하는 것이 전부다.
+        /// </summary>
+        private static void AddPhoneSideKey(Transform phone, string name, float side, float y, float height)
+        {
+            var key = CreatePanel(phone, name, new Color(0.26f, 0.27f, 0.33f, 1f));
+            var rt = (RectTransform)key.transform;
+            rt.anchorMin = new Vector2(side, 1f);
+            rt.anchorMax = new Vector2(side, 1f);
+            rt.pivot = new Vector2(side, 1f);
+            // 폭의 반만 껍데기 안에 걸치게 해서 옆으로 튀어나온 것처럼 보이게 한다.
+            rt.anchoredPosition = new Vector2(side > 0.5f ? 5f : -5f, y);
+            rt.sizeDelta = new Vector2(10f, height);
+            key.GetComponent<Image>().raycastTarget = false;
+        }
+
         /// <summary>휴대폰 안의 앱 하나. 네모와 이름표로 둔다. 컴퓨터 아이콘과 같은 모양이다.</summary>
         private static Button BuildPhoneIcon(Transform parent, string id, Vector2 position, float size,
             out TMP_Text label)
@@ -392,7 +593,7 @@ namespace UrbanLegendBureau.EditorTools
             rt.anchorMax = new Vector2(0f, 1f);
             rt.pivot = new Vector2(0f, 1f);
             rt.anchoredPosition = position;
-            rt.sizeDelta = new Vector2(size, size + 34f);
+            rt.sizeDelta = new Vector2(size, size + 26f);
 
             var button = go.AddComponent<Button>();
 
@@ -405,14 +606,15 @@ namespace UrbanLegendBureau.EditorTools
             boxRt.sizeDelta = new Vector2(size, size);
             button.targetGraphic = box.GetComponent<Image>();
 
-            label = AddText(go.transform, "Label", 20f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, new Vector2(size + 20f, 30f), TextAlignmentOptions.Center);
+            // 아이콘이 작으므로 이름표도 같이 줄인다. 이름이 길어도 한 줄에 들어가게 넉넉히 넓힌다.
+            label = AddText(go.transform, "Label", 16f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(size + 30f, 26f), TextAlignmentOptions.Center);
             var labelRt = label.rectTransform;
             labelRt.anchorMin = new Vector2(0.5f, 0f);
             labelRt.anchorMax = new Vector2(0.5f, 0f);
             labelRt.pivot = new Vector2(0.5f, 0f);
             labelRt.anchoredPosition = Vector2.zero;
-            labelRt.sizeDelta = new Vector2(size + 20f, 30f);
+            labelRt.sizeDelta = new Vector2(size + 30f, 26f);
             label.raycastTarget = false;
 
             return button;
@@ -1915,47 +2117,109 @@ namespace UrbanLegendBureau.EditorTools
             buttonRow = CreateButtonRow(band.transform, new Vector2(600f, -110f), new Vector2(660f, 92f));
 
             // --- 늘 열어 볼 수 있는 휴대폰 ---
-            // 장면 오른쪽에 작은 단추로 붙고, 누르면 오른쪽에 세로로 펴진다.
-            var phoneButtonGo = CreatePanel(safe.transform, "Btn_Phone", new Color(0.18f, 0.19f, 0.24f, 1f));
+            // 대사 띠 바로 위 오른쪽 끝에 붙는다. 접었을 때도 펼쳤을 때도 같은 자리에서 자란다.
+            // 주머니에서 꺼내 드는 것처럼 보이게, 접힌 모습도 작은 휴대폰 꼴로 둔다.
+            const float PhoneRight = 48f;        // 오른쪽 끝에서 띄우는 만큼
+            const float PhoneBottom = BandHeight + 24f;   // 대사 띠 바로 위
+
+            var shellColor = new Color(0.05f, 0.05f, 0.07f, 1f);
+            var glassColor = new Color(0.09f, 0.10f, 0.14f, 1f);
+            var metalColor = new Color(0.22f, 0.23f, 0.29f, 1f);
+
+            // 접힌 모습. 실제 휴대폰과 같은 세로 비율(9:19)로 줄인 껍데기다.
+            var phoneButtonGo = CreatePanel(safe.transform, "Btn_Phone", shellColor);
             var phoneBtnRt = (RectTransform)phoneButtonGo.transform;
-            phoneBtnRt.anchorMin = new Vector2(1f, 1f);
-            phoneBtnRt.anchorMax = new Vector2(1f, 1f);
-            phoneBtnRt.pivot = new Vector2(1f, 1f);
-            phoneBtnRt.anchoredPosition = new Vector2(-40f, -110f);
-            phoneBtnRt.sizeDelta = new Vector2(120f, 170f);
+            phoneBtnRt.anchorMin = new Vector2(1f, 0f);
+            phoneBtnRt.anchorMax = new Vector2(1f, 0f);
+            phoneBtnRt.pivot = new Vector2(1f, 0f);
+            phoneBtnRt.anchoredPosition = new Vector2(-PhoneRight, PhoneBottom);
+            phoneBtnRt.sizeDelta = new Vector2(90f, 190f);
 
             var phoneButton = phoneButtonGo.AddComponent<Button>();
             phoneButton.targetGraphic = phoneButtonGo.GetComponent<Image>();
 
-            var phoneBtnLabel = AddText(phoneButtonGo.transform, "Label", 22f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, new Vector2(120f, 170f), TextAlignmentOptions.Center);
+            // 껍데기 안의 화면. 여기에만 글자가 들어간다.
+            var phoneBtnGlass = CreatePanel(phoneButtonGo.transform, "Glass", glassColor);
+            StretchInside((RectTransform)phoneBtnGlass.transform, 7f, 7f, 12f, 16f);
+            phoneBtnGlass.GetComponent<Image>().raycastTarget = false;
+
+            var phoneBtnLabel = AddText(phoneBtnGlass.transform, "Label", 20f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(phoneBtnLabel.rectTransform, 4f, 4f, 4f, 4f);
+            phoneBtnLabel.textWrappingMode = TMPro.TextWrappingModes.Normal;
             phoneBtnLabel.raycastTarget = false;
-            StretchInside(phoneBtnLabel.rectTransform, 8f, 8f, 8f, 8f);
 
-            // 펴진 휴대폰. 세로로 길쭉한 판 하나다.
-            const float PhoneWidth = 520f;
+            // 아래 손잡이 선. 접힌 것도 휴대폰으로 보이게 하는 것은 이 한 줄이다.
+            var phoneBtnHome = CreatePanel(phoneButtonGo.transform, "HomeBar", new Color(0.42f, 0.43f, 0.50f, 1f));
+            var phoneBtnHomeRt = (RectTransform)phoneBtnHome.transform;
+            phoneBtnHomeRt.anchorMin = new Vector2(0.5f, 0f);
+            phoneBtnHomeRt.anchorMax = new Vector2(0.5f, 0f);
+            phoneBtnHomeRt.pivot = new Vector2(0.5f, 0f);
+            phoneBtnHomeRt.anchoredPosition = new Vector2(0f, 6f);
+            phoneBtnHomeRt.sizeDelta = new Vector2(36f, 4f);
+            phoneBtnHome.GetComponent<Image>().raycastTarget = false;
+
+            // --- 펼친 휴대폰 ---
+            // 껍데기(테두리)가 보이고 그 안에 화면이 들어간다. 9:18.6, 실제 휴대폰 비율이다.
+            const float PhoneWidth = 300f;
             const float PhoneHeight = 620f;
+            const float BezelSide = 12f;
+            const float BezelTop = 18f;
+            const float BezelBottom = 26f;
+            const float ScreenWidth = PhoneWidth - BezelSide * 2f;   // = 276
 
-            var phone = CreatePanel(safe.transform, "Phone", new Color(0.08f, 0.08f, 0.11f, 1f));
+            var phone = CreatePanel(safe.transform, "Phone", shellColor);
             var phoneRt = (RectTransform)phone.transform;
-            phoneRt.anchorMin = new Vector2(1f, 1f);
-            phoneRt.anchorMax = new Vector2(1f, 1f);
-            phoneRt.pivot = new Vector2(1f, 1f);
-            phoneRt.anchoredPosition = new Vector2(-40f, -30f);
+            phoneRt.anchorMin = new Vector2(1f, 0f);
+            phoneRt.anchorMax = new Vector2(1f, 0f);
+            phoneRt.pivot = new Vector2(1f, 0f);
+            phoneRt.anchoredPosition = new Vector2(-PhoneRight, PhoneBottom);
             phoneRt.sizeDelta = new Vector2(PhoneWidth, PhoneHeight);
 
-            // 위 상태 줄. 시계와 닫기.
-            var phoneBar = CreatePanel(phone.transform, "StatusBar", new Color(0.13f, 0.13f, 0.17f, 1f));
+            // 옆면 단추. 껍데기 밖으로 살짝 튀어나온다.
+            AddPhoneSideKey(phone.transform, "Key_Power", 1f, -150f, 70f);
+            AddPhoneSideKey(phone.transform, "Key_VolumeUp", 0f, -140f, 44f);
+            AddPhoneSideKey(phone.transform, "Key_VolumeDown", 0f, -194f, 44f);
+
+            // 화면. 이 안쪽만 휴대폰이 켜진 자리다.
+            var phoneScreen = CreatePanel(phone.transform, "Screen", glassColor);
+            StretchInside((RectTransform)phoneScreen.transform,
+                BezelSide, BezelSide, BezelTop, BezelBottom);
+
+            // 위쪽 노치와 스피커 구멍.
+            var notch = CreatePanel(phoneScreen.transform, "Notch", shellColor);
+            var notchRt = (RectTransform)notch.transform;
+            notchRt.anchorMin = new Vector2(0.5f, 1f);
+            notchRt.anchorMax = new Vector2(0.5f, 1f);
+            notchRt.pivot = new Vector2(0.5f, 1f);
+            notchRt.anchoredPosition = Vector2.zero;
+            notchRt.sizeDelta = new Vector2(104f, 22f);
+            notch.GetComponent<Image>().raycastTarget = false;
+
+            // 아래 손잡이 선. 껍데기 쪽에 둔다.
+            var homeBar = CreatePanel(phone.transform, "HomeBar", new Color(0.42f, 0.43f, 0.50f, 1f));
+            var homeBarRt = (RectTransform)homeBar.transform;
+            homeBarRt.anchorMin = new Vector2(0.5f, 0f);
+            homeBarRt.anchorMax = new Vector2(0.5f, 0f);
+            homeBarRt.pivot = new Vector2(0.5f, 0f);
+            homeBarRt.anchoredPosition = new Vector2(0f, 10f);
+            homeBarRt.sizeDelta = new Vector2(110f, 5f);
+            homeBar.GetComponent<Image>().raycastTarget = false;
+
+            // 위 상태 줄. 시계와 닫기. 노치 아래에 깔린다.
+            const float StatusHeight = 44f;
+            var phoneBar = CreatePanel(phoneScreen.transform, "StatusBar", new Color(0.12f, 0.13f, 0.18f, 1f));
             var phoneBarRt = (RectTransform)phoneBar.transform;
             phoneBarRt.anchorMin = new Vector2(0f, 1f);
             phoneBarRt.anchorMax = new Vector2(1f, 1f);
             phoneBarRt.pivot = new Vector2(0.5f, 1f);
             phoneBarRt.anchoredPosition = Vector2.zero;
-            phoneBarRt.sizeDelta = new Vector2(0f, 56f);
+            phoneBarRt.sizeDelta = new Vector2(0f, StatusHeight);
+            phoneBar.transform.SetAsFirstSibling();   // 노치가 위에 오게
 
-            var phoneClock = AddText(phoneBar.transform, "Clock", 24f, UIFontWeight.Medium, DimTextColor,
+            var phoneClock = AddText(phoneBar.transform, "Clock", 19f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneClock.rectTransform, 20f, 80f, 8f, 8f);
+            StretchInside(phoneClock.rectTransform, 14f, 190f, 6f, 6f);
             phoneClock.raycastTarget = false;
 
             var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));
@@ -1963,16 +2227,16 @@ namespace UrbanLegendBureau.EditorTools
             phoneCloseRt.anchorMin = new Vector2(1f, 0.5f);
             phoneCloseRt.anchorMax = new Vector2(1f, 0.5f);
             phoneCloseRt.pivot = new Vector2(1f, 0.5f);
-            phoneCloseRt.anchoredPosition = new Vector2(-12f, 0f);
-            phoneCloseRt.sizeDelta = new Vector2(52f, 40f);
+            phoneCloseRt.anchoredPosition = new Vector2(-8f, 0f);
+            phoneCloseRt.sizeDelta = new Vector2(40f, 30f);
             var phoneCloseButton = phoneClose.AddComponent<Button>();
             phoneCloseButton.targetGraphic = phoneClose.GetComponent<Image>();
-            var phoneCloseLabel = AddText(phoneClose.transform, "Label", 24f, UIFontWeight.Bold, TextColor,
-                Vector2.zero, new Vector2(52f, 40f), TextAlignmentOptions.Center);
+            var phoneCloseLabel = AddText(phoneClose.transform, "Label", 20f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(40f, 30f), TextAlignmentOptions.Center);
             phoneCloseLabel.text = "X";
             phoneCloseLabel.raycastTarget = false;
 
-            // 앱은 컴퓨터 바탕화면과 같은 것들이다. 세로 화면이라 두 줄로 늘어놓는다.
+            // 앱은 컴퓨터 바탕화면과 같은 것들이다. 세로 화면이라 세 칸씩 두 줄로 늘어놓는다.
             var phoneApps = new[]
             {
                 new[] { "gwedamnet", "ui.desktop.app_net" },
@@ -1985,34 +2249,36 @@ namespace UrbanLegendBureau.EditorTools
             var phoneIconTexts = new TMP_Text[phoneApps.Length + 2];
             var phoneIconButtons = new Button[phoneApps.Length + 2];
 
-            const float IconSize = 120f;
-            const float IconGapX = 30f;
-            const float IconGapY = 40f;
+            const float IconSize = 60f;
+            const float IconGapX = 26f;
+            const float IconRowPitch = 112f;
+            const float IconLeft = (ScreenWidth - (IconSize * 3f + IconGapX * 2f)) * 0.5f;   // = 22
 
             for (int i = 0; i < phoneApps.Length; i++)
             {
                 int col = i % 3;
                 int row = i / 3;
-                float x = 50f + col * (IconSize + IconGapX);
-                float y = -90f - row * (IconSize + IconGapY + 30f);
+                float x = IconLeft + col * (IconSize + IconGapX);
+                float y = -(StatusHeight + 20f) - row * IconRowPitch;
 
-                phoneIconButtons[i] = BuildPhoneIcon(phone.transform, phoneApps[i][0],
+                phoneIconButtons[i] = BuildPhoneIcon(phoneScreen.transform, phoneApps[i][0],
                     new Vector2(x, y), IconSize, out phoneIconTexts[i]);
             }
 
             // 실제 휴대폰처럼 전화와 메시지는 맨 아래 줄에 따로 둔다.
-            var dock = CreatePanel(phone.transform, "Dock", new Color(0.13f, 0.13f, 0.17f, 1f));
+            var dock = CreatePanel(phoneScreen.transform, "Dock", new Color(0.14f, 0.15f, 0.20f, 1f));
             var dockRt = (RectTransform)dock.transform;
             dockRt.anchorMin = new Vector2(0f, 0f);
             dockRt.anchorMax = new Vector2(1f, 0f);
             dockRt.pivot = new Vector2(0.5f, 0f);
-            dockRt.anchoredPosition = Vector2.zero;
-            dockRt.sizeDelta = new Vector2(0f, 150f);
+            dockRt.anchoredPosition = new Vector2(0f, 10f);
+            dockRt.sizeDelta = new Vector2(-20f, 104f);
 
+            const float DockLeft = (ScreenWidth - 20f - (IconSize * 2f + 44f)) * 0.5f;   // = 36
             phoneIconButtons[phoneApps.Length] = BuildPhoneIcon(dock.transform, "call",
-                new Vector2(125f, -8f), IconSize, out phoneIconTexts[phoneApps.Length]);
+                new Vector2(DockLeft, -10f), IconSize, out phoneIconTexts[phoneApps.Length]);
             phoneIconButtons[phoneApps.Length + 1] = BuildPhoneIcon(dock.transform, "message",
-                new Vector2(275f, -8f), IconSize, out phoneIconTexts[phoneApps.Length + 1]);
+                new Vector2(DockLeft + IconSize + 44f, -10f), IconSize, out phoneIconTexts[phoneApps.Length + 1]);
 
             phone.SetActive(false);
 

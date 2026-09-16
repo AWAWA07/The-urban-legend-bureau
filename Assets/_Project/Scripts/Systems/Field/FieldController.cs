@@ -40,6 +40,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현재 조사 입력을 받는가.</summary>
         public bool IsActive { get; private set; }
 
+        /// <summary>지금 켜져 있는 현장의 부모. 켜진 현장이 없으면 null.</summary>
+        public GameObject ActiveRoot { get; private set; }
+
         private void Awake()
         {
             HideAll();
@@ -68,6 +71,7 @@ namespace UrbanLegendBureau.Systems
         public void SetFieldVisible(bool visible, string legendId = null)
         {
             IsActive = false;
+            ActiveRoot = null;
             _pressedPoint = null;
 
             HideAll();
@@ -80,6 +84,7 @@ namespace UrbanLegendBureau.Systems
                 if (group.legendId != legendId) continue;
 
                 group.root.SetActive(true);
+                ActiveRoot = group.root;
                 IsActive = true;
                 return;
             }
