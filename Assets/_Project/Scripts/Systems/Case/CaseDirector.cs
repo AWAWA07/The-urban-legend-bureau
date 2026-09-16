@@ -346,10 +346,15 @@ namespace UrbanLegendBureau.Systems
         {
             if (entry == null || !entry.Openable || entry.Page == null) return;
 
-            _communityScreen.BindPage(entry.Page, 1204, PostTimeTextId, 0, 0, entry.BeliefPercent);
+            // 조회수도 목록에 적힌 것과 같아야 한다. 숫자를 여기서 새로 짓지 않는다.
+            int views = _tutorial != null ? _tutorial.HotPageViews : 0;
+            _communityScreen.BindPage(entry.Page, views, PostTimeTextId, 0, 0, entry.BeliefPercent);
 
             // 댓글은 컴퓨터로 볼 때와 같은 것이다. 플레이어가 단 댓글도 그대로 따라온다.
             _communityScreen.BindComments(_tutorial != null ? _tutorial.Comments : null);
+
+            // 좋아요와 싫어요는 누를 수 있다. 지금은 눌린 표시와 숫자만 바뀌고 판정에는 쓰이지 않는다.
+            _communityScreen.BindReactions(null, null);
 
             // 다만 현장에서는 새 댓글을 달지 않는다. 그것은 컴퓨터 앞에서 하는 일이다.
             _communityScreen.BindChoices(null, null, null);

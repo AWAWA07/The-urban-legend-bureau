@@ -177,6 +177,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("휴대폰으로 볼 때 맨 윗줄 오른쪽에 뜨는 시각. 컴퓨터로 볼 때는 꺼진다.")]
         [SerializeField] private TMP_Text _statusClockText;
 
+        [Tooltip("사이트 이름이 앉은 파란 머리말의 키. 목록용과 글용 둘이다.")]
+        [SerializeField] private LayoutElement[] _headerElements;
+
         [Tooltip("좌우 여백을 padding 으로 쓰는 칸들. 세로 화면에서는 여백을 줄인다.")]
         [SerializeField] private LayoutGroup[] _insetGroups;
 
@@ -454,16 +457,54 @@ namespace UrbanLegendBureau.UI
                             text.alignment = TextAlignmentOptions.Right;
                         }
                     }
-                    else if (text.name != BoardMarkName)
-                    {
-                        var lrt = text.rectTransform;
-                        lrt.offsetMax = new Vector2(-(beliefWidth + 22f), lrt.offsetMax.y);
-                    }
                 }
 
-                // 좁은 화면에서는 제목이 두 줄로 넘어간다. 줄 높이를 그만큼 키운다.
-                var row = (RectTransform)_boardEntryTemplate.transform;
-                row.sizeDelta = new Vector2(row.sizeDelta.x, phone ? PhoneBoardRowHeight : DeskBoardRowHeight);
+                // 줄 높이는 글마다 제 내용에 맞춰 자란다. 여기서 정하는 것은 안쪽 여백뿐이다.
+                // 오른쪽은 믿음도가 앉을 자리만큼 비워 둔다. 그래야 제목이 그 밑으로 들어가지 않는다.
+                if (_boardEntryTemplate.GetComponent<VerticalLayoutGroup>() is VerticalLayoutGroup rowLayout)
+                {
+                    int pad = phone ? PhoneBoardRowPad : DeskBoardRowPad;
+                    rowLayout.padding = new RectOffset(
+                        12, Mathf.RoundToInt(beliefWidth) + 22, pad, pad + 6);
+                }
+
+                // 줄을 가르는 선. 좁은 화면에서는 줄 간격이 촘촘해 옅은 회색이 묻힌다.
+                var ruleImage = _boardEntryTemplate.transform.Find("Rule");
+                if (ruleImage != null && ruleImage.GetComponent<Image>() is Image img)
+                {
+                    img.color = phone ? PhoneRuleColor : DeskRuleColor;
+                }
+            }
+
+            // --- 파란 머리말 ---
+            // "괴담넷 전체게시판" 이 앉은 띠. 좁은 화면에서는 이 띠가 자리를 너무 많이 차지한다.
+            if (_headerElements != null)
+            {
+                float height = phone ? PhoneHeaderHeight : DeskHeaderHeight;
+                foreach (var element in _headerElements)
+                {
+                    if (element == null) continue;
+                    element.minHeight = height;
+                    element.preferredHeight = height;
+                }
+            }
+
+            if (phone)
+            {
+                foreach (var site in _siteTexts)
+                {
+                    if (site != null) site.fontSize = PhoneSiteFontSize;
+                }
+                if (_boardListText != null) _boardListText.fontSize = PhoneBoardFontSize;
+                if (_boardPostText != null) _boardPostText.fontSize = PhoneBoardFontSize;
+            }
+
+            // --- 본문 ---
+            // 줄이 서로 붙어 빽빽해 보인다. 줄 사이를 띄우고 문단 사이도 벌린다.
+            if (_bodyText != null)
+            {
+                _bodyText.lineSpacing = phone ? PhoneBodyLineSpacing : DeskBodyLineSpacing;
+                _bodyText.paragraphSpacing = phone ? PhoneBodyParagraphSpacing : DeskBodyParagraphSpacing;
             }
 
             // --- 댓글 카드 ---
@@ -549,8 +590,24 @@ namespace UrbanLegendBureau.UI
         private static readonly Color DeskCloseColor = new Color(0.62f, 0.22f, 0.24f, 1f);
         private const float DeskBoardBeliefWidth = 320f;
         private const float PhoneBoardBeliefWidth = 58f;
-        private const float DeskBoardRowHeight = 104f;
-        private const float PhoneBoardRowHeight = 150f;
+        /// <summary>줄 안쪽 위아래 여백. 줄 높이 자체는 글마다 제 내용에 맞춰 자란다.</summary>
+        private const int DeskBoardRowPad = 14;
+        private const int PhoneBoardRowPad = 22;
+
+        private static readonly Color DeskRuleColor = new Color(0.86f, 0.87f, 0.90f, 1f);
+        private static readonly Color PhoneRuleColor = new Color(0.78f, 0.79f, 0.84f, 1f);
+
+        /// <summary>파란 머리말의 키와 그 안의 글자 크기.</summary>
+        private const float DeskHeaderHeight = 90f;
+        private const float PhoneHeaderHeight = 54f;
+        private const float PhoneSiteFontSize = 25f;
+        private const float PhoneBoardFontSize = 17f;
+
+        /// <summary>본문 줄 사이와 문단 사이. 빽빽해 보이지 않게 띄운다.</summary>
+        private const float DeskBodyLineSpacing = 8f;
+        private const float DeskBodyParagraphSpacing = 18f;
+        private const float PhoneBodyLineSpacing = 16f;
+        private const float PhoneBodyParagraphSpacing = 26f;
         private const float DeskCommentHeight = 82f;
         private const float PhoneCommentHeight = 104f;
 

@@ -297,7 +297,7 @@ ui.net.author_nick_2	새벽세시	ThreeAM
 ui.net.author_nick_3	그렇게해서못받은돈만300억	NeverGotPaid	
 ui.net.author_nick_4	오늘도야근	StillAtWork	
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
-ui.net.post_time_tutorial	오늘 02:41	Today 02:41	
+ui.net.post_time_tutorial	어제 01:33	Yesterday 01:33	
 ui.net.comment_header	댓글 {0}	Comments {0}	
 ui.net.like	▲ 좋아요 {0}	Like {0}	
 ui.net.dislike	▼ 싫어요 {0}	Dislike {0}	
@@ -341,7 +341,7 @@ ui.net.window_title	괴담넷	LegendNet	창 제목 표시줄
 ui.net.hot_mark	인기	HOT	인기글 표시
 ui.net.belief_percent	믿음도 : {0}%	Belief: {0}%	게시글 믿음 기여도
 ui.net.board_open_hint	▶ 눌러서 열기	▶ Open this post	
-board.subway.meta	익명    조회 1284    댓글 4    오늘 02:41	Anonymous    views 1284    comments 4    today 02:41	
+board.subway.meta	익명    조회 1284    댓글 4    어제 01:33	Anonymous    views 1284    comments 4    yesterday 01:33	
 board.filler.001	오늘 지하철에서 지갑 주웠는데 어디에 맡기나요	Found a wallet on the subway today. Where do I hand it in?	목록 채우기
 board.filler.001.meta	지갑주인찾아요    조회 41    댓글 2    6시간 전	WalletFinder    views 41    comments 2    6h ago	
 board.filler.002	야근하고 집 가는 길 사진	Photo from the walk home after overtime	

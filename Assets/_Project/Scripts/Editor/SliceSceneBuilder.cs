@@ -1664,9 +1664,23 @@ namespace UrbanLegendBureau.EditorTools
             boardButton.colors = boardColors;
             var btRt = (RectTransform)boardTemplate.transform;
             btRt.sizeDelta = new Vector2(0f, 104f);
+
+            // 줄 높이는 글마다 다르다. 제목이 길어 두 줄이 되면 그만큼 키가 자란다.
+            // 안쪽 여백은 이 배치가 들고 있다. 좁은 화면에서는 그 여백만 갈아 끼우면 된다.
+            var btLayout = boardTemplate.AddComponent<VerticalLayoutGroup>();
+            btLayout.padding = new RectOffset(12, 12, 12, 18);
+            btLayout.spacing = 0f;
+            btLayout.childAlignment = TextAnchor.UpperLeft;
+            btLayout.childControlWidth = true;
+            btLayout.childControlHeight = true;
+            btLayout.childForceExpandWidth = true;
+            btLayout.childForceExpandHeight = false;
+
+            var btFitter = boardTemplate.AddComponent<ContentSizeFitter>();
+            btFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
             var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
-                Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
-            StretchInside(btLabel.rectTransform, 12f, 12f, 12f, 18f);
+                Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.TopLeft);
 
             // 들어가야 하는 글 왼쪽에 붙는 파란 세모. 열 수 있는 글에만 켜진다.
             var btMark = AddText(boardTemplate.transform, "Mark", 26f, UIFontWeight.Bold,
@@ -1674,6 +1688,8 @@ namespace UrbanLegendBureau.EditorTools
                 Vector2.zero, new Vector2(40f, 40f), TextAlignmentOptions.Center);
             btMark.text = "▶";
             btMark.raycastTarget = false;
+            // 세모와 믿음도와 아래 선은 줄 높이에 끼지 않는다. 제 자리에 그대로 붙어 있어야 한다.
+            btMark.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             var btMarkRt = btMark.rectTransform;
             btMarkRt.anchorMin = new Vector2(0f, 0.5f);
             btMarkRt.anchorMax = new Vector2(0f, 0.5f);
@@ -1685,6 +1701,7 @@ namespace UrbanLegendBureau.EditorTools
             var btBelief = AddText(boardTemplate.transform, "Belief", 24f, UIFontWeight.SemiBold, BeliefMarkColor,
                 Vector2.zero, new Vector2(320f, 40f), TextAlignmentOptions.Right);
             btBelief.raycastTarget = false;
+            btBelief.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             var btBeliefRt = btBelief.rectTransform;
             btBeliefRt.anchorMin = new Vector2(1f, 0.5f);
             btBeliefRt.anchorMax = new Vector2(1f, 0.5f);
@@ -1701,6 +1718,7 @@ namespace UrbanLegendBureau.EditorTools
             btRuleRt.anchoredPosition = Vector2.zero;
             btRuleRt.sizeDelta = new Vector2(0f, 2f);
             btRule.GetComponent<Image>().raycastTarget = false;
+            btRule.AddComponent<LayoutElement>().ignoreLayout = true;
             AddCrisp(btRule, 1f);
             boardTemplate.SetActive(false);
 
@@ -1976,6 +1994,7 @@ namespace UrbanLegendBureau.EditorTools
             SetObjectList(so.FindProperty("_insetGroups"),
                 boardListLayout, titleBandStack, bodyAreaStack, commentBlockStack);
             SetObjectList(so.FindProperty("_insetRows"), boardHeaderRow, pageHeaderRow);
+            SetObjectList(so.FindProperty("_headerElements"), boardHeaderElement, pageHeaderElement);
             SetObjectList(so.FindProperty("_scaledTexts"),
                 boardSiteText, boardBoardText, siteText, boardText,
                 windowTitle, btLabel, btBelief, titleText, metaText, postBelief, bodyText,

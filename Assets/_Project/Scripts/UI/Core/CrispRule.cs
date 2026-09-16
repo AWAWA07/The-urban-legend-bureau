@@ -53,7 +53,8 @@ namespace UrbanLegendBureau.UI
             float height = Mathf.Max(_pixels / scale, 1f);
 
             // 배치에 맡긴 선은 LayoutElement 로, 직접 붙인 선은 크기로 정한다.
-            if (_element != null)
+            // 배치에서 빠져 있다고 표시된 선은 LayoutElement 가 있어도 제 크기로 정해야 한다.
+            if (_element != null && !_element.ignoreLayout)
             {
                 _element.minHeight = height;
                 _element.preferredHeight = height;

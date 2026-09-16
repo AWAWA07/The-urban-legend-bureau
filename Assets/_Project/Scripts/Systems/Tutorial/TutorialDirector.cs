@@ -311,6 +311,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>튜토리얼에서 여는 그 인기글. 휴대폰에서도 같은 글을 연다.</summary>
         public UrbanLegendBureau.Data.WebPageSO HotPage => _tutorialPage;
 
+        /// <summary>그 글의 조회수. 목록에 적힌 숫자와 어긋나지 않게 여기서만 들고 있는다.</summary>
+        public int HotPageViews => int.Parse(TutorialPostViews);
+
         /// <summary>
         /// 그 글에 달린 댓글. 휴대폰으로 열어도 같은 댓글이 보인다.
         /// 플레이어가 단 댓글도 이 목록에 들어 있으므로 함께 따라온다.
