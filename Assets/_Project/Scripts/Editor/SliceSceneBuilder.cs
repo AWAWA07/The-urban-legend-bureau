@@ -826,11 +826,15 @@ namespace UrbanLegendBureau.EditorTools
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
             advanceGo.transform.SetAsLastSibling();
 
-            // 고를 것이 있을 때만 켜지는 자리. 대사 상자 바로 위에 쌓는다.
-            // 상자는 -490~-190 을 쓰므로 그 위에서 아래로 자란다.
+            // 고를 것이 있을 때만 켜지는 자리.
+            // 대사 상자 위, 오른쪽 끝에 맞춰 짧게 쌓는다. 말하는 쪽(왼쪽 인물)을 가리지 않는다.
             // 진행 버튼보다 뒤에 만들어야 선택지가 위로 올라와 눌린다.
-            var choiceRoot = CreateVerticalList(go.transform, "DialogueChoices", new Vector2(0f, 40f),
-                new Vector2(1600f, 200f), 14f);
+            const float ChoiceWidth = 620f;
+            const float BoxRightEdge = 800f;      // 대사 상자(폭 1600)의 오른쪽 끝
+
+            var choiceRoot = CreateVerticalList(go.transform, "DialogueChoices",
+                new Vector2(BoxRightEdge - ChoiceWidth * 0.5f, 40f),
+                new Vector2(ChoiceWidth, 220f), 12f);
 
             var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.16f, 0.17f, 0.22f, 0.98f));
             var dialogueChoice = choiceTemplate.AddComponent<Button>();
@@ -845,10 +849,11 @@ namespace UrbanLegendBureau.EditorTools
             dialogueChoice.colors = dcColors;
 
             var dcRt = (RectTransform)choiceTemplate.transform;
-            dcRt.sizeDelta = new Vector2(1600f, 74f);
-            var dcLabel = AddText(choiceTemplate.transform, "Label", 28f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, new Vector2(1552f, 62f), TextAlignmentOptions.Left);
-            StretchInside(dcLabel.rectTransform, 32f, 32f, 8f, 8f);
+            dcRt.sizeDelta = new Vector2(ChoiceWidth, 92f);
+            var dcLabel = AddText(choiceTemplate.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(ChoiceWidth - 48f, 76f), TextAlignmentOptions.Left);
+            StretchInside(dcLabel.rectTransform, 24f, 24f, 8f, 8f);
+            dcLabel.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 짧은 칸이라 두 줄로 접힌다
             dcLabel.raycastTarget = false;
             choiceTemplate.SetActive(false);
 
