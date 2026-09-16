@@ -552,8 +552,13 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void PushBeliefToTaskbar()
         {
+            int belief = CalculateBoardBelief();
+
+            // 휴대폰 상태 줄도 같은 숫자를 보여준다. 값은 한 곳에 둔다.
+            UrbanLegendBureau.Core.GameStatus.SetBelief(belief);
+
             if (_desktopScreen == null) return;
-            _desktopScreen.SetBelief(CalculateBoardBelief());
+            _desktopScreen.SetBelief(belief);
         }
 
         /// <summary>괴담 글들을 기준으로 낸 믿음도(%).</summary>

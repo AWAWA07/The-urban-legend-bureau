@@ -20,20 +20,40 @@ namespace UrbanLegendBureau.Core
 
         private static int _startHour = 2;
         private static int _startMinute = 44;
-        private static float _origin = -1f;
+
+        private static float _origin;
+        private static bool _started;
+
+        /// <summary>건너뛴 분. 화면 밖에서 흘러간 시간이 여기에 쌓인다.</summary>
+        private static int _skipped;
 
         /// <summary>몇 시에 시작하는지 정한다. 컴퓨터 화면이 제 값으로 한 번 불러 준다.</summary>
         public static void Configure(int hour, int minute)
         {
             _startHour = hour;
             _startMinute = minute;
-            if (_origin < 0f) _origin = Time.unscaledTime;
+            EnsureStarted();
         }
 
         /// <summary>처음부터 다시 센다. 새 사건을 시작할 때 쓸 수 있다.</summary>
         public static void Restart()
         {
             _origin = Time.unscaledTime;
+            _started = true;
+            _skipped = 0;
+        }
+
+        /// <summary>
+        /// 시계를 앞으로 돌린다. 화면 밖에서 흘러간 시간을 채워 넣을 때 쓴다.
+        /// 컴퓨터 앞을 떠나 현장까지 가는 동안이 그렇다.
+        ///
+        /// 흐른 시각을 따로 쌓아 둔다. 시작점을 뒤로 미루는 식으로 하면
+        /// 그 값이 음수가 되어 "아직 시작하지 않음"과 구별되지 않는다.
+        /// </summary>
+        public static void Skip(int minutes)
+        {
+            EnsureStarted();
+            _skipped += minutes;
         }
 
         /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>
@@ -41,9 +61,16 @@ namespace UrbanLegendBureau.Core
         {
             get
             {
-                if (_origin < 0f) _origin = Time.unscaledTime;
-                return Mathf.FloorToInt((Time.unscaledTime - _origin) / 60f);
+                EnsureStarted();
+                return _skipped + Mathf.FloorToInt((Time.unscaledTime - _origin) / 60f);
             }
+        }
+
+        private static void EnsureStarted()
+        {
+            if (_started) return;
+            _origin = Time.unscaledTime;
+            _started = true;
         }
 
         /// <summary>"오전 02:44" 꼴의 지금 시각.</summary>

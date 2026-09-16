@@ -812,6 +812,12 @@ namespace UrbanLegendBureau.EditorTools
             return AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/UISprite.psd");
         }
 
+        /// <summary>동그란 것에 쓰는 기본 그림. 유니티가 들고 있는 손잡이 그림이 원이다.</summary>
+        private static Sprite RoundSprite()
+        {
+            return AssetDatabase.GetBuiltinExtraResource<Sprite>("UI/Skin/Knob.psd");
+        }
+
         // ------------------------------------------------------------- 화면
 
         private static TextPanelScreen BuildPanelScreen(string name, UILayer layer, out Transform buttonRow, bool fullScreen)
@@ -1556,16 +1562,29 @@ namespace UrbanLegendBureau.EditorTools
 
             // 휴대폰으로 볼 때만 켜지는 시각. 실제 휴대폰처럼 맨 윗줄 오른쪽 끝에 선다.
             var statusClock = AddText(titleBar.transform, "StatusClock", 24f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, new Vector2(240f, 36f), TextAlignmentOptions.Right);
+                Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Right);
             var statusClockRt = statusClock.rectTransform;
             statusClockRt.anchorMin = new Vector2(1f, 0.5f);
             statusClockRt.anchorMax = new Vector2(1f, 0.5f);
             statusClockRt.pivot = new Vector2(1f, 0.5f);
             statusClockRt.anchoredPosition = new Vector2(-14f, 0f);
-            statusClockRt.sizeDelta = new Vector2(240f, 36f);
+            statusClockRt.sizeDelta = new Vector2(150f, 36f);
             statusClock.raycastTarget = false;
             statusClock.gameObject.AddComponent<ClockLabel>();
             statusClock.gameObject.SetActive(false);
+
+            // 시각 왼쪽에 전체 믿음도. 휴대폰 상태 줄과 같은 차림이다.
+            var statusBelief = AddText(titleBar.transform, "StatusBelief", 24f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, new Vector2(300f, 36f), TextAlignmentOptions.Right);
+            var statusBeliefRt = statusBelief.rectTransform;
+            statusBeliefRt.anchorMin = new Vector2(1f, 0.5f);
+            statusBeliefRt.anchorMax = new Vector2(1f, 0.5f);
+            statusBeliefRt.pivot = new Vector2(1f, 0.5f);
+            statusBeliefRt.anchoredPosition = new Vector2(-172f, 0f);
+            statusBeliefRt.sizeDelta = new Vector2(300f, 36f);
+            statusBelief.raycastTarget = false;
+            statusBelief.gameObject.AddComponent<BeliefLabel>();
+            statusBelief.gameObject.SetActive(false);
 
             // 글자를 안쪽으로 들이는 만큼. 글 화면과 같은 선에 선다.
             const int BoardInset = 150;
@@ -1989,6 +2008,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_window").objectReferenceValue = (RectTransform)window.transform;
             so.FindProperty("_phoneShell").objectReferenceValue = phoneShell;
             so.FindProperty("_statusClockText").objectReferenceValue = statusClock;
+            so.FindProperty("_statusBeliefText").objectReferenceValue = statusBelief;
             so.FindProperty("_taskbarHeight").floatValue = DesktopTaskbarHeight;
 
             SetObjectList(so.FindProperty("_insetGroups"),
@@ -2382,15 +2402,24 @@ namespace UrbanLegendBureau.EditorTools
             StretchInside((RectTransform)phoneScreen.transform,
                 BezelSide, BezelSide, BezelTop, BezelBottom);
 
-            // 위쪽 노치와 스피커 구멍.
-            var notch = CreatePanel(phoneScreen.transform, "Notch", shellColor);
-            var notchRt = (RectTransform)notch.transform;
-            notchRt.anchorMin = new Vector2(0.5f, 1f);
-            notchRt.anchorMax = new Vector2(0.5f, 1f);
-            notchRt.pivot = new Vector2(0.5f, 1f);
-            notchRt.anchoredPosition = Vector2.zero;
-            notchRt.sizeDelta = new Vector2(104f, 22f);
-            notch.GetComponent<Image>().raycastTarget = false;
+            // 위쪽 가운데의 작은 동그란 카메라. 요즘 휴대폰은 노치 대신 구멍 하나다.
+            var camera = CreatePanel(phoneScreen.transform, "Camera", new Color(0.02f, 0.02f, 0.03f, 1f));
+            var cameraImage = camera.GetComponent<Image>();
+            cameraImage.sprite = RoundSprite();
+            cameraImage.raycastTarget = false;
+            var cameraRt = (RectTransform)camera.transform;
+            cameraRt.anchorMin = new Vector2(0.5f, 1f);
+            cameraRt.anchorMax = new Vector2(0.5f, 1f);
+            cameraRt.pivot = new Vector2(0.5f, 1f);
+            cameraRt.anchoredPosition = new Vector2(0f, -13f);
+            cameraRt.sizeDelta = new Vector2(18f, 18f);
+
+            // 렌즈. 구멍만 있으면 얼룩으로 보인다. 가운데에 한 점 빛이 있어야 렌즈가 된다.
+            var lens = CreatePanel(camera.transform, "Lens", new Color(0.26f, 0.30f, 0.44f, 1f));
+            var lensImage = lens.GetComponent<Image>();
+            lensImage.sprite = RoundSprite();
+            lensImage.raycastTarget = false;
+            StretchInside((RectTransform)lens.transform, 4f, 4f, 4f, 4f);
 
             // 아래 손잡이 선. 껍데기 쪽에 둔다.
             var homeBar = CreatePanel(phone.transform, "HomeBar", new Color(0.42f, 0.43f, 0.50f, 1f));
@@ -2414,11 +2443,25 @@ namespace UrbanLegendBureau.EditorTools
             phoneBar.transform.SetAsFirstSibling();   // 노치가 위에 오게
 
             // 휴대폰 시계도 컴퓨터와 같은 시각이다. 흘러가는 것도 같다.
-            var phoneClock = AddText(phoneBar.transform, "Clock", 19f, UIFontWeight.Medium, DimTextColor,
+            // 상태 줄은 곁가지라 작게 둔다. 시각 오른쪽에 전체 믿음도가 붙는다.
+            var phoneClock = AddText(phoneBar.transform, "Clock", 15f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneClock.rectTransform, 14f, 190f, 6f, 6f);
+            StretchInside(phoneClock.rectTransform, 12f, 190f, 6f, 6f);
             phoneClock.raycastTarget = false;
             phoneClock.gameObject.AddComponent<ClockLabel>();
+
+            // 믿음도는 오른쪽 끝으로 보낸다. 가운데는 카메라 구멍 자리라 비워 둔다.
+            var phoneBelief = AddText(phoneBar.transform, "Belief", 15f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
+            StretchInside(phoneBelief.rectTransform, 140f, 54f, 6f, 6f);
+            phoneBelief.raycastTarget = false;
+            phoneBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+
+            var phoneBeliefLabel = phoneBelief.gameObject.AddComponent<BeliefLabel>();
+            var pbSo = new SerializedObject(phoneBeliefLabel);
+            pbSo.Update();
+            pbSo.FindProperty("_short").boolValue = true;   // 상태 줄이 좁아 한 줄에 들어가야 한다
+            pbSo.ApplyModifiedPropertiesWithoutUndo();
 
             var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));
             var phoneCloseRt = (RectTransform)phoneClose.transform;

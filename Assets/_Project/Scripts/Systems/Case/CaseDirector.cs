@@ -188,6 +188,7 @@ namespace UrbanLegendBureau.Systems
             // 사건이 바뀌면 이전 사건의 현장 맥락은 버린다. 사건끼리 상태가 섞이지 않게 한다.
             _activePoint = null;
             _boarded = false;
+            _fieldTimeAdded = false;
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
@@ -393,6 +394,12 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
         private bool _boarded;
+
+        /// <summary>현장까지 오는 데 걸린 시간을 이미 시계에 더했는가. 사건이 바뀌면 풀린다.</summary>
+        private bool _fieldTimeAdded;
+
+        /// <summary>컴퓨터 앞에서 현장까지 가는 데 걸리는 시간(분).</summary>
+        private const int TravelMinutes = 30;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
         private const string DoorOpenTextId = "ui.field.door_open";
@@ -733,6 +740,16 @@ namespace UrbanLegendBureau.Systems
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
+
+            // 컴퓨터 앞을 떠나 현장까지 오는 동안 시계도 그만큼 흘렀다.
+            // 한 사건에 한 번만 더한다. 현장을 들락거린다고 시간이 계속 뛰지는 않는다.
+            if (!_fieldTimeAdded)
+            {
+                _fieldTimeAdded = true;
+                GameClock.Skip(TravelMinutes);
+            }
+
+            GameStatus.SetBelief(Mathf.RoundToInt(GetBelief()));
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
 

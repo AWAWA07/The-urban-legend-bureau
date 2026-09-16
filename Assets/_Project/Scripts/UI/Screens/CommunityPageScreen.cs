@@ -177,6 +177,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("휴대폰으로 볼 때 맨 윗줄 오른쪽에 뜨는 시각. 컴퓨터로 볼 때는 꺼진다.")]
         [SerializeField] private TMP_Text _statusClockText;
 
+        [Tooltip("그 시각 왼쪽에 붙는 전체 믿음도. 함께 켜지고 함께 꺼진다.")]
+        [SerializeField] private TMP_Text _statusBeliefText;
+
         [Tooltip("사이트 이름이 앉은 파란 머리말의 키. 목록용과 글용 둘이다.")]
         [SerializeField] private LayoutElement[] _headerElements;
 
@@ -388,10 +391,8 @@ namespace UrbanLegendBureau.UI
                 rt.offsetMax = new Vector2(-DeskCloseButtonRoom, rt.offsetMax.y);
             }
 
-            if (_statusClockText != null)
-            {
-                _statusClockText.gameObject.SetActive(phone);
-            }
+            if (_statusClockText != null) _statusClockText.gameObject.SetActive(phone);
+            if (_statusBeliefText != null) _statusBeliefText.gameObject.SetActive(phone);
 
             if (_closeButton != null)
             {
@@ -513,6 +514,12 @@ namespace UrbanLegendBureau.UI
             {
                 var rt = (RectTransform)_commentTemplate.transform;
                 rt.sizeDelta = new Vector2(rt.sizeDelta.x, phone ? PhoneCommentHeight : DeskCommentHeight);
+
+                // 작성자와 내용은 한 덩어리로 붙어 있어야 한 사람의 말로 읽힌다. 줄 사이를 좁힌다.
+                foreach (var label in _commentTemplate.GetComponentsInChildren<TMP_Text>(true))
+                {
+                    label.lineSpacing = phone ? PhoneCommentLineSpacing : DeskCommentLineSpacing;
+                }
             }
 
             // --- 좋아요 / 싫어요 칸 ---
@@ -610,6 +617,10 @@ namespace UrbanLegendBureau.UI
         private const float PhoneBodyParagraphSpacing = 26f;
         private const float DeskCommentHeight = 82f;
         private const float PhoneCommentHeight = 104f;
+
+        /// <summary>댓글 안의 줄 사이. 작성자와 내용이 한 덩어리로 보이게 좁힌다.</summary>
+        private const float DeskCommentLineSpacing = -6f;
+        private const float PhoneCommentLineSpacing = -12f;
 
         /// <summary>세로 화면에서 위아래 여백에 곱하는 비율. 1920 폭 기준으로 잡힌 값이라 그대로 두면 너무 넓다.</summary>
         private const float PhoneVerticalPadScale = 0.55f;
@@ -923,10 +934,11 @@ namespace UrbanLegendBureau.UI
                     : loc.Get(MetaTextId, loc.Get("ui.net.author_anon"), _views, _comments.Count,
                         string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
 
+                // 좁은 화면에서는 한 줄에 다 들어가지 않는다. 다음 줄에 오른쪽으로 붙여 세운다.
                 if (beliefInMeta && !string.IsNullOrEmpty(meta))
                 {
-                    meta += "   <color=#" + ColorUtility.ToHtmlStringRGB(_postBeliefText != null
-                        ? _postBeliefText.color : Color.red) + ">" + belief + "</color>";
+                    meta += "\n<align=right><color=#" + ColorUtility.ToHtmlStringRGB(_postBeliefText != null
+                        ? _postBeliefText.color : Color.red) + ">" + belief + "</color></align>";
                 }
 
                 _metaText.text = meta;
