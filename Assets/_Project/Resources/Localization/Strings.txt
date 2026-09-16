@@ -488,4 +488,4 @@ ui.field.inside_train	열차 안. 막차라 사람이 거의 없다.	Inside the 
 ui.field.door_open	문이 열렸다. 열차에 올라타자.	The doors are open. Time to board.	문이 열린 뒤, 아직 타기 전
 field.subway.board	열린 문	Open door	눌러서 열차에 타는 자리
 ui.net.belief_percent_short	{0}%	{0}%	좁은 화면(휴대폰) 목록에서 쓰는 짧은 믿음도
-ui.status.belief_short	믿음 {0}%	Belief {0}%	좁은 상태 줄에서 쓰는 짧은 전체 믿음도
+ui.status.belief_short	믿음도 {0}%	Belief {0}%	좁은 상태 줄에서 쓰는 짧은 전체 믿음도

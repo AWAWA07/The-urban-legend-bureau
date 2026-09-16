@@ -1598,19 +1598,12 @@ namespace UrbanLegendBureau.EditorTools
             statusClockRt.anchorMin = new Vector2(1f, 0.5f);
             statusClockRt.anchorMax = new Vector2(1f, 0.5f);
             statusClockRt.pivot = new Vector2(1f, 0.5f);
-            statusClockRt.anchoredPosition = new Vector2(-4f, 0f);
+            // 오른쪽 끝에 딱 붙이지 않는다. 왼쪽 믿음도가 들어온 만큼 이쪽도 들여 놓는다.
+            statusClockRt.anchoredPosition = new Vector2(-20f, 0f);
             statusClockRt.sizeDelta = new Vector2(150f, 36f);
             statusClock.raycastTarget = false;
             statusClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
-
-            // 가운데 카메라 구멍 오른쪽에 시각과 믿음도가 나란히 들어가야 한다.
-            // 오전/오후까지 넣으면 둘을 합한 폭이 그 자리를 넘어 서로 겹친다.
-            var statusClockLabel = statusClock.gameObject.AddComponent<ClockLabel>();
-            var scSo = new SerializedObject(statusClockLabel);
-            scSo.Update();
-            scSo.FindProperty("_short").boolValue = true;
-            scSo.ApplyModifiedPropertiesWithoutUndo();
-
+            statusClock.gameObject.AddComponent<ClockLabel>();
             statusClock.gameObject.SetActive(false);
 
             // 전체 믿음도는 왼쪽 끝, 돌아가기 바로 옆에 붙인다.
@@ -2504,19 +2497,15 @@ namespace UrbanLegendBureau.EditorTools
             // 가운데는 카메라 구멍 자리라 비워 둔다.
             var phoneClock = AddText(phoneBar.transform, "Clock", 14f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneClock.rectTransform, 12f, 216f, 6f, 6f);
+            StretchInside(phoneClock.rectTransform, 12f, 166f, 6f, 6f);
             phoneClock.raycastTarget = false;
             phoneClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+            phoneClock.gameObject.AddComponent<ClockLabel>();
 
-            var phoneClockLabel = phoneClock.gameObject.AddComponent<ClockLabel>();
-            var pcSo = new SerializedObject(phoneClockLabel);
-            pcSo.Update();
-            pcSo.FindProperty("_short").boolValue = true;   // 오전/오후까지 넣을 자리가 없다
-            pcSo.ApplyModifiedPropertiesWithoutUndo();
-
+            // 믿음도는 오른쪽 끝, 닫기 단추 옆에 붙인다. 가운데는 카메라 구멍 자리라 비워 둔다.
             var phoneBelief = AddText(phoneBar.transform, "Belief", 14f, UIFontWeight.SemiBold, PhoneBeliefColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneBelief.rectTransform, 68f, 150f, 6f, 6f);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
+            StretchInside(phoneBelief.rectTransform, 142f, 40f, 6f, 6f);
             phoneBelief.raycastTarget = false;
             phoneBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
