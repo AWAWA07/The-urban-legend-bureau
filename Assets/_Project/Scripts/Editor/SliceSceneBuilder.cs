@@ -866,6 +866,9 @@ namespace UrbanLegendBureau.EditorTools
         /// <summary>바탕화면 작업 표시줄의 높이. 괴담넷 창이 이만큼 자리를 비운다.</summary>
         private const float DesktopTaskbarHeight = 56f;
 
+        /// <summary>믿음도를 적는 붉은 글자색. 목록과 글 화면이 같은 색을 쓴다.</summary>
+        private static readonly Color BeliefMarkColor = new Color(0.78f, 0.16f, 0.16f);
+
         private static DesktopScreen BuildDesktopScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.10f, 0.13f, 0.20f, 1f));
@@ -887,6 +890,11 @@ namespace UrbanLegendBureau.EditorTools
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
             StretchInside(clock.rectTransform, 40f, 40f, 8f, 8f);
 
+            // 왼쪽에는 지금 이 괴담을 얼마나 믿고 있는지를 띄운다. 게임의 핵심 숫자다.
+            var belief = AddText(taskbar.transform, "Belief", 24f, UIFontWeight.SemiBold, new Color(0.92f, 0.44f, 0.42f),
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(belief.rectTransform, 40f, 40f, 8f, 8f);
+
             // 아이콘은 왼쪽 위에서부터 한 줄로 늘어놓는다.
             var apps = new[]
             {
@@ -900,6 +908,7 @@ namespace UrbanLegendBureau.EditorTools
             var so = new SerializedObject(screen);
             so.Update();
             so.FindProperty("_clockText").objectReferenceValue = clock;
+            so.FindProperty("_beliefText").objectReferenceValue = belief;
 
             var iconList = so.FindProperty("_icons");
             iconList.arraySize = apps.Length;
@@ -1123,6 +1132,17 @@ namespace UrbanLegendBureau.EditorTools
             btMarkRt.anchoredPosition = new Vector2(-8f, 6f);
             btMarkRt.sizeDelta = new Vector2(40f, 40f);
 
+            // 오른쪽에는 이 글이 괴담의 믿음에 얼마나 보태고 있는지를 붉게 적는다.
+            var btBelief = AddText(boardTemplate.transform, "Belief", 24f, UIFontWeight.SemiBold, BeliefMarkColor,
+                Vector2.zero, new Vector2(320f, 40f), TextAlignmentOptions.Right);
+            btBelief.raycastTarget = false;
+            var btBeliefRt = btBelief.rectTransform;
+            btBeliefRt.anchorMin = new Vector2(1f, 0.5f);
+            btBeliefRt.anchorMax = new Vector2(1f, 0.5f);
+            btBeliefRt.pivot = new Vector2(1f, 0.5f);
+            btBeliefRt.anchoredPosition = new Vector2(-16f, 6f);
+            btBeliefRt.sizeDelta = new Vector2(320f, 40f);
+
             // 글 사이를 가르는 가는 선. 댓글과 같은 방식이다.
             var btRule = CreatePanel(boardTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
             var btRuleRt = (RectTransform)btRule.transform;
@@ -1225,6 +1245,19 @@ namespace UrbanLegendBureau.EditorTools
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
+            // 제목 오른쪽의 믿음도. 배치에서 빼내 제목 줄 오른쪽 끝에 붙인다.
+            var postBelief = AddText(titleBand.transform, "PostBelief", 30f, UIFontWeight.SemiBold, BeliefMarkColor,
+                Vector2.zero, new Vector2(400f, 44f), TextAlignmentOptions.Right);
+            postBelief.raycastTarget = false;
+            var postBeliefElement = postBelief.gameObject.AddComponent<LayoutElement>();
+            postBeliefElement.ignoreLayout = true;
+            var postBeliefRt = postBelief.rectTransform;
+            postBeliefRt.anchorMin = new Vector2(1f, 1f);
+            postBeliefRt.anchorMax = new Vector2(1f, 1f);
+            postBeliefRt.pivot = new Vector2(1f, 1f);
+            postBeliefRt.anchoredPosition = new Vector2(-Inset, -46f);
+            postBeliefRt.sizeDelta = new Vector2(400f, 44f);
+
             var metaText = AddText(titleBand.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
                 Vector2.zero, new Vector2(pageWidth - 64f, 30f), TextAlignmentOptions.Left);
 
@@ -1359,6 +1392,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_metaText").objectReferenceValue = metaText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
+            so.FindProperty("_postBeliefText").objectReferenceValue = postBelief;
             so.FindProperty("_likeText").objectReferenceValue = likeText;
             so.FindProperty("_dislikeText").objectReferenceValue = dislikeText;
             so.FindProperty("_likeButton").objectReferenceValue = likeButton;

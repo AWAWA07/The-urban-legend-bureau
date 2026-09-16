@@ -84,6 +84,13 @@ namespace UrbanLegendBureau.Systems
         private const string TutorialPostViews = "1284";
         private const int TutorialPostLikes = 12;
         private const int TutorialPostDislikes = 2;
+
+        /// <summary>튜토리얼 글이 괴담의 믿음에 보태고 있는 몫(%). 정답 댓글을 달면 절반쯤으로 내려간다.</summary>
+        private const int TutorialPostBelief = 46;
+        private const int TutorialPostBeliefAfter = 23;
+
+        /// <summary>지금 이 글이 들고 있는 몫. 댓글을 단 뒤에 바뀐다.</summary>
+        private int _postBelief = TutorialPostBelief;
         private const string PostTimeTextId = "ui.net.post_time_tutorial";
         private const string ChoiceHintTextId = "tutorial.comment.hint";
         private const string PcLine1TextId = "tutorial.pc.001";
@@ -143,6 +150,7 @@ namespace UrbanLegendBureau.Systems
             _finished = false;
             _censored = false;
             _lineIndex = 0;
+            _postBelief = TutorialPostBelief;
             BuildComments();
             BuildChoices();
 
@@ -220,6 +228,7 @@ namespace UrbanLegendBureau.Systems
             GamePointer.SetVisible(true);
 
             _desktopScreen.Bind(OnAppClicked);
+            PushBeliefToTaskbar();
             _desktopScreen.LockAllApps();            // 한영의 안내가 끝나기 전에는 아무것도 못 누른다
 
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
@@ -285,18 +294,19 @@ namespace UrbanLegendBureau.Systems
                     IsHot = true,
                     Openable = true,
                     Page = _tutorialPage,
+                    BeliefPercent = TutorialPostBelief,
                 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true },
+                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 22 },
 
-                // 여기부터 최신순
-                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta" },  // 12분 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta" },  // 34분 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },  // 1시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta" },  // 2시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },  // 4시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },  // 6시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },  // 9시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },  // 어제 23:50
+                // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
+                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta", BeliefPercent = 28 },  // 12분 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta", BeliefPercent = 19 },  // 34분 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },                      // 1시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta", BeliefPercent = 25 },  // 2시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },                      // 4시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },                      // 6시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },                      // 9시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },                      // 어제 23:50
             };
         }
 
@@ -332,7 +342,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId,
-                TutorialPostLikes, TutorialPostDislikes);
+                TutorialPostLikes, TutorialPostDislikes, _postBelief);
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected, BuildChoiceNote);
             _communityScreen.BindReactions(OnLikeToggled, OnDislikeToggled);
@@ -459,6 +469,27 @@ namespace UrbanLegendBureau.Systems
                     // 다시 고를 수 있는 상태로 돌아간다. 선택지는 그대로 남아 있다.
                     break;
             }
+        }
+
+        /// <summary>작업 표시줄에 지금 전체 믿음도를 알린다. 값은 BeliefService 가 들고 있다.</summary>
+        private void PushBeliefToTaskbar()
+        {
+            if (_desktopScreen == null || _belief == null || _sandbox == null) return;
+            _desktopScreen.SetBelief(Mathf.RoundToInt(_belief.GetBeliefLevel(_sandbox.Current)));
+        }
+
+        /// <summary>이 글의 믿음 몫을 목록과 글 화면에 함께 반영한다.</summary>
+        private void ApplyPostBelief()
+        {
+            if (_boardEntries != null)
+            {
+                foreach (var entry in _boardEntries)
+                {
+                    if (entry != null && entry.Openable) entry.BeliefPercent = _postBelief;
+                }
+            }
+
+            if (_communityScreen != null) _communityScreen.SetPostBelief(_postBelief);
         }
 
         private void BuildComments()
@@ -648,6 +679,11 @@ namespace UrbanLegendBureau.Systems
 
             if (_belief != null) _belief.TryReduceBelief(_sandbox.Current, TutorialBeliefDrop);
             float after = _belief != null ? _belief.GetBeliefLevel(_sandbox.Current) : 0f;
+
+            // 이 글이 들고 있던 몫도 함께 내려간다. 목록과 글 화면 모두 같은 값을 쓴다.
+            _postBelief = TutorialPostBeliefAfter;
+            ApplyPostBelief();
+            PushBeliefToTaskbar();
 
             _finished = true;
 

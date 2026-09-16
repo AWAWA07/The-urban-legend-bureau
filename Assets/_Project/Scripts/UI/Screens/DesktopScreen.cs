@@ -33,6 +33,13 @@ namespace UrbanLegendBureau.UI
         [Header("표시")]
         [SerializeField] private TMP_Text _clockText;
 
+        [Tooltip("작업 표시줄 왼쪽의 전체 믿음도.")]
+        [SerializeField] private TMP_Text _beliefText;
+
+        [Tooltip("컴퓨터를 켠 시각. 여기서부터 실제 시간만큼 흘러간다.")]
+        [SerializeField] private int _startHour = 2;
+        [SerializeField] private int _startMinute = 44;
+
         [Header("아이콘")]
         [SerializeField] private List<DesktopIcon> _icons = new List<DesktopIcon>();
 
@@ -42,6 +49,36 @@ namespace UrbanLegendBureau.UI
         private bool _lockAll;
 
         private const string ClockTextId = "ui.desktop.clock";
+        private const string AmTextId = "ui.desktop.am";
+        private const string PmTextId = "ui.desktop.pm";
+        private const string BeliefTextId = "ui.desktop.belief";
+
+        /// <summary>화면에 띄울 전체 믿음도. 판정은 BeliefService 가 하고 여기서는 받기만 한다.</summary>
+        private int _belief;
+
+        /// <summary>컴퓨터를 켠 뒤 흐른 시간(초). 실제 시간과 같은 속도로 간다.</summary>
+        private float _elapsed;
+
+        private int _shownMinute = -1;
+
+        /// <summary>작업 표시줄에 띄울 전체 믿음도를 알려 준다.</summary>
+        public void SetBelief(int percent)
+        {
+            _belief = percent;
+            RefreshBelief();
+        }
+
+        private void Update()
+        {
+            _elapsed += Time.unscaledDeltaTime;
+
+            // 분이 바뀔 때만 다시 쓴다. 매 프레임 글자를 만들 이유가 없다.
+            int minute = Mathf.FloorToInt(_elapsed / 60f);
+            if (minute == _shownMinute) return;
+
+            _shownMinute = minute;
+            RefreshClock();
+        }
 
         /// <summary>아이콘을 눌렀을 때 부를 것을 지정한다.</summary>
         public void Bind(Action<string> onOpen)
@@ -117,7 +154,8 @@ namespace UrbanLegendBureau.UI
         {
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
-            if (_clockText != null) _clockText.text = loc.Get(ClockTextId);
+            RefreshClock();
+            RefreshBelief();
 
             foreach (var icon in _icons)
             {
@@ -126,6 +164,37 @@ namespace UrbanLegendBureau.UI
             }
 
             ApplyInteractable();
+        }
+
+        /// <summary>
+        /// 작업 표시줄의 시계. 컴퓨터를 켠 시각에서 실제로 흐른 만큼을 더해 보여준다.
+        /// 게임 안의 조사 시간(InvestigationTimeService)과는 다른 것이다. 저쪽은 행동 수로 간다.
+        /// </summary>
+        private void RefreshClock()
+        {
+            if (_clockText == null) return;
+            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
+
+            int total = _startHour * 60 + _startMinute + Mathf.FloorToInt(_elapsed / 60f);
+            int hour24 = (total / 60) % 24;
+            int minute = total % 60;
+
+            bool morning = hour24 < 12;
+            int hour12 = hour24 % 12;
+            if (hour12 == 0) hour12 = 12;
+
+            _clockText.text = loc.Get(ClockTextId,
+                loc.Get(morning ? AmTextId : PmTextId),
+                hour12.ToString("00"),
+                minute.ToString("00"));
+        }
+
+        private void RefreshBelief()
+        {
+            if (_beliefText == null) return;
+            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
+
+            _beliefText.text = loc.Get(BeliefTextId, _belief);
         }
     }
 }

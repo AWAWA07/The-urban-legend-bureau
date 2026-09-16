@@ -23,6 +23,12 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>열었을 때 보여줄 글. Openable이 아니면 비어 있어도 된다.</summary>
         public WebPageSO Page;
+
+        /// <summary>
+        /// 이 글이 괴담의 믿음에 얼마나 보태고 있는가(%).
+        /// 0이면 괴담과 무관한 글이라 표시하지 않는다.
+        /// </summary>
+        public int BeliefPercent;
     }
 
     /// <summary>화면에 붙는 댓글 한 줄. 판정에 쓰이는 데이터는 들고 있지 않다.</summary>
@@ -83,6 +89,9 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _metaText;
         [SerializeField] private TMP_Text _bodyText;
 
+        [Tooltip("제목 오른쪽의 믿음 기여도.")]
+        [SerializeField] private TMP_Text _postBeliefText;
+
         [Tooltip("본문 아래 반응. 누르면 눌린 상태가 되고 한 번 더 누르면 풀린다.")]
         [SerializeField] private TMP_Text _likeText;
         [SerializeField] private TMP_Text _dislikeText;
@@ -137,6 +146,10 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>목록 줄 왼쪽의 세모를 맡은 글자의 이름. 제목과 가르는 기준이다.</summary>
         private const string BoardMarkName = "Text_Mark";
+
+        /// <summary>목록 줄 오른쪽의 믿음도를 맡은 글자의 이름.</summary>
+        private const string BoardBeliefName = "Text_Belief";
+        private const string BeliefPercentTextId = "ui.net.belief_percent";
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
@@ -151,6 +164,7 @@ namespace UrbanLegendBureau.UI
         private WebPageSO _page;
         private int _views;
         private int _likes;
+        private int _beliefPercent;
         private int _dislikes;
         private bool _likePressed;
         private bool _dislikePressed;
@@ -232,10 +246,12 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>게시글을 건다. 조회수와 작성 시각은 화면에 보이기 위한 값이다.</summary>
-        public void BindPage(WebPageSO page, int views, string postTimeTextId, int likes = 0, int dislikes = 0)
+        public void BindPage(WebPageSO page, int views, string postTimeTextId,
+            int likes = 0, int dislikes = 0, int beliefPercent = 0)
         {
             _page = page;
             _views = views;
+            _beliefPercent = beliefPercent;
             _likes = likes;
             _dislikes = dislikes;
             _likePressed = false;
@@ -244,6 +260,16 @@ namespace UrbanLegendBureau.UI
 
             // 새 글이므로 맨 위부터 보여준다.
             _shownCommentCount = -1;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 이 글의 믿음 몫만 바꾼다.
+        /// 글을 다시 걸지 않는다. 다시 걸면 "새 글"로 보고 스크롤이 맨 위로 튄다.
+        /// </summary>
+        public void SetPostBelief(int beliefPercent)
+        {
+            _beliefPercent = beliefPercent;
             Refresh();
         }
 
@@ -388,6 +414,14 @@ namespace UrbanLegendBureau.UI
                         string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
             }
 
+            if (_postBeliefText != null)
+            {
+                // 괴담과 무관한 글에는 아무것도 적지 않는다.
+                _postBeliefText.text = _beliefPercent > 0
+                    ? loc.Get(BeliefPercentTextId, _beliefPercent)
+                    : string.Empty;
+            }
+
             if (_likeText != null) _likeText.text = loc.Get(LikeTextId, _likes + (_likePressed ? 1 : 0));
             if (_dislikeText != null) _dislikeText.text = loc.Get(DislikeTextId, _dislikes + (_dislikePressed ? 1 : 0));
             ApplyReactionColors();
@@ -429,6 +463,15 @@ namespace UrbanLegendBureau.UI
                     if (text.name == BoardMarkName)
                     {
                         text.gameObject.SetActive(entry.Openable);
+                        continue;
+                    }
+
+                    // 오른쪽의 믿음도. 괴담과 무관한 글에는 붙이지 않는다.
+                    if (text.name == BoardBeliefName)
+                    {
+                        bool has = entry.BeliefPercent > 0;
+                        if (has) text.text = loc.Get(BeliefPercentTextId, entry.BeliefPercent);
+                        text.gameObject.SetActive(has);
                         continue;
                     }
 
