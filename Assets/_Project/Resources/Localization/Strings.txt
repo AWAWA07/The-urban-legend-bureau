@@ -394,57 +394,64 @@ board.filler.019	괴담넷 열었습니다. 자유롭게 써주세요	LegendNet 
 board.filler.019.meta	운영자    조회 210    댓글 11    3일 전 10:00	Admin    views 210    comments 11    3d ago 10:00	
 
 # --- 튜토리얼: 부서 설명 (괴담넷 이후) ---
-tutorial.brief.001	간단하게 일이 끝났으니 우리 부서를 얘기해줄게	Now that the job is done, let me tell you about our department	한영
+tutorial.brief.001	간단하게 일이 끝났으니 우리 부서를 얘기해 줄게.	Now that the job is done, let me tell you about our department.	한 영
 tutorial.brief.002	우리는 <color=#C0392B>괴담 검열국</color>이라는 정부의 비밀 <color=#C0392B>국가정보원</color>이야.	We are the <color=#C0392B>Urban Legend Bureau</color>, a secret <color=#C0392B>state intelligence</color> body.
-tutorial.brief.003	우리의 가장 큰 목표는 사람들의 믿음도를 관리 하고 괴담을 퇴치하는 일을 하고있어.	Our job is to manage what people believe and to put legends down.
-tutorial.brief.q1.a	괴담을 검열한다고요? 왜 그런 일을 하는거죠?	Censoring legends? Why would you do that?	선택지 1
-tutorial.brief.q1.a.1	왜냐면 괴담은 위험하기 때문이지..	Because legends are dangerous.
-tutorial.brief.q1.a.2	사람들이 괴담을 믿을수록 그 힘이 강해지거든 그렇게 되면 괴담이 실체로 들어나.	The more people believe, the stronger it gets. Then it takes form.
-tutorial.brief.q1.b	괴담을 검열한다니.. 괴담이 국가에서 관리할 만큼 위험한 건가요?	Censoring them? Are legends dangerous enough for the state to handle?	선택지 2
-tutorial.brief.q1.b.1	그래 정말 위험해.	Yes. Genuinely dangerous.
+tutorial.brief.003	우리의 가장 큰 목표는 사람들의 믿음도를 관리하고 괴담을 퇴치하는 일을 하고 있어.	Our job is to manage what people believe and to put legends down.
+tutorial.brief.q1.a	괴담을 검열한다고요? 왜 그런 일을 하는 거죠?	Censoring legends? Why would you do that?	선택지 1
+tutorial.brief.q1.a.1	왜냐면 괴담은 위험하기 때문이지.	Because legends are dangerous.
+tutorial.brief.q1.a.2	사람들이 괴담을 믿을수록 그 힘이 강해지거든. 그렇게 되면 괴담이 실체로 드러나.	The more people believe, the stronger it gets. Then it takes form.
+tutorial.brief.q1.b	괴담을 검열한다니… 괴담이 국가에서 관리할 만큼 위험한 건가요?	Censoring them? Are legends dangerous enough for the state to handle?	선택지 2
+tutorial.brief.q1.b.1	그래. 정말 위험해.	Yes. Genuinely dangerous.
 tutorial.brief.q1.b.2	사람들이 괴담을 믿을수록 그 힘이 강해져, 실체가 나오기 때문이야.	The more people believe, the stronger it gets, until it takes form.
-tutorial.brief.004	너 미신은 알지? 뭐 학교에서 석상이 밤에 돌아다닌다거나.. 노선에 없는 지하철이 나오면 내리면 안된다던가 그런 것들 말야	You know superstitions? A statue walking the school at night, a train on no line you must not step off.
-tutorial.brief.005	네 알죠..	Yes, I know those.	차지한
-tutorial.brief.006	예를 들어 학교에서 석상이 밤에 돌아다닌다는 말을 사람들이 믿기 시작하면 진짜로 그렇게 되는거지.	If people start believing a statue walks the school at night, it really does.
-tutorial.brief.007	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을꺼야.	But "school" is too broad a subject, so it never actually happens.
-tutorial.brief.008	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는게 소문이 되어 퍼지고 그 범위가 넓어지면 그게 <color=#C0392B>실체</color>가 되어 진짜로 돌아다니는 거야.	But name one school, let the rumor spread wide enough, and it becomes <color=#C0392B>real</color> and walks.
+tutorial.brief.004	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… 노선에 없는 지하철이 나오면 내리면 안 된다던가.	You know superstitions? A statue walking the school at night, a train on no line you must not step off.
+tutorial.brief.004b	그런 것들 말이야.	Things like that.
+tutorial.brief.005	네, 알죠…	Yes, I know those.	차지한
+tutorial.brief.006	예를 들어 학교에서 석상이 밤에 돌아다닌다는 말을 사람들이 믿기 시작하면 진짜로 그렇게 되는 거지.	If people start believing a statue walks the school at night, it really does.
+tutorial.brief.007	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을 거야.	But "school" is too broad a subject, so it never actually happens.
+tutorial.brief.008	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 <color=#C0392B>실체</color>가 되어 진짜로 돌아다니는 거야.	But name one school, let the rumor spread wide enough, and it becomes <color=#C0392B>real</color> and walks.
 tutorial.brief.009	<color=#C0392B>근데 만약, 그 석상이 밤에 학교에 들어온 사람을 죽인다는 소문이 퍼지게 되면 어떻게 될까?</color>	<color=#C0392B>And if the rumor says that statue kills whoever enters at night?</color>
-tutorial.brief.q2.a	돌아다니는 것 뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있겠네요	Not just walking. People could actually die by the legend.	선택지 1
+tutorial.brief.q2.a	돌아다니는 것뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있겠네요.	Not just walking. People could actually die by the legend.	선택지 1
 tutorial.brief.q2.b	석상이 사람을 죽이진 못하지 않을까요?	Surely a statue cannot kill anyone.	선택지 2
-tutorial.brief.q2.1	응 맞아.	Yes. Exactly.
-tutorial.brief.q2.2	실체가 들어난다는 것은 그것이 곧 진실이 된다는 뜻이야. 돌아다니는 것 뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있다는 뜻이고.	Taking form means it becomes true. Not just walking. People die by the rule of the legend.
-tutorial.brief.010	사실 원래도 괴담이 실체가 되는건 아니었어.	Legends did not use to take form.
-tutorial.brief.011	귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었거든	Ghosts exist, but a fake never became real.
-tutorial.brief.012	네? 세상에 귀신이 어디있어요	What? There is no such thing as ghosts.	차지한
+tutorial.brief.q2.1	응, 맞아.	Yes. Exactly.
+tutorial.brief.q2.2	실체가 드러난다는 것은 그것이 곧 진실이 된다는 뜻이야. 돌아다니는 것뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있다는 뜻이고.	Taking form means it becomes true. Not just walking. People die by the rule of the legend.
+tutorial.brief.010	사실 원래도 괴담이 실체가 되는 건 아니었어.	Legends did not use to take form.
+tutorial.brief.011	귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었거든.	Ghosts exist, but a fake never became real.
+tutorial.brief.012	네? 세상에 귀신이 어디 있어요?	What? There is no such thing as ghosts.	차지한
 tutorial.brief.013	너 정보보안부에서 넘어왔지?	You transferred from Information Security, right?
 tutorial.brief.014	네.	Yes.	차지한
 tutorial.brief.015	난 괴이처리부에서 넘어왔거든.	I came from Anomaly Disposal.
-tutorial.brief.016	...?	...?	차지한
-tutorial.brief.017	뭐.. 직접 보기전엔 안믿겠지. 곧 보게 될거니 걱정 하지말고	You will not believe it until you see it. You will see it soon enough.
-tutorial.brief.018	본론으로 돌아가자면 내가 가짜인 괴담이 실체가 되는 경우는 없다고 했었지? 근데, 이번에 새로 창설된 사이트인 "괴담넷"에서 작성된 글은 가짜가 실체가 되고 있어.	Back to the point. I said a fake never becomes real. But posts on that new site, LegendNet, are turning fakes real.
-tutorial.brief.019	근데 이 사이트는 이상하게도 차단도 불가능하고 게시물을 지우는 것도 불가능해. 운영자도 절대 찾을 수 없었고, 그래서 우리가 직접 관여하여 사람들의 믿음도를 관리하는거야	The site cannot be blocked and posts cannot be deleted. We never found the owner. So we step in and manage belief by hand.
-tutorial.brief.020	내가 귀신만 잡아봤지 컴퓨터는 잘 몰라서.. 너가 배정된거야.	I only ever caught ghosts. Computers are not my thing. That is why you are here.
-tutorial.brief.021	그러면 사이트에 적혀있던 믿음도도 원래 있는 거에요?	So the belief numbers on the site were always there?	차지한
-tutorial.brief.022	아 이거는 우리가 따로 수치를 계산하여 표시 해놓은거야.	No, we calculate those and put them there ourselves.
-tutorial.brief.023	시뮬레이터를 돌려봤을때. 믿음도에 따른 괴담들의 규칙이 있었거든. 우리만 볼 수 있게 자체적으로 넣어논 기능이야.	The simulations showed legends follow rules by belief level. We added the readout for our eyes only.
-tutorial.brief.024	이걸 보면서 설명해줄게	Let me walk you through it.
-tutorial.brief.025	먼저 <color=#C0392B>관측급</color>. 1% ~ 10%.	First, <color=#C0392B>Observation</color>. 1% to 10%.
-tutorial.brief.026	괴담의 제일 약한 단계. 소수의 목격자 존재하고 이상 현상은 매우 약해 실체가 나오지않아 직접적인 피해는 없어	The weakest stage. A few witnesses, very faint phenomena, no form, no direct harm.
-tutorial.brief.027	우리는 크게 신경 쓰지말고 수치가 더 늘어 나는지 감시만 하면 돼.	We just watch whether the number climbs.
-tutorial.brief.028	다음은 <color=#C0392B>전파급</color> 11% ~ 30%	Next, <color=#C0392B>Propagation</color>. 11% to 30%.
+tutorial.brief.016	…?	...?	차지한
+tutorial.brief.017	뭐… 직접 보기 전엔 안 믿겠지. 곧 보게 될 거니 걱정하지 말고.	You will not believe it until you see it. You will see it soon enough.
+tutorial.brief.018	본론으로 돌아가자면, 내가 가짜인 괴담이 실체가 되는 경우는 없다고 했었지?	Back to the point. I said a fake never becomes real, right?
+tutorial.brief.018b	근데 이번에 새로 창설된 사이트인 '괴담넷'에서 작성된 글은 가짜가 실체가 되고 있어.	But posts on that newly opened site, LegendNet, are turning fakes real.
+tutorial.brief.019	근데 이 사이트는 이상하게도 차단도 불가능하고 게시물을 지우는 것도 불가능해. 운영자도 절대 찾을 수 없었고.	Strangely, the site cannot be blocked and posts cannot be deleted. We never found the owner either.
+tutorial.brief.019b	그래서 우리가 직접 관여해서 사람들의 믿음도를 관리하는 거야.	So we step in ourselves and manage what people believe.
+tutorial.brief.020	내가 귀신만 잡아봤지 컴퓨터는 잘 몰라서… 너가 배정된 거야.	I only ever caught ghosts. Computers are not my thing. That is why you were assigned.
+tutorial.brief.021	그러면 사이트에 적혀 있던 믿음도도 원래 있는 거예요?	So the belief numbers on the site were always there?	차지한
+tutorial.brief.022	아, 이거는 우리가 따로 수치를 계산해서 표시해 놓은 거야.	Ah, we calculate those ourselves and put them there.
+tutorial.brief.023	시뮬레이터를 돌려봤을 때 믿음도에 따른 괴담들의 규칙이 있었거든. 우리만 볼 수 있게 자체적으로 넣어 놓은 기능이야.	The simulations showed legends follow rules by belief level. We added the readout for our eyes only.
+tutorial.brief.024	이걸 보면서 설명해 줄게.	Let me walk you through it.
+tutorial.brief.025	먼저 <color=#C0392B>관측급</color>. 1%~10%.	First, <color=#C0392B>Observation</color>. 1% to 10%.
+tutorial.brief.026	괴담의 제일 약한 단계. 소수의 목격자가 존재하고 이상 현상은 매우 약해서 실체가 나오지 않아. 직접적인 피해는 없어.	The weakest stage. A few witnesses, very faint phenomena, no form. No direct harm.
+tutorial.brief.027	우리는 크게 신경 쓰지 말고 수치가 더 늘어나는지 감시만 하면 돼.	We do not worry much. We just watch whether the number climbs.
+tutorial.brief.028	다음은 <color=#C0392B>전파급</color>. 11%~30%.	Next, <color=#C0392B>Propagation</color>. 11% to 30%.
 tutorial.brief.029	괴담이 인터넷과 SNS를 통해 빠르게 퍼지는 단계. 관련 게시물과 목격담이 증가하고 실제로 해당 이상 현상을 겪는 사람이 몇몇 생겨. 그 정도가 약해서 직접적인 피해는 거의 없는 편이야.	It spreads fast online. Posts and sightings rise, a few people actually experience it, but the harm is still slight.
-tutorial.brief.030	우리는 이를 주의 깊게 보고 위험한 괴담이면 미리 인터넷으로 검열 해놓는게 좋아.	We watch closely and censor the dangerous ones online before they grow.
-tutorial.brief.031	다음은 <color=#C0392B>침식급</color> 31% ~ 50%	Next, <color=#C0392B>Erosion</color>. 31% to 50%.
-tutorial.brief.032	괴담이 현실에 직접적인 영향을 미치기 시작하는 단계야 이때부터는 무조건 검열이 필요해. 실제 피해자 발생하기 시작하는 단계이기도 하고 본격적으로 괴담의 규칙이 현실에 적용되기 시작하는 단계야	The legend starts touching reality. Censorship is mandatory from here. Real victims appear and the legend's rules begin to apply.
-tutorial.brief.033	가짜가 실체가 된 경우에는 인터넷 검열로만으로 괜찮지만, 원래부터 존재 했던 귀신으로부터 나온 괴담이라면 현장 조사 및 괴담 규칙 파악이 꼭 필요해.	If a fake turned real, online censorship is enough. If it came from a ghost that already existed, you must go to the site and work out its rules.
-tutorial.brief.034	다음은 <color=#C0392B>현현급</color> 51% ~ 85%	Next, <color=#C0392B>Manifestation</color>. 51% to 85%.
-tutorial.brief.035	가짜인 괴담도 현실에 직접 모습을 드러내고 영향을 끼치는 단계야. 이 단계에서는 %에 따른 강도에 따라서 사람들이 괴담을 직접적으로 경험하게 되고 급속도로 괴담이 퍼지게 되는 단계야.	Even a fake shows itself and acts on reality. People meet it directly, and it spreads faster the higher the number.
-tutorial.brief.036	이 정도에서는 무조건 현장 조사가 필요하고 필요한 경우에는 '퇴마'를 통해 실체가 들어난 귀신 또는 괴담을 없애야 돼.	Site investigation is mandatory, and if needed we exorcise whatever has taken form.
-tutorial.brief.037	다음은 <color=#C0392B>멸망급</color>. 85% ~ 99%	Next, <color=#C0392B>Annihilation</color>. 85% to 99%.
-tutorial.brief.038	괴담의 영향이 국가 또는 세계 단위로 확대된 단계야 확산 통제가 어렵고 현실의 법칙이 괴담에 의해 변형돼. 인류 전체가 멸망할 가능성이 있는 아주 위험한 단계야.	It reaches national or global scale. Spread cannot be contained and the laws of reality bend to it. All of humanity can end here.
-tutorial.brief.039	그때가 되면 수단방법 가리지 않고 괴담을 막아내야돼	At that point we stop it by any means.
-tutorial.brief.040	그리고... <color=#C0392B>???급</color> 100%.	And then... <color=#C0392B>???</color>. 100%.
-tutorial.brief.041	뭐 이건 이미 멸망한 수치를 말하는 거라.. 알아만 둬	That number means it already ended. Just know it exists.
-tutorial.brief.042	근데 저는 퇴마를 할 줄 모르는데..	But I do not know how to exorcise anything.	차지한
-tutorial.brief.043	괜찮아 퇴마는 거의 내가 다 할거니까. 컴퓨터 작업이랑 서류작업만 좀 부탁해	That is fine. I will handle the exorcisms. You take the computer and the paperwork.
-tutorial.brief.044	설명은 이정도만 됐고 이제 너가 안믿던 괴담 조사하러 가자.	That is enough explaining. Let us go look into the legend you did not believe in.
+tutorial.brief.030	우리는 이를 주의 깊게 보고, 위험한 괴담이면 미리 인터넷으로 검열해 놓는 게 좋아.	We watch closely, and censor the dangerous ones online before they grow.
+tutorial.brief.031	다음은 <color=#C0392B>침식급</color>. 31%~50%.	Next, <color=#C0392B>Erosion</color>. 31% to 50%.
+tutorial.brief.032	괴담이 현실에 직접적인 영향을 미치기 시작하는 단계야. 이때부터는 무조건 검열이 필요해.	The legend starts touching reality. Censorship is mandatory from here.
+tutorial.brief.032b	실제 피해자가 발생하기 시작하는 단계이기도 하고, 본격적으로 괴담의 규칙이 현실에 적용되기 시작하는 단계야.	Real victims start appearing, and the legend's rules begin to apply in earnest.
+tutorial.brief.033	가짜가 실체가 된 경우에는 인터넷 검열만으로 괜찮지만, 원래부터 존재했던 귀신으로부터 나온 괴담이라면 현장 조사 및 괴담 규칙 파악이 꼭 필요해.	If a fake turned real, online censorship is enough. If it came from a ghost that already existed, you must go to the site and work out its rules.
+tutorial.brief.034	다음은 <color=#C0392B>현현급</color>. 51%~85%.	Next, <color=#C0392B>Manifestation</color>. 51% to 85%.
+tutorial.brief.035	가짜인 괴담도 현실에 직접 모습을 드러내고 영향을 끼치는 단계야.	Even a fake shows itself and acts on reality.
+tutorial.brief.035b	이 단계에서는 %에 따른 강도에 따라서 사람들이 괴담을 직접적으로 경험하게 되고, 급속도로 괴담이 퍼지게 되는 단계야.	People meet it directly, and the higher the number the faster it spreads.
+tutorial.brief.036	이 정도에서는 무조건 현장 조사가 필요하고, 필요한 경우에는 '퇴마'를 통해 실체가 드러난 귀신 또는 괴담을 없애야 돼.	Site investigation is mandatory here, and if needed we exorcise whatever has taken form.
+tutorial.brief.037	다음은 <color=#C0392B>멸망급</color>. 85%~99%.	Next, <color=#C0392B>Annihilation</color>. 85% to 99%.
+tutorial.brief.038	괴담의 영향이 국가 또는 세계 단위로 확대된 단계야.	The legend has reached national or global scale.
+tutorial.brief.038b	확산 통제가 어렵고 현실의 법칙이 괴담에 의해 변형돼.	Spread cannot be contained and the laws of reality bend to it.
+tutorial.brief.038c	인류 전체가 멸망할 가능성이 있는 아주 위험한 단계야.	All of humanity can end here. It is that dangerous.
+tutorial.brief.039	그때가 되면 수단과 방법을 가리지 않고 괴담을 막아 내야 돼.	At that point we stop it by any means.
+tutorial.brief.040	그리고… <color=#C0392B>???급</color>. 100%.	And then... <color=#C0392B>???</color>. 100%.
+tutorial.brief.041	뭐, 이건 이미 멸망한 수치를 말하는 거라… 알아만 둬.	That number means it already ended. Just know it exists.
+tutorial.brief.042	근데 저는 퇴마를 할 줄 모르는데…	But I do not know how to exorcise anything.	차지한
+tutorial.brief.043	괜찮아. 퇴마는 거의 내가 다 할 거니까. 컴퓨터 작업이랑 서류 작업만 좀 부탁해.	That is fine. I will handle the exorcisms. You take the computer work and the paperwork.
+tutorial.brief.044	설명은 이 정도만 됐고, 이제 너가 안 믿던 괴담 조사하러 가자.	That is enough explaining. Now let us go look into the legend you did not believe in.
