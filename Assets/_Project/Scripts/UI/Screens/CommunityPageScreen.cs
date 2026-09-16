@@ -180,6 +180,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("그 시각 왼쪽에 붙는 전체 믿음도. 함께 켜지고 함께 꺼진다.")]
         [SerializeField] private TMP_Text _statusBeliefText;
 
+        [Tooltip("휴대폰 카메라 구멍. 괴담넷이 휴대폰 화면을 덮으므로 여기에도 같은 자리에 하나 둔다.")]
+        [SerializeField] private GameObject _statusCamera;
+
         [Tooltip("사이트 이름이 앉은 파란 머리말의 키. 목록용과 글용 둘이다.")]
         [SerializeField] private LayoutElement[] _headerElements;
 
@@ -393,6 +396,7 @@ namespace UrbanLegendBureau.UI
 
             if (_statusClockText != null) _statusClockText.gameObject.SetActive(phone);
             if (_statusBeliefText != null) _statusBeliefText.gameObject.SetActive(phone);
+            if (_statusCamera != null) _statusCamera.SetActive(phone);
 
             if (_closeButton != null)
             {

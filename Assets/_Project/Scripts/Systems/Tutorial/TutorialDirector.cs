@@ -315,6 +315,19 @@ namespace UrbanLegendBureau.Systems
         public int HotPageViews => int.Parse(TutorialPostViews);
 
         /// <summary>
+        /// 게시판이 만들어 내고 있는 전체 믿음도(%).
+        /// 컴퓨터 작업 표시줄과 휴대폰 상태 줄이 같은 이 숫자를 보여준다.
+        /// </summary>
+        public int BoardBelief
+        {
+            get
+            {
+                if (_boardEntries == null) BuildBoardEntries();
+                return CalculateBoardBelief();
+            }
+        }
+
+        /// <summary>
         /// 그 글에 달린 댓글. 휴대폰으로 열어도 같은 댓글이 보인다.
         /// 플레이어가 단 댓글도 이 목록에 들어 있으므로 함께 따라온다.
         /// </summary>

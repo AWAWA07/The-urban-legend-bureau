@@ -250,6 +250,18 @@ namespace UrbanLegendBureau.Systems
         {
             if (_fieldHudScreen == null) return;
             _fieldHudScreen.Bind(BuildFieldTicker);
+            PushStatus();
+        }
+
+        /// <summary>
+        /// 화면 구석에 늘 떠 있는 숫자를 갱신한다.
+        ///
+        /// 전체 믿음도는 게시판이 만들어 내는 값이다. 컴퓨터 작업 표시줄이 보여주는 것과 같다.
+        /// 현장에 나와 있어도 그 게시판은 그대로 있으므로 같은 숫자를 보여준다.
+        /// </summary>
+        private void PushStatus()
+        {
+            if (_tutorial != null) GameStatus.SetBelief(_tutorial.BoardBelief);
         }
 
         /// <summary>
@@ -291,6 +303,8 @@ namespace UrbanLegendBureau.Systems
         private void OpenPhoneNet()
         {
             if (_communityScreen == null) return;
+
+            PushStatus();
 
             // 먼저 켠다. 꺼져 있는 동안에는 캔버스 배율이 실리지 않아 자리를 맞출 수 없다.
             _ui.Push(_communityScreen);
@@ -749,7 +763,7 @@ namespace UrbanLegendBureau.Systems
                 GameClock.Skip(TravelMinutes);
             }
 
-            GameStatus.SetBelief(Mathf.RoundToInt(GetBelief()));
+            PushStatus();
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
 
