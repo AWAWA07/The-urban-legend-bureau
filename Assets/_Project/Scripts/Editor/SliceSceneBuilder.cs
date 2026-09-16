@@ -1608,7 +1608,8 @@ namespace UrbanLegendBureau.EditorTools
 
             // 믿음도는 시각 바로 아래. 둘이 같은 오른쪽 선에 맞춰 서야 한 묶음으로 읽힌다.
             // 그래서 시각과 같은 방식으로 오른쪽 끝에 매단다. 들여쓴 만큼도 같다.
-            var statusBelief = AddText(titleBar.transform, "StatusBelief", 20f, UIFontWeight.SemiBold, PhoneBeliefColor,
+            // 시각보다 한 급 작게 둔다. 곁가지 숫자라 시각보다 앞서 보이면 안 된다.
+            var statusBelief = AddText(titleBar.transform, "StatusBelief", 17f, UIFontWeight.SemiBold, PhoneBeliefColor,
                 Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Right);
             var statusBeliefRt = statusBelief.rectTransform;
             statusBeliefRt.anchorMin = new Vector2(1f, 0.5f);
