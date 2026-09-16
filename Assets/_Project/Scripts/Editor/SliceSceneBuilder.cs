@@ -150,7 +150,7 @@ namespace UrbanLegendBureau.EditorTools
             var ruleList = BuildRuleListScreen("Screen_Rules", out var ruleScreenButtons);
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
-            var fieldHud = BuildHudScreen("Screen_FieldHud", out var fieldButtons);
+            var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
             var exorcism = BuildPanelScreen("Screen_Exorcism", UILayer.Screen, out var exorcismButtons, true);
             var result = BuildPanelScreen("Screen_Result", UILayer.Screen, out var resultButtons, true);
             var help = BuildPanelScreen("Screen_Help", UILayer.Screen, out var helpButtons, true);
@@ -323,7 +323,9 @@ namespace UrbanLegendBureau.EditorTools
             sr.sprite = BuiltinSprite();
             sr.color = new Color(0.14f, 0.13f, 0.18f);
             sr.drawMode = SpriteDrawMode.Sliced;
-            sr.size = new Vector2(19.2f, 10.8f);
+            // 넉넉히 넓게 둔다. 현장 화면은 카메라가 위쪽만 쓰므로 가로가 그만큼 넓어진다.
+            // 배경이 좁으면 양옆이 비어 방이 떠 있는 것처럼 보인다.
+            sr.size = new Vector2(44f, 10.8f);
             sr.sortingOrder = -10;
         }
 
@@ -1707,13 +1709,16 @@ namespace UrbanLegendBureau.EditorTools
             return row.transform;
         }
 
-        /// <summary>현장 HUD. 배경을 가리지 않도록 투명하게 둔다.</summary>
-        private static TextPanelScreen BuildHudScreen(string name, out Transform buttonRow)
+        /// <summary>
+        /// 현장 조사 화면.
+        /// 위는 장면이 쓰고 아래는 검은 대사 띠가 쓴다. 띠 왼쪽 끝에 초상 자리를 둔다.
+        /// </summary>
+        private static FieldHudScreen BuildFieldHudScreen(string name, out Transform buttonRow)
         {
             var go = CreatePanel(null, name, Color.clear);
             StretchFull(go);
 
-            var screen = go.AddComponent<TextPanelScreen>();
+            var screen = go.AddComponent<FieldHudScreen>();
             ConfigureScreen(screen, name, UILayer.HUD, false, false);
 
             var safe = new GameObject("SafeArea", typeof(RectTransform));
@@ -1721,15 +1726,94 @@ namespace UrbanLegendBureau.EditorTools
             StretchFull(safe);
             safe.AddComponent<SafeAreaFitter>();
 
-            var titleText = AddText(safe.transform, "Title", 48f, UIFontWeight.SemiBold, TextColor,
-                new Vector2(0f, 420f), new Vector2(1400f, 80f), TextAlignmentOptions.Center);
-            var bodyText = AddText(safe.transform, "Body", 30f, UIFontWeight.Regular, DimTextColor,
-                new Vector2(0f, 355f), new Vector2(1400f, 60f), TextAlignmentOptions.Center);
+            // 아래 1/3 은 대사 띠가 쓴다. 위 2/3 은 카메라가 장면을 그리는 자리라 비워 둔다.
+            const float BandHeight = 1080f / 3f;     // = 360
 
-            BindScreenTexts(screen, titleText, bodyText, null);
+            // --- 장면 맨 위 가운데의 한 줄 ---
+            // 장면 위에 얹히므로 글자가 묻히지 않게 어두운 판을 깔아 준다.
+            var tickerPlate = CreatePanel(safe.transform, "TickerPlate", new Color(0.04f, 0.04f, 0.06f, 0.72f));
+            var plateRt = (RectTransform)tickerPlate.transform;
+            plateRt.anchorMin = new Vector2(0.5f, 1f);
+            plateRt.anchorMax = new Vector2(0.5f, 1f);
+            plateRt.pivot = new Vector2(0.5f, 1f);
+            plateRt.anchoredPosition = new Vector2(0f, -24f);
+            plateRt.sizeDelta = new Vector2(1100f, 52f);
+            tickerPlate.GetComponent<Image>().raycastTarget = false;
 
-            // 현장에서 조사를 끝내고 봉인으로 넘어가는 버튼 자리.
-            buttonRow = CreateButtonRow(safe.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
+            var tickerText = AddText(tickerPlate.transform, "Ticker", 26f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(tickerText.rectTransform, 24f, 24f, 6f, 6f);
+            tickerText.raycastTarget = false;
+
+            // --- 아래 대사 띠 ---
+            var band = CreatePanel(safe.transform, "Band", new Color(0.03f, 0.03f, 0.05f, 1f));
+            var bandRt = (RectTransform)band.transform;
+            bandRt.anchorMin = new Vector2(0f, 0f);
+            bandRt.anchorMax = new Vector2(1f, 0f);
+            bandRt.pivot = new Vector2(0.5f, 0f);
+            bandRt.anchoredPosition = Vector2.zero;
+            bandRt.sizeDelta = new Vector2(0f, BandHeight);
+
+            // 띠 맨 위의 가는 선. 장면과 띠를 가른다.
+            var bandEdge = CreatePanel(band.transform, "Edge", new Color(0.30f, 0.30f, 0.36f, 1f));
+            var edgeRt = (RectTransform)bandEdge.transform;
+            edgeRt.anchorMin = new Vector2(0f, 1f);
+            edgeRt.anchorMax = new Vector2(1f, 1f);
+            edgeRt.pivot = new Vector2(0.5f, 1f);
+            edgeRt.anchoredPosition = Vector2.zero;
+            edgeRt.sizeDelta = new Vector2(0f, 2f);
+            bandEdge.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(bandEdge, 2f);
+
+            // 초상 자리. 지금은 빈 네모다. 실제 그림이 생기면 이 Image만 갈아 끼운다.
+            const float PortraitSize = 240f;
+            var portrait = CreatePanel(band.transform, "Portrait", new Color(0.16f, 0.17f, 0.22f, 1f));
+            var portraitRt = (RectTransform)portrait.transform;
+            portraitRt.anchorMin = new Vector2(0f, 0.5f);
+            portraitRt.anchorMax = new Vector2(0f, 0.5f);
+            portraitRt.pivot = new Vector2(0f, 0.5f);
+            portraitRt.anchoredPosition = new Vector2(60f, 0f);
+            portraitRt.sizeDelta = new Vector2(PortraitSize, PortraitSize);
+
+            var portraitEdge = CreatePanel(portrait.transform, "Edge", new Color(0.42f, 0.44f, 0.52f, 1f));
+            StretchInside((RectTransform)portraitEdge.transform, -2f, -2f, -2f, -2f);
+            portraitEdge.transform.SetAsFirstSibling();   // 테두리처럼 뒤에 깔린다
+            portraitEdge.GetComponent<Image>().raycastTarget = false;
+
+            // 초상 오른쪽에 이름과 대사.
+            const float TextLeft = 60f + PortraitSize + 40f;   // 초상 오른쪽 끝에서 띄운다
+
+            var speakerText = AddText(band.transform, "Speaker", 30f, UIFontWeight.Bold, AccentColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            speakerText.rectTransform.anchorMin = new Vector2(0f, 1f);
+            speakerText.rectTransform.anchorMax = new Vector2(0f, 1f);
+            speakerText.rectTransform.pivot = new Vector2(0f, 1f);
+            speakerText.rectTransform.anchoredPosition = new Vector2(TextLeft, -48f);
+            speakerText.rectTransform.sizeDelta = new Vector2(700f, 42f);
+            speakerText.raycastTarget = false;
+
+            var lineText = AddText(band.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            lineText.rectTransform.anchorMin = new Vector2(0f, 1f);
+            lineText.rectTransform.anchorMax = new Vector2(0f, 1f);
+            lineText.rectTransform.pivot = new Vector2(0f, 1f);
+            lineText.rectTransform.anchoredPosition = new Vector2(TextLeft, -100f);
+            lineText.rectTransform.sizeDelta = new Vector2(1240f, 130f);
+            lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;
+            lineText.raycastTarget = false;
+
+            // 버튼은 띠 오른쪽 아래에 세운다. 장면도 대사도 가리지 않는다.
+            buttonRow = CreateButtonRow(band.transform, new Vector2(420f, -120f), new Vector2(900f, 110f));
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_tickerText").objectReferenceValue = tickerText;
+            so.FindProperty("_portrait").objectReferenceValue = portrait.GetComponent<Image>();
+            so.FindProperty("_speakerText").objectReferenceValue = speakerText;
+            so.FindProperty("_lineText").objectReferenceValue = lineText;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            ClearDisabledTint(go);
             return screen;
         }
 

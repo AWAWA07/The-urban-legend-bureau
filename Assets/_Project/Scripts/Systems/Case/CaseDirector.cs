@@ -29,7 +29,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private ActionListScreen _actionListScreen;
         [SerializeField] private InternetListScreen _internetListScreen;
         [SerializeField] private InternetPageScreen _internetPageScreen;
-        [SerializeField] private TextPanelScreen _fieldHudScreen;
+        [SerializeField] private FieldHudScreen _fieldHudScreen;
         [SerializeField] private TextPanelScreen _cluePopupScreen;
         [SerializeField] private TextPanelScreen _rulePopupScreen;
         [SerializeField] private RuleListScreen _ruleListScreen;
@@ -85,6 +85,9 @@ namespace UrbanLegendBureau.Systems
         private const string InternetFooterTextId = "ui.slice.internet_hint";
         private const string FieldTitleTextId = "ui.slice.field_title";
         private const string FieldHintTextId = "ui.slice.field_hint";
+
+        /// <summary>현장에서 대사 띠에 서는 사람. 차지한 본인이다.</summary>
+        private const string FieldSpeakerTextId = "tutorial.char.chajihan";
         private const string ClueAcquiredTextId = "ui.slice.clue_acquired";
         private const string ClueDuplicateTextId = "ui.slice.clue_duplicate";
         private const string NothingFoundTextId = "ui.slice.nothing_found";
@@ -541,9 +544,11 @@ namespace UrbanLegendBureau.Systems
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
             if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
 
-            _fieldHudScreen.BindWithBodyProvider(
-                FieldTitleTextId,
-                () => _loc.Get(FieldHintTextId) + "\n\n" + BuildStatusBlock());
+            // 위쪽 한 줄에는 지금 상황을, 아래 대사 띠에는 무엇을 하면 되는지를 건다.
+            _fieldHudScreen.Bind(
+                BuildStatusLine,
+                FieldSpeakerTextId,
+                () => _loc.Get(FieldHintTextId));
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
@@ -722,6 +727,16 @@ namespace UrbanLegendBureau.Systems
         {
             var time = BuildTimeLine();
             return string.IsNullOrEmpty(time) ? BuildStatsLine() : time + "\n" + BuildStatsLine();
+        }
+
+        /// <summary>
+        /// 같은 내용을 한 줄로 잇는다. 현장 화면 맨 위에 얇게 띄우는 자리에 쓴다.
+        /// 거기는 두 줄이 들어갈 높이가 아니다.
+        /// </summary>
+        private string BuildStatusLine()
+        {
+            var time = BuildTimeLine();
+            return string.IsNullOrEmpty(time) ? BuildStatsLine() : time + "    " + BuildStatsLine();
         }
 
         /// <summary>
