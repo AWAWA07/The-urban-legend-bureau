@@ -132,9 +132,12 @@ namespace UrbanLegendBureau.UI
 
         // ------------------------------------------------------------- 휴대폰
 
+        /// <summary>앱을 눌렀을 때 부를 것. 무엇이 열리는지는 밖에서 정한다.</summary>
+        private Action<string> _onApp;
+
         /// <summary>
         /// 휴대폰 단추를 연결한다.
-        /// 지금 실제로 열리는 앱은 없다. 자리만 잡아 둔 것이라 눌러도 아무 일이 없다.
+        /// 앱을 눌렀을 때 무엇이 열리는지는 BindPhoneApps 로 밖에서 정한다.
         /// </summary>
         private void SetupPhone()
         {
@@ -150,7 +153,23 @@ namespace UrbanLegendBureau.UI
                 _phoneCloseButton.onClick.AddListener(() => SetPhoneOpen(false));
             }
 
+            for (int i = 0; i < _phoneApps.Count; i++)
+            {
+                var app = _phoneApps[i];
+                if (app == null || app.button == null) continue;
+
+                var captured = app.appId;
+                app.button.onClick.RemoveAllListeners();
+                app.button.onClick.AddListener(() => _onApp?.Invoke(captured));
+            }
+
             SetPhoneOpen(false);
+        }
+
+        /// <summary>휴대폰 안의 앱을 눌렀을 때 부를 것을 정한다.</summary>
+        public void BindPhoneApps(Action<string> onApp)
+        {
+            _onApp = onApp;
         }
 
         private void TogglePhone()

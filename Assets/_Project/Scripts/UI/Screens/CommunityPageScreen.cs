@@ -161,6 +161,150 @@ namespace UrbanLegendBureau.UI
         private const string LikeTextId = "ui.net.like";
         private const string DislikeTextId = "ui.net.dislike";
 
+        // ------------------------------------------------------------- 생김새
+
+        [Header("생김새 (컴퓨터 창 / 휴대폰)")]
+        [Tooltip("괴담넷은 하나뿐이다. 컴퓨터로 보든 휴대폰으로 보든 같은 화면을 모양만 바꿔 쓴다.")]
+        [SerializeField] private RectTransform _window;
+
+        [Tooltip("휴대폰으로 볼 때만 뒤에 깔리는 껍데기. 컴퓨터로 볼 때는 꺼진다.")]
+        [SerializeField] private GameObject _phoneShell;
+
+        [Tooltip("좌우 여백을 padding 으로 쓰는 칸들. 세로 화면에서는 여백을 줄인다.")]
+        [SerializeField] private LayoutGroup[] _insetGroups;
+
+        [Tooltip("좌우 여백을 offset 으로 쓰는 줄들. 머리말이 여기에 든다.")]
+        [SerializeField] private RectTransform[] _insetRows;
+
+        [Tooltip("세로 화면에서 함께 줄어드는 글자들.")]
+        [SerializeField] private TMP_Text[] _scaledTexts;
+
+        [Tooltip("세로 화면에서 쓰는 좌우 여백.")]
+        [SerializeField] private float _phoneInset = 26f;
+
+        [Tooltip("세로 화면에서 글자에 곱하는 비율.")]
+        [SerializeField] private float _phoneFontScale = 0.74f;
+
+        [Tooltip("세로 화면의 폭. 실제 휴대폰처럼 가운데에 세워 둔다.")]
+        [SerializeField] private float _phoneWidth = 620f;
+
+        [Tooltip("세로 화면의 위아래 여백.")]
+        [SerializeField] private float _phoneMargin = 28f;
+
+        [Tooltip("오른쪽 굴림 막대가 차지하는 폭. 세로 화면에서 글이 막대에 물리지 않게 한다.")]
+        [SerializeField] private float _phoneScrollbarWidth = 24f;
+
+        [Tooltip("컴퓨터 창이 아래에 비워 두는 만큼. 작업 표시줄 자리다.")]
+        [SerializeField] private float _taskbarHeight = 64f;
+
+        /// <summary>지금 휴대폰으로 보고 있는가.</summary>
+        public bool IsPhone { get; private set; }
+
+        private float[] _deskFontSizes;
+        private int _deskInset = -1;
+        private bool _shapeReady;
+
+        /// <summary>
+        /// 컴퓨터 창과 휴대폰 화면을 오간다.
+        ///
+        /// 내용과 동작은 건드리지 않는다. 창 크기와 좌우 여백과 글자 크기만 바꾼다.
+        /// 괴담넷을 하나만 두는 이유가 이것이다. 무엇을 고치든 양쪽에 함께 반영된다.
+        /// </summary>
+        public void SetShape(bool phone)
+        {
+            CaptureShape();
+            IsPhone = phone;
+
+            if (_phoneShell != null) _phoneShell.SetActive(phone);
+
+            if (_window != null)
+            {
+                if (phone)
+                {
+                    // 가운데에 세로로 세운다. 위아래는 화면 끝에서 조금씩 띄운다.
+                    _window.anchorMin = new Vector2(0.5f, 0f);
+                    _window.anchorMax = new Vector2(0.5f, 1f);
+                    _window.pivot = new Vector2(0.5f, 0.5f);
+                    _window.anchoredPosition = Vector2.zero;
+                    _window.sizeDelta = new Vector2(_phoneWidth, -_phoneMargin * 2f);
+                }
+                else
+                {
+                    // 바탕화면 위에 뜬 창. 아래쪽 작업 표시줄 자리는 비워 둔다.
+                    _window.anchorMin = Vector2.zero;
+                    _window.anchorMax = Vector2.one;
+                    _window.pivot = new Vector2(0.5f, 0.5f);
+                    _window.offsetMin = new Vector2(0f, _taskbarHeight);
+                    _window.offsetMax = Vector2.zero;
+                }
+            }
+
+            int inset = phone ? Mathf.RoundToInt(_phoneInset) : _deskInset;
+
+            if (_insetGroups != null)
+            {
+                foreach (var group in _insetGroups)
+                {
+                    if (group == null) continue;
+                    var p = group.padding;
+                    group.padding = new RectOffset(inset, inset, p.top, p.bottom);
+                    LayoutRebuilder.MarkLayoutForRebuild((RectTransform)group.transform);
+                }
+            }
+
+            if (_insetRows != null)
+            {
+                foreach (var row in _insetRows)
+                {
+                    if (row == null) continue;
+                    row.offsetMin = new Vector2(inset, row.offsetMin.y);
+                    row.offsetMax = new Vector2(-inset, row.offsetMax.y);
+                }
+            }
+
+            // 믿음도는 배치에서 빠져 있고 오른쪽 끝에 직접 붙는다. 여백을 따로 맞춰 준다.
+            // 세로 화면에서는 여백이 좁아 굴림 막대에 물리므로 그 폭만큼 더 들인다.
+            if (_postBeliefText != null)
+            {
+                var rt = _postBeliefText.rectTransform;
+                float right = inset + (phone ? _phoneScrollbarWidth : 0f);
+                rt.anchoredPosition = new Vector2(-right, rt.anchoredPosition.y);
+            }
+
+            if (_scaledTexts != null && _deskFontSizes != null)
+            {
+                float scale = phone ? _phoneFontScale : 1f;
+                for (int i = 0; i < _scaledTexts.Length && i < _deskFontSizes.Length; i++)
+                {
+                    if (_scaledTexts[i] != null) _scaledTexts[i].fontSize = _deskFontSizes[i] * scale;
+                }
+            }
+
+            if (_window != null) LayoutRebuilder.MarkLayoutForRebuild(_window);
+        }
+
+        /// <summary>컴퓨터 창일 때의 값을 한 번만 적어 둔다. 되돌릴 때 쓴다.</summary>
+        private void CaptureShape()
+        {
+            if (_shapeReady) return;
+            _shapeReady = true;
+
+            if (_insetGroups != null && _insetGroups.Length > 0 && _insetGroups[0] != null)
+            {
+                _deskInset = _insetGroups[0].padding.left;
+            }
+            if (_deskInset < 0) _deskInset = 150;
+
+            if (_scaledTexts != null)
+            {
+                _deskFontSizes = new float[_scaledTexts.Length];
+                for (int i = 0; i < _scaledTexts.Length; i++)
+                {
+                    _deskFontSizes[i] = _scaledTexts[i] != null ? _scaledTexts[i].fontSize : 24f;
+                }
+            }
+        }
+
         private WebPageSO _page;
         private int _views;
         private int _likes;

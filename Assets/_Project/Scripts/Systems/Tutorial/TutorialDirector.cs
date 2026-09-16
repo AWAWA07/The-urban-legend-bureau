@@ -296,6 +296,22 @@ namespace UrbanLegendBureau.Systems
         private List<CommunityBoardEntry> _boardEntries;
 
         /// <summary>
+        /// 괴담넷 게시판 목록. 컴퓨터로 보든 휴대폰으로 보든 같은 목록이다.
+        /// 목록을 고치는 곳은 아래 BuildBoardEntries 한 곳뿐이다.
+        /// </summary>
+        public IReadOnlyList<CommunityBoardEntry> BoardEntries
+        {
+            get
+            {
+                if (_boardEntries == null) BuildBoardEntries();
+                return _boardEntries;
+            }
+        }
+
+        /// <summary>튜토리얼에서 여는 그 인기글. 휴대폰에서도 같은 글을 연다.</summary>
+        public UrbanLegendBureau.Data.WebPageSO HotPage => _tutorialPage;
+
+        /// <summary>
         /// 게시판 목록. 인기글 하나만 열리고 나머지는 자리를 채운다.
         /// 튜토리얼이 엉뚱한 글로 새지 않게 하기 위해서다.
         /// </summary>

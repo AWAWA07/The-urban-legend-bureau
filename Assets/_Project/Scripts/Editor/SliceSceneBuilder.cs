@@ -240,6 +240,8 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
+            // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다.
+            dso.FindProperty("_communityScreen").objectReferenceValue = community;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
@@ -491,6 +493,18 @@ namespace UrbanLegendBureau.EditorTools
 
             root.SetActive(false);
             return root;
+        }
+
+        /// <summary>물건 여럿을 배열 속성에 넣는다. 종류를 가리지 않는다.</summary>
+        private static void SetObjectList(SerializedProperty property, params UnityEngine.Object[] items)
+        {
+            if (property == null) return;
+
+            property.arraySize = items != null ? items.Length : 0;
+            for (int i = 0; i < property.arraySize; i++)
+            {
+                property.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+            }
         }
 
         /// <summary>문짝 목록을 배열 속성에 넣는다.</summary>
@@ -1489,6 +1503,29 @@ namespace UrbanLegendBureau.EditorTools
             // --- 창 제목 표시줄. 진짜 브라우저 창처럼 보이게 한다. ---
             // 괴담넷은 바탕화면 위에 뜬 창이다. 아래쪽 작업 표시줄 자리는 비워 둔다.
             // 그래야 창을 열어도 컴퓨터를 쓰고 있다는 것이 계속 보인다.
+            // 휴대폰으로 볼 때만 창 뒤에 깔리는 껍데기. 창보다 조금 크게 둘러 테두리처럼 보인다.
+            var phoneShell = CreatePanel(go.transform, "PhoneShell", new Color(0.05f, 0.05f, 0.07f, 1f));
+            var shellRt = (RectTransform)phoneShell.transform;
+            shellRt.anchorMin = new Vector2(0.5f, 0f);
+            shellRt.anchorMax = new Vector2(0.5f, 1f);
+            shellRt.pivot = new Vector2(0.5f, 0.5f);
+            shellRt.anchoredPosition = Vector2.zero;
+            shellRt.sizeDelta = new Vector2(668f, 0f);
+
+            var shellHome = CreatePanel(phoneShell.transform, "HomeBar", new Color(0.42f, 0.43f, 0.50f, 1f));
+            var shellHomeRt = (RectTransform)shellHome.transform;
+            shellHomeRt.anchorMin = new Vector2(0.5f, 0f);
+            shellHomeRt.anchorMax = new Vector2(0.5f, 0f);
+            shellHomeRt.pivot = new Vector2(0.5f, 0f);
+            shellHomeRt.anchoredPosition = new Vector2(0f, 10f);
+            shellHomeRt.sizeDelta = new Vector2(180f, 6f);
+            shellHome.GetComponent<Image>().raycastTarget = false;
+
+            AddPhoneSideKey(phoneShell.transform, "Key_Power", 1f, -260f, 120f);
+            AddPhoneSideKey(phoneShell.transform, "Key_VolumeUp", 0f, -240f, 78f);
+            AddPhoneSideKey(phoneShell.transform, "Key_VolumeDown", 0f, -334f, 78f);
+            phoneShell.SetActive(false);
+
             var window = CreatePanel(go.transform, "Window", new Color(0.94f, 0.94f, 0.95f, 1f));
             StretchInside((RectTransform)window.transform, 0f, 0f, 0f, DesktopTaskbarHeight);
 
@@ -1579,7 +1616,7 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(boardDown.GetComponent<Button>().onClick, boardNudge.StepDown);
 
             var boardHeader = BuildCommunityHeader(boardPage.transform, BoardInset,
-                out var boardSiteText, out var boardBoardText);
+                out var boardSiteText, out var boardBoardText, out var boardHeaderRow);
             var boardHeaderElement = boardHeader.AddComponent<LayoutElement>();
             boardHeaderElement.minHeight = 90f;
             boardHeaderElement.preferredHeight = 90f;
@@ -1727,7 +1764,7 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(scrollDown.GetComponent<Button>().onClick, scrollNudge.StepDown);
 
             // 머리말도 함께 굴러간다. 남는 것은 맨 위 창 제목 표시줄뿐이다.
-            var pageHeader = BuildCommunityHeader(page.transform, ContentInset, out var siteText, out var boardText);
+            var pageHeader = BuildCommunityHeader(page.transform, ContentInset, out var siteText, out var boardText, out var pageHeaderRow);
             var pageHeaderElement = pageHeader.AddComponent<LayoutElement>();
             pageHeaderElement.minHeight = 90f;
             pageHeaderElement.preferredHeight = 90f;
@@ -1746,7 +1783,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, TitleBandSpacing, new RectOffset(Inset, Inset, (int)TitleBandPadTop, 52));
+            var titleBandStack = AddStack(titleBand, TitleBandSpacing, new RectOffset(Inset, Inset, (int)TitleBandPadTop, 52));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
@@ -1770,7 +1807,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var bodyArea = new GameObject("BodyArea", typeof(RectTransform));
             bodyArea.transform.SetParent(postBlock.transform, false);
-            AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 52, 68));
+            var bodyAreaStack = AddStack(bodyArea, 0f, new RectOffset(Inset, Inset, 52, 68));
 
             var bodyText = AddText(bodyArea.transform, "PostBody", 28f, UIFontWeight.Regular, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 110f), TextAlignmentOptions.TopLeft);
@@ -1797,7 +1834,7 @@ namespace UrbanLegendBureau.EditorTools
             // --- 댓글 묶음 ---
             var commentBlock = new GameObject("CommentBlock", typeof(RectTransform));
             commentBlock.transform.SetParent(page.transform, false);
-            AddStack(commentBlock, 18f, new RectOffset(Inset, Inset, 44, 40));
+            var commentBlockStack = AddStack(commentBlock, 18f, new RectOffset(Inset, Inset, 44, 40));
 
             var commentHeader = AddText(commentBlock.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 32f), TextAlignmentOptions.Left);
@@ -1914,6 +1951,23 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_noticeText").objectReferenceValue = noticeText;
             so.FindProperty("_postControls").objectReferenceValue = postControls;
             so.FindProperty("_boardControls").objectReferenceValue = boardControls;
+
+            // --- 컴퓨터 창 / 휴대폰 두 모양 ---
+            // 괴담넷은 하나뿐이다. 창 크기와 좌우 여백과 글자 크기만 갈아 끼운다.
+            // 내용을 고치면 컴퓨터로 보든 휴대폰으로 보든 함께 바뀐다.
+            so.FindProperty("_window").objectReferenceValue = (RectTransform)window.transform;
+            so.FindProperty("_phoneShell").objectReferenceValue = phoneShell;
+            so.FindProperty("_taskbarHeight").floatValue = DesktopTaskbarHeight;
+
+            SetObjectList(so.FindProperty("_insetGroups"),
+                boardListLayout, titleBandStack, bodyAreaStack, commentBlockStack);
+            SetObjectList(so.FindProperty("_insetRows"), boardHeaderRow, pageHeaderRow);
+            SetObjectList(so.FindProperty("_scaledTexts"),
+                boardSiteText, boardBoardText, siteText, boardText,
+                windowTitle, btLabel, btBelief, titleText, metaText, postBelief, bodyText,
+                likeText, dislikeText, commentHeader, comLabel, choiceHeader, noticeText,
+                ctLabel, ctNote);
+
             so.ApplyModifiedPropertiesWithoutUndo();
 
             // 잠겼을 때 흐려지지 않게 한다.
@@ -2419,8 +2473,16 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_phoneButtonLabel").objectReferenceValue = phoneBtnLabel;
 
             // 앱 이름은 컴퓨터 바탕화면과 같은 문구를 쓴다. 전화와 메시지만 따로 둔다.
+            // 앱 ID 는 바탕화면과 같은 것을 쓴다. 그래야 여는 쪽이 어느 화면인지 가리지 않는다.
+            var appIds = new string[phoneApps.Length + 2];
             var appLabelIds = new string[phoneApps.Length + 2];
-            for (int i = 0; i < phoneApps.Length; i++) appLabelIds[i] = phoneApps[i][1];
+            for (int i = 0; i < phoneApps.Length; i++)
+            {
+                appIds[i] = phoneApps[i][0];
+                appLabelIds[i] = phoneApps[i][1];
+            }
+            appIds[phoneApps.Length] = "call";
+            appIds[phoneApps.Length + 1] = "message";
             appLabelIds[phoneApps.Length] = "ui.phone.app_call";
             appLabelIds[phoneApps.Length + 1] = "ui.phone.app_message";
 
@@ -2429,7 +2491,7 @@ namespace UrbanLegendBureau.EditorTools
             for (int i = 0; i < appLabelIds.Length; i++)
             {
                 var element = appList.GetArrayElementAtIndex(i);
-                element.FindPropertyRelative("appId").stringValue = appLabelIds[i];
+                element.FindPropertyRelative("appId").stringValue = appIds[i];
                 element.FindPropertyRelative("labelTextId").stringValue = appLabelIds[i];
                 element.FindPropertyRelative("button").objectReferenceValue = phoneIconButtons[i];
                 element.FindPropertyRelative("label").objectReferenceValue = phoneIconTexts[i];
@@ -2641,19 +2703,20 @@ namespace UrbanLegendBureau.EditorTools
         /// 언어가 바뀌어 글자 길이가 달라져도 간격이 유지되기 때문이다.
         /// </summary>
         private static GameObject BuildCommunityHeader(Transform parent, float sideMargin,
-            out TextMeshProUGUI site, out TextMeshProUGUI board)
+            out TextMeshProUGUI site, out TextMeshProUGUI board, out RectTransform row)
         {
             var header = CreatePanel(parent, "Header", new Color(0.20f, 0.24f, 0.34f, 1f));
 
-            var row = new GameObject("HeaderRow", typeof(RectTransform));
-            row.transform.SetParent(header.transform, false);
-            var rowRt = (RectTransform)row.transform;
+            var rowGo = new GameObject("HeaderRow", typeof(RectTransform));
+            rowGo.transform.SetParent(header.transform, false);
+            var rowRt = (RectTransform)rowGo.transform;
             rowRt.anchorMin = new Vector2(0f, 0f);
             rowRt.anchorMax = new Vector2(1f, 1f);
             rowRt.offsetMin = new Vector2(sideMargin, 10f);
             rowRt.offsetMax = new Vector2(-sideMargin, -10f);
+            row = rowRt;
 
-            var rowLayout = row.AddComponent<HorizontalLayoutGroup>();
+            var rowLayout = rowGo.AddComponent<HorizontalLayoutGroup>();
             rowLayout.spacing = 20f;
             rowLayout.childAlignment = TextAnchor.MiddleLeft;
             rowLayout.childControlWidth = true;
@@ -2661,9 +2724,9 @@ namespace UrbanLegendBureau.EditorTools
             rowLayout.childForceExpandWidth = false;
             rowLayout.childForceExpandHeight = false;
 
-            site = AddText(row.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
+            site = AddText(rowGo.transform, "Site", 40f, UIFontWeight.Bold, TextColor,
                 Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
-            board = AddText(row.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
+            board = AddText(rowGo.transform, "Board", 28f, UIFontWeight.Regular, new Color(0.78f, 0.82f, 0.9f),
                 Vector2.zero, new Vector2(0f, 60f), TextAlignmentOptions.Left);
             return header;
         }

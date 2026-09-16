@@ -37,6 +37,9 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _exorcismScreen;
         [SerializeField] private TextPanelScreen _resultScreen;
 
+        [Tooltip("괴담넷. 컴퓨터로 여는 것과 휴대폰으로 여는 것이 같은 화면이다.")]
+        [SerializeField] private CommunityPageScreen _communityScreen;
+
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
         [SerializeField] private GameObject _sealConfirmButton;
@@ -261,6 +264,74 @@ namespace UrbanLegendBureau.Systems
 
             return BuildStatusLine();
         }
+
+        // ------------------------------------------------------------- 휴대폰 속 괴담넷
+
+        /// <summary>휴대폰에서 괴담넷 아이콘의 ID. 컴퓨터 바탕화면과 같은 것을 쓴다.</summary>
+        private const string NetAppId = "gwedamnet";
+
+
+        /// <summary>
+        /// 현장에서 휴대폰 앱을 눌렀을 때.
+        /// 지금 열리는 것은 괴담넷뿐이다. 나머지는 자리만 잡아 둔 아이콘이라 눌러도 아무 일이 없다.
+        /// </summary>
+        private void OnPhoneAppClicked(string appId)
+        {
+            if (appId != NetAppId) return;
+            OpenPhoneNet();
+        }
+
+        /// <summary>
+        /// 휴대폰으로 괴담넷을 연다.
+        ///
+        /// 컴퓨터로 여는 그 괴담넷과 같은 화면이다. 세로로 세우고 여백과 글자만 줄인다.
+        /// 게시판 목록도 같은 것을 쓴다. 한쪽을 고치면 다른 쪽도 함께 바뀐다.
+        /// </summary>
+        private void OpenPhoneNet()
+        {
+            if (_communityScreen == null) return;
+
+            // 손에 든 휴대폰을 눈앞으로 들어 올린 것이다. 작게 떠 있던 쪽은 접는다.
+            if (_fieldHudScreen != null) _fieldHudScreen.SetPhoneOpen(false);
+
+            _communityScreen.SetShape(true);
+            _communityScreen.SetControlsEnabled(true);
+            _communityScreen.BindWindow(ClosePhoneNet);
+            _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
+            _communityScreen.ShowNotice(null);
+            _communityScreen.ShowBoard(true);
+
+            _ui.Push(_communityScreen);
+            Debug.Log("[CaseDirector] 휴대폰으로 괴담넷을 열었다");
+        }
+
+        private void ClosePhoneNet()
+        {
+            if (_communityScreen == null) return;
+
+            _ui.Close(_communityScreen);
+
+            // 다음에 컴퓨터로 열 때를 위해 창 모양으로 돌려놓는다.
+            _communityScreen.SetShape(false);
+        }
+
+        /// <summary>괴담넷 게시판. 튜토리얼이 들고 있는 그 목록을 그대로 쓴다.</summary>
+        private IReadOnlyList<CommunityBoardEntry> GetNetBoard()
+        {
+            return _tutorial != null ? _tutorial.BoardEntries : new List<CommunityBoardEntry>();
+        }
+
+        private void OnPhoneBoardEntry(CommunityBoardEntry entry)
+        {
+            if (entry == null || !entry.Openable || entry.Page == null) return;
+
+            _communityScreen.BindPage(entry.Page, 1204, PostTimeTextId, 0, 0, entry.BeliefPercent);
+            _communityScreen.BindComments(null);
+            _communityScreen.BindChoices(null, null, null);   // 현장에서는 댓글을 달지 않는다
+            _communityScreen.ShowBoard(false);
+        }
+
+        private const string PostTimeTextId = "ui.net.post_time_tutorial";
 
         /// <summary>지금 현장의 열차 진입 장면. 막차 사건이 아니면 null.</summary>
         private TrainArrival GetArrival()
@@ -628,6 +699,7 @@ namespace UrbanLegendBureau.Systems
             // 위쪽 한 줄에만 지금 상황을 건다.
             // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
             _fieldHudScreen.Bind(BuildFieldTicker);
+            _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
