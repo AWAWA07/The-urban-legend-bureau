@@ -279,7 +279,7 @@ ui.settings.sfx	효과음 볼륨    {0}	Sound volume    {0}
 
 # --- 조정: 튜토리얼 대화 ---
 ui.dialogue.hint	화면을 눌러 계속	Tap to continue	
-tutorial.char.hanyoung	한영	Hanyoung	
+tutorial.char.hanyoung	한 영	Hanyoung	
 tutorial.char.chajihan	차지한	Chajihan	
 tutorial.line.001	...	...	
 tutorial.line.002	....차지한?	....Chajihan?	
@@ -310,6 +310,7 @@ tutorial.comment.existing_3	어느 역인지 알려주세요	Which station was i
 tutorial.comment.existing_4	구라즐 ㅋㅋ	Fake lol	
 tutorial.comment.hint	자, 이 셋 중에 뭘 선택해야 할까?	All right. Which of these three do you pick?	한영
 tutorial.comment.wrong	이런 애가 무슨 엘리트라고.. 다시 한번 해봐	And they called this one elite... try again.	한영
+ui.net.need_field_mark	현장조사 필요함	Site visit needed	
 tutorial.comment.need_field	현장조사가 필요합니다.	This requires a site investigation.	
 tutorial.comment.need_field_hanyoung	좋은 선택지긴 하지만 이건 직접 현장 조사를 해야돼	Not a bad answer, but you have to go to the site for that one.	한영
 tutorial.comment.correct	그래 잘했어 너, 쓸만한데?	Good. You might be useful after all.	한영

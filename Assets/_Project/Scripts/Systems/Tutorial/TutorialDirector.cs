@@ -95,7 +95,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>바탕화면에서 괴담넷 아이콘을 가리키는 ID. 씬의 아이콘 설정과 같아야 한다.</summary>
         public const string NetAppId = "gwedamnet";
         private const string WrongTextId = "tutorial.comment.wrong";
-        private const string NeedFieldTextId = "tutorial.comment.need_field";
+        private const string NeedFieldMarkTextId = "ui.net.need_field_mark";
         private const string NeedFieldHanyoungTextId = "tutorial.comment.need_field_hanyoung";
         private const string CorrectTextId = "tutorial.comment.correct";
         private const string DoneTextId = "tutorial.comment.done";
@@ -394,7 +394,8 @@ namespace UrbanLegendBureau.Systems
             // 말하는 동안에는 괴담넷에서 아무것도 고를 수 없다. 끌어서 내리는 것만 된다.
             if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
 
-            _talkScreen.SetSoloLayout(false);   // 겹침 대화는 정해진 자리를 그대로 쓴다
+            // 겹침 대화에는 한영 혼자 나온다. 처음 대화에서처럼 화면 가운데에 세운다.
+            _talkScreen.SetSoloLayout(showCharacter);
             _talkScreen.ShowLine(true,
                 () => _loc.Get(HanyoungNameTextId),
                 () => _loc.Get(lineTextId),
@@ -521,7 +522,7 @@ namespace UrbanLegendBureau.Systems
         private string BuildChoiceNote(TutorialCommentChoice choice)
         {
             if (choice == null || CanUseChoice(choice)) return string.Empty;
-            return "[" + _loc.Get("ui.action.locked") + "]";
+            return "[" + _loc.Get(NeedFieldMarkTextId) + "]";
         }
 
         /// <summary>
@@ -543,8 +544,7 @@ namespace UrbanLegendBureau.Systems
             if (!CanUseChoice(choice))
             {
                 // 조건이 모자라면 아무것도 일어나지 않는다. 선택지는 그대로 남는다.
-                // 화면에는 이유를 적어 두고, 설명은 한영이 직접 한다.
-                _communityScreen.ShowNotice(() => _loc.Get(NeedFieldTextId));
+                // 이유는 한영이 직접 말한다. 선택지 칸에도 이미 표시가 붙어 있으므로 따로 적지 않는다.
                 ShowTalk(NeedFieldHanyoungTextId, AfterTalk.BackToChoices);
 
                 Debug.Log($"[TutorialDirector] 댓글 잠김 | {choice.ChoiceId} (필요 단서 {choice.RequiredClueId})");

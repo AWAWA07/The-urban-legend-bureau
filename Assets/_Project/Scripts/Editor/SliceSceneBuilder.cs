@@ -1132,7 +1132,7 @@ namespace UrbanLegendBureau.EditorTools
             btRuleRt.anchoredPosition = Vector2.zero;
             btRuleRt.sizeDelta = new Vector2(0f, 2f);
             btRule.GetComponent<Image>().raycastTarget = false;
-            AddCrisp(btRule, 2f);
+            AddCrisp(btRule, 1f);
             boardTemplate.SetActive(false);
 
             // --- 글 하나를 펼친 보기 ---
@@ -1252,7 +1252,7 @@ namespace UrbanLegendBureau.EditorTools
             var dislikeText = AddReactionChip(reactionRow.transform, "Dislike", ink, out var dislikeButton);
 
             // 글과 댓글을 가르는 굵은 선.
-            AddStackRule(page.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 3f);
+            AddStackRule(page.transform, new Color(0.62f, 0.64f, 0.68f, 1f), 2f);
 
             // --- 댓글 묶음 ---
             var commentBlock = new GameObject("CommentBlock", typeof(RectTransform));
@@ -1262,7 +1262,7 @@ namespace UrbanLegendBureau.EditorTools
             var commentHeader = AddText(commentBlock.transform, "CommentHeader", 26f, UIFontWeight.SemiBold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 32f), TextAlignmentOptions.Left);
 
-            AddStackRule(commentBlock.transform, new Color(0.86f, 0.87f, 0.90f, 1f), 2f);
+            AddStackRule(commentBlock.transform, new Color(0.86f, 0.87f, 0.90f, 1f), 1f);
 
             // 댓글 덩어리. 칸 높이는 카드가 정한다.
             var comments = new GameObject("Comments", typeof(RectTransform));
@@ -1278,7 +1278,7 @@ namespace UrbanLegendBureau.EditorTools
             commentLayout.childForceExpandHeight = false;
 
             // 댓글 한 줄. 실제 커뮤니티처럼 칸을 나누는 것은 배경색이 아니라 아래쪽 가는 선이다.
-            // 선은 2 만큼 둔다. 1 로 두면 화면을 줄여 그릴 때 어떤 줄은 아예 사라진다.
+            // 선 두께는 실제 화면 픽셀로 지킨다(CrispRule). 캔버스 배율에 맡기면 작은 창에서 사라진다.
             var commentTemplate = CreatePanel(commentRoot, "CommentTemplate", new Color(1f, 1f, 1f, 0f));
             var comRt = (RectTransform)commentTemplate.transform;
             comRt.sizeDelta = new Vector2(pageWidth - 64f, 82f);
@@ -1293,7 +1293,7 @@ namespace UrbanLegendBureau.EditorTools
             comRuleRt.anchoredPosition = Vector2.zero;
             comRuleRt.sizeDelta = new Vector2(0f, 2f);
             comRule.GetComponent<Image>().raycastTarget = false;
-            AddCrisp(comRule, 2f);
+            AddCrisp(comRule, 1f);
             commentTemplate.SetActive(false);
 
             // --- 댓글 쓰기 칸. 댓글 목록 맨 아래에 붙는다. ---
