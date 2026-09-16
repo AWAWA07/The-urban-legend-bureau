@@ -1598,23 +1598,22 @@ namespace UrbanLegendBureau.EditorTools
             statusClockRt.anchorMin = new Vector2(1f, 0.5f);
             statusClockRt.anchorMax = new Vector2(1f, 0.5f);
             statusClockRt.pivot = new Vector2(1f, 0.5f);
-            // 오른쪽 끝에 딱 붙이지 않는다. 왼쪽 믿음도가 들어온 만큼 이쪽도 들여 놓는다.
-            statusClockRt.anchoredPosition = new Vector2(-20f, 0f);
+            // 시각과 믿음도는 오른쪽에 위아래로 겹쳐 세운다. 시각이 위, 믿음도가 아래다.
+            statusClockRt.anchoredPosition = new Vector2(-11.4f, 10f);
             statusClockRt.sizeDelta = new Vector2(150f, 36f);
             statusClock.raycastTarget = false;
             statusClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             statusClock.gameObject.AddComponent<ClockLabel>();
             statusClock.gameObject.SetActive(false);
 
-            // 전체 믿음도는 왼쪽 끝, 돌아가기 바로 옆에 붙인다.
-            // 시각 옆에 붙이면 가운데 카메라 구멍과 시각 사이에 낄 자리가 없어 서로 겹친다.
+            // 믿음도는 시각 바로 아래. 가운데 카메라 구멍을 피해 오른쪽으로 물러나 있다.
             var statusBelief = AddText(titleBar.transform, "StatusBelief", 20f, UIFontWeight.SemiBold, PhoneBeliefColor,
                 Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Left);
             var statusBeliefRt = statusBelief.rectTransform;
             statusBeliefRt.anchorMin = new Vector2(0f, 0.5f);
             statusBeliefRt.anchorMax = new Vector2(0f, 0.5f);
             statusBeliefRt.pivot = new Vector2(0f, 0.5f);
-            statusBeliefRt.anchoredPosition = new Vector2(54f, 0f);
+            statusBeliefRt.anchoredPosition = new Vector2(290f, -10f);
             statusBeliefRt.sizeDelta = new Vector2(150f, 36f);
             statusBelief.raycastTarget = false;
             statusBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
@@ -2497,15 +2496,27 @@ namespace UrbanLegendBureau.EditorTools
             // 가운데는 카메라 구멍 자리라 비워 둔다.
             var phoneClock = AddText(phoneBar.transform, "Clock", 14f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(phoneClock.rectTransform, 12f, 166f, 6f, 6f);
+            // 괴담넷 상태 줄과 같은 차림이다. 시각이 위, 믿음도가 아래로 오른쪽에 겹쳐 선다.
+            // 왼쪽은 닫기 단추, 가운데는 카메라 구멍 자리다.
+            var phoneClockRt = phoneClock.rectTransform;
+            phoneClockRt.anchorMin = new Vector2(1f, 0.5f);
+            phoneClockRt.anchorMax = new Vector2(1f, 0.5f);
+            phoneClockRt.pivot = new Vector2(1f, 0.5f);
+            phoneClockRt.anchoredPosition = new Vector2(-8f, 7f);
+            phoneClockRt.sizeDelta = new Vector2(110f, 24f);
+            phoneClock.alignment = TextAlignmentOptions.Right;
             phoneClock.raycastTarget = false;
             phoneClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             phoneClock.gameObject.AddComponent<ClockLabel>();
 
-            // 믿음도는 오른쪽 끝, 닫기 단추 옆에 붙인다. 가운데는 카메라 구멍 자리라 비워 둔다.
             var phoneBelief = AddText(phoneBar.transform, "Belief", 14f, UIFontWeight.SemiBold, PhoneBeliefColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
-            StretchInside(phoneBelief.rectTransform, 142f, 40f, 6f, 6f);
+                Vector2.zero, new Vector2(110f, 24f), TextAlignmentOptions.Right);
+            var phoneBeliefRt = phoneBelief.rectTransform;
+            phoneBeliefRt.anchorMin = new Vector2(1f, 0.5f);
+            phoneBeliefRt.anchorMax = new Vector2(1f, 0.5f);
+            phoneBeliefRt.pivot = new Vector2(1f, 0.5f);
+            phoneBeliefRt.anchoredPosition = new Vector2(-8f, -7f);
+            phoneBeliefRt.sizeDelta = new Vector2(110f, 24f);
             phoneBelief.raycastTarget = false;
             phoneBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
@@ -2515,12 +2526,13 @@ namespace UrbanLegendBureau.EditorTools
             pbSo.FindProperty("_short").boolValue = true;   // 상태 줄이 좁아 한 줄에 들어가야 한다
             pbSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // 닫기는 왼쪽 끝. 괴담넷의 돌아가기와 같은 자리다.
             var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));
             var phoneCloseRt = (RectTransform)phoneClose.transform;
-            phoneCloseRt.anchorMin = new Vector2(1f, 0.5f);
-            phoneCloseRt.anchorMax = new Vector2(1f, 0.5f);
-            phoneCloseRt.pivot = new Vector2(1f, 0.5f);
-            phoneCloseRt.anchoredPosition = new Vector2(-8f, 0f);
+            phoneCloseRt.anchorMin = new Vector2(0f, 0.5f);
+            phoneCloseRt.anchorMax = new Vector2(0f, 0.5f);
+            phoneCloseRt.pivot = new Vector2(0f, 0.5f);
+            phoneCloseRt.anchoredPosition = new Vector2(8f, 0f);
             phoneCloseRt.sizeDelta = new Vector2(26f, 22f);
             var phoneCloseButton = phoneClose.AddComponent<Button>();
             phoneCloseButton.targetGraphic = phoneClose.GetComponent<Image>();
