@@ -711,6 +711,11 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(null, null, null);      // 고를 것이 없어진다
 
+            // 댓글이 하나씩 붙는 동안에는 손을 못 대게 한다.
+            // 화면이 새 댓글을 따라 내려가는 중에 끌어 버리면 자리가 엇갈린다.
+            // 잠금은 마지막 나레이션을 넘길 때 함께 풀린다.
+            _communityScreen.SetControlsEnabled(false);
+
             yield return new WaitForSecondsRealtime(ReactionInterval);
 
             // 사람들이 하나씩 반응한다. 이 반응이 믿음을 깎는 이유다.
