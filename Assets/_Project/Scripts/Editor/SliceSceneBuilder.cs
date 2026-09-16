@@ -916,7 +916,24 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            ClearDisabledTint(go);
             return screen;
+        }
+
+        /// <summary>
+        /// 잠긴 버튼이 흐려지지 않게 한다.
+        /// 유니티 기본값은 반투명 회색이라, 화면을 잠글 때마다 전체가 어두워진 것처럼 보인다.
+        /// 지금은 잠금을 연출이 아니라 순서 지키기에만 쓰므로 모습은 그대로 두는 것이 맞다.
+        /// </summary>
+        private static void ClearDisabledTint(GameObject root)
+        {
+            foreach (var button in root.GetComponentsInChildren<Button>(true))
+            {
+                var colors = button.colors;
+                colors.disabledColor = colors.normalColor;
+                button.colors = colors;
+            }
         }
 
         /// <summary>바탕화면 아이콘 하나. 네모 하나와 이름표로 둔다.</summary>
@@ -1092,6 +1109,19 @@ namespace UrbanLegendBureau.EditorTools
             var btLabel = AddText(boardTemplate.transform, "Label", 26f, UIFontWeight.Medium, ink,
                 Vector2.zero, new Vector2(1640f, 88f), TextAlignmentOptions.Left);
             StretchInside(btLabel.rectTransform, 12f, 12f, 12f, 18f);
+
+            // 들어가야 하는 글 왼쪽에 붙는 파란 세모. 열 수 있는 글에만 켜진다.
+            var btMark = AddText(boardTemplate.transform, "Mark", 26f, UIFontWeight.Bold,
+                new Color(0.18f, 0.38f, 0.78f),
+                Vector2.zero, new Vector2(40f, 40f), TextAlignmentOptions.Center);
+            btMark.text = "▶";
+            btMark.raycastTarget = false;
+            var btMarkRt = btMark.rectTransform;
+            btMarkRt.anchorMin = new Vector2(0f, 0.5f);
+            btMarkRt.anchorMax = new Vector2(0f, 0.5f);
+            btMarkRt.pivot = new Vector2(1f, 0.5f);
+            btMarkRt.anchoredPosition = new Vector2(-8f, 6f);
+            btMarkRt.sizeDelta = new Vector2(40f, 40f);
 
             // 글 사이를 가르는 가는 선. 댓글과 같은 방식이다.
             var btRule = CreatePanel(boardTemplate.transform, "Rule", new Color(0.86f, 0.87f, 0.90f, 1f));
@@ -1344,6 +1374,10 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_postControls").objectReferenceValue = postControls;
             so.FindProperty("_boardControls").objectReferenceValue = boardControls;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            // 잠겼을 때 흐려지지 않게 한다.
+            // 한영이 말하는 동안 화면을 잠그는데, 기본값대로 두면 그때마다 창 전체가 어두워진다.
+            ClearDisabledTint(go);
 
             // 버튼 줄은 두지 않는다. 튜토리얼을 임의로 끝낼 수 없고, 흐름이 알아서 다음으로 넘어간다.
             return screen;

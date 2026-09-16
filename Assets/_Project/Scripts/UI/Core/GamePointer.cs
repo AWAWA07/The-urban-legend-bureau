@@ -19,8 +19,8 @@ namespace UrbanLegendBureau.UI
         [Tooltip("화살표를 그릴 칸. 비워 두면 스스로 찾는다.")]
         [SerializeField] private Image _image;
 
-        [Tooltip("그림 한 칸을 실제 화면 몇 픽셀로 그릴 것인가. 정수라야 모양이 일그러지지 않는다.")]
-        [SerializeField] private int _pixelScale = 2;
+        [Tooltip("화면 기준(1920x1080)에서 화살표의 높이. 창 크기가 달라져도 이만큼으로 보인다.")]
+        [SerializeField] private float _designHeight = 30f;
 
         private InputService _input;
         private RectTransform _rect;
@@ -122,7 +122,8 @@ namespace UrbanLegendBureau.UI
 
             // 그림 한 칸이 실제 화면에서 정확히 정수 픽셀이 되게 크기를 거꾸로 계산한다.
             // 캔버스 배율에 그냥 맡기면 칸이 소수 픽셀로 늘어나 모양이 일그러진다.
-            int step = Mathf.Max(1, _pixelScale);
+            // 배수는 원하는 크기에서 뽑는다. 창이 커지면 배수도 따라 커져 크기가 일정해 보인다.
+            int step = Mathf.Max(1, Mathf.RoundToInt(_designHeight * scale / Shape.Length));
             _rect.sizeDelta = new Vector2(Shape[0].Length * step, Shape.Length * step) / scale;
 
             // 자리도 픽셀에 맞춰 떨어뜨린다. 반 픽셀에 걸치면 가장자리가 흐려진다.

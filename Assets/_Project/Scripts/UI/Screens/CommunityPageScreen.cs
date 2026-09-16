@@ -134,6 +134,9 @@ namespace UrbanLegendBureau.UI
 
         private const string WindowTitleTextId = "ui.net.window_title";
         private const string HotMarkTextId = "ui.net.hot_mark";
+
+        /// <summary>목록 줄 왼쪽의 세모를 맡은 글자의 이름. 제목과 가르는 기준이다.</summary>
+        private const string BoardMarkName = "Text_Mark";
         private const string PlayerAuthorTextId = "ui.net.author_player";
 
         private const string SiteTextId = "ui.net.site_name";
@@ -420,19 +423,25 @@ namespace UrbanLegendBureau.UI
                 item.gameObject.name = "Post_" + i;
                 item.gameObject.SetActive(true);
 
-                var label = item.GetComponentInChildren<TMP_Text>(true);
-                if (label != null)
+                foreach (var text in item.GetComponentsInChildren<TMP_Text>(true))
                 {
+                    // 왼쪽의 세모는 들어가야 하는 글에만 켠다.
+                    if (text.name == BoardMarkName)
+                    {
+                        text.gameObject.SetActive(entry.Openable);
+                        continue;
+                    }
+
                     string title = loc.Get(entry.TitleTextId);
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
                     string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
-                    label.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
+                    text.text = string.IsNullOrEmpty(meta) ? title : title + "\n" + meta;
                 }
 
-                // 배경을 채우는 줄은 눌리지 않는다. 튜토리얼이 엉뚱한 글로 새지 않게 한다.
-                // 열 수 있는 줄은 마우스를 올렸을 때만 옅은 회색이 된다. 눌러야 할 곳은 그것으로 안다.
-                item.interactable = entry.Openable;
+                // 모든 줄이 마우스를 올리면 옅은 회색이 된다. 실제 게시판이 그렇다.
+                // 열리지 않는 글은 눌러도 아무 일이 없다. 그 판단은 누른 뒤에 한다.
+                item.interactable = true;
 
                 var captured = entry;
                 item.onClick.RemoveAllListeners();

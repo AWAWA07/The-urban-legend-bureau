@@ -346,8 +346,8 @@ namespace UrbanLegendBureau.Systems
 
             Debug.Log("[TutorialDirector] 커뮤니티 글 | 댓글 선택 " + _choices.Count + "개");
 
-            // 설명은 일반 문구가 아니라 한영이 직접 말한다.
-            ShowTalk(PcLine3TextId, AfterTalk.BackToChoices, showCharacter: false);
+            // 설명은 일반 문구가 아니라 한영이 직접 말한다. 여기서는 모습도 함께 보인다.
+            ShowTalk(PcLine3TextId, AfterTalk.BackToChoices);
         }
 
         /// <summary>
