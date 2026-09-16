@@ -151,6 +151,10 @@ namespace UrbanLegendBureau.Systems
             _censored = false;
             _lineIndex = 0;
             _postBelief = TutorialPostBelief;
+            _inBriefing = false;
+            _briefingIndex = 0;
+            _briefingInsert.Clear();
+            _dialogueScreen.ClearChoices();
 
             // 게시판 목록을 여기서 만들어 둔다.
             // 전체 믿음도가 이 목록에서 나오므로 컴퓨터를 켜기 전에 이미 있어야 한다.
@@ -206,6 +210,13 @@ namespace UrbanLegendBureau.Systems
         private void OnAdvanceClicked()
         {
             if (!IsRunning) return;
+
+            // 부서 설명 중이면 그쪽 흐름을 따른다. 첫 대화와 같은 화면을 함께 쓴다.
+            if (_inBriefing)
+            {
+                ShowBriefingStep();
+                return;
+            }
 
             if (_lineIndex + 1 < LineTextIds.Length)
             {
@@ -476,7 +487,7 @@ namespace UrbanLegendBureau.Systems
                     break;
 
                 case AfterTalk.Finish:
-                    FinishTutorial();
+                    StartBriefing();
                     break;
 
                 case AfterTalk.OpenDesktopNet:
@@ -750,6 +761,205 @@ namespace UrbanLegendBureau.Systems
             ShowNarration(DoneTextId, AfterTalk.Finish);
         }
 
+        // ------------------------------------------------------------- 부서 설명
+
+        /// <summary>
+        /// 괴담넷 일이 끝난 뒤 이어지는 설명 대화의 한 마디.
+        ///
+        /// 고를 것이 있는 마디는 Choices 를 채운다.
+        /// 고르면 그 자리에서 차지한이 고른 말을 하고, 딸린 대답이 이어진 뒤 다시 흐름으로 돌아온다.
+        /// </summary>
+        private class BriefingStep
+        {
+            public string TextId;
+            public bool Hanyoung = true;
+
+            /// <summary>고를 것. 둘 다 차지한의 말이다.</summary>
+            public string[] Choices;
+
+            /// <summary>고른 것에 딸려 나오는 한 영의 대답. 하나만 두면 어느 쪽을 골라도 같다.</summary>
+            public string[][] Replies;
+        }
+
+        private static readonly BriefingStep[] Briefing =
+        {
+            new BriefingStep { TextId = "tutorial.brief.001" },
+            new BriefingStep { TextId = "tutorial.brief.002" },
+            new BriefingStep { TextId = "tutorial.brief.003" },
+
+            new BriefingStep
+            {
+                Choices = new[] { "tutorial.brief.q1.a", "tutorial.brief.q1.b" },
+                Replies = new[]
+                {
+                    new[] { "tutorial.brief.q1.a.1", "tutorial.brief.q1.a.2" },
+                    new[] { "tutorial.brief.q1.b.1", "tutorial.brief.q1.b.2" },
+                },
+            },
+
+            new BriefingStep { TextId = "tutorial.brief.004" },
+            new BriefingStep { TextId = "tutorial.brief.005", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.006" },
+            new BriefingStep { TextId = "tutorial.brief.007" },
+            new BriefingStep { TextId = "tutorial.brief.008" },
+            new BriefingStep { TextId = "tutorial.brief.009" },
+
+            new BriefingStep
+            {
+                Choices = new[] { "tutorial.brief.q2.a", "tutorial.brief.q2.b" },
+
+                // 어느 쪽을 골라도 한 영의 대답은 같다. 답을 맞히는 자리가 아니기 때문이다.
+                Replies = new[]
+                {
+                    new[] { "tutorial.brief.q2.1", "tutorial.brief.q2.2" },
+                },
+            },
+
+            new BriefingStep { TextId = "tutorial.brief.010" },
+            new BriefingStep { TextId = "tutorial.brief.011" },
+            new BriefingStep { TextId = "tutorial.brief.012", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.013" },
+            new BriefingStep { TextId = "tutorial.brief.014", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.015" },
+            new BriefingStep { TextId = "tutorial.brief.016", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.017" },
+            new BriefingStep { TextId = "tutorial.brief.018" },
+            new BriefingStep { TextId = "tutorial.brief.019" },
+            new BriefingStep { TextId = "tutorial.brief.020" },
+            new BriefingStep { TextId = "tutorial.brief.021", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.022" },
+            new BriefingStep { TextId = "tutorial.brief.023" },
+            new BriefingStep { TextId = "tutorial.brief.024" },
+
+            // --- 등급 설명 ---
+            new BriefingStep { TextId = "tutorial.brief.025" },
+            new BriefingStep { TextId = "tutorial.brief.026" },
+            new BriefingStep { TextId = "tutorial.brief.027" },
+            new BriefingStep { TextId = "tutorial.brief.028" },
+            new BriefingStep { TextId = "tutorial.brief.029" },
+            new BriefingStep { TextId = "tutorial.brief.030" },
+            new BriefingStep { TextId = "tutorial.brief.031" },
+            new BriefingStep { TextId = "tutorial.brief.032" },
+            new BriefingStep { TextId = "tutorial.brief.033" },
+            new BriefingStep { TextId = "tutorial.brief.034" },
+            new BriefingStep { TextId = "tutorial.brief.035" },
+            new BriefingStep { TextId = "tutorial.brief.036" },
+            new BriefingStep { TextId = "tutorial.brief.037" },
+            new BriefingStep { TextId = "tutorial.brief.038" },
+            new BriefingStep { TextId = "tutorial.brief.039" },
+            new BriefingStep { TextId = "tutorial.brief.040" },
+            new BriefingStep { TextId = "tutorial.brief.041" },
+
+            new BriefingStep { TextId = "tutorial.brief.042", Hanyoung = false },
+            new BriefingStep { TextId = "tutorial.brief.043" },
+            new BriefingStep { TextId = "tutorial.brief.044" },
+        };
+
+        private int _briefingIndex;
+
+        /// <summary>고른 뒤에 먼저 나와야 할 말들. 이것부터 다 보여주고 본 흐름으로 돌아간다.</summary>
+        private readonly Queue<BriefingStep> _briefingInsert = new Queue<BriefingStep>();
+
+        private bool _inBriefing;
+
+        /// <summary>
+        /// 괴담넷을 닫고 다시 검은 화면으로 돌아가 부서 설명을 시작한다.
+        /// 튜토리얼의 마지막 대목이다. 이것이 끝나야 실제 사건으로 넘어간다.
+        /// </summary>
+        private void StartBriefing()
+        {
+            CloseTutorialScreens();
+            GamePointer.SetVisible(false);
+
+            _inBriefing = true;
+            _briefingIndex = 0;
+            _briefingInsert.Clear();
+
+            _dialogueScreen.SetAdvanceHandler(OnAdvanceClicked);
+            _dialogueScreen.ClearChoices();
+
+            if (_ui.Count == 0) _ui.Push(_dialogueScreen);
+            else _ui.Replace(_dialogueScreen);
+
+            // 둘 다 화면에 있다. 한 영이 왼쪽, 차지한이 오른쪽이다.
+            _dialogueScreen.SetSoloLayout(false);
+
+            Debug.Log("[TutorialDirector] 부서 설명 시작 | " + Briefing.Length + "마디");
+            ShowBriefingStep();
+        }
+
+        private void ShowBriefingStep()
+        {
+            // 고른 뒤에 끼워 넣은 말이 남아 있으면 그것부터 보여준다.
+            if (_briefingInsert.Count > 0)
+            {
+                ShowBriefingLine(_briefingInsert.Dequeue());
+                return;
+            }
+
+            if (_briefingIndex >= Briefing.Length)
+            {
+                FinishTutorial();
+                return;
+            }
+
+            var step = Briefing[_briefingIndex++];
+
+            if (step.Choices == null || step.Choices.Length == 0)
+            {
+                ShowBriefingLine(step);
+                return;
+            }
+
+            AskBriefing(step);
+        }
+
+        private void ShowBriefingLine(BriefingStep step)
+        {
+            string nameId = step.Hanyoung ? HanyoungNameTextId : ChajihanNameTextId;
+
+            _dialogueScreen.ShowLine(step.Hanyoung,
+                () => _loc.Get(nameId),
+                () => _loc.Get(step.TextId),
+                1f,
+                leftVisible: true,
+                rightVisible: true);
+        }
+
+        /// <summary>고를 것을 내놓는다. 고르면 그 말부터 차지한이 하고 대답이 이어진다.</summary>
+        private void AskBriefing(BriefingStep step)
+        {
+            var labels = new List<System.Func<string>>();
+            foreach (var id in step.Choices)
+            {
+                var captured = id;
+                labels.Add(() => _loc.Get(captured));
+            }
+
+            _dialogueScreen.ShowChoices(labels, picked => OnBriefingPicked(step, picked));
+        }
+
+        private void OnBriefingPicked(BriefingStep step, int picked)
+        {
+            if (picked < 0 || picked >= step.Choices.Length) return;
+
+            // 고른 말은 차지한이 실제로 한 말이 된다.
+            _briefingInsert.Enqueue(new BriefingStep { TextId = step.Choices[picked], Hanyoung = false });
+
+            if (step.Replies != null && step.Replies.Length > 0)
+            {
+                // 대답을 하나만 두었으면 어느 쪽을 골라도 같은 대답이 나온다.
+                var replies = step.Replies[Mathf.Min(picked, step.Replies.Length - 1)];
+                foreach (var id in replies)
+                {
+                    _briefingInsert.Enqueue(new BriefingStep { TextId = id });
+                }
+            }
+
+            Debug.Log("[TutorialDirector] 부서 설명 선택 | " + step.Choices[picked]);
+            ShowBriefingStep();
+        }
+
         // ------------------------------------------------------------- 종료
 
         /// <summary>
@@ -763,9 +973,11 @@ namespace UrbanLegendBureau.Systems
             if (!IsRunning) return;
 
             IsRunning = false;
+            _inBriefing = false;
 
             // 컴퓨터 화면에서 나온다. 화살표를 운영체제에 돌려준다.
             GamePointer.SetVisible(false);
+            if (_dialogueScreen != null) _dialogueScreen.ClearChoices();
 
             // 튜토리얼 전용 저장본은 그냥 버린다. 파일로 쓴 적이 없다.
             _sandbox = null;

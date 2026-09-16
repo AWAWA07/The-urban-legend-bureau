@@ -826,6 +826,34 @@ namespace UrbanLegendBureau.EditorTools
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
             advanceGo.transform.SetAsLastSibling();
 
+            // 고를 것이 있을 때만 켜지는 자리. 대사 상자 바로 위에 쌓는다.
+            // 상자는 -490~-190 을 쓰므로 그 위에서 아래로 자란다.
+            // 진행 버튼보다 뒤에 만들어야 선택지가 위로 올라와 눌린다.
+            var choiceRoot = CreateVerticalList(go.transform, "DialogueChoices", new Vector2(0f, 40f),
+                new Vector2(1600f, 200f), 14f);
+
+            var choiceTemplate = CreatePanel(choiceRoot, "ChoiceTemplate", new Color(0.16f, 0.17f, 0.22f, 0.98f));
+            var dialogueChoice = choiceTemplate.AddComponent<Button>();
+            dialogueChoice.targetGraphic = choiceTemplate.GetComponent<Image>();
+
+            var dcColors = dialogueChoice.colors;
+            dcColors.normalColor = Color.white;
+            dcColors.highlightedColor = new Color(1.35f, 1.35f, 1.45f, 1f);
+            dcColors.pressedColor = new Color(0.8f, 0.8f, 0.9f, 1f);
+            dcColors.selectedColor = Color.white;
+            dcColors.disabledColor = Color.white;
+            dialogueChoice.colors = dcColors;
+
+            var dcRt = (RectTransform)choiceTemplate.transform;
+            dcRt.sizeDelta = new Vector2(1600f, 74f);
+            var dcLabel = AddText(choiceTemplate.transform, "Label", 28f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(1552f, 62f), TextAlignmentOptions.Left);
+            StretchInside(dcLabel.rectTransform, 32f, 32f, 8f, 8f);
+            dcLabel.raycastTarget = false;
+            choiceTemplate.SetActive(false);
+
+            choiceRoot.gameObject.SetActive(false);
+
             var so = new SerializedObject(screen);
             so.Update();
             so.FindProperty("_left").FindPropertyRelative("nameTextId").stringValue = "tutorial.char.hanyoung";
@@ -836,6 +864,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_lineText").objectReferenceValue = lineText;
             so.FindProperty("_hintText").objectReferenceValue = hintText;
             so.FindProperty("_advanceButton").objectReferenceValue = advance;
+            so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
+            so.FindProperty("_choiceTemplate").objectReferenceValue = dialogueChoice;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             return screen;

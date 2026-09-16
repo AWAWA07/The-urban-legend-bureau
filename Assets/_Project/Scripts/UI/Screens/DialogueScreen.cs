@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -41,6 +42,13 @@ namespace UrbanLegendBureau.UI
 
         [Tooltip("화면 전체를 덮는 진행 버튼.")]
         [SerializeField] private Button _advanceButton;
+
+        [Header("선택지")]
+        [Tooltip("고를 것이 있을 때만 켜지는 자리.")]
+        [SerializeField] private RectTransform _choiceRoot;
+
+        [Tooltip("복제할 선택지 버튼.")]
+        [SerializeField] private Button _choiceTemplate;
 
         [Header("밝기")]
         [SerializeField] private Color _brightColor = Color.white;
@@ -202,6 +210,72 @@ namespace UrbanLegendBureau.UI
             if (image != null) image.color = target;
         }
 
+        /// <summary>
+        /// 고를 것을 내놓는다.
+        ///
+        /// 고르는 동안에는 화면을 눌러 넘길 수 없다. 대사를 건너뛰고 넘어가면 순서가 엉킨다.
+        /// 문구는 만드는 방법(Func)으로 받는다. 언어가 바뀌어도 다시 조립된다.
+        /// </summary>
+        public void ShowChoices(IReadOnlyList<Func<string>> labels, Action<int> onPick)
+        {
+            ClearChoices();
+            if (_choiceRoot == null || _choiceTemplate == null || labels == null) return;
+
+            _choiceLabels = labels;
+            _onPick = onPick;
+
+            for (int i = 0; i < labels.Count; i++)
+            {
+                var item = Instantiate(_choiceTemplate, _choiceRoot);
+                item.gameObject.name = "Choice_" + i;
+                item.gameObject.SetActive(true);
+
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null && labels[i] != null) label.text = labels[i]();
+
+                int picked = i;
+                item.onClick.RemoveAllListeners();
+                item.onClick.AddListener(() => OnChoicePicked(picked));
+
+                _spawnedChoices.Add(item.gameObject);
+            }
+
+            _choiceRoot.gameObject.SetActive(true);
+            if (_advanceButton != null) _advanceButton.interactable = false;
+        }
+
+        /// <summary>고를 것을 치운다. 다시 화면을 눌러 넘길 수 있게 된다.</summary>
+        public void ClearChoices()
+        {
+            for (int i = 0; i < _spawnedChoices.Count; i++)
+            {
+                if (_spawnedChoices[i] == null) continue;
+
+                // Destroy는 프레임 끝에 처리된다. 떼어 내고 꺼 둔 뒤 파괴해야 같은 프레임에 다시 그려도 남지 않는다.
+                _spawnedChoices[i].transform.SetParent(null, false);
+                _spawnedChoices[i].SetActive(false);
+                Destroy(_spawnedChoices[i]);
+            }
+            _spawnedChoices.Clear();
+
+            _choiceLabels = null;
+            _onPick = null;
+
+            if (_choiceRoot != null) _choiceRoot.gameObject.SetActive(false);
+            if (_advanceButton != null) _advanceButton.interactable = true;
+        }
+
+        private void OnChoicePicked(int index)
+        {
+            var handler = _onPick;
+            ClearChoices();
+            handler?.Invoke(index);
+        }
+
+        private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
+        private IReadOnlyList<Func<string>> _choiceLabels;
+        private Action<int> _onPick;
+
         /// <summary>화면을 눌렀을 때 부를 것을 지정한다.</summary>
         public void SetAdvanceHandler(Action onAdvance)
         {
@@ -241,6 +315,17 @@ namespace UrbanLegendBureau.UI
         public void Refresh()
         {
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
+
+            // 고를 것이 떠 있으면 문구도 함께 다시 만든다. 언어가 바뀌었을 수 있다.
+            if (_choiceLabels != null)
+            {
+                for (int i = 0; i < _spawnedChoices.Count && i < _choiceLabels.Count; i++)
+                {
+                    if (_spawnedChoices[i] == null || _choiceLabels[i] == null) continue;
+                    var text = _spawnedChoices[i].GetComponentInChildren<TMP_Text>(true);
+                    if (text != null) text.text = _choiceLabels[i]();
+                }
+            }
 
             if (_nameText != null) _nameText.text = _nameProvider != null ? _nameProvider() : string.Empty;
             if (_lineText != null) _lineText.text = _lineProvider != null ? _lineProvider() : string.Empty;
