@@ -891,7 +891,7 @@ namespace UrbanLegendBureau.EditorTools
             StretchInside(clock.rectTransform, 40f, 40f, 8f, 8f);
 
             // 왼쪽에는 지금 이 괴담을 얼마나 믿고 있는지를 띄운다. 게임의 핵심 숫자다.
-            var belief = AddText(taskbar.transform, "Belief", 24f, UIFontWeight.SemiBold, new Color(0.92f, 0.44f, 0.42f),
+            var belief = AddText(taskbar.transform, "Belief", 24f, UIFontWeight.Medium, new Color(0.92f, 0.44f, 0.42f),
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
             StretchInside(belief.rectTransform, 40f, 40f, 8f, 8f);
 
@@ -1239,15 +1239,23 @@ namespace UrbanLegendBureau.EditorTools
             postBlock.transform.SetParent(page.transform, false);
             AddStack(postBlock, 0f, new RectOffset(0, 0, 0, 0));
 
+            // 믿음도를 작성자 정보 줄에 맞추려면 띠 안쪽 자리를 알아야 한다. 먼저 정해 둔다.
+            const float TitleBandPadTop = 44f;
+            const float TitleHeight = 50f;
+            const float TitleBandSpacing = 18f;
+            const float MetaHeight = 29f;
+
             // 제목과 작성자 정보는 옅은 띠 위에 둔다. 본문과 눈에 띄게 갈린다.
             var titleBand = CreatePanel(postBlock.transform, "TitleBand", new Color(0.955f, 0.958f, 0.97f, 1f));
-            AddStack(titleBand, 18f, new RectOffset(Inset, Inset, 44, 52));
+            AddStack(titleBand, TitleBandSpacing, new RectOffset(Inset, Inset, (int)TitleBandPadTop, 52));
 
             var titleText = AddText(titleBand.transform, "PostTitle", 42f, UIFontWeight.Bold, ink,
                 Vector2.zero, new Vector2(pageWidth - 64f, 54f), TextAlignmentOptions.Left);
-            // 제목 오른쪽의 믿음도. 배치에서 빼내 제목 줄 오른쪽 끝에 붙인다.
-            var postBelief = AddText(titleBand.transform, "PostBelief", 30f, UIFontWeight.SemiBold, BeliefMarkColor,
-                Vector2.zero, new Vector2(400f, 44f), TextAlignmentOptions.Right);
+
+            // 믿음도는 작성자 정보 줄(조회 / 댓글 / 시각)의 오른쪽 끝에 맞춘다.
+            // 배치에서 빼내고 자리를 직접 잡는다. 위 여백 + 제목 + 사이 간격만큼 내려온 자리다.
+            var postBelief = AddText(titleBand.transform, "PostBelief", 26f, UIFontWeight.SemiBold, BeliefMarkColor,
+                Vector2.zero, new Vector2(400f, MetaHeight), TextAlignmentOptions.Right);
             postBelief.raycastTarget = false;
             var postBeliefElement = postBelief.gameObject.AddComponent<LayoutElement>();
             postBeliefElement.ignoreLayout = true;
@@ -1255,8 +1263,8 @@ namespace UrbanLegendBureau.EditorTools
             postBeliefRt.anchorMin = new Vector2(1f, 1f);
             postBeliefRt.anchorMax = new Vector2(1f, 1f);
             postBeliefRt.pivot = new Vector2(1f, 1f);
-            postBeliefRt.anchoredPosition = new Vector2(-Inset, -46f);
-            postBeliefRt.sizeDelta = new Vector2(400f, 44f);
+            postBeliefRt.anchoredPosition = new Vector2(-Inset, -(TitleBandPadTop + TitleHeight + TitleBandSpacing));
+            postBeliefRt.sizeDelta = new Vector2(400f, MetaHeight);
 
             var metaText = AddText(titleBand.transform, "PostMeta", 24f, UIFontWeight.Regular, dim,
                 Vector2.zero, new Vector2(pageWidth - 64f, 30f), TextAlignmentOptions.Left);

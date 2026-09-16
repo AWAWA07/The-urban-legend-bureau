@@ -114,7 +114,7 @@ namespace UrbanLegendBureau.UI
         [Tooltip("내가 쓴 댓글의 배경색. 남의 댓글과 구분한다.")]
         [SerializeField] private Color _playerCommentColor = new Color(0.90f, 0.94f, 1f, 1f);
 
-        [Tooltip("댓글 스크롤. 새 댓글이 붙으면 맨 아래로 내린다.")]
+        [Tooltip("글 화면 굴림판. 글을 열 때 맨 위로 돌리는 데만 쓴다.")]
         [SerializeField] private ScrollRect _commentScroll;
 
         [Header("댓글 선택지")]
@@ -542,10 +542,12 @@ namespace UrbanLegendBureau.UI
                 if (content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(content);
                 else if (_commentRoot != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentRoot);
 
-                // 글을 막 열었으면 맨 위, 즉 제목부터 보여준다.
-                // 그 뒤에 댓글이 새로 달렸을 때만 맨 아래로 내려 방금 달린 것을 보여준다.
+                // 글을 막 열었을 때만 자리를 정한다. 맨 위, 즉 제목부터 보여준다.
+                //
+                // 댓글이 새로 달려도 화면을 움직이지 않는다.
+                // 차지한이 댓글을 달고 사람들이 하나씩 반응하는 동안 화면이 따라 내려가면
+                // 무엇이 달렸는지 읽을 새도 없이 글이 흔들린다.
                 if (_shownCommentCount < 0) _commentScroll.verticalNormalizedPosition = 1f;
-                else if (_comments.Count > _shownCommentCount) _commentScroll.verticalNormalizedPosition = 0f;
             }
 
             // 글을 걸고 댓글을 거는 것이 두 번에 나뉘어 들어온다.
