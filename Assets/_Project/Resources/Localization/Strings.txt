@@ -341,13 +341,13 @@ ui.net.window_title	괴담넷	LegendNet	창 제목 표시줄
 ui.net.hot_mark	인기	HOT	인기글 표시
 ui.net.belief_percent	믿음도 : {0}%	Belief: {0}%	게시글 믿음 기여도
 ui.net.board_open_hint	▶ 눌러서 열기	▶ Open this post	
-board.subway.meta	익명    조회 1284    댓글 4    어제 01:33	Anonymous    views 1284    comments 4    yesterday 01:33	
+board.subway.meta	익명    조회 1284    댓글 4	Anonymous    views 1284    comments 4	
 board.filler.001	오늘 지하철에서 지갑 주웠는데 어디에 맡기나요	Found a wallet on the subway today. Where do I hand it in?	목록 채우기
-board.filler.001.meta	지갑주인찾아요    조회 41    댓글 2    6시간 전	WalletFinder    views 41    comments 2    6h ago	
+board.filler.001.meta	지갑주인찾아요    조회 41    댓글 2	WalletFinder    views 41    comments 2	
 board.filler.002	야근하고 집 가는 길 사진	Photo from the walk home after overtime	
-board.filler.002.meta	익명    조회 88    댓글 5    9시간 전	Anonymous    views 88    comments 5    9h ago	
+board.filler.002.meta	익명    조회 88    댓글 5	Anonymous    views 88    comments 5	
 board.filler.003	이 노선 막차 시간 아시는 분	Anyone know the last train time on this line?	
-board.filler.003.meta	막차연구회    조회 12    댓글 0    어제 23:50	LastTrainClub    views 12    comments 0    yesterday 23:50	
+board.filler.003.meta	막차연구회    조회 12    댓글 0	LastTrainClub    views 12    comments 0	
 
 # --- 조정: 컴퓨터 안내 대사 ---
 tutorial.pc.001	자, 저기 괴담넷을 눌러봐.	All right. Click LegendNet over there.	한영, 인물 없음
@@ -359,39 +359,39 @@ ui.net.author_player	{0}(차지한)	{0} (Chajihan)	내가 쓴 댓글의 작성�
 
 # --- 괴담넷: 게시판 목록 채우기 (추가) ---
 board.filler.004	우리 회사 엘리베이터 4층에서 항상 혼자 열림	Our office elevator always opens by itself on the 4th floor	
-board.filler.004.meta	4층은무서워    조회 203    댓글 7    2시간 전	FourthFloor    views 203    comments 7    2h ago	
+board.filler.004.meta	4층은무서워    조회 203    댓글 7	FourthFloor    views 203    comments 7	
 board.filler.005	중고거래 하다가 이상한 사람 만난 썰	Story about the odd person I met at a used-goods trade	
-board.filler.005.meta	익명    조회 157    댓글 12    4시간 전	Anonymous    views 157    comments 12    4h ago	
+board.filler.005.meta	익명    조회 157    댓글 12	Anonymous    views 157    comments 12	
 board.filler.006	새벽에 복도에서 발소리 나는데 아무도 없음	Footsteps in the hallway at dawn but nobody is there	
-board.filler.006.meta	복도등켜주세요    조회 96    댓글 4    12분 전	HallwayLight    views 96    comments 4    12m ago	
+board.filler.006.meta	복도등켜주세요    조회 96    댓글 4	HallwayLight    views 96    comments 4	
 board.filler.007	고양이가 자꾸 빈 벽을 쳐다봐요	My cat keeps staring at an empty wall	
-board.filler.007.meta	냥집사9년차    조회 340    댓글 19    34분 전	CatServant    views 340    comments 19    34m ago	
+board.filler.007.meta	냥집사9년차    조회 340    댓글 19	CatServant    views 340    comments 19	
 board.filler.008	버스 막차 놓쳐서 두 시간 걸어옴	Missed the last bus and walked for two hours	
-board.filler.008.meta	익명    조회 28    댓글 1    1시간 전	Anonymous    views 28    comments 1    1h ago	
+board.filler.008.meta	익명    조회 28    댓글 1	Anonymous    views 28    comments 1	
 board.filler.009	이 사진 뭔가 이상하지 않나요	Is there something off about this photo?	
-board.filler.009.meta	사진은거짓말안함    조회 512    댓글 23    어제 21:07	PhotosDontLie    views 512    comments 23    yesterday 21:07	
+board.filler.009.meta	사진은거짓말안함    조회 512    댓글 23	PhotosDontLie    views 512    comments 23	
 
 # --- 괴담넷: 게시판 목록 채우기 (사흘 전 개설 이후) ---
 board.filler.010	막차 시간표 스샷 찍어왔습니다	Screenshot of the last-train timetable	
-board.filler.010.meta	익명    조회 62    댓글 3    11시간 전	Anonymous    views 62    comments 3    11h ago	
+board.filler.010.meta	익명    조회 62    댓글 3	Anonymous    views 62    comments 3	
 board.filler.011	거울 앞에서 사진 찍었는데 하나 더 있음	Took a photo at the mirror and there was one extra	
-board.filler.011.meta	유리조각    조회 288    댓글 15    어제 20:12	GlassShard    views 288    comments 15    yesterday 20:12	
+board.filler.011.meta	유리조각    조회 288    댓글 15	GlassShard    views 288    comments 15	
 board.filler.012	회식 끝나고 대리 부른 후기	Calling a designated driver after the work dinner	
-board.filler.012.meta	익명    조회 44    댓글 2    어제 18:33	Anonymous    views 44    comments 2    yesterday 18:33	
+board.filler.012.meta	익명    조회 44    댓글 2	Anonymous    views 44    comments 2	
 board.filler.013	지하철 9-4 칸은 타지 마세요	Do not ride subway car 9-4	
-board.filler.013.meta	9호선유령    조회 431    댓글 27    어제 14:05	Line9Ghost    views 431    comments 27    yesterday 14:05	
+board.filler.013.meta	9호선유령    조회 431    댓글 27	Line9Ghost    views 431    comments 27	
 board.filler.014	이 동네 밤에 조용한 편인가요	Is this neighborhood quiet at night?	
-board.filler.014.meta	익명    조회 19    댓글 1    어제 09:21	Anonymous    views 19    comments 1    yesterday 09:21	
+board.filler.014.meta	익명    조회 19    댓글 1	Anonymous    views 19    comments 1	
 board.filler.015	새벽 라디오에서 이상한 주파수 잡힘	Picked up a strange frequency on the dawn radio	
-board.filler.015.meta	라디오키드    조회 176    댓글 9    2일 전 23:40	RadioKid    views 176    comments 9    2d ago 23:40	
+board.filler.015.meta	라디오키드    조회 176    댓글 9	RadioKid    views 176    comments 9	
 board.filler.016	자취방 추천 좀	Any recommendations for a studio apartment	
-board.filler.016.meta	익명    조회 33    댓글 4    2일 전 15:02	Anonymous    views 33    comments 4    2d ago 15:02	
+board.filler.016.meta	익명    조회 33    댓글 4	Anonymous    views 33    comments 4	
 board.filler.017	아파트 계단에서 누가 내려다보는 느낌	It feels like someone is looking down the apartment stairs	
-board.filler.017.meta	익명    조회 152    댓글 8    2일 전 11:18	Anonymous    views 152    comments 8    2d ago 11:18	
+board.filler.017.meta	익명    조회 152    댓글 8	Anonymous    views 152    comments 8	
 board.filler.018	첫 글이네요 무서운 얘기 하나	First post here. One scary story	
-board.filler.018.meta	괴담수집가    조회 97    댓글 6    3일 전 10:47	TaleCollector    views 97    comments 6    3d ago 10:47	
+board.filler.018.meta	괴담수집가    조회 97    댓글 6	TaleCollector    views 97    comments 6	
 board.filler.019	괴담넷 열었습니다. 자유롭게 써주세요	LegendNet is open. Post freely	
-board.filler.019.meta	운영자    조회 210    댓글 11    3일 전 10:00	Admin    views 210    comments 11    3d ago 10:00	
+board.filler.019.meta	운영자    조회 210    댓글 11	Admin    views 210    comments 11	
 
 # --- 튜토리얼: 부서 설명 (괴담넷 이후) ---
 tutorial.brief.001	간단하게 일이 끝났으니 우리 부서를 얘기해 줄게.	Now that the job is done, let me tell you about our department.	한 영
@@ -489,3 +489,9 @@ ui.field.door_open	문이 열렸다. 열차에 올라타자.	The doors are open.
 field.subway.board	열린 문	Open door	눌러서 열차에 타는 자리
 ui.net.belief_percent_short	{0}%	{0}%	좁은 화면(휴대폰) 목록에서 쓰는 짧은 믿음도
 ui.status.belief_short	믿음도 {0}%	Belief {0}%	좁은 상태 줄에서 쓰는 짧은 전체 믿음도
+ui.net.posted_now	방금	just now	게시글이 올라온 시각 - 1분 안
+ui.net.posted_minutes	{0}분 전	{0}m ago	게시글이 올라온 시각 - 한 시간 안
+ui.net.posted_hours	{0}시간 전	{0}h ago	게시글이 올라온 시각 - 반나절 안
+ui.net.posted_today	오늘 {0}	today {0}	게시글이 올라온 시각 - 오늘
+ui.net.posted_yesterday	어제 {0}	yesterday {0}	게시글이 올라온 시각 - 어제
+ui.net.posted_days	{0}일 전 {1}	{0}d ago {1}	게시글이 올라온 시각 - 그보다 오래

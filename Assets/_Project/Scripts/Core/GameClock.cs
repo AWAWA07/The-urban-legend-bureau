@@ -57,14 +57,23 @@ namespace UrbanLegendBureau.Core
         }
 
         /// <summary>
-        /// 시각을 그대로 맞춰 놓고 거기서부터 다시 흐르게 한다.
+        /// 그 시각이 될 때까지 시계를 앞으로 돌린다. 이미 지났으면 다음 날 그 시각으로 간다.
         /// 장면이 바뀌면서 시각이 정해져 있는 곳에 쓴다. 현장에 닿는 시각이 그렇다.
+        ///
+        /// 시작점을 옮기지 않고 앞으로만 돌린다. 게시판 글이 "시작에서 몇 분 전"으로 적혀 있어,
+        /// 시작점을 옮기면 그 글들이 올라온 시각까지 통째로 밀린다.
         /// </summary>
         public static void SetTo(int hour, int minute)
         {
-            _startHour = hour;
-            _startMinute = minute;
-            Restart();
+            EnsureStarted();
+
+            int target = hour * 60 + minute;
+            int now = (_startHour * 60 + _startMinute + ElapsedMinutes) % 1440;
+
+            int forward = target - now;
+            if (forward < 0) forward += 1440;
+
+            _skipped += forward;
         }
 
         /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>
@@ -105,6 +114,24 @@ namespace UrbanLegendBureau.Core
         {
             Split(out int hour12, out int minute, out _);
             return hour12.ToString("00") + ":" + minute.ToString("00");
+        }
+
+        /// <summary>
+        /// 지금에서 minutesAgo 만큼 거슬러 올라간 때가 며칠 전 몇 시인가.
+        /// 게시판이 "어제 01:33" 같은 것을 적을 때 쓴다. 24시간 표기 그대로 돌려준다.
+        /// </summary>
+        public static void SplitPast(int minutesAgo, out int days, out int hour24, out int minute)
+        {
+            int nowMinutes = _startHour * 60 + _startMinute + ElapsedMinutes;
+            int then = nowMinutes - Mathf.Max(0, minutesAgo);
+
+            // 자정을 몇 번 넘었는가. 오늘 안이면 0, 어제면 1 이다.
+            days = Mathf.FloorToInt(then / 1440f);
+            days = nowMinutes / 1440 - days;
+
+            int inDay = ((then % 1440) + 1440) % 1440;
+            hour24 = inDay / 60;
+            minute = inDay % 60;
         }
 
         private static void Split(out int hour12, out int minute, out bool morning)

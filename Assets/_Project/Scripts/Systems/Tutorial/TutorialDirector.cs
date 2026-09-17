@@ -335,39 +335,78 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>1%에 못 미치는 몫. 버리지 않고 모아 두었다가 1%가 차면 올린다.</summary>
         private float _beliefCarry;
+        private float _driftCarry;
 
         /// <summary>
         /// 괴담이 퍼진 만큼 그 괴담을 실어 나르는 글들의 믿음도 함께 오른다.
         ///
-        /// 괴담과 무관한 글은 건드리지 않는다. 믿음에 보태는 것이 없는(0인) 글이 그것이다.
+        /// 조사하고 있는 사건의 글만 오른다. 같은 게시판에 있어도 다른 괴담 이야기는 그대로다.
         /// 한 번에 오르는 몫이 작아 소수점이 대부분이므로, 모아 두었다가 1%가 차면 올린다.
         /// </summary>
-        public void RaiseBoardBelief(float amount)
+        public void RaiseBoardBelief(float amount, string legendId)
         {
-            if (amount <= 0f) return;
-            if (_boardEntries == null) BuildBoardEntries();
+            if (amount <= 0f || string.IsNullOrEmpty(legendId)) return;
 
-            _beliefCarry += amount;
-
-            int step = Mathf.FloorToInt(_beliefCarry);
+            int step = Accumulate(ref _beliefCarry, amount);
             if (step <= 0) return;
-            _beliefCarry -= step;
+
+            int raised = Raise(step, entry => entry.LegendId == legendId);
+            if (raised > 0)
+            {
+                PushBeliefToTaskbar();
+                Debug.Log($"[TutorialDirector] 괴담이 퍼진다 | {legendId} 글 {raised}개 +{step}% | 전체 {BoardBelief}%");
+            }
+        }
+
+        /// <summary>
+        /// 시간이 흐르는 것만으로도 글은 조금씩 더 믿긴다.
+        ///
+        /// 사람들이 읽고 옮기는 데 시간이 드는 것이다. 어느 괴담이든 가리지 않는다.
+        /// 지금 조사하고 있는 글도 여기에 든다. 조사로 오르는 몫과 따로 쌓인다.
+        /// </summary>
+        public void DriftBoardBelief(int minutes)
+        {
+            if (minutes <= 0) return;
+
+            int step = Accumulate(ref _driftCarry, minutes * BeliefPerMinute);
+            if (step <= 0) return;
+
+            int raised = Raise(step, entry => true);
+            if (raised > 0)
+            {
+                PushBeliefToTaskbar();
+                Debug.Log($"[TutorialDirector] 시간이 흐른다 | 글 {raised}개 +{step}% | 전체 {BoardBelief}%");
+            }
+        }
+
+        /// <summary>게임 안에서 1분이 지날 때 글이 더 믿기는 몫(%). 아주 작게 잡는다.</summary>
+        private const float BeliefPerMinute = 0.01f;
+
+        /// <summary>1%가 찰 때까지 모은다. 찬 만큼만 돌려주고 나머지는 남겨 둔다.</summary>
+        private static int Accumulate(ref float carry, float amount)
+        {
+            carry += amount;
+
+            int step = Mathf.FloorToInt(carry);
+            if (step > 0) carry -= step;
+            return step;
+        }
+
+        /// <summary>조건에 맞는 글의 믿음도를 올린다. 믿음에 보태는 것이 없는(0인) 글은 건드리지 않는다.</summary>
+        private int Raise(int step, System.Func<CommunityBoardEntry, bool> match)
+        {
+            if (_boardEntries == null) BuildBoardEntries();
 
             int raised = 0;
             foreach (var entry in _boardEntries)
             {
-                if (entry == null || entry.BeliefPercent <= 0) continue;
-                if (entry.BeliefPercent >= 100) continue;
+                if (entry == null || entry.BeliefPercent <= 0 || entry.BeliefPercent >= 100) continue;
+                if (!match(entry)) continue;
 
                 entry.BeliefPercent = Mathf.Min(100, entry.BeliefPercent + step);
                 raised++;
             }
-
-            if (raised > 0)
-            {
-                PushBeliefToTaskbar();
-                Debug.Log($"[TutorialDirector] 괴담이 퍼진다 | 글 {raised}개 믿음도 +{step}% | 전체 {BoardBelief}%");
-            }
+            return raised;
         }
 
         /// <summary>
@@ -391,6 +430,11 @@ namespace UrbanLegendBureau.Systems
         {
             // 인기글이 시간과 상관없이 맨 위에 붙고, 나머지는 새로 올라온 것부터 내려간다.
             // 실제 게시판이 그렇게 늘어놓는다.
+            // 올라온 시각은 "게임을 시작한 밤 10시 30분에서 몇 분 전인가" 로 적는다.
+            // 화면에 적히는 문구는 지금 시각을 보고 만든다. 조사하는 동안 시간이 흐르면 함께 밀린다.
+            //
+            // LegendId 를 적은 글만 그 사건을 조사할 때 믿음이 오른다.
+            // 다른 괴담 이야기도 믿음 수치를 들고 있지만, 막차 사건과는 상관이 없다.
             _boardEntries = new List<CommunityBoardEntry>
             {
                 new CommunityBoardEntry
@@ -401,8 +445,12 @@ namespace UrbanLegendBureau.Systems
                     Openable = true,
                     Page = _tutorialPage,
                     BeliefPercent = TutorialPostBelief,
+                    LegendId = SubwayLegendId,
+                    PostedMinutesAgo = 2697,                 // 어제 01:33
+                    Likes = TutorialPostLikes,
+                    Dislikes = TutorialPostDislikes,
                 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 31 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 31, PostedMinutesAgo = 1523 },
 
                 // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
                 //
@@ -410,32 +458,36 @@ namespace UrbanLegendBureau.Systems
                 // 요 며칠 사이 부쩍 늘었다. 괴담이 퍼지는 중이라는 것을 글 수로 보여준다.
 
                 // --- 오늘 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta", BeliefPercent = 28 },  // 12분 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta", BeliefPercent = 19 },  // 34분 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta" },                      // 1시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta", BeliefPercent = 25 },  // 2시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta" },                      // 4시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta" },                      // 6시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta" },                      // 9시간 전
-                new CommunityBoardEntry { TitleTextId = "board.filler.010", MetaTextId = "board.filler.010.meta" },                      // 11시간 전
+                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta", BeliefPercent = 28, PostedMinutesAgo = 12 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta", BeliefPercent = 19, PostedMinutesAgo = 34 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta", PostedMinutesAgo = 60 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta", BeliefPercent = 25, PostedMinutesAgo = 120 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta", PostedMinutesAgo = 240 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta", PostedMinutesAgo = 360 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta", PostedMinutesAgo = 540 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.010", MetaTextId = "board.filler.010.meta", PostedMinutesAgo = 660 },
 
                 // --- 어제 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta" },                      // 어제 23:50
-                new CommunityBoardEntry { TitleTextId = "board.filler.011", MetaTextId = "board.filler.011.meta", BeliefPercent = 24 },  // 어제 20:12
-                new CommunityBoardEntry { TitleTextId = "board.filler.012", MetaTextId = "board.filler.012.meta" },                      // 어제 18:33
-                new CommunityBoardEntry { TitleTextId = "board.filler.013", MetaTextId = "board.filler.013.meta", BeliefPercent = 30 },  // 어제 14:05
-                new CommunityBoardEntry { TitleTextId = "board.filler.014", MetaTextId = "board.filler.014.meta" },                      // 어제 09:21
+                // 막차연구회의 글은 같은 괴담을 좇고 있다. 이 사건을 조사하면 함께 오른다.
+                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta", LegendId = SubwayLegendId, BeliefPercent = 16, PostedMinutesAgo = 1360 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.011", MetaTextId = "board.filler.011.meta", BeliefPercent = 24, PostedMinutesAgo = 1578 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.012", MetaTextId = "board.filler.012.meta", PostedMinutesAgo = 1677 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.013", MetaTextId = "board.filler.013.meta", LegendId = SubwayLegendId, BeliefPercent = 30, PostedMinutesAgo = 1945 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.014", MetaTextId = "board.filler.014.meta", PostedMinutesAgo = 2229 },
 
                 // --- 이틀 전 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.015", MetaTextId = "board.filler.015.meta", BeliefPercent = 17 },  // 2일 전 23:40
-                new CommunityBoardEntry { TitleTextId = "board.filler.016", MetaTextId = "board.filler.016.meta" },                      // 2일 전 15:02
-                new CommunityBoardEntry { TitleTextId = "board.filler.017", MetaTextId = "board.filler.017.meta", BeliefPercent = 21 },  // 2일 전 11:18
+                new CommunityBoardEntry { TitleTextId = "board.filler.015", MetaTextId = "board.filler.015.meta", BeliefPercent = 17, PostedMinutesAgo = 2810 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.016", MetaTextId = "board.filler.016.meta", PostedMinutesAgo = 3328 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.017", MetaTextId = "board.filler.017.meta", BeliefPercent = 21, PostedMinutesAgo = 3552 },
 
                 // --- 사흘 전. 사이트가 문을 연 날 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.018", MetaTextId = "board.filler.018.meta", BeliefPercent = 13 },  // 3일 전 10:47
-                new CommunityBoardEntry { TitleTextId = "board.filler.019", MetaTextId = "board.filler.019.meta" },                      // 3일 전 10:00
+                new CommunityBoardEntry { TitleTextId = "board.filler.018", MetaTextId = "board.filler.018.meta", BeliefPercent = 13, PostedMinutesAgo = 5023 },
+                new CommunityBoardEntry { TitleTextId = "board.filler.019", MetaTextId = "board.filler.019.meta", PostedMinutesAgo = 5070 },
             };
         }
+
+        /// <summary>막차 괴담의 ID. 이 괴담을 실어 나르는 글만 그 사건 조사에 반응한다.</summary>
+        private const string SubwayLegendId = "legend_subway_last_train";
 
         // ------------------------------------------------------------- 커뮤니티
 
@@ -468,8 +520,12 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), PostTimeTextId,
-                TutorialPostLikes, TutorialPostDislikes, _postBelief);
+            // 이 글의 반응과 올라온 시각은 게시판 목록의 그 줄이 들고 있다.
+            // 휴대폰으로 같은 글을 열어도 같은 것을 보게 하려면 한 곳에서만 들고 있어야 한다.
+            var hot = HotEntry;
+
+            _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), hot.PostedMinutesAgo,
+                hot.Likes, hot.Dislikes, _postBelief, hot.LikePressed, hot.DislikePressed);
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected, BuildChoiceNote);
             _communityScreen.BindReactions(OnLikeToggled, OnDislikeToggled);
@@ -493,6 +549,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnLikeToggled(bool pressed)
         {
+            HotEntry.LikePressed = pressed;
             if (!pressed) return;
             ShowTalk(LikeWarnTextId, AfterTalk.BackToChoices);
         }
@@ -500,8 +557,19 @@ namespace UrbanLegendBureau.Systems
         /// <summary>싫어요를 눌렀을 때. 한영이 맞장구를 친다.</summary>
         private void OnDislikeToggled(bool pressed)
         {
+            HotEntry.DislikePressed = pressed;
             if (!pressed) return;
             ShowTalk(DislikeGoodTextId, AfterTalk.BackToChoices);
+        }
+
+        /// <summary>튜토리얼이 여는 그 인기글의 목록 줄. 반응과 올라온 시각을 이 줄이 들고 있다.</summary>
+        private CommunityBoardEntry HotEntry
+        {
+            get
+            {
+                if (_boardEntries == null) BuildBoardEntries();
+                return _boardEntries[0];
+            }
         }
 
         // ------------------------------------------------------------- 한영의 말

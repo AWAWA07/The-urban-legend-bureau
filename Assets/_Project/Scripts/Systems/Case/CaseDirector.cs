@@ -384,20 +384,23 @@ namespace UrbanLegendBureau.Systems
 
             // 조회수도 목록에 적힌 것과 같아야 한다. 숫자를 여기서 새로 짓지 않는다.
             int views = _tutorial != null ? _tutorial.HotPageViews : 0;
-            _communityScreen.BindPage(entry.Page, views, PostTimeTextId, 0, 0, entry.BeliefPercent);
+            _communityScreen.BindPage(entry.Page, views, entry.PostedMinutesAgo,
+                entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
 
             // 댓글은 컴퓨터로 볼 때와 같은 것이다. 플레이어가 단 댓글도 그대로 따라온다.
             _communityScreen.BindComments(_tutorial != null ? _tutorial.Comments : null);
 
-            // 좋아요와 싫어요는 누를 수 있다. 지금은 눌린 표시와 숫자만 바뀌고 판정에는 쓰이지 않는다.
-            _communityScreen.BindReactions(null, null);
+            // 좋아요와 싫어요는 글이 들고 있는다. 컴퓨터에서 누른 것이 휴대폰에도 눌려 있어야 한다.
+            var pressed = entry;
+            _communityScreen.BindReactions(
+                on => pressed.LikePressed = on,
+                on => pressed.DislikePressed = on);
 
             // 다만 현장에서는 새 댓글을 달지 않는다. 그것은 컴퓨터 앞에서 하는 일이다.
             _communityScreen.BindChoices(null, null, null);
             _communityScreen.ShowBoard(false);
         }
 
-        private const string PostTimeTextId = "ui.net.post_time_tutorial";
 
         /// <summary>지금 현장의 열차 진입 장면. 막차 사건이 아니면 null.</summary>
         private TrainArrival GetArrival()
@@ -1014,10 +1017,17 @@ namespace UrbanLegendBureau.Systems
         {
             if (minutes > 0) GameClock.Skip(minutes);
 
-            if (spread.Changed)
+            if (_tutorial != null)
             {
-                float rise = (spread.CurrentRate - spread.PreviousRate) * BeliefPerSpread;
-                if (_tutorial != null) _tutorial.RaiseBoardBelief(rise);
+                // 시간이 흐른 것만으로도 게시판 전체가 조금씩 더 믿긴다.
+                if (minutes > 0) _tutorial.DriftBoardBelief(minutes);
+
+                // 그 위에, 지금 쫓고 있는 괴담의 글만 퍼진 만큼 더 오른다.
+                if (spread.Changed)
+                {
+                    float rise = (spread.CurrentRate - spread.PreviousRate) * BeliefPerSpread;
+                    _tutorial.RaiseBoardBelief(rise, _legendId);
+                }
             }
 
             PushStatus();

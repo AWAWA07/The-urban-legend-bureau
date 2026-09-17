@@ -13,6 +13,8 @@ namespace UrbanLegendBureau.UI
     public class CommunityBoardEntry
     {
         public string TitleTextId;
+
+        /// <summary>작성자와 조회/댓글 수. 올라온 시각은 여기 넣지 않는다. 시각은 시계를 보고 만든다.</summary>
         public string MetaTextId;
 
         /// <summary>인기글 표시를 붙일 것인가.</summary>
@@ -29,6 +31,27 @@ namespace UrbanLegendBureau.UI
         /// 0이면 괴담과 무관한 글이라 표시하지 않는다.
         /// </summary>
         public int BeliefPercent;
+
+        /// <summary>
+        /// 이 글이 어느 괴담을 실어 나르는가.
+        /// 비어 있으면 어느 사건과도 묶이지 않은 글이라, 그 사건을 조사해도 믿음이 오르지 않는다.
+        /// </summary>
+        public string LegendId;
+
+        /// <summary>
+        /// 이 글이 올라온 시각. 게임을 시작한 그 밤을 기준으로 얼마나 거슬러 올라가는가(분).
+        /// 실제로 적히는 문구는 지금 시각에서 이만큼 뺀 값으로 만든다.
+        /// </summary>
+        public int PostedMinutesAgo;
+
+        /// <summary>
+        /// 이 글에 달린 반응. 컴퓨터로 보든 휴대폰으로 보든 같은 값이라 글이 들고 있는다.
+        /// 화면은 이 값을 읽어 그리고, 누른 결과를 여기에 되돌려 적는다.
+        /// </summary>
+        public int Likes;
+        public int Dislikes;
+        public bool LikePressed;
+        public bool DislikePressed;
     }
 
     /// <summary>화면에 붙는 댓글 한 줄. 판정에 쓰이는 데이터는 들고 있지 않다.</summary>
@@ -697,7 +720,7 @@ namespace UrbanLegendBureau.UI
         private bool _dislikePressed;
         private Action<bool> _onLike;
         private Action<bool> _onDislike;
-        private string _postTimeTextId;
+        private int _postedMinutesAgo;
         private List<CommunityComment> _comments = new List<CommunityComment>();
         private IReadOnlyList<TutorialCommentChoice> _choices;
         private Func<TutorialCommentChoice, string> _choiceLabelProvider;
@@ -782,17 +805,20 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>게시글을 건다. 조회수와 작성 시각은 화면에 보이기 위한 값이다.</summary>
-        public void BindPage(WebPageSO page, int views, string postTimeTextId,
-            int likes = 0, int dislikes = 0, int beliefPercent = 0)
+        public void BindPage(WebPageSO page, int views, int postedMinutesAgo,
+            int likes = 0, int dislikes = 0, int beliefPercent = 0,
+            bool likePressed = false, bool dislikePressed = false)
         {
             _page = page;
             _views = views;
             _beliefPercent = beliefPercent;
             _likes = likes;
             _dislikes = dislikes;
-            _likePressed = false;
-            _dislikePressed = false;
-            _postTimeTextId = postTimeTextId;
+
+            // 누른 것은 글이 들고 있다가 알려 준다. 컴퓨터에서 누른 것이 휴대폰에도 눌려 있어야 한다.
+            _likePressed = likePressed;
+            _dislikePressed = dislikePressed;
+            _postedMinutesAgo = postedMinutesAgo;
 
             // 새 글이므로 맨 위부터 보여준다.
             _shownCommentCount = -1;
@@ -921,6 +947,49 @@ namespace UrbanLegendBureau.UI
 
         private const string StatusBeliefTextId = "ui.desktop.belief";
 
+        /// <summary>
+        /// "12분 전" / "3시간 전" / "어제 01:33" / "3일 전 10:47" 중 하나.
+        ///
+        /// 글이 올라온 시각은 게임 안 시계를 기준으로 센다. 그래서 조사하는 동안 시간이 흐르면
+        /// 목록의 "12분 전" 도 "27분 전" 이 된다. 게시판이 살아 있는 것처럼 보이는 것은 이것 때문이다.
+        /// </summary>
+        private static string BuildPostedText(LocalizationService loc, int minutesAgo)
+        {
+            // 지금이 몇 시인지에 글이 올라온 뒤로 흐른 시간을 더한다.
+            int total = minutesAgo + GameClock.ElapsedMinutes;
+
+            if (total < 1) return loc.Get(PostedNowTextId);
+            if (total < 60) return loc.Get(PostedMinutesTextId, total);
+
+            int hours = total / 60;
+            if (hours < 12) return loc.Get(PostedHoursTextId, hours);
+
+            // 반나절이 넘으면 몇 시간 전인지보다 몇 시에 올라왔는지가 눈에 들어온다.
+            GameClock.SplitPast(total, out int days, out int hour24, out int minute);
+            string clock = hour24.ToString("00") + ":" + minute.ToString("00");
+
+            if (days <= 0) return loc.Get(PostedTodayTextId, clock);
+            if (days == 1) return loc.Get(PostedYesterdayTextId, clock);
+            return loc.Get(PostedDaysTextId, days, clock);
+        }
+
+        private const string PostedNowTextId = "ui.net.posted_now";
+        private const string PostedMinutesTextId = "ui.net.posted_minutes";
+        private const string PostedHoursTextId = "ui.net.posted_hours";
+        private const string PostedTodayTextId = "ui.net.posted_today";
+        private const string PostedYesterdayTextId = "ui.net.posted_yesterday";
+        private const string PostedDaysTextId = "ui.net.posted_days";
+
+        /// <summary>작성자 정보 줄과 올라온 시각을 한 줄로 잇는다.</summary>
+        private static string BuildMetaLine(LocalizationService loc, string metaTextId, int minutesAgo)
+        {
+            string who = string.IsNullOrEmpty(metaTextId) ? string.Empty : loc.Get(metaTextId);
+            string when = BuildPostedText(loc, minutesAgo);
+
+            if (string.IsNullOrEmpty(who)) return when;
+            return who + "    " + when;
+        }
+
         /// <summary>같은 문구를 쓰는 칸이 여럿이라 한 번에 채운다.</summary>
         private static void SetAll(TMP_Text[] targets, string text)
         {
@@ -968,7 +1037,7 @@ namespace UrbanLegendBureau.UI
                 string meta = _page == null
                     ? string.Empty
                     : loc.Get(MetaTextId, loc.Get("ui.net.author_anon"), _views, _comments.Count,
-                        string.IsNullOrEmpty(_postTimeTextId) ? string.Empty : loc.Get(_postTimeTextId));
+                        BuildPostedText(loc, _postedMinutesAgo));
 
                 // 좁은 화면에서는 한 줄에 다 들어가지 않는다. 다음 줄에 오른쪽으로 붙여 세운다.
                 if (beliefInMeta && !string.IsNullOrEmpty(meta))
@@ -1048,7 +1117,7 @@ namespace UrbanLegendBureau.UI
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
                     // 닉네임 / 조회 / 댓글 / 시간은 곁가지다. 제목보다 작고 흐리게 둔다.
-                    string meta = string.IsNullOrEmpty(entry.MetaTextId) ? string.Empty : loc.Get(entry.MetaTextId);
+                    string meta = BuildMetaLine(loc, entry.MetaTextId, entry.PostedMinutesAgo);
                     text.text = string.IsNullOrEmpty(meta)
                         ? title
                         : title + "\n<size=" + MetaSizePercent + "%><color=#6B7280>" + meta + "</color></size>";
