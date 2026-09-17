@@ -2519,11 +2519,8 @@ namespace UrbanLegendBureau.EditorTools
             phoneBelief.raycastTarget = false;
             phoneBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
-            var phoneBeliefLabel = phoneBelief.gameObject.AddComponent<BeliefLabel>();
-            var pbSo = new SerializedObject(phoneBeliefLabel);
-            pbSo.Update();
-            pbSo.FindProperty("_short").boolValue = true;   // 상태 줄이 좁아 한 줄에 들어가야 한다
-            pbSo.ApplyModifiedPropertiesWithoutUndo();
+            // 글 하나가 아니라 게시판 전체의 값이다. 이름도 그대로 "전체 믿음도" 라고 적는다.
+            phoneBelief.gameObject.AddComponent<BeliefLabel>();
 
             // 닫기는 왼쪽 끝. 괴담넷의 돌아가기와 같은 자리다.
             var phoneClose = CreatePanel(phoneBar.transform, "Btn_PhoneClose", new Color(0.30f, 0.16f, 0.18f, 1f));

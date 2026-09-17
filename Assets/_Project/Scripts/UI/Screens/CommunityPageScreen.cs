@@ -908,20 +908,18 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
-        /// 맨 윗줄의 믿음도.
+        /// 맨 윗줄의 전체 믿음도.
         ///
-        /// 글을 펼쳐 보고 있을 때는 그 글의 믿음도를 보여준다. 지금 읽고 있는 것이 그 글이기 때문이다.
-        /// 목록을 보고 있을 때는 게시판 전체의 믿음도다.
+        /// 글 하나의 믿음도가 아니라 게시판 전체의 값이다. 휴대폰 상태 줄과 같은 숫자다.
+        /// 글 하나의 믿음도는 그 글 안, 작성자 정보 옆에 따로 적힌다.
         /// </summary>
         private void RefreshStatusBelief(LocalizationService loc)
         {
             if (_statusBeliefText == null) return;
-
-            int percent = _showingBoard ? GameStatus.Belief : _beliefPercent;
-            _statusBeliefText.text = percent > 0 ? loc.Get(StatusBeliefTextId, percent) : string.Empty;
+            _statusBeliefText.text = loc.Get(StatusBeliefTextId, GameStatus.Belief);
         }
 
-        private const string StatusBeliefTextId = "ui.status.belief_short";
+        private const string StatusBeliefTextId = "ui.desktop.belief";
 
         /// <summary>같은 문구를 쓰는 칸이 여럿이라 한 번에 채운다.</summary>
         private static void SetAll(TMP_Text[] targets, string text)

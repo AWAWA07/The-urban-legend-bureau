@@ -37,8 +37,8 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _beliefText;
 
         [Tooltip("컴퓨터를 켠 시각. 여기서부터 실제 시간만큼 흘러간다.")]
-        [SerializeField] private int _startHour = 2;
-        [SerializeField] private int _startMinute = 44;
+        [SerializeField] private int _startHour = 22;
+        [SerializeField] private int _startMinute = 30;
 
         [Header("아이콘")]
         [SerializeField] private List<DesktopIcon> _icons = new List<DesktopIcon>();

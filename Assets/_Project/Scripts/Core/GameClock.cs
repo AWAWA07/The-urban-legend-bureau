@@ -18,8 +18,8 @@ namespace UrbanLegendBureau.Core
         private const string AmTextId = "ui.desktop.am";
         private const string PmTextId = "ui.desktop.pm";
 
-        private static int _startHour = 2;
-        private static int _startMinute = 44;
+        private static int _startHour = 22;
+        private static int _startMinute = 30;
 
         private static float _origin;
         private static bool _started;
@@ -45,7 +45,7 @@ namespace UrbanLegendBureau.Core
 
         /// <summary>
         /// 시계를 앞으로 돌린다. 화면 밖에서 흘러간 시간을 채워 넣을 때 쓴다.
-        /// 컴퓨터 앞을 떠나 현장까지 가는 동안이 그렇다.
+        /// 조사 행동으로 사건 시간이 흐른 만큼이 그렇다.
         ///
         /// 흐른 시각을 따로 쌓아 둔다. 시작점을 뒤로 미루는 식으로 하면
         /// 그 값이 음수가 되어 "아직 시작하지 않음"과 구별되지 않는다.
@@ -54,6 +54,17 @@ namespace UrbanLegendBureau.Core
         {
             EnsureStarted();
             _skipped += minutes;
+        }
+
+        /// <summary>
+        /// 시각을 그대로 맞춰 놓고 거기서부터 다시 흐르게 한다.
+        /// 장면이 바뀌면서 시각이 정해져 있는 곳에 쓴다. 현장에 닿는 시각이 그렇다.
+        /// </summary>
+        public static void SetTo(int hour, int minute)
+        {
+            _startHour = hour;
+            _startMinute = minute;
+            Restart();
         }
 
         /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>

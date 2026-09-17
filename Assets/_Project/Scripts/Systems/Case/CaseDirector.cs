@@ -430,11 +430,12 @@ namespace UrbanLegendBureau.Systems
         /// <summary>열차에 올라탔는가. 사건이 바뀌면 풀린다.</summary>
         private bool _boarded;
 
-        /// <summary>현장까지 오는 데 걸린 시간을 이미 시계에 더했는가. 사건이 바뀌면 풀린다.</summary>
+        /// <summary>현장에 닿는 시각을 이미 맞췄는가. 사건이 바뀌면 풀린다.</summary>
         private bool _fieldTimeAdded;
 
-        /// <summary>컴퓨터 앞에서 현장까지 가는 데 걸리는 시간(분).</summary>
-        private const int TravelMinutes = 30;
+        /// <summary>현장에 닿는 시각. 막차 시간에 맞춰 정해져 있다.</summary>
+        private const int FieldHour = 23;
+        private const int FieldMinute = 30;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
         private const string DoorOpenTextId = "ui.field.door_open";
@@ -771,6 +772,9 @@ namespace UrbanLegendBureau.Systems
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
             if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
 
+            // 구석에 뜰 숫자를 먼저 맞춘다. 위쪽 한 줄이 그 값을 읽어 한 번에 그려지기 때문이다.
+            PushStatus();
+
             // 위쪽 한 줄에만 지금 상황을 건다.
             // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
             _fieldHudScreen.Bind(BuildFieldTicker);
@@ -779,15 +783,14 @@ namespace UrbanLegendBureau.Systems
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
 
-            // 컴퓨터 앞을 떠나 현장까지 오는 동안 시계도 그만큼 흘렀다.
-            // 한 사건에 한 번만 더한다. 현장을 들락거린다고 시간이 계속 뛰지는 않는다.
+            // 현장에 닿는 시각은 정해져 있다. 막차를 잡으려면 그 시각에 거기 있어야 한다.
+            // 컴퓨터 앞에서 얼마를 보냈든 여기 도착하면 이 시각이고, 여기서부터 다시 흐른다.
+            // 한 사건에 한 번만 맞춘다. 현장을 들락거린다고 시계가 되감기지는 않는다.
             if (!_fieldTimeAdded)
             {
                 _fieldTimeAdded = true;
-                GameClock.Skip(TravelMinutes);
+                GameClock.SetTo(FieldHour, FieldMinute);
             }
-
-            PushStatus();
 
             if (_field != null) _field.SetFieldVisible(true, _legendId);
 
