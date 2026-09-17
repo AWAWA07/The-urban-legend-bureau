@@ -2511,7 +2511,8 @@ namespace UrbanLegendBureau.EditorTools
             phoneClock.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
             phoneClock.gameObject.AddComponent<ClockLabel>();
 
-            var phoneBelief = AddText(phoneBar.transform, "Belief", 14f, UIFontWeight.SemiBold, PhoneBeliefColor,
+            // 시각보다 한 급 작게 둔다. 괴담넷 상태 줄과 같은 차림이다.
+            var phoneBelief = AddText(phoneBar.transform, "Belief", 12f, UIFontWeight.SemiBold, PhoneBeliefColor,
                 Vector2.zero, new Vector2(110f, 24f), TextAlignmentOptions.Right);
             var phoneBeliefRt = phoneBelief.rectTransform;
             phoneBeliefRt.anchorMin = new Vector2(1f, 0.5f);

@@ -506,10 +506,13 @@ namespace UrbanLegendBureau.UI
 
             // --- 본문 ---
             // 줄이 서로 붙어 빽빽해 보인다. 줄 사이를 띄우고 문단 사이도 벌린다.
+            // 좁은 화면에서는 글자도 한 급 더 줄인다. 한 줄에 들어가는 글자가 너무 적으면 읽기 나쁘다.
             if (_bodyText != null)
             {
                 _bodyText.lineSpacing = phone ? PhoneBodyLineSpacing : DeskBodyLineSpacing;
                 _bodyText.paragraphSpacing = phone ? PhoneBodyParagraphSpacing : DeskBodyParagraphSpacing;
+
+                if (phone) _bodyText.fontSize = PhoneBodyFontSize;
             }
 
             // --- 댓글 카드 ---
@@ -629,6 +632,9 @@ namespace UrbanLegendBureau.UI
         private const float DeskBodyParagraphSpacing = 18f;
         private const float PhoneBodyLineSpacing = 16f;
         private const float PhoneBodyParagraphSpacing = 26f;
+
+        /// <summary>좁은 화면의 본문 글자 크기. 다른 글자처럼 비율로 줄이지 않고 따로 정한다.</summary>
+        private const float PhoneBodyFontSize = 19f;
         /// <summary>댓글 칸 안쪽 위아래 여백. 칸 높이 자체는 댓글마다 제 내용에 맞춰 자란다.</summary>
         private const int DeskCommentPad = 12;
         private const int PhoneCommentPad = 10;
