@@ -489,6 +489,26 @@ namespace UrbanLegendBureau.Systems
         /// <summary>막차 괴담의 ID. 이 괴담을 실어 나르는 글만 그 사건 조사에 반응한다.</summary>
         private const string SubwayLegendId = "legend_subway_last_train";
 
+        /// <summary>
+        /// 이 괴담을 이끌고 있는 글의 믿음도(%).
+        ///
+        /// 같은 괴담을 좇는 글이 여럿이면 그중 가장 믿기는 글을 쓴다.
+        /// 사건이 얼마나 굳어졌는지는 가장 앞선 글이 말해 준다. 평균은 뒤따르는 글에 묻힌다.
+        /// </summary>
+        public int GetLegendBelief(string legendId)
+        {
+            if (string.IsNullOrEmpty(legendId)) return 0;
+            if (_boardEntries == null) BuildBoardEntries();
+
+            int best = 0;
+            foreach (var entry in _boardEntries)
+            {
+                if (entry == null || entry.LegendId != legendId) continue;
+                if (entry.BeliefPercent > best) best = entry.BeliefPercent;
+            }
+            return best;
+        }
+
         // ------------------------------------------------------------- 커뮤니티
 
         /// <summary>한영의 말이 끝난 뒤 무엇을 할 것인가.</summary>

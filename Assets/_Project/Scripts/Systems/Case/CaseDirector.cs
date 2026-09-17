@@ -958,9 +958,13 @@ namespace UrbanLegendBureau.Systems
             float spread = GetSpread();
             string levelText = _spread != null ? _loc.Get(_spread.GetSpreadLevelTextId(spread)) : string.Empty;
 
-            // 믿음도는 게시판이 만들어 내는 값이다. 괴담넷과 작업 표시줄과 휴대폰이 모두 같은 숫자를 본다.
+            // 여기 믿음도는 게시판 전체가 아니라 지금 쫓고 있는 그 괴담의 것이다.
+            // 현장에서 알아야 하는 것은 이 사건이 얼마나 굳어졌는가이기 때문이다.
+            int belief = _tutorial != null ? _tutorial.GetLegendBelief(_legendId) : 0;
+
             return $"{_loc.Get(LabelSpreadTextId)}: {spread:F0}% ({levelText})" +
-                   $"    {_loc.Get(LabelBeliefTextId)}: {GameStatus.Belief}%";
+                   $"    <color=#{ColorUtility.ToHtmlStringRGB(FieldBeliefColor)}>" +
+                   $"{_loc.Get(LabelBeliefTextId)}: {belief}%</color>";
         }
 
         /// <summary>사건 경과 시간 / 조사 행동 횟수 표시줄.</summary>
@@ -1038,6 +1042,9 @@ namespace UrbanLegendBureau.Systems
         /// 작게 잡는다. 조사 몇 번으로 글이 확 믿기게 되면 검열할 이유가 없어진다.
         /// </summary>
         private const float BeliefPerSpread = 0.3f;
+
+        /// <summary>현장 위쪽 한 줄의 믿음도 색. 어두운 띠 위에 얹히므로 밝은 붉은색을 쓴다.</summary>
+        private static readonly Color FieldBeliefColor = new Color(0.92f, 0.34f, 0.32f);
 
         /// <summary>상세 화면의 목록 복귀 버튼.</summary>
         public void OnPageBackClicked()

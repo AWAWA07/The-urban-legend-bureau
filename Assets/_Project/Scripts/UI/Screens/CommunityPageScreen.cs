@@ -470,10 +470,11 @@ namespace UrbanLegendBureau.UI
                         // 오른쪽 끝은 굴림 막대가 덮으므로 그만큼 안으로 들인다.
                         if (phone)
                         {
+                            // 줄 안쪽 위 여백만큼 내려야 제목 첫 줄과 같은 선에 선다.
                             brt.anchorMin = new Vector2(1f, 1f);
                             brt.anchorMax = new Vector2(1f, 1f);
                             brt.pivot = new Vector2(1f, 1f);
-                            brt.anchoredPosition = new Vector2(-(10f + _phoneScrollbarWidth), -14f);
+                            brt.anchoredPosition = new Vector2(-(10f + _phoneScrollbarWidth), -PhoneBoardRowPad);
                             text.alignment = TextAlignmentOptions.TopRight;
                         }
                         else
