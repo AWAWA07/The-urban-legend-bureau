@@ -490,28 +490,28 @@ namespace UrbanLegendBureau.Systems
         private const string SubwayLegendId = "legend_subway_last_train";
 
         /// <summary>
-        /// 지금 조사하고 있는 그 글의 믿음도(%).
+        /// 이 괴담에 묶여 있는 글들의 평균 믿음도(%).
         ///
-        /// 같은 괴담을 좇는 글이 여럿이라도, 사건이 걸려 있는 것은 열어서 조사하는 그 글 하나다.
-        /// 곁의 글이 더 믿기고 있다고 해서 그 숫자를 현장에 띄우면 무엇을 쫓는지가 흐려진다.
+        /// 하나의 괴담을 여러 글이 나눠 싣고 있다. 사건이 얼마나 굳어졌는지는 그 글들을 함께 봐야 안다.
+        /// 조사하는 글 하나만 보면, 그 글을 반박해 두고도 곁의 글이 소문을 떠받치는 것을 놓친다.
         /// </summary>
         public int GetLegendBelief(string legendId)
         {
             if (string.IsNullOrEmpty(legendId)) return 0;
             if (_boardEntries == null) BuildBoardEntries();
 
+            int total = 0;
+            int counted = 0;
+
             foreach (var entry in _boardEntries)
             {
                 if (entry == null || entry.LegendId != legendId) continue;
-                if (entry.Openable && entry.Page != null) return entry.BeliefPercent;
+
+                total += entry.BeliefPercent;
+                counted++;
             }
 
-            // 열리는 글이 아직 없으면 그 괴담의 첫 글로 대신한다.
-            foreach (var entry in _boardEntries)
-            {
-                if (entry != null && entry.LegendId == legendId) return entry.BeliefPercent;
-            }
-            return 0;
+            return counted == 0 ? 0 : Mathf.RoundToInt((float)total / counted);
         }
 
         // ------------------------------------------------------------- 커뮤니티
@@ -1287,9 +1287,142 @@ namespace UrbanLegendBureau.Systems
         /// 현장 대사가 끝났다. 여기서부터는 평소 현장 조사다.
         /// 튜토리얼은 손을 떼고 사건 쪽에 맡긴다.
         /// </summary>
+        /// <summary>
+        /// 승강장 대사가 끝났다. 여기서 끝내지 않고 열차에 타기를 기다린다.
+        /// 띠를 비워 두어야 열린 문을 누를 수 있다.
+        /// </summary>
         private void EndFieldTutorial()
         {
             _inFieldTalk = false;
+            _awaitingBoarding = true;
+
+            if (_fieldHud != null) _fieldHud.ClearSpeech();
+            if (_caseDirector != null) _caseDirector.RefreshFieldHud();
+
+            Debug.Log("[TutorialDirector] 승강장 대사 끝 | 열차에 타기를 기다린다");
+        }
+
+        // ------------------------------------------------------------- 열차에 탄 뒤
+
+        private bool _awaitingBoarding;
+        private int _boardLineIndex;
+        private int _boardPick = -1;
+
+        /// <summary>열차에 탄 직후 주고받는 말. 가운데에서 한 번 고르는 것이 끼어든다.</summary>
+        private static readonly string[] BoardLineTextIds =
+        {
+            "tutorial.board.001",
+            "tutorial.board.002",
+            "tutorial.board.003",
+        };
+
+        private static readonly string[] BoardChoiceTextIds =
+        {
+            "tutorial.board.choice_1",
+            "tutorial.board.choice_2",
+            "tutorial.board.choice_3",
+        };
+
+        private static readonly string[] BoardReplyTextIds =
+        {
+            "tutorial.board.reply_1",
+            "tutorial.board.reply_2",
+            "tutorial.board.reply_3",
+        };
+
+        /// <summary>고르고 난 뒤. 어느 것을 골랐든 같은 설명으로 이어진다.</summary>
+        private static readonly string[] BoardAfterTextIds =
+        {
+            "tutorial.board.004",
+            "tutorial.board.005",
+            "tutorial.board.006",
+        };
+
+        private static readonly bool[] BoardAfterIsHanyoung = { true, false, true };
+
+        /// <summary>열차에 올라탔다. 사건이 이 자리에 얽힌 이유를 여기서 짚는다.</summary>
+        public void OnBoardedTrain()
+        {
+            if (!_awaitingBoarding) return;
+
+            _awaitingBoarding = false;
+            _boardLineIndex = 0;
+            _boardPick = -1;
+
+            _fieldHud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (_fieldHud == null)
+            {
+                FinishFieldTutorial();
+                return;
+            }
+
+            Debug.Log("[TutorialDirector] 열차 안 대사 시작");
+            ShowBoardLine();
+        }
+
+        private void ShowBoardLine()
+        {
+            // 먼저 한영이 셋을 말하고, 그 뒤에 고를 것이 뜬다.
+            if (_boardLineIndex < BoardLineTextIds.Length)
+            {
+                string id = BoardLineTextIds[_boardLineIndex];
+                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(id), OnBoardLineAdvanced);
+                return;
+            }
+
+            // 고른 적이 없으면 여기서 고른다.
+            if (_boardPick < 0)
+            {
+                var labels = new List<System.Func<string>>();
+                foreach (var id in BoardChoiceTextIds)
+                {
+                    string captured = id;
+                    labels.Add(() => _loc.Get(captured));
+                }
+
+                _fieldHud.ShowChoices(ChajihanNameTextId, labels, OnBoardChoicePicked);
+                return;
+            }
+
+            // 고른 것에 대한 대답 하나, 그 뒤로는 어느 것을 골랐든 같은 말이 이어진다.
+            int after = _boardLineIndex - BoardLineTextIds.Length - 1;
+            if (after < 0)
+            {
+                string reply = BoardReplyTextIds[_boardPick];
+                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(reply), OnBoardLineAdvanced);
+                return;
+            }
+
+            if (after < BoardAfterTextIds.Length)
+            {
+                string id = BoardAfterTextIds[after];
+                string name = BoardAfterIsHanyoung[after] ? HanyoungNameTextId : ChajihanNameTextId;
+                _fieldHud.ShowLine(name, () => _loc.Get(id), OnBoardLineAdvanced);
+                return;
+            }
+
+            FinishFieldTutorial();
+        }
+
+        private void OnBoardLineAdvanced()
+        {
+            _boardLineIndex++;
+            ShowBoardLine();
+        }
+
+        private void OnBoardChoicePicked(int index)
+        {
+            // 여기서 숫자를 올리지 않는다. 고른 것에 대한 대답이 아직 남아 있다.
+            _boardPick = Mathf.Clamp(index, 0, BoardReplyTextIds.Length - 1);
+
+            Debug.Log("[TutorialDirector] 열차 안 문제 | 고른 것 " + (_boardPick + 1) +
+                      (_boardPick == 1 ? " (정답)" : " (오답)"));
+            ShowBoardLine();
+        }
+
+        /// <summary>현장 대사가 모두 끝났다. 여기서부터는 평소 조사다.</summary>
+        private void FinishFieldTutorial()
+        {
             IsRunning = false;
 
             if (_fieldHud != null) _fieldHud.ClearSpeech();

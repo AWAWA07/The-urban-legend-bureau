@@ -113,6 +113,7 @@ namespace UrbanLegendBureau.Systems
         private const string CensorWrongTextId = "ui.net.censor_wrong_feedback";
         private const string LabelSpreadTextId = "ui.net.label_spread";
         private const string LabelBeliefTextId = "ui.net.label_belief";
+        private const string LabelLegendBeliefTextId = "ui.field.label_legend_belief";
         private const string ExorcismTitleTextId = "ui.seal.title";
         private const string LabelSealStateTextId = "ui.seal.label_state";
         private const string SealStateReadyTextId = "ui.seal.state_ready";
@@ -958,13 +959,13 @@ namespace UrbanLegendBureau.Systems
             float spread = GetSpread();
             string levelText = _spread != null ? _loc.Get(_spread.GetSpreadLevelTextId(spread)) : string.Empty;
 
-            // 여기 믿음도는 게시판 전체가 아니라 지금 쫓고 있는 그 괴담의 것이다.
+            // 여기 믿음도는 게시판 전체가 아니라 이 괴담에 묶인 글들의 평균이다.
             // 현장에서 알아야 하는 것은 이 사건이 얼마나 굳어졌는가이기 때문이다.
             int belief = _tutorial != null ? _tutorial.GetLegendBelief(_legendId) : 0;
 
             return $"{_loc.Get(LabelSpreadTextId)}: {spread:F0}% ({levelText})" +
                    $"    <color=#{ColorUtility.ToHtmlStringRGB(FieldBeliefColor)}>" +
-                   $"{_loc.Get(LabelBeliefTextId)}: {belief}%</color>";
+                   $"{_loc.Get(LabelLegendBeliefTextId)}: {belief}%</color>";
         }
 
         /// <summary>사건 경과 시간 / 조사 행동 횟수 표시줄.</summary>
@@ -1304,6 +1305,9 @@ namespace UrbanLegendBureau.Systems
             RefreshFieldHud();
 
             Debug.Log("[CaseDirector] 열차가 들어왔다 | 승강장 -> 열차 안");
+
+            // 튜토리얼은 여기서 이 사건이 이 자리에 얽힌 이유를 짚는다.
+            if (_tutorial != null) _tutorial.OnBoardedTrain();
         }
 
         private void OnPointInvestigated(InvestigationPoint point)

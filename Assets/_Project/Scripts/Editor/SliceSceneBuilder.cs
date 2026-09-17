@@ -2322,13 +2322,20 @@ namespace UrbanLegendBureau.EditorTools
             plateRt.pivot = new Vector2(0.5f, 1f);
             plateRt.anchoredPosition = new Vector2(0f, -24f);
             // 열차에 탄 뒤에는 앞에 한 마디가 더 붙으므로 넉넉히 넓게 둔다.
-            plateRt.sizeDelta = new Vector2(1560f, 52f);
+            plateRt.sizeDelta = new Vector2(1740f, 52f);
             tickerPlate.GetComponent<Image>().raycastTarget = false;
 
             var tickerText = AddText(tickerPlate.transform, "Ticker", 26f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
             StretchInside(tickerText.rectTransform, 24f, 24f, 6f, 6f);
             tickerText.raycastTarget = false;
+
+            // 고를 것이 떠 있는 동안 장면을 못 누르게 덮는 판.
+            // 대사 띠보다 먼저 만들어야 띠와 선택지가 이 판 위에 올라온다.
+            var fieldBlock = CreatePanel(safe.transform, "Blocker", new Color(0f, 0f, 0f, 0f));
+            StretchFull(fieldBlock);
+            fieldBlock.GetComponent<Image>().raycastTarget = true;
+            fieldBlock.SetActive(false);
 
             // --- 아래 대사 띠 ---
             var band = CreatePanel(safe.transform, "Band", new Color(0.03f, 0.03f, 0.05f, 1f));
@@ -2391,6 +2398,48 @@ namespace UrbanLegendBureau.EditorTools
             lineText.rectTransform.sizeDelta = new Vector2(1240f, 130f);
             lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;
             lineText.raycastTarget = false;
+
+            // --- 고를 것 ---
+            // 대사가 서는 그 자리에 대신 늘어선다. 평소에는 꺼 둔다.
+            var choices = new GameObject("Choices", typeof(RectTransform));
+            choices.transform.SetParent(speech.transform, false);
+            var fieldChoiceRoot = (RectTransform)choices.transform;
+            fieldChoiceRoot.anchorMin = new Vector2(0f, 1f);
+            fieldChoiceRoot.anchorMax = new Vector2(0f, 1f);
+            fieldChoiceRoot.pivot = new Vector2(0f, 1f);
+            fieldChoiceRoot.anchoredPosition = new Vector2(TextLeft, -96f);
+            fieldChoiceRoot.sizeDelta = new Vector2(860f, 0f);   // 오른쪽 아래 버튼 줄과 겹치지 않는 폭
+
+            var choiceLayout = choices.AddComponent<VerticalLayoutGroup>();
+            choiceLayout.spacing = 8f;
+            choiceLayout.childAlignment = TextAnchor.UpperLeft;
+            choiceLayout.childControlWidth = true;
+            choiceLayout.childControlHeight = false;
+            choiceLayout.childForceExpandWidth = true;
+            choiceLayout.childForceExpandHeight = false;
+
+            var fieldChoiceTemplate = CreatePanel(choices.transform, "ChoiceTemplate",
+                new Color(0.13f, 0.14f, 0.19f, 1f));
+            var fieldChoice = fieldChoiceTemplate.AddComponent<Button>();
+            fieldChoice.targetGraphic = fieldChoiceTemplate.GetComponent<Image>();
+
+            var fieldChoiceColors = fieldChoice.colors;
+            fieldChoiceColors.normalColor = Color.white;
+            fieldChoiceColors.highlightedColor = new Color(1.35f, 1.35f, 1.45f, 1f);
+            fieldChoiceColors.pressedColor = new Color(0.8f, 0.8f, 0.9f, 1f);
+            fieldChoiceColors.selectedColor = Color.white;
+            fieldChoice.colors = fieldChoiceColors;
+
+            var fieldChoiceRt = (RectTransform)fieldChoiceTemplate.transform;
+            fieldChoiceRt.sizeDelta = new Vector2(860f, 58f);
+
+            var fieldChoiceLabel = AddText(fieldChoiceTemplate.transform, "Label", 28f, UIFontWeight.Regular,
+                TextColor, Vector2.zero, new Vector2(820f, 44f), TextAlignmentOptions.Left);
+            StretchInside(fieldChoiceLabel.rectTransform, 22f, 22f, 6f, 6f);
+            fieldChoiceLabel.raycastTarget = false;
+
+            fieldChoiceTemplate.SetActive(false);
+            choices.SetActive(false);
 
             // 버튼은 띠 오른쪽 아래에 세운다. 장면도 대사도 가리지 않는다.
             buttonRow = CreateButtonRow(band.transform, new Vector2(600f, -110f), new Vector2(660f, 92f));
@@ -2599,6 +2648,9 @@ namespace UrbanLegendBureau.EditorTools
             so.Update();
             so.FindProperty("_advanceRoot").objectReferenceValue = fieldAdvance;
             so.FindProperty("_advanceButton").objectReferenceValue = fieldAdvanceButton;
+            so.FindProperty("_choiceRoot").objectReferenceValue = fieldChoiceRoot;
+            so.FindProperty("_choiceTemplate").objectReferenceValue = fieldChoice;
+            so.FindProperty("_blockRoot").objectReferenceValue = fieldBlock;
             so.FindProperty("_tickerText").objectReferenceValue = tickerText;
             so.FindProperty("_portrait").objectReferenceValue = portrait.GetComponent<Image>();
             so.FindProperty("_speakerText").objectReferenceValue = speakerText;

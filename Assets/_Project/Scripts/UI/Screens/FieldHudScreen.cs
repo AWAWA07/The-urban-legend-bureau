@@ -44,6 +44,15 @@ namespace UrbanLegendBureau.UI
 
         [SerializeField] private Button _advanceButton;
 
+        [Tooltip("고를 것을 늘어놓는 자리. 대사 대신 여기에 선택지가 뜬다.")]
+        [SerializeField] private RectTransform _choiceRoot;
+
+        [Tooltip("복제할 선택지 한 칸.")]
+        [SerializeField] private Button _choiceTemplate;
+
+        [Tooltip("선택지가 떠 있는 동안 장면을 못 누르게 덮는 판. 대사 띠보다 뒤에 깔린다.")]
+        [SerializeField] private GameObject _blockRoot;
+
         [Header("휴대폰")]
         [Tooltip("장면 오른쪽에 늘 떠 있는 작은 단추.")]
         [SerializeField] private Button _phoneButton;
@@ -109,6 +118,12 @@ namespace UrbanLegendBureau.UI
             _speakerTextId = speakerTextId;
             _lineProvider = line;
 
+            // 앞서 고를 것이 떠 있었다면 치운다. 대사와 선택지가 같은 자리를 쓴다.
+            ClearSpawnedChoices();
+            if (_choiceRoot != null) _choiceRoot.gameObject.SetActive(false);
+            if (_lineText != null) _lineText.gameObject.SetActive(true);
+            if (_blockRoot != null) _blockRoot.SetActive(false);
+
             if (_speechRoot != null) _speechRoot.SetActive(true);
 
             if (_advanceButton != null)
@@ -121,15 +136,72 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
+        /// <summary>
+        /// 고를 것을 띠에 늘어놓는다. 대사 자리에 선택지가 대신 선다.
+        ///
+        /// 고르는 동안에는 장면이 눌리지 않게 덮어 둔다. 그러지 않으면 답을 고르다 말고
+        /// 엉뚱한 곳을 조사하게 된다.
+        /// </summary>
+        public void ShowChoices(string speakerTextId, IReadOnlyList<Func<string>> labels, Action<int> onPick)
+        {
+            _speakerTextId = speakerTextId;
+            _lineProvider = null;
+
+            ClearSpawnedChoices();
+
+            if (_speechRoot != null) _speechRoot.SetActive(true);
+            if (_advanceRoot != null) _advanceRoot.SetActive(false);
+            if (_blockRoot != null) _blockRoot.SetActive(true);
+
+            if (_choiceRoot != null) _choiceRoot.gameObject.SetActive(true);
+            if (_lineText != null) _lineText.gameObject.SetActive(false);
+
+            if (_choiceRoot == null || _choiceTemplate == null || labels == null) return;
+
+            for (int i = 0; i < labels.Count; i++)
+            {
+                var item = Instantiate(_choiceTemplate, _choiceRoot);
+                item.gameObject.name = "Choice_" + i;
+                item.gameObject.SetActive(true);
+
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null && labels[i] != null) label.text = labels[i]();
+
+                int picked = i;
+                item.onClick.RemoveAllListeners();
+                item.onClick.AddListener(() => onPick?.Invoke(picked));
+
+                _spawnedChoices.Add(item.gameObject);
+            }
+
+            Refresh();
+        }
+
+        private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
+
+        private void ClearSpawnedChoices()
+        {
+            for (int i = 0; i < _spawnedChoices.Count; i++)
+            {
+                if (_spawnedChoices[i] != null) Destroy(_spawnedChoices[i]);
+            }
+            _spawnedChoices.Clear();
+        }
+
         /// <summary>말하는 사람을 치운다. 띠에는 버튼만 남는다.</summary>
         public void ClearSpeech()
         {
             _speakerTextId = null;
             _lineProvider = null;
 
+            ClearSpawnedChoices();
+
             if (_advanceButton != null) _advanceButton.onClick.RemoveAllListeners();
             if (_advanceRoot != null) _advanceRoot.SetActive(false);
+            if (_blockRoot != null) _blockRoot.SetActive(false);
             if (_speechRoot != null) _speechRoot.SetActive(false);
+            if (_choiceRoot != null) _choiceRoot.gameObject.SetActive(false);
+            if (_lineText != null) _lineText.gameObject.SetActive(true);
         }
 
         // ------------------------------------------------------------- 휴대폰

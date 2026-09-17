@@ -495,3 +495,16 @@ ui.net.posted_hours	{0}시간 전	{0}h ago	게시글이 올라온 시각 - 반�
 ui.net.posted_today	오늘 {0}	today {0}	게시글이 올라온 시각 - 오늘
 ui.net.posted_yesterday	어제 {0}	yesterday {0}	게시글이 올라온 시각 - 어제
 ui.net.posted_days	{0}일 전 {1}	{0}d ago {1}	게시글이 올라온 시각 - 그보다 오래
+ui.field.label_legend_belief	관련 괴담들의 총 믿음도	Linked legend belief	현장 위쪽 한 줄 - 이 괴담에 묶인 글들의 평균
+tutorial.board.001	이 글을 살펴보니 이 막차 시간 괴담에 묶여있던 글이 총 3개가 있었어.	Looking this over, three posts are tied to this last-train legend.	열차에 탄 직후 - 한영
+tutorial.board.002	우리가 인터넷으로 조사했던 '어제 막차에서 있었던 일' 말고, 이 '이 노선 막차 시간 아시는 분'이 같은 내용인 게 확인됐어.	Besides the one we looked into online, this "Anyone know the last train time on this line?" turned out to be the same story.	
+tutorial.board.003	여기서 문제. 그럼 관련되어 있는 다른 하나의 게시물 제목은 무엇일까?	Quiz time. So what is the title of the other post that is tied in?	
+tutorial.board.choice_1	'막차 시간표 스샷 찍어왔습니다.' 이거 맞죠?	"Screenshot of the last-train timetable" — that's it, right?	선택지 - 틀림
+tutorial.board.choice_2	'지하철 9-4 칸은 타지 마세요' 이거에요.	It is "Do not ride subway car 9-4".	선택지 - 정답
+tutorial.board.choice_3	'거울 앞에서 사진 찍었는데 하나 더 있음' 게시물이요.	The "Took a photo at the mirror and there was one extra" post.	선택지 - 틀림
+tutorial.board.reply_1	아니. 막차 시간표 스샷은 이 사건과 관련된 이야기는 맞지만, 괴담을 말하는 글이 아니야.	No. The timetable screenshot is related to this case, but it is not telling a legend.	
+tutorial.board.reply_2	오... 예리한데? 맞아. 그래서 우린 9-4 칸에 타서 진실을 찾으러 온 거지.	Oh... sharp. That is right. That is why we boarded car 9-4 to find the truth.	
+tutorial.board.reply_3	아니. 그 사건은 우리가 관리해야 하는 괴담은 맞지만, 이 사건과 관련된 이야기는 아니야.	No. That one is a legend we handle, but it is not tied to this case.	
+tutorial.board.004	'지하철 9-4 칸은 타지 마세요' 게시물을 보면, 우리가 인터넷으로 조사한 '어제 막차에서 있었던 일'과 같다는 걸 알 수 있어. 이렇게 묶여 있는 괴담이 있을 수 있으니 잘 알아보고 메모하도록 해.	Read "Do not ride subway car 9-4" and you will see it matches the one we looked into online. Legends can be tied together like this, so look carefully and take notes.	
+tutorial.board.005	넵, 알겠습니다.	Understood.	차지한
+tutorial.board.006	이제 조사를 시작해보자.	Now let us start investigating.	
