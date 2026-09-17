@@ -146,6 +146,12 @@ namespace UrbanLegendBureau.Systems
 
             PrepareSandbox();
 
+            // 튜토리얼은 언제 돌려도 처음부터다.
+            // 게시판은 적어 둔 값으로 되돌리고, 시계도 그날 밤 그 시각으로 되돌린다.
+            _boardEntries = null;
+            _beliefCarry = 0f;
+            UrbanLegendBureau.Core.GameClock.Restart();
+
             IsRunning = true;
             _finished = false;
             _censored = false;
@@ -1127,7 +1133,9 @@ namespace UrbanLegendBureau.Systems
             MarkTutorialSeen();
             _sandbox = null;
 
-            if (_caseDirector == null || !_caseDirector.BeginCaseField(TutorialCaseId))
+            // 튜토리얼에서 여는 사건이므로 진행을 처음으로 되돌리고 시작한다.
+            // 예전에 한 번 해 본 사건이어도 그때 쌓인 시간과 확산을 이어받지 않는다.
+            if (_caseDirector == null || !_caseDirector.BeginCaseField(TutorialCaseId, fromScratch: true))
             {
                 Debug.LogError("[TutorialDirector] 현장으로 넘어가지 못했다. 사건 데이터를 확인할 것.");
                 FinishTutorial();

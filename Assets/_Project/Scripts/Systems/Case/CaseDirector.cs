@@ -227,7 +227,7 @@ namespace UrbanLegendBureau.Systems
         /// 튜토리얼이 곧바로 첫 사건의 현장으로 넘어갈 때 부른다.
         /// 사건 목록을 거치지 않고 정해진 사건 하나를 열어 현장까지 들어간다.
         /// </summary>
-        public bool BeginCaseField(string caseId)
+        public bool BeginCaseField(string caseId, bool fromScratch = false)
         {
             if (_cases == null || !_cases.TryGetCase(caseId, out var caseData))
             {
@@ -238,8 +238,29 @@ namespace UrbanLegendBureau.Systems
             if (!SelectCase(caseData)) return false;
 
             OnStartCaseClicked();
+            if (fromScratch) ResetCaseProgress();
             OnEnterFieldClicked();
             return true;
+        }
+
+        /// <summary>
+        /// 이 사건의 진행을 처음으로 되돌린다.
+        ///
+        /// 조사 행동 횟수도, 사건 경과 시간도, 확산도도 시작값으로 돌아간다.
+        /// 튜토리얼은 언제 돌려도 처음부터여야 하므로 그쪽에서 부른다.
+        /// 한 번 해 본 사건이라도 저장된 진행을 이어받지 않는다.
+        /// </summary>
+        private void ResetCaseProgress()
+        {
+            if (_time != null) _time.ResetCase(_save, _caseId);
+
+            if (_spread != null && _legend != null)
+            {
+                _spread.TrySetSpreadRate(_save.Current, _legendId, _legend.InitialSpreadRate);
+            }
+
+            _save.MarkDirty();
+            Debug.Log($"[CaseDirector] 사건 진행 초기화 | {_caseId} | 확산 {GetSpread():F0}%");
         }
 
         /// <summary>현장 화면. 튜토리얼이 대사를 걸기 위해 가져간다.</summary>
@@ -931,8 +952,9 @@ namespace UrbanLegendBureau.Systems
             float spread = GetSpread();
             string levelText = _spread != null ? _loc.Get(_spread.GetSpreadLevelTextId(spread)) : string.Empty;
 
+            // 믿음도는 게시판이 만들어 내는 값이다. 괴담넷과 작업 표시줄과 휴대폰이 모두 같은 숫자를 본다.
             return $"{_loc.Get(LabelSpreadTextId)}: {spread:F0}% ({levelText})" +
-                   $"    {_loc.Get(LabelBeliefTextId)}: {GetBelief():F0}";
+                   $"    {_loc.Get(LabelBeliefTextId)}: {GameStatus.Belief}%";
         }
 
         /// <summary>사건 경과 시간 / 조사 행동 횟수 표시줄.</summary>
