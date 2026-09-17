@@ -490,23 +490,28 @@ namespace UrbanLegendBureau.Systems
         private const string SubwayLegendId = "legend_subway_last_train";
 
         /// <summary>
-        /// 이 괴담을 이끌고 있는 글의 믿음도(%).
+        /// 지금 조사하고 있는 그 글의 믿음도(%).
         ///
-        /// 같은 괴담을 좇는 글이 여럿이면 그중 가장 믿기는 글을 쓴다.
-        /// 사건이 얼마나 굳어졌는지는 가장 앞선 글이 말해 준다. 평균은 뒤따르는 글에 묻힌다.
+        /// 같은 괴담을 좇는 글이 여럿이라도, 사건이 걸려 있는 것은 열어서 조사하는 그 글 하나다.
+        /// 곁의 글이 더 믿기고 있다고 해서 그 숫자를 현장에 띄우면 무엇을 쫓는지가 흐려진다.
         /// </summary>
         public int GetLegendBelief(string legendId)
         {
             if (string.IsNullOrEmpty(legendId)) return 0;
             if (_boardEntries == null) BuildBoardEntries();
 
-            int best = 0;
             foreach (var entry in _boardEntries)
             {
                 if (entry == null || entry.LegendId != legendId) continue;
-                if (entry.BeliefPercent > best) best = entry.BeliefPercent;
+                if (entry.Openable && entry.Page != null) return entry.BeliefPercent;
             }
-            return best;
+
+            // 열리는 글이 아직 없으면 그 괴담의 첫 글로 대신한다.
+            foreach (var entry in _boardEntries)
+            {
+                if (entry != null && entry.LegendId == legendId) return entry.BeliefPercent;
+            }
+            return 0;
         }
 
         // ------------------------------------------------------------- 커뮤니티
