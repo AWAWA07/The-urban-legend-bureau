@@ -327,6 +327,43 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
+        /// <summary>1%에 못 미치는 몫. 버리지 않고 모아 두었다가 1%가 차면 올린다.</summary>
+        private float _beliefCarry;
+
+        /// <summary>
+        /// 괴담이 퍼진 만큼 그 괴담을 실어 나르는 글들의 믿음도 함께 오른다.
+        ///
+        /// 괴담과 무관한 글은 건드리지 않는다. 믿음에 보태는 것이 없는(0인) 글이 그것이다.
+        /// 한 번에 오르는 몫이 작아 소수점이 대부분이므로, 모아 두었다가 1%가 차면 올린다.
+        /// </summary>
+        public void RaiseBoardBelief(float amount)
+        {
+            if (amount <= 0f) return;
+            if (_boardEntries == null) BuildBoardEntries();
+
+            _beliefCarry += amount;
+
+            int step = Mathf.FloorToInt(_beliefCarry);
+            if (step <= 0) return;
+            _beliefCarry -= step;
+
+            int raised = 0;
+            foreach (var entry in _boardEntries)
+            {
+                if (entry == null || entry.BeliefPercent <= 0) continue;
+                if (entry.BeliefPercent >= 100) continue;
+
+                entry.BeliefPercent = Mathf.Min(100, entry.BeliefPercent + step);
+                raised++;
+            }
+
+            if (raised > 0)
+            {
+                PushBeliefToTaskbar();
+                Debug.Log($"[TutorialDirector] 괴담이 퍼진다 | 글 {raised}개 믿음도 +{step}% | 전체 {BoardBelief}%");
+            }
+        }
+
         /// <summary>
         /// 그 글에 달린 댓글. 휴대폰으로 열어도 같은 댓글이 보인다.
         /// 플레이어가 단 댓글도 이 목록에 들어 있으므로 함께 따라온다.

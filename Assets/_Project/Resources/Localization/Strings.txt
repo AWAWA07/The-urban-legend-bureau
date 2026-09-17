@@ -484,7 +484,7 @@ ui.field.btn_phone	휴대폰	Phone	현장에서 여는 휴대폰
 ui.phone.clock	02:44	02:44	휴대폰 상단 시계(임시)
 ui.phone.app_call	전화	Phone	아직 기능 없음
 ui.phone.app_message	메시지	Messages	아직 기능 없음
-ui.field.inside_train	열차 안. 막차라 사람이 거의 없다.	Inside the train. It is the last one, almost empty.	승강장을 조사해 올라탄 뒤
+ui.field.inside_train	막차에서 있었던 일	What happened on the last train	열차에 탄 뒤 위쪽 한 줄
 ui.field.door_open	문이 열렸다. 열차에 올라타자.	The doors are open. Time to board.	문이 열린 뒤, 아직 타기 전
 field.subway.board	열린 문	Open door	눌러서 열차에 타는 자리
 ui.net.belief_percent_short	{0}%	{0}%	좁은 화면(휴대폰) 목록에서 쓰는 짧은 믿음도

@@ -667,6 +667,9 @@ namespace UrbanLegendBureau.Systems
 
             var result = _actions.Perform(_save, _caseId, _legendId, action);
 
+            // 시간이 흐르고 소문이 퍼진 뒤에 따라오는 것들은 조사 방법 쪽도 같다.
+            if (result.Success) AfterAction(result.MinutesAdded, result.Spread);
+
             // 조사한 지점은 눈으로 구분되게 표시한다. 조건에 막혀 실행되지 않았다면 표시하지 않는다.
             if (result.Success && _activePoint != null) _activePoint.MarkInvestigated();
 
@@ -970,8 +973,36 @@ namespace UrbanLegendBureau.Systems
         private void RegisterAction(InvestigationAction action)
         {
             if (_time == null || _case == null) return;
-            _time.RegisterAction(_save, _caseId, _legendId, action);
+
+            int before = _time.GetElapsedMinutes(_save.Current, _caseId);
+            var result = _time.RegisterAction(_save, _caseId, _legendId, action);
+            if (result.Registered) AfterAction(result.ElapsedMinutes - before, result.Spread);
         }
+
+        /// <summary>
+        /// 조사 행동 한 번이 끝난 뒤에 따라오는 것들.
+        ///
+        /// 사건 시간이 흐른 만큼 벽시계도 흐른다. 컴퓨터를 보든 휴대폰을 보든 같은 시각이다.
+        /// 소문이 퍼진 만큼 그 소문을 실어 나르는 글들의 믿음도 조금씩 오른다.
+        /// </summary>
+        private void AfterAction(int minutes, SpreadChangeResult spread)
+        {
+            if (minutes > 0) GameClock.Skip(minutes);
+
+            if (spread.Changed)
+            {
+                float rise = (spread.CurrentRate - spread.PreviousRate) * BeliefPerSpread;
+                if (_tutorial != null) _tutorial.RaiseBoardBelief(rise);
+            }
+
+            PushStatus();
+        }
+
+        /// <summary>
+        /// 확산이 1 오를 때 글의 믿음도가 오르는 비율.
+        /// 작게 잡는다. 조사 몇 번으로 글이 확 믿기게 되면 검열할 이유가 없어진다.
+        /// </summary>
+        private const float BeliefPerSpread = 0.3f;
 
         /// <summary>상세 화면의 목록 복귀 버튼.</summary>
         public void OnPageBackClicked()

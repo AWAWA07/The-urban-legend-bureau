@@ -1620,12 +1620,8 @@ namespace UrbanLegendBureau.EditorTools
             statusBelief.raycastTarget = false;
             statusBelief.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
 
-            var statusBeliefLabel = statusBelief.gameObject.AddComponent<BeliefLabel>();
-            var sbSo = new SerializedObject(statusBeliefLabel);
-            sbSo.Update();
-            sbSo.FindProperty("_short").boolValue = true;   // 카메라 구멍까지 닿지 않게 줄인다
-            sbSo.ApplyModifiedPropertiesWithoutUndo();
-
+            // 이 칸은 BeliefLabel 을 달지 않는다. 목록이냐 글이냐에 따라 보여줄 숫자가 달라서
+            // 괴담넷 화면이 직접 써 넣는다.
             statusBelief.gameObject.SetActive(false);
 
             // 휴대폰 카메라 구멍. 괴담넷이 휴대폰 화면을 덮으므로 여기에도 같은 자리에 하나 둔다.

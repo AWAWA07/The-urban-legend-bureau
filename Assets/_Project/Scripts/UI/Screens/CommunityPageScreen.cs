@@ -907,6 +907,22 @@ namespace UrbanLegendBureau.UI
             }
         }
 
+        /// <summary>
+        /// 맨 윗줄의 믿음도.
+        ///
+        /// 글을 펼쳐 보고 있을 때는 그 글의 믿음도를 보여준다. 지금 읽고 있는 것이 그 글이기 때문이다.
+        /// 목록을 보고 있을 때는 게시판 전체의 믿음도다.
+        /// </summary>
+        private void RefreshStatusBelief(LocalizationService loc)
+        {
+            if (_statusBeliefText == null) return;
+
+            int percent = _showingBoard ? GameStatus.Belief : _beliefPercent;
+            _statusBeliefText.text = percent > 0 ? loc.Get(StatusBeliefTextId, percent) : string.Empty;
+        }
+
+        private const string StatusBeliefTextId = "ui.status.belief_short";
+
         /// <summary>같은 문구를 쓰는 칸이 여럿이라 한 번에 채운다.</summary>
         private static void SetAll(TMP_Text[] targets, string text)
         {
@@ -922,6 +938,7 @@ namespace UrbanLegendBureau.UI
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
             if (_windowTitleText != null) _windowTitleText.text = loc.Get(WindowTitleTextId);
+            RefreshStatusBelief(loc);
             SetAll(_siteTexts, loc.Get(SiteTextId));
             if (_boardListText != null) _boardListText.text = loc.Get(BoardListTextId);
             if (_boardPostText != null) _boardPostText.text = loc.Get(BoardPostTextId);
