@@ -333,7 +333,12 @@ ui.desktop.am	오전	AM
 ui.desktop.pm	오후	PM	
 ui.desktop.belief	전체 믿음도 {0}%	Belief {0}%	작업 표시줄 왼쪽
 ui.desktop.app_net	괴담넷	LegendNet	
-ui.desktop.app_memo	메모장	Notepad	아직 기능 없음
+ui.desktop.app_memo	메모장	Notepad	컴퓨터와 휴대폰에서 여는 메모장
+ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 비어 있을 때
+ui.memo.autosave	적는 대로 저장된다.	Saved as you type.	메모장 아래 한 줄
+ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름
+ui.memo.new	+ 새 메모	+ New note	메모를 한 장 더 만드는 단추
+ui.memo.unlocked	메모장 기능이 열렸습니다!	The notepad is now available.	메모장이 열렸다는 알림
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
 ui.desktop.app_gallery	갤러리	Gallery	아직 기능 없음
@@ -477,6 +482,7 @@ tutorial.field.003	... 그런 거 없거든요.	...There is no such thing.	차�
 tutorial.field.004	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷 검열 해 놓은 막차 관련된 괴담이야.	Right. The legend we are after is the last-train one we censored online earlier.	
 tutorial.field.005	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.	You will be taking notes on your phone too, so keep it handy and follow me.	
 tutorial.field.006	넵, 알겠습니다.	Yes, understood.	차지한
+ui.field.platform	9-4 승강장	Platform 9-4	현장 위쪽 한 줄 - 열차를 기다리는 자리
 ui.field.train_arriving	열차가 들어온다.	A train is pulling in.	열차 진입 알림
 
 # --- 현장: 휴대폰 ---

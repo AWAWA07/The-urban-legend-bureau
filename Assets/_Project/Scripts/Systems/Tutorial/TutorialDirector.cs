@@ -32,6 +32,12 @@ namespace UrbanLegendBureau.Systems
 
         [SerializeField] private CommunityPageScreen _communityScreen;
 
+        [Tooltip("메모장. 컴퓨터로도 휴대폰으로도 이 화면 하나를 연다.")]
+        [SerializeField] private MemoScreen _memoScreen;
+
+        [Tooltip("잠깐 떴다 사라지는 알림 한 줄.")]
+        [SerializeField] private ToastScreen _toastScreen;
+
         [Header("연결")]
         [Tooltip("튜토리얼에서 보여줄 게시글. 기존 WebPageSO를 그대로 쓴다.")]
         [SerializeField] private WebPageSO _tutorialPage;
@@ -101,6 +107,9 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>바탕화면에서 괴담넷 아이콘을 가리키는 ID. 씬의 아이콘 설정과 같아야 한다.</summary>
         public const string NetAppId = "gwedamnet";
+
+        /// <summary>메모장 아이콘의 ID. 컴퓨터와 휴대폰이 같은 것을 쓴다.</summary>
+        public const string MemoAppId = "memo";
         private const string WrongTextId = "tutorial.comment.wrong";
         private const string NeedFieldMarkTextId = "ui.net.need_field_mark";
         private const string NeedFieldHanyoungTextId = "tutorial.comment.need_field_hanyoung";
@@ -257,6 +266,10 @@ namespace UrbanLegendBureau.Systems
             PushBeliefToTaskbar();
             _desktopScreen.LockAllApps();            // 한영의 안내가 끝나기 전에는 아무것도 못 누른다
 
+            // 괴담넷 아이콘에 새 글 개수를 건다.
+            // 튜토리얼에서는 게시판의 글이 전부 아직 안 읽은 것이라 목록 개수가 그대로 새 글 개수다.
+            _desktopScreen.SetAppBadge(NetAppId, BoardEntries.Count);
+
             if (_ui.Contains(_dialogueScreen)) _ui.Close(_dialogueScreen);
 
             if (_ui.Count == 0) _ui.Push(_desktopScreen);
@@ -268,17 +281,49 @@ namespace UrbanLegendBureau.Systems
             ShowTalk(PcLine1TextId, AfterTalk.OpenDesktopNet, showCharacter: false);
         }
 
-        /// <summary>바탕화면 아이콘을 눌렀을 때. 지금 열 수 있는 것은 괴담넷뿐이다.</summary>
+        /// <summary>바탕화면 아이콘을 눌렀을 때. 열리는 것은 괴담넷과 메모장이다.</summary>
         private void OnAppClicked(string appId)
         {
+            if (appId == MemoAppId)
+            {
+                OpenDesktopMemo();
+                return;
+            }
+
             if (appId != NetAppId) return;
             OpenCommunityBoard();
+        }
+
+        /// <summary>
+        /// 컴퓨터로 메모장을 연다. 바탕화면 위에 뜬 창이다.
+        /// 적어 둔 것은 휴대폰으로 열어도 같다. 화면도 글도 하나뿐이기 때문이다.
+        /// </summary>
+        private void OpenDesktopMemo()
+        {
+            if (_memoScreen == null || !MemoScreen.IsUnlocked) return;
+
+            _memoScreen.SetShape(false);
+            _memoScreen.SetKeepsUnderlyingUsable(false);
+            _memoScreen.Bind(CloseDesktopMemo);
+
+            if (!_ui.Contains(_memoScreen)) _ui.Push(_memoScreen);
+
+            Debug.Log("[TutorialDirector] 메모장을 열었다");
+        }
+
+        private void CloseDesktopMemo()
+        {
+            if (_memoScreen != null && _ui.Contains(_memoScreen)) _ui.Close(_memoScreen);
         }
 
         /// <summary>괴담넷을 열면 게시판 목록부터 보인다.</summary>
         private void OpenCommunityBoard()
         {
             if (_communityScreen == null) return;
+
+            // 컴퓨터로 여는 것이다. 앞서 휴대폰으로 보다 나왔더라도 창 모양으로 되돌린다.
+            _communityScreen.SetShape(false);
+            _communityScreen.SetKeepsUnderlyingUsable(false);
 
             _communityScreen.BindWindow(null);        // 튜토리얼 중에는 창을 닫을 수 없다
             _communityScreen.BindBoard(_boardEntries, OnBoardEntryClicked);
@@ -287,6 +332,9 @@ namespace UrbanLegendBureau.Systems
 
             // 바탕화면 위에 얹는다. 바꿔 끼우지 않아야 아래에서 작업 표시줄이 계속 보인다.
             if (!_ui.Contains(_communityScreen)) _ui.Push(_communityScreen);
+
+            // 목록을 열었으니 새 글 표시는 지운다. 읽은 것을 새것이라고 두면 안 된다.
+            if (_desktopScreen != null) _desktopScreen.SetAppBadge(NetAppId, 0);
 
             Debug.Log("[TutorialDirector] 괴담넷 | 게시판 목록 " + _boardEntries.Count + "개");
 
@@ -678,7 +726,12 @@ namespace UrbanLegendBureau.Systems
 
                 case AfterTalk.OpenDesktopNet:
                     // 안내가 끝나야 아이콘을 누를 수 있다. 그것도 괴담넷 하나만.
-                    if (_desktopScreen != null) _desktopScreen.SetAllowedApps(NetAppId);
+                    // 메모장은 아직 잠겨 있다. 한영이 메모하라고 말한 뒤에 열린다.
+                    if (_desktopScreen != null)
+                    {
+                        _desktopScreen.SetAllowedApps(NetAppId);
+                        _desktopScreen.SetHintApp(NetAppId);
+                    }
                     break;
 
                 case AfterTalk.OpenHotPost:
@@ -1207,6 +1260,9 @@ namespace UrbanLegendBureau.Systems
 
         private const string TrainArrivingTextId = "ui.field.train_arriving";
 
+        /// <summary>승강장 자리 이름. 현장 위쪽 한 줄에서 CaseDirector 와 같은 문구를 쓴다.</summary>
+        private const string PlatformTextId = "ui.field.platform";
+
         private int _fieldLineIndex;
         private bool _inFieldTalk;
 
@@ -1269,7 +1325,8 @@ namespace UrbanLegendBureau.Systems
                 // 열차를 불러들인다. 남은 대사가 흐르는 동안 들어와 서고 문이 열린다.
                 // 타는 것은 대사가 끝난 뒤 플레이어가 열린 문을 누를 때다.
                 if (_caseDirector != null) _caseDirector.StartTrainArrival();
-                _fieldHud.SetTicker(() => _loc.Get(TrainArrivingTextId));
+                // 자리 이름은 그대로 두고 그 뒤에 알림만 붙인다. 어디에 서 있는지를 잃지 않는다.
+                _fieldHud.SetTicker(() => _loc.Get(PlatformTextId) + "    " + _loc.Get(TrainArrivingTextId));
             }
 
             _fieldHud.ShowLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced);
@@ -1279,8 +1336,46 @@ namespace UrbanLegendBureau.Systems
         {
             if (!_inFieldTalk) return;
 
+            // 메모하라고 이른 그 마디를 넘겼다. 여기서부터 메모장을 쓸 수 있다.
+            if (_fieldLineIndex == FieldMemoLineAt) UnlockMemo();
+
             _fieldLineIndex++;
             ShowFieldLine();
+        }
+
+        /// <summary>한영이 "메모하고 내용 살펴봐야 하니까" 하는 마디. 이 말이 메모장을 연다.</summary>
+        private const int FieldMemoLineAt = 4;
+
+        private const string MemoUnlockedTextId = "ui.memo.unlocked";
+
+        /// <summary>
+        /// 메모장을 열어 주고 그 사실을 화면에 알린다.
+        ///
+        /// 잠긴 것이 열리는 순간을 말로만 지나가면 플레이어는 무엇이 달라졌는지 모른다.
+        /// 이미 열려 있으면 알리지 않는다. 다시 볼 때마다 뜨면 그저 성가시다.
+        /// </summary>
+        private void UnlockMemo()
+        {
+            if (!MemoScreen.Unlock()) return;
+
+            ShowToast(MemoUnlockedTextId);
+            Debug.Log("[TutorialDirector] 메모장이 열렸다");
+        }
+
+        /// <summary>잠깐 떴다 사라지는 알림 한 줄. 시간이 다 되면 스스로 닫힌다.</summary>
+        private void ShowToast(string textId)
+        {
+            if (_toastScreen == null || _ui == null) return;
+
+            _toastScreen.Closed = CloseToast;
+            if (!_ui.Contains(_toastScreen)) _ui.Push(_toastScreen);
+
+            _toastScreen.Show(_loc.Get(textId));
+        }
+
+        private void CloseToast(UrbanLegendBureau.UI.ToastScreen toast)
+        {
+            if (toast != null && _ui != null && _ui.Contains(toast)) _ui.Close(toast);
         }
 
         /// <summary>
@@ -1307,6 +1402,9 @@ namespace UrbanLegendBureau.Systems
         private bool _awaitingBoarding;
         private int _boardLineIndex;
         private int _boardPick = -1;
+
+        /// <summary>고른 말을 차지한이 이미 했는가. 고른 것과 대답 사이에 한 마디가 들어간다.</summary>
+        private bool _boardPickSpoken;
 
         /// <summary>열차에 탄 직후 주고받는 말. 가운데에서 한 번 고르는 것이 끼어든다.</summary>
         private static readonly string[] BoardLineTextIds =
@@ -1348,6 +1446,7 @@ namespace UrbanLegendBureau.Systems
             _awaitingBoarding = false;
             _boardLineIndex = 0;
             _boardPick = -1;
+            _boardPickSpoken = false;
 
             _fieldHud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
             if (_fieldHud == null)
@@ -1384,6 +1483,14 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            // 고른 것을 차지한이 먼저 말한다. 눌러 놓고 아무 말도 없이 대답만 오면 무엇을 골랐는지 잃는다.
+            if (!_boardPickSpoken)
+            {
+                string picked = BoardChoiceTextIds[_boardPick];
+                _fieldHud.ShowLine(ChajihanNameTextId, () => _loc.Get(picked), OnBoardPickSpoken);
+                return;
+            }
+
             // 고른 것에 대한 대답 하나, 그 뒤로는 어느 것을 골랐든 같은 말이 이어진다.
             int after = _boardLineIndex - BoardLineTextIds.Length - 1;
             if (after < 0)
@@ -1404,6 +1511,13 @@ namespace UrbanLegendBureau.Systems
             FinishFieldTutorial();
         }
 
+        /// <summary>고른 말을 마쳤다. 여기서 숫자를 올리지 않는다. 대답이 아직 남아 있다.</summary>
+        private void OnBoardPickSpoken()
+        {
+            _boardPickSpoken = true;
+            ShowBoardLine();
+        }
+
         private void OnBoardLineAdvanced()
         {
             _boardLineIndex++;
@@ -1412,8 +1526,9 @@ namespace UrbanLegendBureau.Systems
 
         private void OnBoardChoicePicked(int index)
         {
-            // 여기서 숫자를 올리지 않는다. 고른 것에 대한 대답이 아직 남아 있다.
+            // 여기서 숫자를 올리지 않는다. 고른 말과 그 대답이 아직 남아 있다.
             _boardPick = Mathf.Clamp(index, 0, BoardReplyTextIds.Length - 1);
+            _boardPickSpoken = false;
 
             Debug.Log("[TutorialDirector] 열차 안 문제 | 고른 것 " + (_boardPick + 1) +
                       (_boardPick == 1 ? " (정답)" : " (오답)"));
@@ -1471,6 +1586,7 @@ namespace UrbanLegendBureau.Systems
         {
             if (_ui == null) return;
 
+            if (_ui.Contains(_memoScreen)) _ui.Close(_memoScreen);
             if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
             if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
             if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);

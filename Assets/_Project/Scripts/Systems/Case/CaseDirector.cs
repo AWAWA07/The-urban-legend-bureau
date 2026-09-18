@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
 using UrbanLegendBureau.Core;
@@ -39,6 +39,9 @@ namespace UrbanLegendBureau.Systems
 
         [Tooltip("괴담넷. 컴퓨터로 여는 것과 휴대폰으로 여는 것이 같은 화면이다.")]
         [SerializeField] private CommunityPageScreen _communityScreen;
+
+        [Tooltip("메모장. 이것도 컴퓨터와 휴대폰이 같은 화면을 쓴다.")]
+        [SerializeField] private MemoScreen _memoScreen;
 
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
@@ -287,33 +290,87 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 현장 맨 위 한 줄. 열차에 탄 뒤에는 그 사실을 앞에 붙인다.
+        /// 현장 맨 위 한 줄. 어디에 서 있는지를 앞에 붙이고 그 뒤에 상황을 적는다.
         /// </summary>
         private string BuildFieldTicker()
         {
-            if (_boarded) return _loc.Get(InsideTrainTextId) + "    " + BuildStatusLine();
+            if (_boarded) return _loc.Get(InsideTrainTextId) + TickerGap + BuildStatusLine();
 
-            // 문이 열렸는데 아직 안 탔으면, 탈 수 있다는 것부터 알린다.
+            // 열차가 들어오는 현장에서만 승강장이 있다. 그렇지 않은 현장은 자리 이름이 없다.
             var arrival = GetArrival();
-            if (arrival != null && arrival.IsOpen) return _loc.Get(DoorOpenTextId) + "    " + BuildStatusLine();
+            if (arrival == null) return BuildStatusLine();
 
-            return BuildStatusLine();
+            // 승강장에서는 여기가 9-4 자리라는 것부터 알린다. 그 숫자가 뒤에 나올 문제의 근거다.
+            var place = _loc.Get(PlatformTextId);
+
+            // 문이 열렸는데 아직 안 탔으면, 탈 수 있다는 것도 함께 알린다.
+            if (arrival.IsOpen) place += TickerGap + _loc.Get(DoorOpenTextId);
+
+            return place + TickerGap + BuildStatusLine();
         }
+
+        /// <summary>위쪽 한 줄에서 토막을 띄우는 만큼.</summary>
+        private const string TickerGap = "    ";
 
         // ------------------------------------------------------------- 휴대폰 속 괴담넷
 
         /// <summary>휴대폰에서 괴담넷 아이콘의 ID. 컴퓨터 바탕화면과 같은 것을 쓴다.</summary>
         private const string NetAppId = "gwedamnet";
 
+        /// <summary>휴대폰에서 메모장 아이콘의 ID. 컴퓨터 바탕화면과 같은 것을 쓴다.</summary>
+        private const string MemoAppId = "memo";
+
 
         /// <summary>
         /// 현장에서 휴대폰 앱을 눌렀을 때.
-        /// 지금 열리는 것은 괴담넷뿐이다. 나머지는 자리만 잡아 둔 아이콘이라 눌러도 아무 일이 없다.
+        /// 열리는 것은 괴담넷과 메모장이다. 나머지는 자리만 잡아 둔 아이콘이라 눌러도 아무 일이 없다.
         /// </summary>
         private void OnPhoneAppClicked(string appId)
         {
+            if (appId == MemoAppId)
+            {
+                OpenPhoneMemo();
+                return;
+            }
+
             if (appId != NetAppId) return;
             OpenPhoneNet();
+        }
+
+        /// <summary>
+        /// 휴대폰으로 메모장을 연다.
+        ///
+        /// 괴담넷과 같은 자리에 같은 방식으로 켜진다. 휴대폰은 커지지 않고, 들고 있던 그 화면에 앱이 켜진다.
+        /// 현장에서 적은 것을 컴퓨터에서 그대로 읽을 수 있어야 하므로 글은 저장본 한 곳에만 있다.
+        /// </summary>
+        private void OpenPhoneMemo()
+        {
+            // 한영이 메모하라고 이르기 전에는 열리지 않는다. 아이콘만 자리에 있다.
+            if (_memoScreen == null || !MemoScreen.IsUnlocked) return;
+
+            // 손에 든 물건이라, 보는 동안에도 현장은 그대로 돌아간다. 대사도 넘길 수 있다.
+            _memoScreen.SetKeepsUnderlyingUsable(true);
+            _memoScreen.Bind(ClosePhoneMemo);
+
+            // 먼저 켠다. 꺼져 있는 동안에는 캔버스 배율이 실리지 않아 자리를 맞출 수 없다.
+            _ui.Push(_memoScreen);
+            Canvas.ForceUpdateCanvases();
+
+            var frame = _fieldHudScreen != null ? _fieldHudScreen.PhoneScreenRect : null;
+            _memoScreen.SetShape(true, frame);
+
+            Debug.Log("[CaseDirector] 휴대폰으로 메모장을 열었다");
+        }
+
+        private void ClosePhoneMemo()
+        {
+            if (_memoScreen == null) return;
+
+            _ui.Close(_memoScreen);
+
+            // 다음에 컴퓨터로 열 때를 위해 창 모양으로 돌려놓는다.
+            _memoScreen.SetShape(false);
+            _memoScreen.SetKeepsUnderlyingUsable(false);
         }
 
         /// <summary>
@@ -327,6 +384,10 @@ namespace UrbanLegendBureau.Systems
             if (_communityScreen == null) return;
 
             PushStatus();
+
+            // 손에 든 물건이라, 보는 동안에도 현장은 그대로 돌아간다.
+            // 대사를 넘기는 것도 휴대폰을 켜 둔 채로 할 수 있어야 한다. Push 하기 전에 정한다.
+            _communityScreen.SetKeepsUnderlyingUsable(true);
 
             // 먼저 켠다. 꺼져 있는 동안에는 캔버스 배율이 실리지 않아 자리를 맞출 수 없다.
             _ui.Push(_communityScreen);
@@ -371,6 +432,7 @@ namespace UrbanLegendBureau.Systems
 
             // 다음에 컴퓨터로 열 때를 위해 창 모양으로 돌려놓는다.
             _communityScreen.SetShape(false);
+            _communityScreen.SetKeepsUnderlyingUsable(false);
         }
 
         /// <summary>괴담넷 게시판. 튜토리얼이 들고 있는 그 목록을 그대로 쓴다.</summary>
@@ -442,6 +504,7 @@ namespace UrbanLegendBureau.Systems
         private const int FieldMinute = 30;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
+        private const string PlatformTextId = "ui.field.platform";
         private const string DoorOpenTextId = "ui.field.door_open";
 
         /// <summary>열린 문을 눌러 타는 자리. 현장을 짓는 쪽과 여기가 같은 이름을 써야 한다.</summary>

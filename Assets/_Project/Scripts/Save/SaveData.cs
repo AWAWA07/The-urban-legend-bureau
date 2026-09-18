@@ -103,6 +103,12 @@ namespace UrbanLegendBureau.Save
         // --- 스토리 ---
         public List<string> storyFlags = new List<string>();
 
+        /// <summary>
+        /// 메모장에 적어 둔 것 (v5). 플레이어가 직접 쓴 글이라 그대로 들고 있는다.
+        /// 여러 장을 둘 수 있다. 몇 장까지인지는 메모장 화면이 정한다.
+        /// </summary>
+        public List<string> memos = new List<string>();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -120,6 +126,7 @@ namespace UrbanLegendBureau.Save
             global ??= new GlobalState();
             settings ??= new SettingsData();
             currentCaseId ??= string.Empty;
+            memos ??= new List<string>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using TMPro;
 using UnityEditor;
 using UnityEditor.Events;
@@ -182,6 +182,8 @@ namespace UrbanLegendBureau.EditorTools
             var talk = BuildDialogueScreen("Screen_TutorialTalk", false);
             var desktop = BuildDesktopScreen("Screen_Desktop");
             var community = BuildCommunityScreen("Screen_Community");
+            var memo = BuildMemoScreen("Screen_Memo");
+            var toast = BuildToastScreen("Screen_Toast");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
             var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
@@ -240,8 +242,9 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
-            // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다.
+            // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다. 메모장도 마찬가지다.
             dso.FindProperty("_communityScreen").objectReferenceValue = community;
+            dso.FindProperty("_memoScreen").objectReferenceValue = memo;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
@@ -261,6 +264,8 @@ namespace UrbanLegendBureau.EditorTools
             tso.FindProperty("_talkScreen").objectReferenceValue = talk;
             tso.FindProperty("_desktopScreen").objectReferenceValue = desktop;
             tso.FindProperty("_communityScreen").objectReferenceValue = community;
+            tso.FindProperty("_memoScreen").objectReferenceValue = memo;
+            tso.FindProperty("_toastScreen").objectReferenceValue = toast;
             tso.FindProperty("_caseDirector").objectReferenceValue = director;
             tso.FindProperty("_tutorialPage").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<UrbanLegendBureau.Data.WebPageSO>(
@@ -1279,8 +1284,9 @@ namespace UrbanLegendBureau.EditorTools
             var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
             StretchInside(lineText.rectTransform, textLeft, 48f, pad + nameH + 10f, pad + hintH + 8f);
-            lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 긴 대사는 상자 안에서 줄바꿈
-            lineText.overflowMode = TextOverflowModes.Truncate;
+
+            // 현장의 대사 띠와 같은 규칙을 쓴다. 두 곳의 대사가 같은 모습으로 보여야 한다.
+            ConfigureBodyText(lineText, 34f);
 
             var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.BottomRight);
@@ -1362,8 +1368,9 @@ namespace UrbanLegendBureau.EditorTools
             var dcLabel = AddText(choiceTemplate.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
                 Vector2.zero, new Vector2(ChoiceWidth - 48f, 76f), TextAlignmentOptions.Left);
             StretchInside(dcLabel.rectTransform, 24f, 24f, 8f, 8f);
-            dcLabel.textWrappingMode = TMPro.TextWrappingModes.Normal;   // 짧은 칸이라 두 줄로 접힌다
-            dcLabel.raycastTarget = false;
+
+            // 좁은 칸이라 두 줄까지 접힌다. 그래도 넘치면 글자를 줄여 칸 안에 담는다.
+            ConfigureBodyText(dcLabel, 24f, 0.75f);
             choiceTemplate.SetActive(false);
 
             choiceRoot.gameObject.SetActive(false);
@@ -1465,13 +1472,17 @@ namespace UrbanLegendBureau.EditorTools
 
             for (int i = 0; i < apps.Length; i++)
             {
-                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-780f, 380f - i * 150f));
+                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-780f, 380f - i * 150f),
+                    out var iconLabel, out var iconHint, out var iconBadge, out var iconBadgeCount);
 
                 var element = iconList.GetArrayElementAtIndex(i);
                 element.FindPropertyRelative("appId").stringValue = apps[i][0];
                 element.FindPropertyRelative("labelTextId").stringValue = apps[i][1];
                 element.FindPropertyRelative("button").objectReferenceValue = icon.GetComponent<Button>();
-                element.FindPropertyRelative("label").objectReferenceValue = icon.GetComponentInChildren<TMP_Text>(true);
+                element.FindPropertyRelative("label").objectReferenceValue = iconLabel;
+                element.FindPropertyRelative("hint").objectReferenceValue = iconHint;
+                element.FindPropertyRelative("badge").objectReferenceValue = iconBadge;
+                element.FindPropertyRelative("badgeCount").objectReferenceValue = iconBadgeCount;
             }
 
             so.ApplyModifiedPropertiesWithoutUndo();
@@ -1495,8 +1506,16 @@ namespace UrbanLegendBureau.EditorTools
             }
         }
 
-        /// <summary>바탕화면 아이콘 하나. 네모 하나와 이름표로 둔다.</summary>
-        private static GameObject BuildDesktopIcon(Transform parent, string id, Vector2 position)
+        /// <summary>
+        /// 바탕화면 아이콘 하나. 네모 하나와 이름표로 둔다.
+        ///
+        /// 표시 두 개가 더 붙는다.
+        ///   배지 - 네모 오른쪽 위에 얹는 작은 딱지. 새로 올라온 것의 개수를 적는다. 셀 것이 없으면 꺼진다.
+        ///   손짓 - 네모 오른쪽에서 아이콘을 가리키는 세모. 지금 눌러야 할 때만 켜진다.
+        /// 그림 파일을 두지 않고 네모와 글자로 그린다. 실제 아이콘 그림이 생기면 네모만 갈아 끼우면 된다.
+        /// </summary>
+        private static GameObject BuildDesktopIcon(Transform parent, string id, Vector2 position,
+            out TMP_Text label, out GameObject hint, out GameObject badge, out TMP_Text badgeCount)
         {
             var go = new GameObject("Icon_" + id, typeof(RectTransform));
             go.transform.SetParent(parent, false);
@@ -1514,11 +1533,321 @@ namespace UrbanLegendBureau.EditorTools
             boxRt.sizeDelta = new Vector2(84f, 68f);
             button.targetGraphic = box.GetComponent<Image>();
 
-            var label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
+            label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
                 new Vector2(0f, -44f), new Vector2(200f, 40f), TextAlignmentOptions.Center);
             label.raycastTarget = false;
 
+            // --- 새 글 개수 배지 ---
+            // 네모 오른쪽 위에 걸친다. 숫자를 채우고 켜는 것은 DesktopScreen 이 한다.
+            var count = CreatePanel(go.transform, "Badge", new Color(0.80f, 0.22f, 0.24f, 1f));
+            var countRt = (RectTransform)count.transform;
+            countRt.anchoredPosition = new Vector2(46f, 48f);
+            countRt.sizeDelta = new Vector2(46f, 36f);
+            count.GetComponent<Image>().raycastTarget = false;
+
+            badgeCount = AddText(count.transform, "Count", 24f, UIFontWeight.Bold, Color.white,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(badgeCount.rectTransform, 4f, 4f, 2f, 2f);
+            ConfigureOneLineText(badgeCount, 24f, 0.6f);
+
+            badge = count;
+            badge.SetActive(false);
+
+            // --- 가리키는 세모 ---
+            // 네모 오른쪽에 서서 왼쪽을 가리킨다. 켜고 끄는 것은 DesktopScreen 이 한다.
+            //
+            // 위를 보는 세모 글자를 눕혀 쓴다. 왼쪽을 보는 글자를 따로 쓰면
+            // 글꼴에 그 글자가 없을 때 네모로 뜬다. 한 글자만 쓰면 그럴 일이 없다.
+            // 아이콘 곁에 붙는 표시다. 아이콘보다 커 보이면 안 된다.
+            var point = AddText(go.transform, "Hint", 34f, UIFontWeight.Bold, AccentColor,
+                new Vector2(103f, 24f), new Vector2(48f, 48f), TextAlignmentOptions.Center);
+            point.text = "▲";
+            point.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            point.raycastTarget = false;
+
+            // 가만히 서 있으면 무늬로 보인다. 조금씩 좌우로 움직여 가리키게 한다.
+            point.gameObject.AddComponent<HintNudge>();
+
+            hint = point.gameObject;
+            hint.SetActive(false);
+
             return go;
+        }
+
+        /// <summary>
+        /// 메모장.
+        ///
+        /// 괴담넷과 같은 짜임이다. 창 하나를 두고 컴퓨터에서는 늘리고 휴대폰에서는 줄여 쓴다.
+        /// 안은 제목 줄과 적는 자리와 아래 한 줄뿐이다. 실제 메모장이 그만큼만 가지고 있다.
+        /// </summary>
+        private static MemoScreen BuildMemoScreen(string name)
+        {
+            // 화면 뿌리는 투명하다. 창 바깥은 아래 화면(바탕화면이나 현장)이 그대로 보여야 한다.
+            var go = CreatePanel(null, name, new Color(0f, 0f, 0f, 0f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<MemoScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, false, true);
+
+            var paper = new Color(0.97f, 0.96f, 0.93f, 1f);
+            var ink = new Color(0.12f, 0.12f, 0.14f, 1f);
+            var faded = new Color(0.55f, 0.54f, 0.50f, 1f);
+
+            // 창은 화면을 다 덮지 않는다. 가운데에 이만큼만 뜨고, 제목 줄을 잡아 옮길 수 있다.
+            var window = CreatePanel(go.transform, "Window", paper);
+            var windowRt = (RectTransform)window.transform;
+            windowRt.anchorMin = new Vector2(0.5f, 0.5f);
+            windowRt.anchorMax = new Vector2(0.5f, 0.5f);
+            windowRt.pivot = new Vector2(0.5f, 0.5f);
+            windowRt.anchoredPosition = Vector2.zero;
+            windowRt.sizeDelta = new Vector2(1180f, 760f);
+
+            const float BarHeight = 56f;
+            const float TabHeight = 46f;
+            const float FooterHeight = 40f;
+
+            // --- 제목 줄 ---
+            var titleBar = CreatePanel(window.transform, "TitleBar", new Color(0.13f, 0.14f, 0.18f, 1f));
+            var barRt = (RectTransform)titleBar.transform;
+            barRt.anchorMin = new Vector2(0f, 1f);
+            barRt.anchorMax = new Vector2(1f, 1f);
+            barRt.pivot = new Vector2(0.5f, 1f);
+            barRt.anchoredPosition = Vector2.zero;
+            barRt.sizeDelta = new Vector2(0f, BarHeight);
+
+            var windowTitle = AddText(titleBar.transform, "WindowTitle", 28f, UIFontWeight.Medium, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(windowTitle.rectTransform, 24f, 100f, 8f, 8f);
+            windowTitle.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var closeGo = CreatePanel(titleBar.transform, "Btn_CloseMemo", new Color(0.62f, 0.22f, 0.24f, 1f));
+            var closeRt = (RectTransform)closeGo.transform;
+            closeRt.anchorMin = new Vector2(1f, 0.5f);
+            closeRt.anchorMax = new Vector2(1f, 0.5f);
+            closeRt.pivot = new Vector2(1f, 0.5f);
+            closeRt.anchoredPosition = new Vector2(-12f, 0f);
+            closeRt.sizeDelta = new Vector2(56f, 40f);
+
+            var closeButton = closeGo.AddComponent<Button>();
+            closeButton.targetGraphic = closeGo.GetComponent<Image>();
+
+            var closeLabel = AddText(closeGo.transform, "Label", 26f, UIFontWeight.Bold, TextColor,
+                Vector2.zero, new Vector2(56f, 40f), TextAlignmentOptions.Center);
+            closeLabel.text = "X";
+            closeLabel.raycastTarget = false;
+
+            // 제목 줄을 잡으면 창이 끌린다. 실제 창이 그렇다.
+            // 단추들은 제 클릭을 먼저 가져가므로 X 나 + 를 눌러도 창이 끌리지 않는다.
+            var drag = titleBar.AddComponent<WindowDrag>();
+            var dso2 = new SerializedObject(drag);
+            dso2.Update();
+            dso2.FindProperty("_target").objectReferenceValue = windowRt;
+            dso2.ApplyModifiedPropertiesWithoutUndo();
+
+            // 메모를 한 장 더 만드는 단추. 닫기 왼쪽에 둔다.
+            var newGo = CreatePanel(titleBar.transform, "Btn_NewNote", new Color(0.24f, 0.30f, 0.42f, 1f));
+            var newRt = (RectTransform)newGo.transform;
+            newRt.anchorMin = new Vector2(1f, 0.5f);
+            newRt.anchorMax = new Vector2(1f, 0.5f);
+            newRt.pivot = new Vector2(1f, 0.5f);
+            newRt.anchoredPosition = new Vector2(-80f, 0f);
+            newRt.sizeDelta = new Vector2(180f, 40f);
+
+            var newButton = newGo.AddComponent<Button>();
+            newButton.targetGraphic = newGo.GetComponent<Image>();
+
+            var newLabel = AddText(newGo.transform, "Label", 22f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, new Vector2(180f, 40f), TextAlignmentOptions.Center);
+            newLabel.raycastTarget = false;
+            newLabel.textWrappingMode = TextWrappingModes.NoWrap;
+
+            // --- 메모 장 탭 ---
+            // 제목 줄 바로 아래. 적어 둔 장들이 여기에 늘어선다.
+            var tabStrip = CreatePanel(window.transform, "TabStrip", new Color(0.88f, 0.87f, 0.83f, 1f));
+            var tabStripRt = (RectTransform)tabStrip.transform;
+            tabStripRt.anchorMin = new Vector2(0f, 1f);
+            tabStripRt.anchorMax = new Vector2(1f, 1f);
+            tabStripRt.pivot = new Vector2(0.5f, 1f);
+            tabStripRt.anchoredPosition = new Vector2(0f, -BarHeight);
+            tabStripRt.sizeDelta = new Vector2(0f, TabHeight);
+
+            // 좁은 화면(휴대폰)에서는 탭이 줄을 넘는다. 잘라서 보여주고 끌어서 옆으로 넘긴다.
+            // 막대는 두지 않는다. 손으로 미는 것이 휴대폰에서 더 자연스럽다.
+            var tabScroll = tabStrip.AddComponent<ScrollRect>();
+            tabScroll.horizontal = true;
+            tabScroll.vertical = false;
+            tabScroll.movementType = ScrollRect.MovementType.Clamped;
+            tabScroll.inertia = false;
+            tabScroll.scrollSensitivity = 30f;
+            tabScroll.horizontalScrollbar = null;
+            tabScroll.verticalScrollbar = null;
+
+            var tabView = new GameObject("Viewport", typeof(RectTransform));
+            tabView.transform.SetParent(tabStrip.transform, false);
+            var tabViewRt = (RectTransform)tabView.transform;
+            StretchInside(tabViewRt, 10f, 10f, 5f, 5f);
+            tabView.AddComponent<RectMask2D>();
+
+            var tabRoot = new GameObject("Tabs", typeof(RectTransform));
+            tabRoot.transform.SetParent(tabView.transform, false);
+            var tabRootRt = (RectTransform)tabRoot.transform;
+
+            // 왼쪽 끝에 매달아 오른쪽으로 자란다. 늘어난 만큼만 밀린다.
+            tabRootRt.anchorMin = new Vector2(0f, 0f);
+            tabRootRt.anchorMax = new Vector2(0f, 1f);
+            tabRootRt.pivot = new Vector2(0f, 0.5f);
+            tabRootRt.anchoredPosition = Vector2.zero;
+            tabRootRt.sizeDelta = new Vector2(0f, 0f);
+
+            tabScroll.viewport = tabViewRt;
+            tabScroll.content = tabRootRt;
+
+            var tabLayout = tabRoot.AddComponent<HorizontalLayoutGroup>();
+            tabLayout.spacing = 6f;
+            tabLayout.childAlignment = TextAnchor.MiddleLeft;
+            tabLayout.childControlWidth = true;
+            tabLayout.childControlHeight = true;
+            tabLayout.childForceExpandWidth = false;
+            tabLayout.childForceExpandHeight = true;
+
+            // 탭이 늘어난 만큼 이 칸도 넓어진다. 그래야 끌어서 넘길 자리가 생긴다.
+            var tabFitter = tabRoot.AddComponent<ContentSizeFitter>();
+            tabFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+            tabFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var tabTemplate = CreatePanel(tabRoot.transform, "TabTemplate", new Color(0.78f, 0.77f, 0.73f, 1f));
+            ((RectTransform)tabTemplate.transform).sizeDelta = new Vector2(150f, 36f);
+
+            // 칸 너비는 여기서 정한다. 줄이 스스로 넓어지려면 한 칸의 너비를 알아야 한다.
+            var tabSize = tabTemplate.AddComponent<LayoutElement>();
+            tabSize.preferredWidth = 150f;
+            tabSize.minWidth = 150f;
+            tabSize.flexibleWidth = 0f;
+
+            var tabButton = tabTemplate.AddComponent<Button>();
+            tabButton.targetGraphic = tabTemplate.GetComponent<Image>();
+
+            var tabLabel = AddText(tabTemplate.transform, "Label", 22f, UIFontWeight.Medium, ink,
+                Vector2.zero, new Vector2(150f, 36f), TextAlignmentOptions.Center);
+            StretchInside(tabLabel.rectTransform, 8f, 8f, 4f, 4f);
+            tabLabel.raycastTarget = false;
+            tabLabel.textWrappingMode = TextWrappingModes.NoWrap;
+            tabTemplate.SetActive(false);
+
+            // --- 적는 자리 ---
+            // 누르면 여기에 글자가 들어간다. 이 판 자체가 InputField 의 바탕이다.
+            var body = CreatePanel(window.transform, "Body", paper);
+            StretchInside((RectTransform)body.transform, 0f, 0f, BarHeight + TabHeight, FooterHeight);
+
+            var input = body.AddComponent<TMP_InputField>();
+            input.targetGraphic = body.GetComponent<Image>();
+
+            // 글자가 창 밖으로 새지 않게 잘라 주는 칸. InputField 가 이 칸을 기준으로 굴린다.
+            var area = new GameObject("TextArea", typeof(RectTransform));
+            area.transform.SetParent(body.transform, false);
+            var areaRt = (RectTransform)area.transform;
+            StretchInside(areaRt, 22f, 22f, 16f, 16f);
+            area.AddComponent<RectMask2D>();
+
+            var placeholder = AddText(area.transform, "Placeholder", 30f, UIFontWeight.Regular, faded,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            StretchInside(placeholder.rectTransform, 0f, 0f, 0f, 0f);
+            placeholder.raycastTarget = false;
+
+            var typed = AddText(area.transform, "Text", 30f, UIFontWeight.Regular, ink,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            StretchInside(typed.rectTransform, 0f, 0f, 0f, 0f);
+            typed.raycastTarget = false;
+
+            input.textViewport = areaRt;
+            input.textComponent = typed;
+            input.placeholder = placeholder;
+            input.lineType = TMP_InputField.LineType.MultiLineNewline;
+            input.richText = false;
+
+            // ESC 는 화면을 닫는 데 쓴다. 닫으면서 적은 것을 되돌리면 안 된다.
+            input.restoreOriginalTextOnEscape = false;
+            input.onFocusSelectAll = false;
+
+            input.customCaretColor = true;
+            input.caretColor = ink;
+            input.caretWidth = 2;
+            input.selectionColor = new Color(0.36f, 0.52f, 0.78f, 0.45f);
+            input.text = string.Empty;
+
+            // --- 아래 한 줄 ---
+            var footer = AddText(window.transform, "Footer", 22f, UIFontWeight.Regular, faded,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
+            var footerRt = footer.rectTransform;
+            footerRt.anchorMin = new Vector2(0f, 0f);
+            footerRt.anchorMax = new Vector2(1f, 0f);
+            footerRt.pivot = new Vector2(0.5f, 0f);
+            footerRt.anchoredPosition = Vector2.zero;
+            footerRt.sizeDelta = new Vector2(-44f, FooterHeight);
+            footer.textWrappingMode = TextWrappingModes.NoWrap;
+            footer.raycastTarget = false;
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_window").objectReferenceValue = windowRt;
+            so.FindProperty("_titleText").objectReferenceValue = windowTitle;
+            so.FindProperty("_input").objectReferenceValue = input;
+            so.FindProperty("_footerText").objectReferenceValue = footer;
+            so.FindProperty("_closeButton").objectReferenceValue = closeButton;
+            so.FindProperty("_tabRoot").objectReferenceValue = tabRootRt;
+            so.FindProperty("_tabScroll").objectReferenceValue = tabScroll;
+            so.FindProperty("_tabTemplate").objectReferenceValue = tabButton;
+            so.FindProperty("_newButton").objectReferenceValue = newButton;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            ClearDisabledTint(go);
+            return screen;
+        }
+
+        /// <summary>
+        /// 잠깐 떴다 사라지는 알림 한 줄.
+        /// 누를 것이 없으므로 아래 화면을 가리지도 막지도 않는다.
+        /// </summary>
+        private static ToastScreen BuildToastScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0f, 0f, 0f, 0f));
+            StretchFull(go);
+            go.GetComponent<Image>().raycastTarget = false;
+
+            var screen = go.AddComponent<ToastScreen>();
+
+            // 맨 위 레이어. 무엇이 떠 있든 그 위에 얹힌다. 뒤로가기로 닫히지도 않는다.
+            ConfigureScreen(screen, name, UILayer.System, false, false, true);
+
+            var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.10f, 0.14f, 0.94f));
+            var boxRt = (RectTransform)box.transform;
+            boxRt.anchorMin = new Vector2(0.5f, 1f);
+            boxRt.anchorMax = new Vector2(0.5f, 1f);
+            boxRt.pivot = new Vector2(0.5f, 1f);
+            boxRt.anchoredPosition = new Vector2(0f, -120f);
+            boxRt.sizeDelta = new Vector2(760f, 92f);
+            box.GetComponent<Image>().raycastTarget = false;
+
+            var edge = CreatePanel(box.transform, "Edge", AccentColor);
+            var edgeRt = (RectTransform)edge.transform;
+            edgeRt.anchorMin = new Vector2(0f, 0f);
+            edgeRt.anchorMax = new Vector2(0f, 1f);
+            edgeRt.pivot = new Vector2(0f, 0.5f);
+            edgeRt.anchoredPosition = Vector2.zero;
+            edgeRt.sizeDelta = new Vector2(6f, 0f);
+            edge.GetComponent<Image>().raycastTarget = false;
+
+            var line = AddText(box.transform, "Line", 30f, UIFontWeight.SemiBold, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(line.rectTransform, 36f, 24f, 10f, 10f);
+            ConfigureOneLineText(line, 30f);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_text").objectReferenceValue = line;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return screen;
         }
 
         /// <summary>인터넷 커뮤니티 게시글 화면.</summary>
@@ -1761,6 +2090,9 @@ namespace UrbanLegendBureau.EditorTools
             btMarkRt.pivot = new Vector2(1f, 0.5f);
             btMarkRt.anchoredPosition = new Vector2(-8f, 6f);
             btMarkRt.sizeDelta = new Vector2(40f, 40f);
+
+            // 바탕화면의 세모와 같이 조금씩 좌우로 움직인다. 가리키는 것은 둘 다 같은 일이다.
+            btMark.gameObject.AddComponent<HintNudge>();
 
             // 오른쪽에는 이 글이 괴담의 믿음에 얼마나 보태고 있는지를 붉게 적는다.
             var btBelief = AddText(boardTemplate.transform, "Belief", 24f, UIFontWeight.SemiBold, BeliefMarkColor,
@@ -2328,7 +2660,9 @@ namespace UrbanLegendBureau.EditorTools
             var tickerText = AddText(tickerPlate.transform, "Ticker", 26f, UIFontWeight.Medium, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
             StretchInside(tickerText.rectTransform, 24f, 24f, 6f, 6f);
-            tickerText.raycastTarget = false;
+
+            // 자리 이름과 알림과 상황이 나란히 선다. 한 줄로 두고 길어지면 글자만 줄인다.
+            ConfigureOneLineText(tickerText, 26f);
 
             // 고를 것이 떠 있는 동안 장면을 못 누르게 덮는 판.
             // 대사 띠보다 먼저 만들어야 띠와 선택지가 이 판 위에 올라온다.
@@ -2395,9 +2729,11 @@ namespace UrbanLegendBureau.EditorTools
             lineText.rectTransform.anchorMax = new Vector2(0f, 1f);
             lineText.rectTransform.pivot = new Vector2(0f, 1f);
             lineText.rectTransform.anchoredPosition = new Vector2(TextLeft, -100f);
-            lineText.rectTransform.sizeDelta = new Vector2(1240f, 130f);
-            lineText.textWrappingMode = TMPro.TextWrappingModes.Normal;
-            lineText.raycastTarget = false;
+
+            // 오른쪽 아래 버튼 줄까지는 내려오지 않는 만큼, 폭은 화면 오른쪽 끝까지 쓴다.
+            // 좁게 두면 긴 대사가 글자 몇 개만 다음 줄로 흘린다.
+            lineText.rectTransform.sizeDelta = new Vector2(1460f, 140f);
+            ConfigureBodyText(lineText, 34f);
 
             // --- 고를 것 ---
             // 대사가 서는 그 자리에 대신 늘어선다. 평소에는 꺼 둔다.
@@ -2436,7 +2772,9 @@ namespace UrbanLegendBureau.EditorTools
             var fieldChoiceLabel = AddText(fieldChoiceTemplate.transform, "Label", 28f, UIFontWeight.Regular,
                 TextColor, Vector2.zero, new Vector2(820f, 44f), TextAlignmentOptions.Left);
             StretchInside(fieldChoiceLabel.rectTransform, 22f, 22f, 6f, 6f);
-            fieldChoiceLabel.raycastTarget = false;
+
+            // 고를 것은 한 칸에 한 줄로 선다. 긴 것은 접지 않고 글자를 줄여 담는다.
+            ConfigureOneLineText(fieldChoiceLabel, 26f, 0.62f);
 
             fieldChoiceTemplate.SetActive(false);
             choices.SetActive(false);
@@ -2632,10 +2970,13 @@ namespace UrbanLegendBureau.EditorTools
 
             phone.SetActive(false);
 
-            // 튜토리얼이 현장에서 말할 때만 켜지는 진행 버튼. 화면 전체를 덮는다.
-            // 맨 나중에 만들어야 대사 띠와 버튼보다 위에 올라와 그 둘까지 막는다.
-            var fieldAdvance = CreatePanel(go.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
+            // 튜토리얼이 현장에서 말할 때만 켜지는 진행 버튼. 화면을 덮어 조사 지점과 띠의 버튼을 막는다.
+            //
+            // 다만 휴대폰만은 덮지 않는다. 대사를 듣는 동안에도 휴대폰을 열어 글을 다시 볼 수 있어야 한다.
+            // 그래서 대사 띠 바로 위에 끼워 넣는다. 나중에 만든 휴대폰은 이 판 위에 남는다.
+            var fieldAdvance = CreatePanel(safe.transform, "Btn_Advance", new Color(0f, 0f, 0f, 0f));
             StretchFull(fieldAdvance);
+            fieldAdvance.transform.SetSiblingIndex(band.transform.GetSiblingIndex() + 1);
             var fieldAdvanceButton = fieldAdvance.AddComponent<Button>();
             var fieldAdvanceImage = fieldAdvance.GetComponent<Image>();
             fieldAdvanceButton.targetGraphic = fieldAdvanceImage;
@@ -3009,6 +3350,39 @@ namespace UrbanLegendBureau.EditorTools
             rt.anchoredPosition = position;
             rt.sizeDelta = sizeDelta;
             return text;
+        }
+
+        /// <summary>
+        /// 대사와 선택지의 줄바꿈 규칙을 한 곳에서 정한다.
+        ///
+        /// 상자보다 조금 긴 대사가 글자 두세 개만 다음 줄로 흘려 보내고 있었다.
+        /// 그래서 줄을 늘리기 전에 글자를 조금 줄이게 한다. 한 급 줄여 한 줄에 담기면 그렇게 담고,
+        /// 그래도 넘칠 때만 줄을 바꾼다. 어느 대사든 같은 규칙을 쓰므로 모습이 고르다.
+        ///
+        /// minRatio 는 줄여도 되는 밑바닥이다. 여기보다 작아지지 않으므로 대사가 갑자기 잘아지지 않는다.
+        /// </summary>
+        private static void ConfigureBodyText(TMP_Text text, float size, float minRatio = 0.8f, float lineGap = 8f)
+        {
+            text.fontSize = size;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.overflowMode = TextOverflowModes.Truncate;
+            text.enableAutoSizing = true;
+            text.fontSizeMax = size;
+            text.fontSizeMin = Mathf.Round(size * minRatio);
+            text.lineSpacing = lineGap;
+            text.raycastTarget = false;
+        }
+
+        /// <summary>한 줄로만 서야 하는 글. 넘치면 줄을 바꾸는 대신 글자를 줄인다.</summary>
+        private static void ConfigureOneLineText(TMP_Text text, float size, float minRatio = 0.72f)
+        {
+            text.fontSize = size;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.overflowMode = TextOverflowModes.Truncate;
+            text.enableAutoSizing = true;
+            text.fontSizeMax = size;
+            text.fontSizeMin = Mathf.Round(size * minRatio);
+            text.raycastTarget = false;
         }
 
         /// <summary>이미 만든 버튼의 크기와 글자 크기를 바꾼다.</summary>

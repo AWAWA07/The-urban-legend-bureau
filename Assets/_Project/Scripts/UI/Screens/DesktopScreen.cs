@@ -20,6 +20,15 @@ namespace UrbanLegendBureau.UI
 
         public Button button;
         public TMP_Text label;
+
+        [Tooltip("가리키는 세모. 지금 눌러야 하는 아이콘일 때만 뜬다. 비워 두면 아무 표시도 없다.")]
+        public GameObject hint;
+
+        [Tooltip("새로 올라온 것이 몇 개인지 적는 배지. 셀 것이 없으면 꺼진다.")]
+        public GameObject badge;
+
+        [Tooltip("배지 안의 숫자.")]
+        public TMP_Text badgeCount;
     }
 
     /// <summary>
@@ -115,6 +124,37 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
+        /// 가리키는 세모를 세울 아이콘 하나를 정한다. 빈 값을 주면 아무 곳도 가리키지 않는다.
+        ///
+        /// 누를 수 있는 것과 가리키는 것은 다른 이야기다.
+        /// 메모장은 언제든 열 수 있지만, 지금 눌러야 하는 곳은 괴담넷 하나다.
+        /// </summary>
+        public void SetHintApp(string appId)
+        {
+            _hintAppId = appId;
+            ApplyInteractable();
+        }
+
+        private string _hintAppId;
+
+        /// <summary>
+        /// 아이콘에 새로 올라온 것이 몇 개인지 적는다.
+        ///
+        /// 무엇이 새것인지 세는 것은 밖의 일이다. 여기서는 받은 숫자를 적기만 한다.
+        /// 0 을 주면 배지가 꺼진다. 읽고 나면 그렇게 지운다.
+        /// </summary>
+        public void SetAppBadge(string appId, int count)
+        {
+            foreach (var icon in _icons)
+            {
+                if (icon == null || icon.appId != appId) continue;
+
+                if (icon.badgeCount != null) icon.badgeCount.text = count.ToString();
+                if (icon.badge != null) icon.badge.SetActive(count > 0);
+            }
+        }
+
+        /// <summary>
         /// 아무것도 누를 수 없게 한다. 한영이 말하는 동안에 쓴다.
         /// 말이 끝나기 전에 아이콘을 눌러 버리면 안내를 건너뛰게 된다.
         /// </summary>
@@ -128,8 +168,13 @@ namespace UrbanLegendBureau.UI
         {
             foreach (var icon in _icons)
             {
-                if (icon == null || icon.button == null) continue;
-                icon.button.interactable = !_lockAll && (_allowAll || _allowed.Contains(icon.appId));
+                if (icon == null) continue;
+
+                bool open = !_lockAll && (_allowAll || _allowed.Contains(icon.appId));
+                if (icon.button != null) icon.button.interactable = open;
+
+                // 가리키는 세모는 지목된 아이콘 하나에만 선다. 잠겨 있으면 아직 누를 때가 아니다.
+                if (icon.hint != null) icon.hint.SetActive(open && icon.appId == _hintAppId);
             }
         }
 

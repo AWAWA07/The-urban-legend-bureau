@@ -37,6 +37,17 @@ namespace UrbanLegendBureau.UI
         public bool HidesUnderlying => _hidesUnderlying;
         public bool ClosableByBack => _closableByBack;
         public bool KeepsUnderlyingUsable => _keepsUnderlyingUsable;
+
+        /// <summary>
+        /// 덮은 아래 화면을 그대로 쓰게 둘지 바꾼다. 여는 쪽이 Push 하기 전에 정한다.
+        ///
+        /// 같은 화면이라도 어떻게 여느냐에 따라 다르다.
+        /// 괴담넷은 컴퓨터 창으로 열면 화면을 차지하지만, 휴대폰으로 들고 볼 때는 손 안의 물건일 뿐이다.
+        /// </summary>
+        public void SetKeepsUnderlyingUsable(bool keep)
+        {
+            _keepsUnderlyingUsable = keep;
+        }
         public bool IsOpen { get; private set; }
 
         protected virtual void Awake()
