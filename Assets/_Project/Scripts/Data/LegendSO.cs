@@ -31,6 +31,19 @@ namespace UrbanLegendBureau.Data
         [Tooltip("사건 시작 시점의 확산도. 진행 중 값은 SaveData가 들고 있다.")]
         [SerializeField, Range(0f, 100f)] private float _initialSpreadRate;
 
+        [Header("결론 (Localization String ID)")]
+        [Tooltip("이 괴담이 진짜인지 가짜인지, 그리고 왜 그런지. 규칙을 맞히면 이 글이 결론으로 나온다.")]
+        [SerializeField] private string _verdictTextId;
+
+        [Tooltip("판정의 근거가 되는 단서들. 결론 칸이 이 단서들을 그대로 인용한다.")]
+        [SerializeField] private List<string> _verdictClueIds = new List<string>();
+
+        [Tooltip("이 괴담을 어떻게 피하거나 끊는가. 맞는 규칙에서 따라 나오는 한 줄이다.")]
+        [SerializeField] private string _counterTextId;
+
+        [Tooltip("파훼법의 근거가 되는 단서들.")]
+        [SerializeField] private List<string> _counterClueIds = new List<string>();
+
         [Header("구성 데이터")]
         [Tooltip("이 괴담의 규칙들. 진짜 규칙과 함정 규칙이 섞여 있을 수 있다.")]
         [SerializeField] private List<RuleSO> _rules = new List<RuleSO>();
@@ -54,6 +67,10 @@ namespace UrbanLegendBureau.Data
         public string RiskLevelTextId => _riskLevel.ToTextId();
 
         public float InitialSpreadRate => _initialSpreadRate;
+        public string VerdictTextId => _verdictTextId;
+        public string CounterTextId => _counterTextId;
+        public IReadOnlyList<string> VerdictClueIds => _verdictClueIds;
+        public IReadOnlyList<string> CounterClueIds => _counterClueIds;
         public IReadOnlyList<RuleSO> Rules => _rules;
         public IReadOnlyList<ClueSO> Clues => _clues;
         public IReadOnlyList<WebPageSO> WebPages => _webPages;

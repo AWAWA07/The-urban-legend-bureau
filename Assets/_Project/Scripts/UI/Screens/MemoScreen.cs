@@ -134,6 +134,65 @@ namespace UrbanLegendBureau.UI
             }
         }
 
+        /// <summary>
+        /// 적어 둔 것과 열림 표시를 지운다. 튜토리얼을 처음부터 돌릴 때 부른다.
+        ///
+        /// 이름을 Reset 으로 두지 않는다. 유니티가 컴포넌트에 같은 이름의 메시지를 따로 부르기 때문이다.
+        ///
+        /// 열림 표시까지 지우는 이유가 있다. 그 표시가 남아 있으면 한영이 메모하라고 이르는 마디에서
+        /// "이미 열려 있다"고 보아 열렸다는 알림이 뜨지 않는다. 두 번째 튜토리얼부터 그랬다.
+        /// </summary>
+        public static void ResetAll()
+        {
+            var save = GetSave();
+            var data = save?.Current;
+            if (data == null) return;
+
+            data.memos?.Clear();
+            data.storyFlags?.Remove(UnlockedFlag);
+            save.MarkDirty();
+        }
+
+        /// <summary>
+        /// 처음부터 들어 있는 메모를 적어 둔다.
+        ///
+        /// 한영이 말로만 훑고 지나가는 위험 등급표다. 조사하다 "몇 퍼센트면 무슨 급이더라" 할 때
+        /// 대사를 되감을 수는 없으니, 설명하며 펴 보이던 쪽지를 그대로 옮겨 적어 둔 것으로 둔다.
+        ///
+        /// 쪽지 문구를 그대로 가져다 쓴다. 등급 설명을 고치면 이 메모도 함께 바뀐다.
+        /// 적어 둔 것은 플레이어의 글이므로 지금 쓰는 말로 한 번 적고 끝낸다. 나중에 다시 옮기지 않는다.
+        /// </summary>
+        public static void SeedDefaultNotes()
+        {
+            var save = GetSave();
+            var data = save?.Current;
+            if (data == null) return;
+            if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
+
+            data.memos ??= new List<string>();
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append(loc.Get(GradeNoteTitleTextId));
+
+            for (int i = 0; i < GradeKeys.Length; i++)
+            {
+                sb.Append("\n\n").Append(loc.Get("ui.brief.note." + GradeKeys[i] + ".title"));
+                sb.Append('\n').Append(loc.Get("ui.brief.note." + GradeKeys[i] + ".body"));
+            }
+
+            // 맨 앞장에 둔다. 처음 열면 이것부터 보인다.
+            data.memos.Insert(0, sb.ToString());
+            save.MarkDirty();
+        }
+
+        private const string GradeNoteTitleTextId = "ui.memo.default_grade";
+
+        /// <summary>등급 쪽지의 열쇠들. 브리핑이 펴 보이는 순서와 같다.</summary>
+        private static readonly string[] GradeKeys =
+        {
+            "observation", "propagation", "erosion", "manifestation", "annihilation", "unknown",
+        };
+
         /// <summary>메모장을 연다. 이미 열려 있으면 아무 일도 없다. 열렸으면 true.</summary>
         public static bool Unlock()
         {

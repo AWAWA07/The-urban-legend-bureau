@@ -75,6 +75,9 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(2.6f, 1.6f), new Color(0.48f, 0.30f, 0.34f),
                 "field.test.wall", "field.test.wall.result", "clue_test_002");   // 오답 규칙의 근거
 
+            // 시험용 현장에도 같은 두 사람을 세운다. 어느 현장에 들어가도 걸을 수 있어야 한다.
+            BuildFieldActors(fieldRoot.transform, -3.4f, -2.0f, 2.4f, -12f, 12f);
+
             // --- 두 번째 사건의 현장 ---
             var fieldRoot2 = new GameObject("FieldRoot_Legend2");
             BuildFieldBackground(fieldRoot2.transform);
@@ -84,6 +87,8 @@ namespace UrbanLegendBureau.EditorTools
             var mirror = BuildPoint(fieldRoot2.transform, "InvestigationPoint_Mirror", new Vector2(3.4f, 0.4f),
                 new Vector2(2.4f, 3.2f), new Color(0.30f, 0.38f, 0.42f),
                 "field.test.mirror", "field.test.mirror.result", null);
+
+            BuildFieldActors(fieldRoot2.transform, -3.4f, -2.0f, 2.4f, -12f, 12f);
 
             // --- 지점별 조사 방법과 해금 조건 (17단계) ---
             // 지점이 어떤 조사 방법을 허용하는지는 여기서 정한다. 모든 지점에서 모든 행동을 할 수 없다.
@@ -121,7 +126,9 @@ namespace UrbanLegendBureau.EditorTools
             var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
                 new Vector2(4.4f, 2.2f), new Color(0.26f, 0.42f, 0.46f),
                 "field.subway.window", "field.subway.window", null);
-            var cctv = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayCctv", new Vector2(-12.8f, 2.6f),
+            // CCTV 는 천장 모서리에 달렸지만, 걸어가 닿을 수 있는 자리여야 한다.
+            // 걸을 수 있는 왼쪽 끝이 -12 이라 그보다 바깥에 두면 영영 닿지 못한다.
+            var cctv = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayCctv", new Vector2(-10.6f, 2.6f),
                 new Vector2(1.6f, 1.15f), new Color(0.46f, 0.40f, 0.30f),
                 "field.subway.cctv", "field.subway.cctv", null);
             var platform = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayPlatform", new Vector2(10.0f, -0.9f),
@@ -136,8 +143,11 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(cctv, "point_subway_cctv",
                 new[] { "action_subway_cctv_inspect", "action_subway_photo" },
                 new[] { "clue_subway_001" }, false, CaseStep.Started);
+            // 글끼리 견줘 보는 조사는 여기에 둔다. 승강장 기록을 뒤지는 자리라 견줄 거리가 있다.
+            // 이 방법이 주는 단서(clue_subway_004)가 없으면 맞는 규칙을 세울 수 없다. 어디에도 걸려 있지 않았다.
             ConfigurePoint(platform, "point_subway_platform",
-                new[] { "action_subway_platform_search", "action_subway_platform_trace" }, null, false, CaseStep.Started);
+                new[] { "action_subway_platform_search", "action_subway_platform_trace", "action_subway_compare" },
+                null, false, CaseStep.Started);
 
             // 열차가 들어오면 승강장 대신 열차 안이 보인다.
             // 장소를 새로 만들지 않고 보이는 것만 갈아 끼운다.
@@ -163,6 +173,9 @@ namespace UrbanLegendBureau.EditorTools
             var g2 = groups.GetArrayElementAtIndex(2);
             g2.FindPropertyRelative("legendId").stringValue = "legend_subway_last_train";
             g2.FindPropertyRelative("root").objectReferenceValue = fieldRootSubway;
+
+            // 조사할 것 위에 뜨는 말풍선. 현장마다 두지 않고 하나를 옮겨 쓴다.
+            fieldSo.FindProperty("_prompt").objectReferenceValue = BuildFieldPrompt(fieldGo.transform);
             fieldSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 화면 ---
@@ -304,6 +317,19 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnClueOk.GetComponent<Button>().onClick, director.OnCluePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnRuleOk.GetComponent<Button>().onClick, director.OnRulePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnWarningOk.GetComponent<Button>().onClick, director.OnSpreadWarningConfirmClicked);
+
+            // 화면마다 손으로 잡아 둔 글자 크기를 한 규칙으로 맞춘다.
+            // 문구가 길어져 칸을 넘치던 곳들이 여기서 한꺼번에 정리된다.
+            var screens = new UIScreen[]
+            {
+                title, bureau, caseList, actionList, ruleList, internetList, internetPage, fieldHud,
+                exorcism, result, help, settings, dialogue, talk, desktop, community, memo, toast,
+                cluePopup, rulePopup, warningPopup,
+            };
+            for (int i = 0; i < screens.Length; i++)
+            {
+                if (screens[i] != null) TidyTexts(screens[i].gameObject);
+            }
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
@@ -486,6 +512,10 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(boarding, CaseDirector.BoardingPointId, null, null, false, CaseStep.Started);
             boarding.SetActive(false);
 
+            // 승강장에 선 두 사람. 발은 안전선 안쪽, 바닥 위에 놓는다.
+            // 가운데 문 앞(x 0)은 타는 자리라 비워 두고 왼쪽에 선다.
+            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f);
+
             var arrival = root.AddComponent<TrainArrival>();
             var aso = new SerializedObject(arrival);
             aso.Update();
@@ -589,8 +619,12 @@ namespace UrbanLegendBureau.EditorTools
 
             // 왼쪽 위 모서리의 CCTV. 천장에서 내려온 팔에 매달린다.
             // 이름표가 맨 위 한 줄에 가리지 않도록 조사 지점을 y 2.6 에 둔다.
-            AddFieldRect(root.transform, "CctvArm", new Vector2(-12.8f, 3.25f), new Vector2(0.28f, 1.0f), trim, -5);
-            AddFieldRect(root.transform, "CctvShade", new Vector2(-12.8f, 2.6f), new Vector2(2.2f, 1.7f), dark, -6);
+            // 걸어가서 닿는 자리여야 한다. 걸을 수 있는 왼쪽 끝(-12)보다 안쪽에 둔다.
+            AddFieldRect(root.transform, "CctvArm", new Vector2(-10.6f, 3.25f), new Vector2(0.28f, 1.0f), trim, -5);
+            AddFieldRect(root.transform, "CctvShade", new Vector2(-10.6f, 2.6f), new Vector2(2.2f, 1.7f), dark, -6);
+
+            // 객실 안에 선 두 사람. 바닥 위에 놓는다. 의자와 봉 사이를 오간다.
+            BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f);
 
             root.SetActive(false);
             return root;
@@ -762,6 +796,162 @@ namespace UrbanLegendBureau.EditorTools
             sr.sortingOrder = -10;
         }
 
+        /// <summary>
+        /// 현장에 세우는 인물 둘. 앞의 하나를 걷게 하고, 뒤의 하나가 그를 따라간다.
+        ///
+        /// 그림은 아직 없다. 머리와 몸과 다리를 네모로만 잡아 둔 임시 모습이다.
+        /// 실제 그림이 생기면 이 네모들만 갈아 끼우면 된다. 걷고 따라가는 일은 그대로 둔다.
+        ///
+        /// groundY 는 발이 닿는 높이다. 현장마다 바닥 높이가 달라 밖에서 받는다.
+        /// </summary>
+        /// <remarks>
+        /// 인물은 짜 놓은 크기(키 1.8)에서 이만큼 키워 세운다.
+        /// 씬에서 직접 늘려 보고 정한 값이라 여기 한 곳에만 둔다. 크기를 바꾸려면 이 숫자만 고친다.
+        /// 좌우를 뒤집을 때 절댓값을 쓰므로 키운 크기는 뒤집어도 그대로 남는다.
+        /// </remarks>
+        private const float ActorScale = 1.5f;
+
+        /// <summary>
+        /// 조사할 것 위에 뜨는 말풍선 하나.
+        ///
+        /// 월드에 놓이는 물건이라 UI 캔버스가 아니라 3D TextMeshPro 를 쓴다.
+        /// 장면의 어떤 네모보다도 앞에 서야 하므로 그리는 순서를 넉넉히 높게 둔다.
+        /// 현장에 하나만 두고 가까이 간 지점으로 옮겨 다닌다.
+        /// </summary>
+        private static FieldPrompt BuildFieldPrompt(Transform parent)
+        {
+            const int Order = 30;
+
+            var go = new GameObject("FieldPrompt");
+            go.transform.SetParent(parent, false);
+
+            // 3D TextMeshPro 의 글자 크기는 월드 단위의 열 배쯤이다.
+            // 4.2 가 0.42 단위, 화면에서 26픽셀 남짓 된다. 읽히면서 장면을 가리지 않는 크기다.
+            //
+            // 판은 글자를 따라 커진다. 크기를 다시 잡을 일이 생기면 FontSize 하나만 고친다.
+            const float FontSize = 4.2f;
+            const float PlateWidth = FontSize * 1.17f;    // = 4.91
+            const float PlateHeight = FontSize * 0.2f;    // = 0.84
+
+            var plate = AddFieldRect(go.transform, "Plate", Vector2.zero, new Vector2(PlateWidth, PlateHeight),
+                new Color(0.06f, 0.06f, 0.09f, 0.92f), Order);
+
+            // 말풍선 아래쪽의 뾰족한 끝. 어느 것을 가리키는지 알게 한다.
+            var tail = AddFieldRect(go.transform, "Tail", new Vector2(0f, -PlateHeight * 0.55f),
+                new Vector2(0.26f, 0.26f), new Color(0.06f, 0.06f, 0.09f, 0.92f), Order);
+
+            var edge = AddFieldRect(plate.transform, "Edge", new Vector2(0f, 0f),
+                new Vector2(PlateWidth + 0.1f, PlateHeight + 0.1f),
+                new Color(0.86f, 0.74f, 0.48f, 0.9f), Order - 1);
+
+            var textGo = new GameObject("Label");
+            textGo.transform.SetParent(go.transform, false);
+
+            var label = textGo.AddComponent<TextMeshPro>();
+            label.font = LoadFont(UIFontWeight.SemiBold);
+            label.fontSize = FontSize;
+            label.color = TextColor;
+            label.alignment = TextAlignmentOptions.Center;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
+
+            // 긴 이름은 글자를 조금 줄여 담는다. 줄을 바꾸지는 않는다.
+            label.enableAutoSizing = true;
+            label.fontSizeMin = FontSize * 0.7f;
+            label.fontSizeMax = FontSize;
+            label.rectTransform.sizeDelta = new Vector2(PlateWidth - 0.28f, PlateHeight - 0.14f);
+
+            var mesh = textGo.GetComponent<MeshRenderer>();
+            if (mesh != null) mesh.sortingOrder = Order + 1;
+
+            var prompt = go.AddComponent<FieldPrompt>();
+            var pso = new SerializedObject(prompt);
+            pso.Update();
+            pso.FindProperty("_label").objectReferenceValue = label;
+            pso.FindProperty("_plate").objectReferenceValue = plate.GetComponent<SpriteRenderer>();
+            pso.FindProperty("_tail").objectReferenceValue = tail.GetComponent<SpriteRenderer>();
+            pso.FindProperty("_edge").objectReferenceValue = edge.GetComponent<SpriteRenderer>();
+            pso.ApplyModifiedPropertiesWithoutUndo();
+
+            return prompt;
+        }
+
+        private static void BuildFieldActors(Transform parent, float groundY, float leadX, float gap,
+            float minX, float maxX)
+        {
+            var lead = BuildFieldActor(parent, "Actor_Chajihan", new Vector2(leadX, groundY),
+                new Color(0.42f, 0.52f, 0.72f), new Color(0.86f, 0.78f, 0.68f));
+            lead.transform.localScale = Vector3.one * ActorScale;
+
+            var walker = lead.AddComponent<FieldWalker>();
+            var wso = new SerializedObject(walker);
+            wso.Update();
+            wso.FindProperty("_minX").floatValue = minX;
+            wso.FindProperty("_maxX").floatValue = maxX;
+            wso.ApplyModifiedPropertiesWithoutUndo();
+
+            var mate = BuildFieldActor(parent, "Actor_Hanyoung", new Vector2(leadX - gap, groundY),
+                new Color(0.62f, 0.44f, 0.40f), new Color(0.88f, 0.80f, 0.70f));
+            mate.transform.localScale = Vector3.one * ActorScale;
+
+            var follower = mate.AddComponent<FieldFollower>();
+            var fso = new SerializedObject(follower);
+            fso.Update();
+            fso.FindProperty("_target").objectReferenceValue = lead.transform;
+            fso.FindProperty("_gap").floatValue = gap;
+            fso.FindProperty("_minX").floatValue = minX;
+            fso.FindProperty("_maxX").floatValue = maxX;
+            fso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 임시 인물 하나. 발이 닿는 자리를 기준으로 위로 쌓는다.
+        ///
+        /// 2등신이다. 키 1.8 중 위의 0.9 가 머리고 아래 0.9 에 몸과 다리가 들어간다.
+        /// 눈 둘을 보는 쪽으로 몰아 찍는다. 좌우를 뒤집었을 때 어디를 보는지 그것으로 안다.
+        /// </summary>
+        private static GameObject BuildFieldActor(Transform parent, string name, Vector2 footPosition,
+            Color cloth, Color skin)
+        {
+            const int Order = 3;   // 승강장 문짝과 안전선보다 앞이다
+
+            // 2등신의 기준. 키의 절반이 머리다.
+            const float Height = 1.8f;
+            const float HeadSize = Height * 0.5f;      // = 0.9
+            const float BodyTop = Height - HeadSize;   // = 0.9
+
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = footPosition;
+
+            var leg = new Color(0.17f, 0.18f, 0.23f);
+
+            // 다리 둘. 짧고 굵다. 발끝이 바닥에 닿는다.
+            AddFieldRect(go.transform, "Leg_L", new Vector2(-0.13f, 0.16f), new Vector2(0.20f, 0.32f), leg, Order);
+            AddFieldRect(go.transform, "Leg_R", new Vector2(0.13f, 0.16f), new Vector2(0.20f, 0.32f), leg, Order);
+
+            // 몸통. 머리를 받치는 자리라 작다.
+            AddFieldRect(go.transform, "Body", new Vector2(0f, 0.61f), new Vector2(0.58f, 0.58f), cloth, Order);
+
+            // 팔 둘. 몸통 옆으로 살짝 나온다.
+            AddFieldRect(go.transform, "Arm_L", new Vector2(-0.36f, 0.62f), new Vector2(0.14f, 0.42f), cloth, Order);
+            AddFieldRect(go.transform, "Arm_R", new Vector2(0.36f, 0.62f), new Vector2(0.14f, 0.42f), cloth, Order);
+
+            // 머리. 키의 절반을 차지한다.
+            AddFieldRect(go.transform, "Head", new Vector2(0f, BodyTop + HeadSize * 0.5f),
+                new Vector2(HeadSize * 0.94f, HeadSize), skin, Order);
+
+            // 앞머리. 머리 위쪽을 덮는다.
+            AddFieldRect(go.transform, "Hair", new Vector2(0f, Height - 0.16f), new Vector2(HeadSize, 0.32f),
+                new Color(0.13f, 0.12f, 0.14f), Order + 1);
+
+            // 눈 둘. 보는 쪽으로 몰아 찍는다.
+            var pupil = new Color(0.12f, 0.11f, 0.13f);
+            AddFieldRect(go.transform, "Eye_A", new Vector2(-0.02f, 1.28f), new Vector2(0.11f, 0.15f), pupil, Order + 1);
+            AddFieldRect(go.transform, "Eye_B", new Vector2(0.24f, 1.28f), new Vector2(0.11f, 0.15f), pupil, Order + 1);
+
+            return go;
+        }
+
         private static GameObject BuildPoint(Transform parent, string name, Vector2 position, Vector2 size,
             Color color, string nameTextId, string resultTextId, string clueId)
         {
@@ -769,11 +959,15 @@ namespace UrbanLegendBureau.EditorTools
             go.transform.SetParent(parent, false);
             go.transform.localPosition = position;
 
+            // 평소에는 보이지 않는다. 조사할 곳을 미리 칠해 두면 장면이 문제집처럼 보인다.
+            // 걸어가 곁에 섰을 때에만 그 자리가 밝아진다. 색은 InvestigationPoint 가 갈아 끼운다.
+            var hidden = new Color(color.r, color.g, color.b, 0f);
+
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = BuiltinSprite();
             sr.drawMode = SpriteDrawMode.Sliced;
             sr.size = size;
-            sr.color = color;
+            sr.color = hidden;
             sr.sortingOrder = 0;
 
             var col = go.AddComponent<BoxCollider2D>();
@@ -786,29 +980,17 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_resultTextId").stringValue = resultTextId;
             so.FindProperty("_clueId").stringValue = clueId ?? string.Empty;
             so.FindProperty("_renderer").objectReferenceValue = sr;
-            so.FindProperty("_normalColor").colorValue = color;
-            so.FindProperty("_pressedColor").colorValue = Color.Lerp(color, Color.white, 0.45f);
-            so.FindProperty("_investigatedColor").colorValue = Color.Lerp(color, Color.black, 0.45f);
+            so.FindProperty("_normalColor").colorValue = hidden;
+
+            // 곁에 섰을 때. 원래 색을 밝힌 것을 반쯤 비쳐 보이게 덮는다. 아래 그림이 죽지 않는다.
+            var near = Color.Lerp(color, Color.white, 0.45f);
+            so.FindProperty("_pressedColor").colorValue = new Color(near.r, near.g, near.b, 0.42f);
+
+            // 조사를 마치면 다시 숨는다. 떠난 자리가 계속 빛날 이유가 없다.
+            so.FindProperty("_investigatedColor").colorValue = hidden;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            // 지점 이름 라벨 (월드 스페이스 TMP)
-            var labelGo = new GameObject("Label");
-            labelGo.transform.SetParent(go.transform, false);
-            labelGo.transform.localPosition = new Vector3(0f, size.y * 0.5f + 0.45f, 0f);
-            var label = labelGo.AddComponent<TextMeshPro>();
-            label.font = LoadFont(UIFontWeight.Medium);
-            label.fontSize = 3.2f;
-            label.alignment = TextAlignmentOptions.Center;
-            label.color = TextColor;
-            label.rectTransform.sizeDelta = new Vector2(6f, 1f);
-            label.sortingOrder = 1;
-
-            var localized = labelGo.AddComponent<LocalizedText>();
-            var lso = new SerializedObject(localized);
-            lso.Update();
-            lso.FindProperty("_textId").stringValue = nameTextId;
-            lso.ApplyModifiedPropertiesWithoutUndo();
-
+            // 이름표는 두지 않는다. 무엇을 조사하는지는 가까이 갔을 때 말풍선이 알려 준다.
             return go;
         }
 
@@ -861,10 +1043,11 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<TextPanelScreen>();
             ConfigureScreen(screen, name, layer, true, true);
 
+            // 위에서부터 자리를 나눠 준다. 제목 360~260, 본문 230~-170, 안내 -195~-265.
             var titleText = AddText(go.transform, "Title", 64f, UIFontWeight.Bold, TextColor,
-                new Vector2(0f, 300f), new Vector2(1500f, 110f), TextAlignmentOptions.Center);
+                new Vector2(0f, 310f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
             var bodyText = AddText(go.transform, "Body", 34f, UIFontWeight.Regular, TextColor,
-                new Vector2(0f, 40f), new Vector2(1400f, 420f), TextAlignmentOptions.Top);
+                new Vector2(0f, 30f), new Vector2(1400f, 400f), TextAlignmentOptions.Top);
             var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
                 new Vector2(0f, -230f), new Vector2(1400f, 70f), TextAlignmentOptions.Center);
 
@@ -973,14 +1156,15 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<ActionListScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
-            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
-                new Vector2(0f, 400f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
+            // 위에서부터 자리를 나눠 준다. 제목 435~365, 안내 355~305, 목록, 현황 -215~-275, 결과 -295~-345.
+            var titleText = AddText(go.transform, "Title", 56f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 400f), new Vector2(1500f, 70f), TextAlignmentOptions.Center);
             var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
-                new Vector2(0f, 330f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
+                new Vector2(0f, 330f), new Vector2(1500f, 50f), TextAlignmentOptions.Center);
             var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
-                new Vector2(0f, -250f), new Vector2(1500f, 90f), TextAlignmentOptions.Center);
+                new Vector2(0f, -245f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
             var resultText = AddText(go.transform, "Result", 30f, UIFontWeight.Medium, WarnColor,
-                new Vector2(0f, -330f), new Vector2(1500f, 80f), TextAlignmentOptions.Center);
+                new Vector2(0f, -320f), new Vector2(1500f, 50f), TextAlignmentOptions.Center);
 
             var listGo = new GameObject("List", typeof(RectTransform));
             listGo.transform.SetParent(go.transform, false);
@@ -2458,56 +2642,271 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<RuleListScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
-            var titleText = AddText(go.transform, "Title", 60f, UIFontWeight.Bold, TextColor,
-                new Vector2(0f, 420f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
-            var footerText = AddText(go.transform, "Footer", 26f, UIFontWeight.Regular, DimTextColor,
-                new Vector2(0f, 355f), new Vector2(1500f, 60f), TextAlignmentOptions.Center);
-            var clueText = AddText(go.transform, "Clues", 26f, UIFontWeight.Regular, AccentColor,
-                new Vector2(-620f, 40f), new Vector2(560f, 500f), TextAlignmentOptions.TopLeft);
-            var resultText = AddText(go.transform, "Result", 30f, UIFontWeight.Medium, WarnColor,
-                new Vector2(0f, -330f), new Vector2(1500f, 80f), TextAlignmentOptions.Center);
+            // 글자 크기는 역할마다 하나로 정해 둔다. 같은 급의 글이 저마다 다른 크기면
+            // 무엇이 더 중요한 글인지 눈이 알 수 없다.
+            const float SectionTitle = 32f;   // 칸 제목
+            const float RuleHead = 30f;       // 고르는 대상인 규칙 문장
+            const float SubText = 24f;        // 곁가지 - 근거와 단서 목록
+            const float GuideText = 26f;      // 안내와 결과
+
+            var cardColor = new Color(0.16f, 0.17f, 0.23f, 1f);
+
+            var titleText = AddText(go.transform, "Title", 54f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 430f), new Vector2(1500f, 70f), TextAlignmentOptions.Center);
+            var footerText = AddText(go.transform, "Footer", GuideText, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 368f), new Vector2(1500f, 50f), TextAlignmentOptions.Center);
+
+            // --- 왼쪽: 모은 단서 ---
+            // 무엇을 근거로 고르는지가 늘 보여야 하므로 후보 목록 옆에 붙여 둔다.
+            var clueCard = CreatePanel(go.transform, "ClueCard", cardColor);
+            var clueRt = (RectTransform)clueCard.transform;
+            clueRt.anchorMin = new Vector2(0.5f, 0.5f);
+            clueRt.anchorMax = new Vector2(0.5f, 0.5f);
+            clueRt.pivot = new Vector2(0f, 1f);
+            clueRt.anchoredPosition = new Vector2(-900f, 320f);
+            clueRt.sizeDelta = new Vector2(600f, 560f);
+
+            var clueTitle = AddText(clueCard.transform, "ClueTitle", SectionTitle, UIFontWeight.SemiBold, AccentColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            var clueTitleRt = clueTitle.rectTransform;
+            clueTitleRt.anchorMin = new Vector2(0f, 1f);
+            clueTitleRt.anchorMax = new Vector2(1f, 1f);
+            clueTitleRt.pivot = new Vector2(0.5f, 1f);
+            clueTitleRt.anchoredPosition = new Vector2(0f, -22f);
+            clueTitleRt.sizeDelta = new Vector2(-56f, 44f);
+            clueTitle.textWrappingMode = TextWrappingModes.NoWrap;
+
+            // 제목과 목록을 가르는 가는 선. 둘이 한 덩어리로 읽히지 않게 한다.
+            var clueDivider = CreatePanel(clueCard.transform, "Divider", new Color(0.32f, 0.33f, 0.40f, 1f));
+            var clueDividerRt = (RectTransform)clueDivider.transform;
+            clueDividerRt.anchorMin = new Vector2(0f, 1f);
+            clueDividerRt.anchorMax = new Vector2(1f, 1f);
+            clueDividerRt.pivot = new Vector2(0.5f, 1f);
+            clueDividerRt.anchoredPosition = new Vector2(0f, -76f);
+            clueDividerRt.sizeDelta = new Vector2(-56f, 2f);
+            clueDivider.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(clueDivider, 2f);
+
+            // 단서는 한 줄씩 눌러 고르는 칸이다. 근거로 삼을 것을 직접 골라야 규칙이 세워진다.
+            var clueList = new GameObject("Clues", typeof(RectTransform));
+            clueList.transform.SetParent(clueCard.transform, false);
+            var clueListRt = (RectTransform)clueList.transform;
+            StretchInside(clueListRt, 22f, 22f, 92f, 20f);
+
+            var clueLayout = clueList.AddComponent<VerticalLayoutGroup>();
+            clueLayout.spacing = 8f;
+            clueLayout.childAlignment = TextAnchor.UpperLeft;
+            clueLayout.childControlWidth = true;
+            clueLayout.childControlHeight = true;
+            clueLayout.childForceExpandWidth = true;
+            clueLayout.childForceExpandHeight = false;
+
+            var clueTemplate = CreatePanel(clueList.transform, "ClueTemplate", new Color(0.13f, 0.14f, 0.19f, 1f));
+            var clueButton = clueTemplate.AddComponent<Button>();
+            clueButton.targetGraphic = clueTemplate.GetComponent<Image>();
+
+            var clueRowFitter = clueTemplate.AddComponent<ContentSizeFitter>();
+            clueRowFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            clueRowFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var clueRowLayout = clueTemplate.AddComponent<VerticalLayoutGroup>();
+            clueRowLayout.padding = new RectOffset(14, 14, 10, 10);
+            clueRowLayout.childControlWidth = true;
+            clueRowLayout.childControlHeight = true;
+            clueRowLayout.childForceExpandWidth = true;
+            clueRowLayout.childForceExpandHeight = false;
+
+            var clueRowLabel = AddText(clueTemplate.transform, "ClueLabel", SubText - 2f, UIFontWeight.Regular,
+                TextColor, Vector2.zero, new Vector2(520f, 40f), TextAlignmentOptions.TopLeft);
+            clueRowLabel.raycastTarget = false;
+            clueTemplate.SetActive(false);
+
+            var clueEmpty = AddText(clueCard.transform, "ClueEmpty", SubText, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            StretchInside(clueEmpty.rectTransform, 28f, 28f, 96f, 24f);
+            clueEmpty.gameObject.SetActive(false);
+
+            // --- 오른쪽: 규칙 후보 ---
+            var listTitle = AddText(go.transform, "ListTitle", SectionTitle, UIFontWeight.SemiBold, AccentColor,
+                Vector2.zero, new Vector2(1120f, 44f), TextAlignmentOptions.Left);
+            var listTitleRt = listTitle.rectTransform;
+            listTitleRt.pivot = new Vector2(0f, 1f);
+            listTitleRt.anchoredPosition = new Vector2(-240f, 320f);
+            listTitle.textWrappingMode = TextWrappingModes.NoWrap;
 
             var listGo = new GameObject("List", typeof(RectTransform));
             listGo.transform.SetParent(go.transform, false);
             var listRt = (RectTransform)listGo.transform;
             listRt.anchorMin = new Vector2(0.5f, 0.5f);
             listRt.anchorMax = new Vector2(0.5f, 0.5f);
-            listRt.pivot = new Vector2(0.5f, 1f);
-            listRt.anchoredPosition = new Vector2(180f, 290f);
-            listRt.sizeDelta = new Vector2(1000f, 520f);
+            listRt.pivot = new Vector2(0f, 1f);
+            listRt.anchoredPosition = new Vector2(-240f, 258f);
+            listRt.sizeDelta = new Vector2(1120f, 498f);
+
             var listLayout = listGo.AddComponent<VerticalLayoutGroup>();
-            listLayout.spacing = 14f;
-            listLayout.childAlignment = TextAnchor.UpperCenter;
-            listLayout.childControlWidth = false;
+            listLayout.spacing = 16f;
+            listLayout.childAlignment = TextAnchor.UpperLeft;
+            listLayout.childControlWidth = true;
             listLayout.childControlHeight = false;
-            listLayout.childForceExpandWidth = false;
+            listLayout.childForceExpandWidth = true;
             listLayout.childForceExpandHeight = false;
 
-            var template = CreatePanel(listGo.transform, "ItemTemplate", ButtonColor);
+            // --- 후보 한 칸 ---
+            // 규칙 문장은 크고 밝게, 근거 단서는 작고 흐리게, 딱지는 오른쪽 위 구석에.
+            // 한 글에 몰아 넣으면 크기가 같은 줄이 이어져 어디까지가 한 후보인지 읽히지 않는다.
+            var template = CreatePanel(listGo.transform, "ItemTemplate", cardColor);
             var templateButton = template.AddComponent<Button>();
             templateButton.targetGraphic = template.GetComponent<Image>();
-            var trt = (RectTransform)template.transform;
-            trt.sizeDelta = new Vector2(960f, 150f);
-            var tLabel = AddText(template.transform, "ItemLabel", 26f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, new Vector2(920f, 130f), TextAlignmentOptions.Left);
-            var tlrt = (RectTransform)tLabel.transform;
-            tlrt.anchorMin = Vector2.zero;
-            tlrt.anchorMax = Vector2.one;
-            tlrt.offsetMin = new Vector2(24f, 8f);
-            tlrt.offsetMax = new Vector2(-24f, -8f);
+
+            ((RectTransform)template.transform).sizeDelta = new Vector2(1120f, 148f);
+
+            var itemSize = template.AddComponent<LayoutElement>();
+            itemSize.preferredHeight = 148f;
+            itemSize.minHeight = 148f;
+
+            var head = AddText(template.transform, "ItemLabel", RuleHead, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            var headRt = head.rectTransform;
+            headRt.anchorMin = new Vector2(0f, 1f);
+            headRt.anchorMax = new Vector2(1f, 1f);
+            headRt.pivot = new Vector2(0.5f, 1f);
+            headRt.anchoredPosition = new Vector2(-70f, -20f);
+            headRt.sizeDelta = new Vector2(-196f, 74f);
+
+            var note = AddText(template.transform, "ItemNote", SubText, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            var noteRt = note.rectTransform;
+            noteRt.anchorMin = new Vector2(0f, 1f);
+            noteRt.anchorMax = new Vector2(1f, 1f);
+            noteRt.pivot = new Vector2(0.5f, 1f);
+            noteRt.anchoredPosition = new Vector2(0f, -100f);
+            noteRt.sizeDelta = new Vector2(-56f, 38f);
+            note.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var badge = CreatePanel(template.transform, "Badge", new Color(0.24f, 0.34f, 0.28f, 1f));
+            var badgeRt = (RectTransform)badge.transform;
+            badgeRt.anchorMin = new Vector2(1f, 1f);
+            badgeRt.anchorMax = new Vector2(1f, 1f);
+            badgeRt.pivot = new Vector2(1f, 1f);
+            badgeRt.anchoredPosition = new Vector2(-20f, -18f);
+            badgeRt.sizeDelta = new Vector2(120f, 40f);
+            badge.GetComponent<Image>().raycastTarget = false;
+
+            var badgeLabel = AddText(badge.transform, "Label", 22f, UIFontWeight.SemiBold, TextColor,
+                Vector2.zero, new Vector2(120f, 40f), TextAlignmentOptions.Center);
+            badgeLabel.textWrappingMode = TextWrappingModes.NoWrap;
+            badge.SetActive(false);
+
             template.SetActive(false);
+
+            // 세울 수 있는 후보가 하나도 없을 때 그 자리에 적는 한 줄.
+            var emptyText = AddText(go.transform, "Empty", GuideText, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, new Vector2(1060f, 60f), TextAlignmentOptions.Left);
+            emptyText.rectTransform.pivot = new Vector2(0f, 1f);
+            emptyText.rectTransform.anchoredPosition = new Vector2(-220f, 240f);
+            emptyText.gameObject.SetActive(false);
+
+            // --- 아래: 직전 결과 ---
+            var resultRoot = CreatePanel(go.transform, "ResultBar", new Color(0.13f, 0.11f, 0.14f, 1f));
+            var resultBarRt = (RectTransform)resultRoot.transform;
+            resultBarRt.anchorMin = new Vector2(0.5f, 0.5f);
+            resultBarRt.anchorMax = new Vector2(0.5f, 0.5f);
+            resultBarRt.pivot = new Vector2(0.5f, 0.5f);
+            resultBarRt.anchoredPosition = new Vector2(0f, -305f);
+            resultBarRt.sizeDelta = new Vector2(1760f, 62f);
+
+            var resultText = AddText(resultRoot.transform, "Result", GuideText, UIFontWeight.Medium, WarnColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(resultText.rectTransform, 24f, 24f, 6f, 6f);
+            resultText.textWrappingMode = TextWrappingModes.NoWrap;
+            resultRoot.SetActive(false);
+
+            // --- 결론 ---
+            // 규칙을 맞히고 나서야 뜬다. 답해야 하는 것은 둘뿐이라 두 줄로 못 박아 둔다.
+            // 후보 목록이 서던 자리를 그대로 쓴다. 결론이 나오면 목록은 물러나므로 자리가 겹치지 않는다.
+            var conclusion = CreatePanel(go.transform, "ConclusionCard", new Color(0.12f, 0.16f, 0.14f, 1f));
+            var conclusionRt = (RectTransform)conclusion.transform;
+            conclusionRt.anchorMin = new Vector2(0.5f, 0.5f);
+            conclusionRt.anchorMax = new Vector2(0.5f, 0.5f);
+            conclusionRt.pivot = new Vector2(0f, 1f);
+            conclusionRt.anchoredPosition = new Vector2(-240f, 320f);
+            conclusionRt.sizeDelta = new Vector2(1120f, 560f);
+
+            var conclusionEdge = CreatePanel(conclusion.transform, "Edge", new Color(0.46f, 0.72f, 0.52f, 1f));
+            var conclusionEdgeRt = (RectTransform)conclusionEdge.transform;
+            conclusionEdgeRt.anchorMin = new Vector2(0f, 0f);
+            conclusionEdgeRt.anchorMax = new Vector2(0f, 1f);
+            conclusionEdgeRt.pivot = new Vector2(0f, 0.5f);
+            conclusionEdgeRt.anchoredPosition = Vector2.zero;
+            conclusionEdgeRt.sizeDelta = new Vector2(6f, 0f);
+            conclusionEdge.GetComponent<Image>().raycastTarget = false;
+
+            var conclusionTitle = AddText(conclusion.transform, "ConclusionTitle", SectionTitle,
+                UIFontWeight.SemiBold, new Color(0.62f, 0.86f, 0.68f),
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            var conclusionTitleRt = conclusionTitle.rectTransform;
+            conclusionTitleRt.anchorMin = new Vector2(0f, 1f);
+            conclusionTitleRt.anchorMax = new Vector2(1f, 1f);
+            conclusionTitleRt.pivot = new Vector2(0.5f, 1f);
+            conclusionTitleRt.anchoredPosition = new Vector2(0f, -22f);
+            conclusionTitleRt.sizeDelta = new Vector2(-72f, 42f);
+            conclusionTitle.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var conclusionDivider = CreatePanel(conclusion.transform, "Divider", new Color(0.32f, 0.44f, 0.36f, 1f));
+            var conclusionDividerRt = (RectTransform)conclusionDivider.transform;
+            conclusionDividerRt.anchorMin = new Vector2(0f, 1f);
+            conclusionDividerRt.anchorMax = new Vector2(1f, 1f);
+            conclusionDividerRt.pivot = new Vector2(0.5f, 1f);
+            conclusionDividerRt.anchoredPosition = new Vector2(0f, -74f);
+            conclusionDividerRt.sizeDelta = new Vector2(-72f, 2f);
+            conclusionDivider.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(conclusionDivider, 2f);
+
+            // 물음 둘을 위아래로 나란히 둔다. 각각 "물음 / 답 / 그렇게 본 까닭" 이 한 덩어리다.
+            var verdictText = AddText(conclusion.transform, "Verdict", GuideText, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            var verdictRt = verdictText.rectTransform;
+            verdictRt.anchorMin = new Vector2(0f, 1f);
+            verdictRt.anchorMax = new Vector2(1f, 1f);
+            verdictRt.pivot = new Vector2(0.5f, 1f);
+            verdictRt.anchoredPosition = new Vector2(0f, -94f);
+            verdictRt.sizeDelta = new Vector2(-72f, 250f);
+
+            var counterText = AddText(conclusion.transform, "Counter", GuideText, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            var counterRt = counterText.rectTransform;
+            counterRt.anchorMin = new Vector2(0f, 1f);
+            counterRt.anchorMax = new Vector2(1f, 1f);
+            counterRt.pivot = new Vector2(0.5f, 1f);
+            counterRt.anchoredPosition = new Vector2(0f, -354f);
+            counterRt.sizeDelta = new Vector2(-72f, 196f);
+
+            conclusion.SetActive(false);
 
             var so = new SerializedObject(screen);
             so.Update();
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_footerText").objectReferenceValue = footerText;
-            so.FindProperty("_clueText").objectReferenceValue = clueText;
-            so.FindProperty("_resultText").objectReferenceValue = resultText;
+            so.FindProperty("_clueCardRoot").objectReferenceValue = clueCard;
+            so.FindProperty("_clueTitleText").objectReferenceValue = clueTitle;
+            so.FindProperty("_clueListRoot").objectReferenceValue = clueListRt;
+            so.FindProperty("_clueTemplate").objectReferenceValue = clueButton;
+            so.FindProperty("_clueEmptyText").objectReferenceValue = clueEmpty;
+            so.FindProperty("_listTitleText").objectReferenceValue = listTitle;
             so.FindProperty("_listRoot").objectReferenceValue = listRt;
             so.FindProperty("_itemTemplate").objectReferenceValue = templateButton;
+            so.FindProperty("_emptyText").objectReferenceValue = emptyText;
+            so.FindProperty("_resultRoot").objectReferenceValue = resultRoot;
+            so.FindProperty("_resultText").objectReferenceValue = resultText;
+            so.FindProperty("_conclusionRoot").objectReferenceValue = conclusion;
+            so.FindProperty("_conclusionTitleText").objectReferenceValue = conclusionTitle;
+            so.FindProperty("_verdictText").objectReferenceValue = verdictText;
+            so.FindProperty("_counterText").objectReferenceValue = counterText;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -420f), new Vector2(900f, 110f));
+            ClearDisabledTint(go);
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -425f), new Vector2(900f, 110f));
             return screen;
         }
 
@@ -2584,12 +2983,13 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0f, 330f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
             var bodyText = AddText(go.transform, "Body", 32f, UIFontWeight.Regular, TextColor,
                 new Vector2(0f, 110f), new Vector2(1300f, 300f), TextAlignmentOptions.Top);
+            // 세 줄이 아래로 나란히 선다. 사이를 10 씩 띄운다. -95~-145, -155~-205, -215~-265.
             var statusText = AddText(go.transform, "Status", 30f, UIFontWeight.SemiBold, DimTextColor,
-                new Vector2(0f, -120f), new Vector2(1300f, 70f), TextAlignmentOptions.Center);
+                new Vector2(0f, -120f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
             var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
-                new Vector2(0f, -180f), new Vector2(1300f, 60f), TextAlignmentOptions.Center);
+                new Vector2(0f, -180f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
             var feedbackText = AddText(go.transform, "Feedback", 28f, UIFontWeight.Medium, WarnColor,
-                new Vector2(0f, -240f), new Vector2(1300f, 60f), TextAlignmentOptions.Center);
+                new Vector2(0f, -240f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
 
             var so = new SerializedObject(screen);
             so.Update();
@@ -3053,10 +3453,11 @@ namespace UrbanLegendBureau.EditorTools
             boxRt.anchoredPosition = Vector2.zero;
             boxRt.sizeDelta = new Vector2(1000f, 460f);
 
+            // 제목 185~115, 본문 95~-85. 사이를 20 띄운다.
             var titleText = AddText(box.transform, "Title", 46f, UIFontWeight.SemiBold, TextColor,
-                new Vector2(0f, 140f), new Vector2(900f, 80f), TextAlignmentOptions.Center);
+                new Vector2(0f, 150f), new Vector2(900f, 70f), TextAlignmentOptions.Center);
             var bodyText = AddText(box.transform, "Body", 32f, UIFontWeight.Regular, TextColor,
-                new Vector2(0f, 10f), new Vector2(880f, 190f), TextAlignmentOptions.Top);
+                new Vector2(0f, 5f), new Vector2(880f, 180f), TextAlignmentOptions.Top);
 
             BindScreenTexts(screen, titleText, bodyText, null);
 
@@ -3361,7 +3762,7 @@ namespace UrbanLegendBureau.EditorTools
         ///
         /// minRatio 는 줄여도 되는 밑바닥이다. 여기보다 작아지지 않으므로 대사가 갑자기 잘아지지 않는다.
         /// </summary>
-        private static void ConfigureBodyText(TMP_Text text, float size, float minRatio = 0.8f, float lineGap = 8f)
+        private static void ConfigureBodyText(TMP_Text text, float size, float minRatio = 0.8f, float lineGap = 14f)
         {
             text.fontSize = size;
             text.textWrappingMode = TextWrappingModes.Normal;
@@ -3371,6 +3772,68 @@ namespace UrbanLegendBureau.EditorTools
             text.fontSizeMin = Mathf.Round(size * minRatio);
             text.lineSpacing = lineGap;
             text.raycastTarget = false;
+        }
+
+        /// <summary>
+        /// 화면에 든 글을 한 규칙으로 맞춘다. 화면을 다 짜고 맨 마지막에 한 번 부른다.
+        ///
+        /// 글자 크기는 1920 기준으로 손으로 잡아 둔 값이라, 문구가 길어지면 칸을 넘쳐 흘렀다.
+        /// 넘칠 때는 칸을 넘어가지 말고 글자를 한 급 줄여 담게 한다. 어느 화면이든 같은 규칙이다.
+        ///
+        /// 두 곳은 건드리지 않는다.
+        ///   적는 칸 - 글자가 저절로 줄어들면 커서와 글자가 어긋난다.
+        ///   칸이 내용을 따라 늘어나는 곳 - 칸은 글자에, 글자는 칸에 맞추려 들면 둘이 서로를 쫓는다.
+        /// 이미 제 규칙을 정해 둔 글도 그대로 둔다.
+        /// </summary>
+        private static void TidyTexts(GameObject root)
+        {
+            if (root == null) return;
+
+            foreach (var text in root.GetComponentsInChildren<TMP_Text>(true))
+            {
+                if (text.GetComponentInParent<TMP_InputField>(true) != null) continue;
+
+                // 제 규칙을 정해 둔 글도 줄 사이는 같이 맞춘다. 화면끼리 줄 간격이 다르면 눈에 띈다.
+                if (text.enableAutoSizing)
+                {
+                    TidyLineGaps(text);
+                    continue;
+                }
+
+                if (GrowsWithContent(text.rectTransform, root.transform)) continue;
+
+                text.overflowMode = TextOverflowModes.Truncate;
+                text.enableAutoSizing = true;
+                text.fontSizeMax = text.fontSize;
+                text.fontSizeMin = Mathf.Max(10f, Mathf.Round(text.fontSize * 0.7f));
+
+                TidyLineGaps(text);
+            }
+        }
+
+        /// <summary>
+        /// 여러 줄로 앉는 글의 줄 사이를 띄운다.
+        ///
+        /// 줄이 붙어 있으면 목록이 한 덩어리로 보여 어디서 한 항목이 끝나는지 읽히지 않는다.
+        /// 접혀 넘어간 줄은 조금, 줄을 바꿔 새로 시작한 줄은 그보다 넉넉히 띄운다.
+        /// 한 줄로만 서는 글에는 띄울 사이가 없으므로 건드리지 않는다.
+        /// </summary>
+        private static void TidyLineGaps(TMP_Text text)
+        {
+            if (text.textWrappingMode == TextWrappingModes.NoWrap) return;
+
+            if (Mathf.Approximately(text.lineSpacing, 0f)) text.lineSpacing = 14f;
+            if (Mathf.Approximately(text.paragraphSpacing, 0f)) text.paragraphSpacing = 26f;
+        }
+
+        /// <summary>이 글이 든 칸이 내용을 따라 늘어나는가.</summary>
+        private static bool GrowsWithContent(Transform from, Transform stopAt)
+        {
+            for (var t = from; t != null && t != stopAt.parent; t = t.parent)
+            {
+                if (t.GetComponent<ContentSizeFitter>() != null) return true;
+            }
+            return false;
         }
 
         /// <summary>한 줄로만 서야 하는 글. 넘치면 줄을 바꾸는 대신 글자를 줄인다.</summary>

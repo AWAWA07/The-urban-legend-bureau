@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 5;
+        public const int CurrentVersion = 6;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -87,6 +87,15 @@ namespace UrbanLegendBureau.Save
                 // 빈 글로 두면 메모장을 처음 여는 것과 같다. 잃는 것은 없다.
                 data.memos ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 5;
+            }
+
+            if (data.saveVersion == 5)
+            {
+                // v6에서 이미 해 본 조사 방법(doneActions)이 추가됐다.
+                // 구버전 저장본에는 그 기록이 없다. 빈 목록이면 아직 아무것도 안 해 본 것으로 읽힌다.
+                // 방법이 주는 단서를 이미 들고 있으면 해 본 것으로 치므로 크게 어긋나지 않는다.
+                data.doneActions ??= new System.Collections.Generic.List<string>();
+                data.saveVersion = 6;
             }
 
             if (data.saveVersion < CurrentVersion)

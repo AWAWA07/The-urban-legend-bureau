@@ -16,7 +16,7 @@ MonoBehaviour:
   _ruleTextId: rule.subway.002.text
   _isTrue: 1
   _requiredClueIds:
-  - clue_subway_003
+  - clue_subway_002
   - clue_subway_004
   - clue_subway_005
   _conditions: []

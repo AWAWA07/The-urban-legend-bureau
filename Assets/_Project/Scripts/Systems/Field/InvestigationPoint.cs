@@ -1,18 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UrbanLegendBureau.Data;
-using UrbanLegendBureau.InputSystemLayer;
 
 namespace UrbanLegendBureau.Systems
 {
     /// <summary>
-    /// 현장에서 클릭/탭으로 조사할 수 있는 오브젝트.
+    /// 현장에서 곁에 서서 조사할 수 있는 오브젝트.
     ///
-    /// 실제 조사 처리는 FieldController가 한다. 이 컴포넌트는
+    /// 무엇 앞에 서 있는지 고르고 조사를 걸어 주는 것은 FieldController가 한다. 이 컴포넌트는
     /// "무엇을 보여주고 무엇을 주는가"라는 데이터만 들고 있다.
     /// </summary>
     [RequireComponent(typeof(Collider2D))]
-    public class InvestigationPoint : MonoBehaviour, IPointerInteractable
+    public class InvestigationPoint : MonoBehaviour
     {
         [Header("표시 텍스트 (Localization String ID)")]
         [SerializeField] private string _nameTextId;
@@ -65,44 +64,62 @@ namespace UrbanLegendBureau.Systems
         /// <summary>이미 조사한 지점인가.</summary>
         public bool IsInvestigated { get; private set; }
 
+        /// <summary>지금 곁에 서 있는 지점인가. 색은 이 값과 조사 여부로 정해진다.</summary>
+        private bool _highlighted;
+
         private void Awake()
         {
             if (_renderer == null) _renderer = GetComponent<SpriteRenderer>();
-            ApplyColor(_normalColor);
+            ApplyColor();
         }
 
         /// <summary>조사 완료 표시. 다시 조사해도 되지만 눈으로 구분되게 한다.</summary>
         public void MarkInvestigated()
         {
             IsInvestigated = true;
-            ApplyColor(_investigatedColor);
+            ApplyColor();
         }
 
         public void ResetVisual()
         {
             IsInvestigated = false;
-            ApplyColor(_normalColor);
+            ApplyColor();
         }
 
-        private void ApplyColor(Color color)
+        // ------------------------------------------------------- 곁에 섰을 때
+
+        /// <summary>
+        /// 곁에 서면 드러나고 떠나면 다시 숨는다.
+        ///
+        /// 조사할 곳을 늘 칠해 두면 장면이 아니라 문제집처럼 보인다.
+        /// 그래서 평소에는 아무 표시도 하지 않고, 걸어가 닿았을 때에만 그 자리를 밝힌다.
+        /// 어디를 조사할 수 있는지는 돌아다니며 알게 된다.
+        /// </summary>
+        public void SetHighlighted(bool on)
         {
-            if (_renderer != null) _renderer.color = color;
+            if (_highlighted == on) return;
+
+            _highlighted = on;
+            ApplyColor();
         }
 
-        // ------------------------------------------------------- IPointerInteractable
-
-        public void PointerPressed(in PointerContext context)
+        /// <summary>
+        /// 지금 상태에 맞는 색을 입힌다.
+        /// 이미 조사한 곳은 곁에 서도 옅게만 밝아진다. 한 일과 안 한 일이 구분돼야 한다.
+        /// </summary>
+        private void ApplyColor()
         {
-            ApplyColor(_pressedColor);
-        }
+            if (_renderer == null) return;
 
-        public void PointerReleased(in PointerContext context)
-        {
-            ApplyColor(IsInvestigated ? _investigatedColor : _normalColor);
-        }
+            if (!_highlighted)
+            {
+                _renderer.color = IsInvestigated ? _investigatedColor : _normalColor;
+                return;
+            }
 
-        public void PointerHeld(in PointerContext context)
-        {
+            _renderer.color = IsInvestigated
+                ? Color.Lerp(_pressedColor, _investigatedColor, 0.5f)
+                : _pressedColor;
         }
     }
 }

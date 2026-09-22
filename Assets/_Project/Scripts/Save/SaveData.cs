@@ -104,6 +104,12 @@ namespace UrbanLegendBureau.Save
         public List<string> storyFlags = new List<string>();
 
         /// <summary>
+        /// 이미 해 본 조사 방법 (v6). "사건ID|지점ID|행동ID" 로 적는다.
+        /// 같은 방법이 여러 지점에 걸려 있으므로 지점까지 함께 적어야 한 곳에서 한 일이 다른 곳에 번지지 않는다.
+        /// </summary>
+        public List<string> doneActions = new List<string>();
+
+        /// <summary>
         /// 메모장에 적어 둔 것 (v5). 플레이어가 직접 쓴 글이라 그대로 들고 있는다.
         /// 여러 장을 둘 수 있다. 몇 장까지인지는 메모장 화면이 정한다.
         /// </summary>
@@ -127,6 +133,7 @@ namespace UrbanLegendBureau.Save
             settings ??= new SettingsData();
             currentCaseId ??= string.Empty;
             memos ??= new List<string>();
+            doneActions ??= new List<string>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

@@ -96,6 +96,18 @@ namespace UrbanLegendBureau.Systems
         private const string FieldSpeakerTextId = "tutorial.char.chajihan";
         private const string ClueAcquiredTextId = "ui.slice.clue_acquired";
         private const string ClueDuplicateTextId = "ui.slice.clue_duplicate";
+
+        /// <summary>이미 뒤져 본 곳을 다시 조사했을 때의 팝업 제목.</summary>
+        private const string PointDoneTextId = "ui.field.point_done";
+
+        /// <summary>방금 찾은 단서와 맞물리는 증언들의 머리말.</summary>
+        private const string ClueMatchTextId = "ui.field.clue_match";
+
+        /// <summary>고른 근거가 규칙과 맞지 않을 때.</summary>
+        private const string EvidenceMismatchTextId = "ui.rule.evidence_mismatch";
+
+        /// <summary>규칙의 근거가 되는 단서를 처음 찾았을 때의 팝업 제목.</summary>
+        private const string KeyClueFoundTextId = "ui.slice.key_clue_found";
         private const string NothingFoundTextId = "ui.slice.nothing_found";
         private const string ResultTitleTextId = "ui.slice.case_complete";
         private const string ResultFooterTextId = "ui.slice.result_hint";
@@ -106,7 +118,6 @@ namespace UrbanLegendBureau.Systems
         private const string RuleCandidateHintTextId = "ui.rule.candidate_hint";
         private const string RuleScreenTitleTextId = "ui.rule.screen_title";
         private const string RuleScreenHintTextId = "ui.rule.screen_hint";
-        private const string RuleAlreadyMarkTextId = "ui.rule.already_mark";
         private const string RuleListTextId = "ui.slice.rule_list";
         private const string CensorAvailableTextId = "ui.net.censor_available";
         private const string CensorDoneTextId = "ui.net.censor_done";
@@ -135,6 +146,9 @@ namespace UrbanLegendBureau.Systems
         private const string ActionListTitleTextId = "ui.action.title";
         private const string ActionListHintTextId = "ui.action.hint";
         private const string ActionLockedMarkTextId = "ui.action.locked";
+
+        /// <summary>이미 해 본 조사 방법에 붙이는 표시.</summary>
+        private const string ActionDoneMarkTextId = "ui.action.done_mark";
         private const string PointBlockedTextId = "ui.field.point_locked";
         private const string CostTimeTextId = "ui.action.cost_time";
         private const string CostSpreadTextId = "ui.action.cost_spread";
@@ -193,6 +207,7 @@ namespace UrbanLegendBureau.Systems
             _activePoint = null;
             _boarded = false;
             _fieldTimeAdded = false;
+            _terminusDone = false;
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
@@ -257,6 +272,27 @@ namespace UrbanLegendBureau.Systems
         private void ResetCaseProgress()
         {
             if (_time != null) _time.ResetCase(_save, _caseId);
+
+            // 이 괴담에서 얻은 단서와 세워 둔 규칙을 지운다.
+            // 튜토리얼은 언제 돌려도 처음부터여야 한다. 지난번에 모은 것이 남아 있으면
+            // 첫 조사부터 규칙 추론 화면이 답을 들고 있는 꼴이 된다.
+            if (_legend != null && _save.Current != null)
+            {
+                foreach (var clue in _legend.Clues)
+                {
+                    if (clue != null) _save.Current.acquiredClueIds.Remove(clue.ClueId);
+                }
+                foreach (var rule in _legend.Rules)
+                {
+                    if (rule != null) _save.Current.deducedRuleIds.Remove(rule.RuleId);
+                }
+            }
+
+            // 이 사건에서 해 본 조사 방법의 기록도 지운다. 다시 돌리면 다시 처음 보는 것이어야 한다.
+            if (_save.Current?.doneActions != null && !string.IsNullOrEmpty(_caseId))
+            {
+                _save.Current.doneActions.RemoveAll(key => key != null && key.StartsWith(_caseId + "|"));
+            }
 
             if (_spread != null && _legend != null)
             {
@@ -325,6 +361,16 @@ namespace UrbanLegendBureau.Systems
         /// 현장에서 휴대폰 앱을 눌렀을 때.
         /// 열리는 것은 괴담넷과 메모장이다. 나머지는 자리만 잡아 둔 아이콘이라 눌러도 아무 일이 없다.
         /// </summary>
+        /// <summary>
+        /// 휴대폰을 넣었다. 안에 켜 두었던 앱도 함께 닫는다.
+        /// 넣은 휴대폰 위에 앱만 떠 있으면 앱이 공중에 뜬 꼴이 된다.
+        /// </summary>
+        private void ClosePhoneApps()
+        {
+            if (_communityScreen != null && _ui.Contains(_communityScreen)) ClosePhoneNet();
+            if (_memoScreen != null && _ui.Contains(_memoScreen)) ClosePhoneMemo();
+        }
+
         private void OnPhoneAppClicked(string appId)
         {
             if (appId == MemoAppId)
@@ -725,7 +771,13 @@ namespace UrbanLegendBureau.Systems
             var sb = new StringBuilder();
             sb.Append(_loc.Get(action.ActionNameTextId));
 
-            if (_actions != null && !_actions.CanPerform(_save, action))
+            // 이 방법으로 얻을 것을 이미 가지고 있으면 그렇다고 적는다.
+            // 같은 방법을 다시 골라 시간을 버리지 않게 한다.
+            if (IsActionDone(action))
+            {
+                sb.Append("  [").Append(_loc.Get(ActionDoneMarkTextId)).Append("]");
+            }
+            else if (_actions != null && !_actions.CanPerform(_save, action))
             {
                 sb.Append("  [").Append(_loc.Get(ActionLockedMarkTextId)).Append("]");
             }
@@ -735,6 +787,95 @@ namespace UrbanLegendBureau.Systems
 
             sb.Append("\n").Append(BuildActionCostLine(action));
             return sb.ToString();
+        }
+
+        /// <summary>
+        /// 이미 해 본 조사 방법을 적어 두는 열쇠.
+        ///
+        /// 같은 방법이 여러 지점에 걸려 있으므로 지점까지 함께 적는다.
+        /// 사건까지 앞에 붙여, 사건을 처음부터 다시 돌릴 때 그 사건 것만 지울 수 있게 한다.
+        /// </summary>
+        private string ActionKey(string pointId, string actionId)
+        {
+            return _caseId + "|" + pointId + "|" + actionId;
+        }
+
+        /// <summary>
+        /// 이 조사 방법을 이미 해 봤는가.
+        ///
+        /// 해 본 기록이 있으면 해 본 것이다. 단서를 주지 않는 방법도 있어,
+        /// 얻은 단서만으로는 무엇을 이미 했는지 알 수 없다.
+        /// 기록이 없더라도 그 방법이 주는 단서를 이미 들고 있으면 해 본 것으로 친다.
+        /// 기록을 남기기 전에 저장한 진행도 그렇게 읽힌다.
+        /// </summary>
+        private bool IsActionDone(InvestigationActionSO action)
+        {
+            if (action == null) return false;
+
+            if (_activePoint != null && _save?.Current?.doneActions != null &&
+                _save.Current.doneActions.Contains(ActionKey(_activePoint.PointId, action.ActionId)))
+            {
+                return true;
+            }
+
+            return action.HasRewardClue && CaseFlow.HasClue(_save, action.RewardClueId);
+        }
+
+        /// <summary>
+        /// 저장본에 적힌 기록대로 지점의 "다 본 곳" 표시를 맞춘다.
+        ///
+        /// 표시는 화면 위의 것이라 게임을 새로 켜면 사라진다. 기록은 저장본에 남아 있으므로
+        /// 현장을 열 때 한 번 맞춰 준다. 그러지 않으면 다 뒤진 곳이 안 뒤진 것처럼 보인다.
+        /// </summary>
+        private void SyncInvestigatedMarks()
+        {
+            if (_field == null || _field.ActiveRoot == null) return;
+
+            foreach (var point in _field.ActiveRoot.GetComponentsInChildren<InvestigationPoint>(true))
+            {
+                if (point == null || !point.HasActions) continue;
+                if (AreAllActionsDone(point)) point.MarkInvestigated();
+            }
+        }
+
+        /// <summary>해 본 방법을 적어 둔다. 이미 적혀 있으면 그대로 둔다.</summary>
+        private void MarkActionDone(InvestigationPoint point, InvestigationActionSO action)
+        {
+            if (point == null || action == null || _save?.Current == null) return;
+
+            _save.Current.doneActions ??= new List<string>();
+
+            string key = ActionKey(point.PointId, action.ActionId);
+            if (_save.Current.doneActions.Contains(key)) return;
+
+            _save.Current.doneActions.Add(key);
+            _save.MarkDirty();
+        }
+
+        /// <summary>
+        /// 이 지점에서 할 수 있는 방법을 모두 해 봤는가.
+        ///
+        /// 하나만 해 보고 다 본 곳으로 치면, 아직 남은 방법이 있는데도 말풍선이 그만 오라고 한다.
+        /// 그래서 남김없이 해 봤을 때에만 다 본 곳이 된다.
+        /// </summary>
+        private bool AreAllActionsDone(InvestigationPoint point)
+        {
+            if (point == null || !point.HasActions || _actions == null) return false;
+
+            var usable = _actions.FilterFieldActions(point.Actions);
+            if (usable == null || usable.Count == 0) return false;
+
+            for (int i = 0; i < usable.Count; i++)
+            {
+                var action = usable[i];
+                if (action == null) continue;
+
+                bool done = _save?.Current?.doneActions != null &&
+                            _save.Current.doneActions.Contains(ActionKey(point.PointId, action.ActionId));
+
+                if (!done && !(action.HasRewardClue && CaseFlow.HasClue(_save, action.RewardClueId))) return false;
+            }
+            return true;
         }
 
         /// <summary>"시간 +10분   확산도 +1.5%" 한 줄. 실제 실행에 쓰는 값과 같은 계산을 쓴다.</summary>
@@ -759,8 +900,13 @@ namespace UrbanLegendBureau.Systems
             // 시간이 흐르고 소문이 퍼진 뒤에 따라오는 것들은 조사 방법 쪽도 같다.
             if (result.Success) AfterAction(result.MinutesAdded, result.Spread);
 
-            // 조사한 지점은 눈으로 구분되게 표시한다. 조건에 막혀 실행되지 않았다면 표시하지 않는다.
-            if (result.Success && _activePoint != null) _activePoint.MarkInvestigated();
+            // 해 본 방법을 적어 둔다. 단서를 주지 않는 방법도 있어, 얻은 단서만으로는 기록이 되지 않는다.
+            // 그 지점의 방법을 남김없이 해 봤을 때에만 다 본 곳으로 표시한다.
+            if (result.Success && _activePoint != null)
+            {
+                MarkActionDone(_activePoint, action);
+                if (AreAllActionsDone(_activePoint)) _activePoint.MarkInvestigated();
+            }
 
             // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
             bool ruleShown = false;
@@ -845,7 +991,7 @@ namespace UrbanLegendBureau.Systems
             // 위쪽 한 줄에만 지금 상황을 건다.
             // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
             _fieldHudScreen.Bind(BuildFieldTicker);
-            _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked);
+            _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
@@ -859,7 +1005,16 @@ namespace UrbanLegendBureau.Systems
                 GameClock.SetTo(FieldHour, FieldMinute);
             }
 
-            if (_field != null) _field.SetFieldVisible(true, _legendId);
+            if (_field != null)
+            {
+                _field.SetFieldVisible(true, _legendId);
+
+                // 종점을 지난 뒤에 돌아왔으면 조사는 그대로 닫아 둔다.
+                // 취합 화면에서 되돌아 나올 수 있으므로 여기서 다시 확인한다.
+                _field.InvestigationAllowed = !IsAfterTerminus();
+
+                SyncInvestigatedMarks();
+            }
 
             // 열차가 들어오는 장면은 튜토리얼이 한 번만 보여준다.
             // 그 밖에 현장을 열 때는 이미 열차가 서 있고 문이 열려 있다. 누르면 바로 탄다.
@@ -869,6 +1024,10 @@ namespace UrbanLegendBureau.Systems
                 if (arrival != null && !arrival.IsOpen) arrival.SkipToOpen();
                 _fieldHudScreen.Refresh();
             }
+
+            // 자리를 비운 사이에 막차가 종점에 닿았을 수 있다.
+            // 화면을 다 건 뒤에 알린다. 그 전에 걸면 위의 Bind 가 말하던 사람을 지운다.
+            CheckTerminus();
         }
 
         /// <summary>사무실 화면의 인터넷 조사 버튼. 이 괴담과 관련된 게시글 목록을 연다.</summary>
@@ -1099,6 +1258,71 @@ namespace UrbanLegendBureau.Systems
             }
 
             PushStatus();
+
+            // 시간이 흐른 끝에 막차가 종점에 닿았을 수 있다.
+            CheckTerminus();
+        }
+
+        // ------------------------------------------------------------- 막차의 종점
+
+        /// <summary>막차가 종점에 닿는 시각. 이 시각부터는 현장을 더 뒤질 수 없다.</summary>
+        private const int TerminusMinutesOfDay = 30;         // 00:30
+
+        /// <summary>밤이 아니라 아침으로 넘어간 것으로 치는 경계. 이 앞까지를 자정 이후로 본다.</summary>
+        private const int MorningMinutesOfDay = 12 * 60;
+
+        /// <summary>종점을 이미 알렸는가. 사건이 바뀌면 풀린다.</summary>
+        private bool _terminusDone;
+
+        /// <summary>
+        /// 조사하지 않고 서 있어도 벽시계는 흐른다.
+        /// 종점은 시각으로 오는 것이라, 현장에 있는 동안에는 매 프레임 지켜본다.
+        /// </summary>
+        private void Update()
+        {
+            if (_terminusDone || _field == null || !_field.IsActive) return;
+            CheckTerminus();
+        }
+
+        /// <summary>
+        /// 막차가 종점에 닿았는가.
+        ///
+        /// 현장에 닿는 시각이 23:30 이라, 자정을 넘겨 00:30 이 되면 종점이다.
+        /// 벽시계는 자정에서 0으로 돌아가므로 "0시에서 낮 사이"를 자정 이후로 본다.
+        /// 그날 밤 한 번의 사건을 다루는 동안에는 이것으로 충분하다.
+        /// </summary>
+        private bool IsAfterTerminus()
+        {
+            int now = GameClock.MinutesOfDay;
+            return now >= TerminusMinutesOfDay && now < MorningMinutesOfDay;
+        }
+
+        /// <summary>
+        /// 종점에 닿았으면 한 번만 알리고 조사를 닫는다.
+        ///
+        /// 알린 뒤에는 지금까지 얻은 것을 취합하는 자리(규칙 추론)로 넘어간다.
+        /// 장소는 그대로 보이지만 더 뒤질 것은 없다.
+        /// </summary>
+        private void CheckTerminus()
+        {
+            if (_terminusDone || !IsAfterTerminus()) return;
+
+            // 현장에 서 있을 때에만 알린다.
+            //
+            // 종점은 대개 조사 방법을 고르고 난 직후에 온다. 그때는 현장이 꺼져 있고
+            // 방법 목록이 떠 있다. 거기서 대사를 걸면, 목록을 닫고 현장으로 돌아오는 길에
+            // 화면을 다시 거는 손질(Bind)이 말하던 사람을 지워 버린다.
+            // 그래서 여기서는 미뤄 두고, 현장으로 돌아왔을 때 ShowFieldHud 가 다시 부른다.
+            if (_field == null || !_field.IsActive) return;
+
+            _terminusDone = true;
+            _field.InvestigationAllowed = false;
+
+            Debug.Log("[CaseDirector] 막차 종점 | 현장 조사를 닫는다");
+
+            // 한영이 한 마디 하고 나서 취합으로 넘어간다. 걸 자리가 없으면 곧바로 넘어간다.
+            if (_tutorial != null && _tutorial.ShowTerminusLine(OnOpenRulesClicked)) return;
+            OnOpenRulesClicked();
         }
 
         /// <summary>
@@ -1405,6 +1629,19 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            // --- 이미 뒤져 본 곳 ---
+            // 같은 곳을 다시 뒤진다고 새로 나올 것은 없다. 시간도 확산도 쓰지 않고 그 사실만 알린다.
+            // 조사 방법을 고르는 지점은 여기에 들지 않는다. 방법마다 나오는 것이 다르기 때문이다.
+            if (point.IsInvestigated)
+            {
+                _pendingClueId = null;
+                _cluePopupScreen.BindWithBodyProvider(PointDoneTextId, () => _loc.Get(point.ResultTextId));
+                _ui.Push(_cluePopupScreen);
+
+                Debug.Log($"[CaseDirector] 조사: {point.name} - 이미 조사한 곳");
+                return;
+            }
+
             point.MarkInvestigated();
 
             // 현장을 한 곳 뒤지는 것이 조사 행동 한 번이다.
@@ -1425,9 +1662,13 @@ namespace UrbanLegendBureau.Systems
 
             _pendingClueId = point.ClueId;
             string clueId = point.ClueId;
-            _cluePopupScreen.BindWithBodyProvider(
-                acquired ? ClueAcquiredTextId : ClueDuplicateTextId,
-                () => ResolveClueText(clueId));
+
+            // 규칙의 근거가 되는 단서는 따로 알린다. 그것을 찾았는지가 추론을 여는 열쇠다.
+            string title = acquired
+                ? (IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId)
+                : ClueDuplicateTextId;
+
+            _cluePopupScreen.BindWithBodyProvider(title, () => BuildClueFinding(clueId));
             _ui.Push(_cluePopupScreen);
 
             Debug.Log($"[CaseDirector] 조사: {point.name} - 단서 '{point.ClueId}' " +
@@ -1482,65 +1723,210 @@ namespace UrbanLegendBureau.Systems
             _ruleListScreen.Bind(
                 RuleScreenTitleTextId, RuleScreenHintTextId,
                 _rules.GetRuleCandidates(_save, _legend),
-                BuildRuleCandidateLabel, OnRuleCandidateSelected, BuildAcquiredClueBlock);
+                BuildRuleCandidateHead, BuildRuleCandidateNote, IsRuleDeduced,
+                OnRuleCandidateSelected, BuildAcquiredClueEntries);
+
+            // 맞는 규칙을 이미 세워 두었으면 결론도 함께 편다.
+            // 화면을 닫았다 다시 열어도 한 번 닿은 결론은 그대로 있어야 한다.
+            if (IsTrueRuleDeduced()) ShowConclusion();
+            else _ruleListScreen.ShowConclusion(null, null);
+        }
+
+        /// <summary>이 괴담의 진짜 규칙을 이미 세웠는가. 결론은 그때에만 나온다.</summary>
+        private bool IsTrueRuleDeduced()
+        {
+            if (_legend == null || _rules == null) return false;
+
+            foreach (var rule in _legend.Rules)
+            {
+                if (rule == null || !rule.IsTrue) continue;
+                if (_rules.IsRuleDeduced(_save, rule.RuleId)) return true;
+            }
+            return false;
         }
 
         /// <summary>
-        /// 후보 항목 문구.
-        /// 규칙 문장과 근거 단서만 보여준다. 정답 여부는 고르기 전에 절대 드러내지 않는다.
+        /// 조사가 닿은 결론. 답해야 하는 것은 둘뿐이다.
+        ///   이 괴담이 진짜인가 가짜인가, 그리고 어떻게 끊는가.
+        /// 둘 다 괴담 자료가 들고 있다. 여기서 문장을 짓지 않는다.
         /// </summary>
-        private string BuildRuleCandidateLabel(RuleSO rule)
+        private void ShowConclusion()
         {
-            if (rule == null) return string.Empty;
+            if (_legend == null) return;
+
+            var legend = _legend;
+
+            _ruleListScreen.ShowConclusion(
+                string.IsNullOrEmpty(legend.VerdictTextId)
+                    ? null
+                    : () => BuildConclusionBlock(legend.VerdictTextId, legend.VerdictClueIds),
+                string.IsNullOrEmpty(legend.CounterTextId)
+                    ? null
+                    : () => BuildConclusionBlock(legend.CounterTextId, legend.CounterClueIds));
+        }
+
+        /// <summary>
+        /// 결론 한 덩어리. 한 줄로 답한다.
+        ///
+        /// 까닭을 여기에 길게 늘어놓지 않는다. 근거가 된 단서는 왼쪽 "획득한 단서" 칸에
+        /// ◆ 표를 달고 그대로 서 있다. 같은 문장을 결론에 다시 옮겨 적으면 화면만 빽빽해지고,
+        /// 정작 답이 무엇인지가 묻힌다.
+        /// </summary>
+        private string BuildConclusionBlock(string answerTextId, IReadOnlyList<string> clueIds)
+        {
+            return _loc.Get(answerTextId);
+        }
+
+        /// <summary>
+        /// 후보 한 칸의 규칙 문장. 고르는 대상이라 이것만 크게 적는다.
+        /// 정답 여부는 고르기 전에 절대 드러내지 않는다.
+        /// </summary>
+        private string BuildRuleCandidateHead(RuleSO rule)
+        {
+            return rule != null ? _loc.Get(rule.RuleTextId) : string.Empty;
+        }
+
+        /// <summary>
+        /// 후보 한 칸의 곁가지 한 줄. 이 규칙을 세운 근거가 무엇인지 적는다.
+        /// 한 줄에 담기게 단서를 가운뎃점으로 잇는다. 여러 줄로 늘어놓으면 칸마다 높이가 달라진다.
+        /// </summary>
+        private string BuildRuleCandidateNote(RuleSO rule)
+        {
+            var required = rule != null ? rule.RequiredClueIds : null;
+            if (required == null || required.Count == 0) return string.Empty;
 
             var sb = new StringBuilder();
-            sb.Append(_loc.Get(rule.RuleTextId));
+            sb.Append(_loc.Get(RuleRelatedClueTextId)).Append("  ");
 
-            if (_rules.IsRuleDeduced(_save, rule.RuleId))
+            int shown = 0;
+            for (int i = 0; i < required.Count; i++)
             {
-                sb.Append("  [").Append(_loc.Get(RuleAlreadyMarkTextId)).Append("]");
+                if (string.IsNullOrEmpty(required[i])) continue;
+                if (shown > 0) sb.Append("  ·  ");
+                sb.Append(ResolveClueText(required[i]));
+                shown++;
             }
 
-            var required = rule.RequiredClueIds;
-            if (required != null && required.Count > 0)
+            return shown > 0 ? sb.ToString() : string.Empty;
+        }
+
+        /// <summary>이미 골라 본 규칙인가. 화면이 작은 딱지를 붙일지 정할 때 물어본다.</summary>
+        private bool IsRuleDeduced(RuleSO rule)
+        {
+            return rule != null && _rules != null && _rules.IsRuleDeduced(_save, rule.RuleId);
+        }
+
+        /// <summary>
+        /// 확보한 단서 목록. 화면은 이것을 한 줄씩 눌러 고를 수 있는 칸으로 늘어놓는다.
+        /// 아직 못 찾은 단서는 넣지 않는다.
+        /// </summary>
+        private IReadOnlyList<RuleListScreen.ClueEntry> BuildAcquiredClueEntries()
+        {
+            var list = new List<RuleListScreen.ClueEntry>();
+            if (_legend == null) return list;
+
+            var acquired = _save.Current.acquiredClueIds;
+
+            foreach (var clue in _legend.Clues)
             {
-                sb.Append("\n").Append(_loc.Get(RuleRelatedClueTextId));
-                for (int i = 0; i < required.Count; i++)
+                if (clue == null || !acquired.Contains(clue.ClueId)) continue;
+
+                list.Add(new RuleListScreen.ClueEntry
                 {
-                    if (string.IsNullOrEmpty(required[i])) continue;
-                    sb.Append("\n- ").Append(ResolveClueText(required[i]));
+                    ClueId = clue.ClueId,
+                    Text = _loc.Get(clue.ClueTextId),
+                    IsKey = IsKeyClue(clue.ClueId),
+                });
+            }
+            return list;
+        }
+
+        /// <summary>
+        /// 방금 찾은 것을 알리는 글.
+        ///
+        /// 단서 하나를 따로 보여주면 그냥 문장 하나다. 그것이 앞서 찾은 무엇과 맞물리는지를
+        /// 그 자리에서 함께 보여야 "이 증언이 저 증언과 같은 것을 가리키는구나" 가 눈에 든다.
+        /// 맞물린다는 것은 같은 규칙의 근거가 된다는 뜻이다. 판정은 여기서 하지 않고 규칙이 정한다.
+        ///
+        /// 이미 들고 있는 것만 적는다. 아직 못 찾은 단서를 미리 알려 주면 조사할 것이 없어진다.
+        /// </summary>
+        private string BuildClueFinding(string clueId)
+        {
+            var sb = new StringBuilder();
+            sb.Append(ResolveClueText(clueId));
+
+            var matches = new List<string>();
+            if (_legend != null)
+            {
+                foreach (var rule in _legend.Rules)
+                {
+                    var required = rule != null ? rule.RequiredClueIds : null;
+                    if (required == null) continue;
+
+                    bool usesThis = false;
+                    for (int i = 0; i < required.Count; i++)
+                    {
+                        if (required[i] == clueId) { usesThis = true; break; }
+                    }
+                    if (!usesThis) continue;
+
+                    for (int i = 0; i < required.Count; i++)
+                    {
+                        string other = required[i];
+                        if (string.IsNullOrEmpty(other) || other == clueId) continue;
+                        if (!CaseFlow.HasClue(_save, other) || matches.Contains(other)) continue;
+
+                        matches.Add(other);
+                    }
                 }
             }
+
+            if (matches.Count > 0)
+            {
+                sb.Append("\n\n").Append(_loc.Get(ClueMatchTextId));
+                for (int i = 0; i < matches.Count; i++) sb.Append("\n· ").Append(ResolveClueText(matches[i]));
+            }
+
             return sb.ToString();
         }
 
-        /// <summary>확보한 단서 목록. 추론의 근거가 무엇인지 한눈에 보이게 한다.</summary>
-        private string BuildAcquiredClueBlock()
+        /// <summary>
+        /// 핵심 단서인가.
+        ///
+        /// 어떤 규칙의 근거가 되는 단서가 핵심이다. 그것이 있어야 규칙을 세워 볼 수 있다.
+        /// 단서 자산에 따로 표시를 두지 않는다. 규칙이 무엇을 요구하는지가 이미 답이다.
+        /// </summary>
+        private bool IsKeyClue(string clueId)
         {
-            var sb = new StringBuilder();
-            sb.AppendLine(_loc.Get(LabelClueTextId));
+            if (string.IsNullOrEmpty(clueId) || _legend == null) return false;
 
-            var acquired = _save.Current.acquiredClueIds;
-            int shown = 0;
-
-            if (_legend != null)
+            foreach (var rule in _legend.Rules)
             {
-                foreach (var clue in _legend.Clues)
+                var required = rule != null ? rule.RequiredClueIds : null;
+                if (required == null) continue;
+
+                for (int i = 0; i < required.Count; i++)
                 {
-                    if (clue == null || !acquired.Contains(clue.ClueId)) continue;
-                    sb.AppendLine("- " + _loc.Get(clue.ClueTextId));
-                    shown++;
+                    if (required[i] == clueId) return true;
                 }
             }
-
-            if (shown == 0) sb.AppendLine("- " + _loc.Get(NothingFoundTextId));
-            return sb.ToString();
+            return false;
         }
 
         /// <summary>후보를 골랐을 때. 판정은 RuleService가 하고 여기서는 결과를 옮긴다.</summary>
         private void OnRuleCandidateSelected(RuleSO rule)
         {
             if (_rules == null || rule == null) return;
+
+            // 규칙만 짚어서는 세워지지 않는다. 무엇을 근거로 그렇게 보는지 왼쪽에서 골라야 한다.
+            // 근거가 어긋나면 옳은 규칙이라도 세우지 못한다. 맞혔다기보다 찍은 것이기 때문이다.
+            if (!IsEvidenceMatched(rule))
+            {
+                _ruleListScreen.ShowResult(() => _loc.Get(EvidenceMismatchTextId));
+                Debug.Log($"[CaseDirector] 규칙 추론 | {rule.RuleId} - 근거가 어긋난다 (고른 단서 " +
+                          _ruleListScreen.PickedCount + "개)");
+                return;
+            }
 
             var result = _rules.AttemptRule(_save, rule.RuleId);
 
@@ -1552,6 +1938,31 @@ namespace UrbanLegendBureau.Systems
                       (result.Success
                           ? (result.AlreadyDeduced ? "이미 확인함" : (result.IsCorrect ? "정확" : "오류"))
                           : "불가(" + result.Failure + ")"));
+        }
+
+        /// <summary>
+        /// 고른 근거가 이 규칙이 요구하는 것과 맞는가.
+        ///
+        /// 남거나 모자라면 맞지 않은 것으로 본다. 상관없는 증언을 함께 얹어 놓고
+        /// 맞혔다고 치면, 무엇이 무엇을 받치는지 모른 채로 넘어가게 된다.
+        /// </summary>
+        private bool IsEvidenceMatched(RuleSO rule)
+        {
+            var need = rule.RequiredClueIds;
+
+            int required = 0;
+            if (need != null)
+            {
+                for (int i = 0; i < need.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(need[i])) continue;
+
+                    required++;
+                    if (!_ruleListScreen.IsPicked(need[i])) return false;
+                }
+            }
+
+            return _ruleListScreen.PickedCount == required;
         }
 
         /// <summary>규칙 추론 화면의 돌아가기 버튼. 현장으로 돌아가 조사를 이어간다.</summary>

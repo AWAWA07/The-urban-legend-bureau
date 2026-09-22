@@ -76,6 +76,12 @@ namespace UrbanLegendBureau.Core
             _skipped += forward;
         }
 
+        /// <summary>
+        /// 지금이 그날의 몇 분째인가(0~1439). 자정을 넘기면 다시 0부터다.
+        /// "몇 시가 되면" 하는 일을 거는 쪽이 이 값을 본다.
+        /// </summary>
+        public static int MinutesOfDay => (_startHour * 60 + _startMinute + ElapsedMinutes) % 1440;
+
         /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>
         public static int ElapsedMinutes
         {

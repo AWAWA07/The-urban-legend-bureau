@@ -29,6 +29,7 @@ namespace UrbanLegendBureau.InputSystemLayer
         private InputAction _cancelAction;
         private InputAction _moveAction;
         private InputAction _interactAction;
+        private InputAction _phoneAction;
 
         public InputService(InputActionAsset asset)
         {
@@ -72,6 +73,7 @@ namespace UrbanLegendBureau.InputSystemLayer
             {
                 _moveAction = _playerMap.FindAction("Move", false);
                 _interactAction = _playerMap.FindAction("Interact", false);
+                _phoneAction = _playerMap.FindAction("Phone", false);
             }
 
             _uiMap.Enable();
@@ -112,6 +114,9 @@ namespace UrbanLegendBureau.InputSystemLayer
 
         /// <summary>상호작용 키가 이번 프레임에 눌렸는가.</summary>
         public bool InteractPressed => _interactAction != null && _interactAction.WasPressedThisFrame();
+
+        /// <summary>휴대폰을 꺼내거나 넣는 키가 이번 프레임에 눌렸는가. 현장에서 쓴다.</summary>
+        public bool PhonePressed => _phoneAction != null && _phoneAction.WasPressedThisFrame();
 
         /// <summary>취소 / 뒤로가기. PC의 ESC와 Android 뒤로가기 버튼이 같은 액션으로 들어온다.</summary>
         public bool CancelPressed => _cancelAction != null && _cancelAction.WasPressedThisFrame();

@@ -161,6 +161,11 @@ namespace UrbanLegendBureau.Systems
             _beliefCarry = 0f;
             UrbanLegendBureau.Core.GameClock.Restart();
 
+            // 메모장도 처음으로 되돌린다. 적어 둔 것을 비우고 다시 잠근 뒤, 등급표 한 장을 넣어 둔다.
+            // 잠그지 않으면 한영이 메모하라고 이르는 마디에서 열렸다는 알림이 뜨지 않는다.
+            MemoScreen.ResetAll();
+            MemoScreen.SeedDefaultNotes();
+
             IsRunning = true;
             _finished = false;
             _censored = false;
@@ -1360,6 +1365,31 @@ namespace UrbanLegendBureau.Systems
 
             ShowToast(MemoUnlockedTextId);
             Debug.Log("[TutorialDirector] 메모장이 열렸다");
+        }
+
+        /// <summary>막차가 종점에 닿았을 때 한영이 하는 말.</summary>
+        private const string TerminusTextId = "tutorial.field.terminus";
+
+        /// <summary>
+        /// 막차가 종점에 닿았다고 한영이 알린다. 말이 끝나면 onDone 을 부른다.
+        ///
+        /// 걸 자리(현장 화면)가 없으면 아무것도 하지 않고 false 를 돌려준다.
+        /// 그때는 부르는 쪽이 말 없이 다음으로 넘어간다.
+        /// </summary>
+        public bool ShowTerminusLine(System.Action onDone)
+        {
+            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (hud == null || _loc == null) return false;
+
+            _fieldHud = hud;
+            hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusTextId), () =>
+            {
+                hud.ClearSpeech();
+                onDone?.Invoke();
+            });
+
+            Debug.Log("[TutorialDirector] 막차 종점 | 조사를 닫고 취합으로 넘어간다");
+            return true;
         }
 
         /// <summary>잠깐 떴다 사라지는 알림 한 줄. 시간이 다 되면 스스로 닫힌다.</summary>

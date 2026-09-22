@@ -58,6 +58,7 @@ ui.slice.field_title	현장 조사	Field Investigation
 ui.slice.field_hint	조사할 대상을 눌러 보세요.	Tap an object to investigate it.	
 ui.slice.clue_acquired	단서 획득	Clue Acquired	
 ui.slice.clue_duplicate	이미 확보한 단서	Clue Already Collected	중복 방지 확인용
+ui.slice.key_clue_found	핵심 단서를 찾았습니다!	Key clue found!	규칙의 근거가 되는 단서를 처음 찾았을 때
 ui.slice.nothing_found	특별한 것은 없습니다	Nothing of note	
 ui.slice.case_complete	사건 종결	Case Closed	
 ui.slice.result_hint	조사가 완료되었습니다.	The investigation is complete.	
@@ -169,6 +170,7 @@ ui.time.actions	조사 행동: {0}회	Actions: {0}
 ui.action.title	조사 행동	Investigation	행동 선택 화면 제목
 ui.action.hint	수행할 조사를 선택하세요. 조사할 때마다 사건 시간이 흐릅니다.	Choose an investigation. Each one advances the case clock.	
 ui.action.locked	조건 미충족	Locked	지금 고를 수 없는 행동 표시
+ui.action.done_mark	조사함	searched	이미 해 본 조사 방법 표시
 ui.action.btn_actions	조사 행동	Investigate	사무실 화면 버튼
 ui.action.btn_back	돌아가기	Back	
 ui.action.result_done	조사를 마쳤다. 특별한 것은 없었다.	Investigation finished. Nothing stood out.	
@@ -196,6 +198,9 @@ action.test.005.result	조작판에서 이상한 자국을 찾았다.	There are 
 # --- 17단계: 현장 조사 지점 ---
 ui.field.point_locked	조사할 수 없다	Cannot investigate	지점 해금 조건 실패 제목
 ui.field.point_hint	조사할 방법을 선택하세요.	Choose how to investigate.	
+ui.field.prompt	[E] {0} 조사	[E] Investigate {0}	가까이 갔을 때 지점 위에 뜨는 말풍선
+ui.field.prompt_done	[E] {0} — 조사함	[E] {0} — searched	이미 조사한 곳의 말풍선
+ui.field.point_done	이미 조사한 내용이다.	You have already searched this.	같은 곳을 다시 조사했을 때
 action.test.006.name	사진 촬영	Take photos	
 action.test.006.desc	현장을 사진으로 남긴다.	Record the site in photographs.	
 action.test.006.result	사진에는 특별히 이상한 것이 찍히지 않았다.	Nothing unusual shows up in the photos.	
@@ -207,8 +212,16 @@ ui.action.cost_spread	확산도 +{0}%	Spread +{0}%
 
 # --- 19단계: 규칙 추론 선택 ---
 ui.rule.screen_title	규칙 추론	Deduction	규칙 추론 화면 제목
-ui.rule.screen_hint	확보한 단서를 근거로 괴담의 규칙을 골라 보세요.	Pick the rule you think holds, based on what you have found.	
+ui.rule.screen_hint	왼쪽에서 근거로 삼을 단서를 고르고, 그 근거로 세울 수 있는 규칙을 짚으세요.	Pick the clues you are reasoning from, then the rule they hold up.	규칙 추론 화면 안내
 ui.rule.already_mark	확인함	Checked	이미 추론한 규칙 표시
+ui.rule.list_title	세워 볼 수 있는 규칙	Rules you can test	규칙 추론 화면 - 후보 칸 제목
+ui.rule.no_candidate	아직 세워 볼 수 있는 규칙이 없다. 현장에서 단서를 더 모아야 한다.	Nothing to test yet. Gather more at the site.	후보가 하나도 없을 때
+ui.rule.no_clue	아직 모은 단서가 없다. 현장을 더 뒤져야 한다.	Nothing collected yet. Search the site.	단서 칸이 비었을 때
+ui.rule.evidence_mismatch	그 근거로는 이 규칙이 서지 않는다. 왼쪽에서 근거로 삼을 단서를 골라 보자.	That evidence does not hold this rule up. Pick what you are reasoning from.	고른 근거가 규칙과 맞지 않을 때
+ui.rule.conclusion_title	조사 결론	Conclusion	규칙을 맞힌 뒤 뜨는 칸 제목
+ui.rule.verdict_label	이 괴담은 진짜인가?	Is this legend real?	결론 - 첫 번째 물음
+ui.rule.counter_label	어떻게 끊는가?	How do we break it?	결론 - 두 번째 물음
+ui.field.clue_match	이 증언과 맞물리는 것	This lines up with	단서를 찾았을 때 - 같은 규칙을 가리키는 증언들
 ui.rule.btn_deduce	규칙 추론	Deduce	현장 HUD 버튼
 ui.rule.btn_back	현장으로	Back to site	
 ui.rule.candidate_found	짚이는 것이 있다	Something clicks	새 단서로 후보가 생겼을 때 팝업 제목
@@ -226,9 +239,11 @@ case.001.subway.name	막차의 빈자리	The Empty Seat on the Last Train	첫 �
 case.001.subway.description	막차에서 옆자리에 누군가 앉아 있었다는 신고가 반복되고 있다. 정작 주변 승객들은 그 자리가 계속 비어 있었다고 말한다.	Reports keep coming in about someone sitting in the next seat on the last train. The other passengers insist that seat stayed empty.	
 legend.subway.name	막차의 빈자리	The Empty Seat on the Last Train	
 legend.subway.description	종착역으로 향하는 막차. 옆자리에 누군가 앉은 기척이 분명한데, 고개를 돌려 확인한 사람만 이후 이야기를 남기지 못했다. 증언은 조금씩 어긋나고, 온라인에서는 이야기가 계속 불어나고 있다.	On the last train to the terminus, passengers feel someone settle into the seat beside them. The ones who turned to look never posted again. The accounts do not quite line up, and online the story keeps growing.	
-rule.subway.001.text	비어 있는 옆자리에 앉으면 다음 역에서 사라진다.	Sit in the empty seat beside it and you vanish at the next station.	함정 A
-rule.subway.002.text	옆자리에 누가 앉은 기척이 들어도, 그 자리를 직접 확인해서는 안 된다.	Even when you feel someone take the seat beside you, do not look at it.	정답
-rule.subway.003.text	그 승객의 얼굴을 보면 집까지 따라온다.	See its face and it follows you home.	함정 B
+rule.subway.001.text	옆자리에 앉은 기척은 착각이다. 이 괴담에는 실체가 없다.	The presence in the next seat is imagined. There is nothing behind this legend.	함정 A - 근거 001+003 (다른 승객은 비어 있었다 하고, CCTV에도 아무것도 없다)
+rule.subway.002.text	옆자리에 누가 앉은 기척이 들어도, 돌아보아 그 자리를 확인해서는 안 된다.	Even when you feel someone take the seat beside you, do not turn and look.	정답
+rule.subway.003.text	옆자리에 앉은 그것의 얼굴을 보면, 그것이 집까지 따라온다.	Look at the face of the thing beside you and it follows you home.	함정 B
+legend.subway.verdict	절반만 진짜다. 옆자리의 기척은 실재하고, '얼굴을 보면 따라온다'는 나중에 덧붙은 가짜다.	Half of it is real. The presence beside the seat is real; the part about being followed was added later.	규칙을 맞힌 뒤의 판정 (한 줄)
+legend.subway.counter	기척이 들어도 돌아보지 않는다. 덧붙은 '얼굴' 대목은 검열해 끊는다.	Do not turn and look, however clearly you feel it. Censor the added line about the face.	규칙을 맞힌 뒤의 파훼법 (한 줄)
 clue.subway.001.text	목격자는 옆자리에 사람이 앉는 기척을 분명히 느꼈다고 진술했다. 그러나 같은 칸 승객들은 그 자리가 계속 비어 있었다고 말한다.	The witness clearly felt someone settle into the next seat. Everyone else in the car says it stayed empty.	
 clue.subway.002.text	같은 시간대 다른 칸에서도 같은 일이 있었다. 기척을 느낀 사람은 모두 자리를 확인한 뒤에 이야기가 끊겼다.	The same thing happened in another car that night. Everyone who felt it stopped telling their story right after they checked the seat.	
 clue.subway.003.text	CCTV에는 해당 좌석 주변의 움직임이 전혀 잡히지 않는다. 앉은 사람도, 일어난 사람도 없다.	The camera shows no movement around that seat at all. Nobody sat down, nobody got up.	
@@ -338,6 +353,7 @@ ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 
 ui.memo.autosave	적는 대로 저장된다.	Saved as you type.	메모장 아래 한 줄
 ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름
 ui.memo.new	+ 새 메모	+ New note	메모를 한 장 더 만드는 단추
+ui.memo.default_grade	[위험 등급표]  — 한영이 설명해 준 것	[Risk grades] - as Hanyoung explained	기본으로 들어 있는 메모의 첫 줄
 ui.memo.unlocked	메모장 기능이 열렸습니다!	The notepad is now available.	메모장이 열렸다는 알림
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
@@ -482,6 +498,7 @@ tutorial.field.003	... 그런 거 없거든요.	...There is no such thing.	차�
 tutorial.field.004	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷 검열 해 놓은 막차 관련된 괴담이야.	Right. The legend we are after is the last-train one we censored online earlier.	
 tutorial.field.005	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.	You will be taking notes on your phone too, so keep it handy and follow me.	
 tutorial.field.006	넵, 알겠습니다.	Yes, understood.	차지한
+tutorial.field.terminus	이제 막차의 종점이야 내려야 돼.	This is the last train's final stop. We have to get off.	00:30, 종점에 닿았을 때 - 한영
 ui.field.platform	9-4 승강장	Platform 9-4	현장 위쪽 한 줄 - 열차를 기다리는 자리
 ui.field.train_arriving	열차가 들어온다.	A train is pulling in.	열차 진입 알림
 

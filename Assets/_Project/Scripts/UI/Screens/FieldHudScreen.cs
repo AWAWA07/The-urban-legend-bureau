@@ -72,11 +72,27 @@ namespace UrbanLegendBureau.UI
         [Tooltip("휴대폰 안의 앱. 컴퓨터 바탕화면과 같은 것들을 세로로 늘어놓는다.")]
         [SerializeField] private List<DesktopIcon> _phoneApps = new List<DesktopIcon>();
 
-        private const string PhoneButtonTextId = "ui.field.btn_phone";
-
         private Func<string> _tickerProvider;
         private Func<string> _lineProvider;
         private string _speakerTextId;
+
+        /// <summary>
+        /// 지금 현장에서 누가 말하고 있는가.
+        ///
+        /// 말이 오가는 동안에는 걸어 다니지 않는다. 듣는 중에 자리를 옮기면
+        /// 대사가 걸려 있는 자리와 서 있는 자리가 어긋난다.
+        /// 현장 화면은 한 번에 하나뿐이라 이 값도 하나로 둔다. 걷는 쪽(FieldWalker)이 여기를 본다.
+        /// </summary>
+        public static bool IsSpeaking { get; private set; }
+
+        /// <summary>
+        /// 지금 현장이 앞에 나와 있는가.
+        ///
+        /// 규칙 추론이나 조사 방법 목록이 위에 뜨면 현장은 그 뒤에 남는다.
+        /// 그 동안에도 걸으면, 화면 뒤에서 사람이 움직여 돌아왔을 때 엉뚱한 자리에 서 있다.
+        /// 그래서 덮이면 걸음을 멈춘다. 걷는 쪽(FieldWalker)이 여기를 본다.
+        /// </summary>
+        public static bool IsFront { get; private set; }
 
         private Camera _camera;
         private Rect _cameraRectBefore;
@@ -117,6 +133,7 @@ namespace UrbanLegendBureau.UI
         {
             _speakerTextId = speakerTextId;
             _lineProvider = line;
+            IsSpeaking = true;
 
             // 앞서 고를 것이 떠 있었다면 치운다. 대사와 선택지가 같은 자리를 쓴다.
             ClearSpawnedChoices();
@@ -146,6 +163,7 @@ namespace UrbanLegendBureau.UI
         {
             _speakerTextId = speakerTextId;
             _lineProvider = null;
+            IsSpeaking = true;
 
             ClearSpawnedChoices();
 
@@ -193,6 +211,7 @@ namespace UrbanLegendBureau.UI
         {
             _speakerTextId = null;
             _lineProvider = null;
+            IsSpeaking = false;
 
             ClearSpawnedChoices();
 
@@ -208,6 +227,27 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>앱을 눌렀을 때 부를 것. 무엇이 열리는지는 밖에서 정한다.</summary>
         private Action<string> _onApp;
+
+        /// <summary>휴대폰을 넣을 때 부를 것. 안에 앱이 켜져 있으면 그 앱도 닫아야 한다.</summary>
+        private Action _onPhonePutAway;
+
+        private UrbanLegendBureau.InputSystemLayer.InputService _input;
+
+        /// <summary>
+        /// 휴대폰은 키로 꺼내고 넣는다.
+        ///
+        /// 화면에 안내를 따로 두지 않는다. 주머니에서 꺼내는 일에 이름표가 붙어 있지는 않다.
+        /// 어느 키인지는 Player/Phone 액션이 들고 있다.
+        /// </summary>
+        private void Update()
+        {
+            if (!IsOpen) return;
+
+            if (_input == null && !ServiceRegistry.TryGet(out _input)) return;
+            if (!_input.IsReady || !_input.PhonePressed) return;
+
+            TogglePhone();
+        }
 
         /// <summary>
         /// 휴대폰 단추를 연결한다.
@@ -240,10 +280,14 @@ namespace UrbanLegendBureau.UI
             SetPhoneOpen(false);
         }
 
-        /// <summary>휴대폰 안의 앱을 눌렀을 때 부를 것을 정한다.</summary>
-        public void BindPhoneApps(Action<string> onApp)
+        /// <summary>
+        /// 휴대폰 안의 앱을 눌렀을 때 부를 것을 정한다.
+        /// onPutAway 는 휴대폰을 넣을 때 부른다. 켜 둔 앱을 그쪽에서 닫는다.
+        /// </summary>
+        public void BindPhoneApps(Action<string> onApp, Action onPutAway = null)
         {
             _onApp = onApp;
+            _onPhonePutAway = onPutAway;
         }
 
         /// <summary>
@@ -257,10 +301,15 @@ namespace UrbanLegendBureau.UI
             SetPhoneOpen(_phonePanel == null || !_phonePanel.activeSelf);
         }
 
-        /// <summary>휴대폰을 펴고 접는다.</summary>
+        /// <summary>휴대폰을 펴고 접는다. 접을 때는 안에 켜 둔 앱도 함께 닫는다.</summary>
         public void SetPhoneOpen(bool open)
         {
+            bool wasOpen = _phonePanel != null && _phonePanel.activeSelf;
+
             if (_phonePanel != null) _phonePanel.SetActive(open);
+
+            // 넣은 휴대폰 위에 앱만 떠 있으면 앱이 공중에 뜬 꼴이 된다.
+            if (wasOpen && !open) _onPhonePutAway?.Invoke();
         }
 
         // ------------------------------------------------------------- 화면
@@ -268,6 +317,7 @@ namespace UrbanLegendBureau.UI
         protected override void OnOpen()
         {
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
+            IsFront = true;
             ShrinkCamera();
             Refresh();
         }
@@ -275,9 +325,16 @@ namespace UrbanLegendBureau.UI
         protected override void OnClose()
         {
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
+            IsFront = false;
             ClearSpeech();
             SetPhoneOpen(false);
             RestoreCamera();
+        }
+
+        /// <summary>다른 화면이 위에 뜨면 현장은 뒤로 물러난다. 그 동안에는 걸음을 멈춘다.</summary>
+        protected override void OnCoveredChanged(bool covered)
+        {
+            IsFront = !covered;
         }
 
         private void OnLanguageChanged(LanguageChangedEvent evt)
@@ -298,7 +355,8 @@ namespace UrbanLegendBureau.UI
             }
 
             // 휴대폰 시계는 ClockLabel 이 스스로 쓴다. 여기서 덮어쓰면 멈춘 시각으로 되돌아간다.
-            if (_phoneButtonLabel != null) _phoneButtonLabel.text = loc.Get(PhoneButtonTextId);
+            // 휴대폰 단추에는 글자를 두지 않는다. 껍데기 모양만으로 무엇인지 알아본다.
+            if (_phoneButtonLabel != null) _phoneButtonLabel.text = string.Empty;
 
             for (int i = 0; i < _phoneApps.Count; i++)
             {

@@ -17,6 +17,15 @@ MonoBehaviour:
   _descriptionTextId: legend.subway.description
   _riskLevel: 2
   _initialSpreadRate: 18
+  _verdictTextId: legend.subway.verdict
+  _verdictClueIds:
+  - clue_subway_003
+  - clue_subway_002
+  - clue_subway_004
+  _counterTextId: legend.subway.counter
+  _counterClueIds:
+  - clue_subway_002
+  - clue_subway_005
   _rules:
   - {fileID: 11400000, guid: ce0c980c851613d4c80f19f6bf9937c7, type: 2}
   - {fileID: 11400000, guid: f068abddcd45824459c4402c6f07f3b3, type: 2}
