@@ -18,11 +18,17 @@ MonoBehaviour:
   _riskLevel: 2
   _initialSpreadRate: 18
   _verdictTextId: legend.subway.verdict
+  _verdictKind: 2
   _verdictClueIds:
   - clue_subway_003
   - clue_subway_002
   - clue_subway_004
   _counterTextId: legend.subway.counter
+  _counterOptionTextIds:
+  - legend.subway.counter_opt_seat
+  - legend.subway.counter
+  - legend.subway.counter_opt_flee
+  - legend.subway.counter_opt_avoid
   _counterClueIds:
   - clue_subway_002
   - clue_subway_005

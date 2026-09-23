@@ -17,6 +17,13 @@ MonoBehaviour:
   _bodyTextId: web.test.003.body
   _pageType: 2
   _searchKeywordIds: []
+  _comments:
+  - AuthorTextId: ui.net.author_nick_2
+    BodyTextId: web.test.003.c1
+    IsAuthor: 0
+  - AuthorTextId: ui.net.author_anon
+    BodyTextId: web.test.003.c2
+    IsAuthor: 0
   _relatedClueIds:
   - clue_test_003
   _spreadWeight: 12

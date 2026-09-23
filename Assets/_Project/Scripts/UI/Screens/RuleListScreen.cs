@@ -153,6 +153,49 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
+
+        /// <summary>
+        /// 규칙이 아닌 답을 고르는 칸 하나.
+        ///
+        /// 규칙을 세우고 나면 아직 두 가지가 남는다. 진짜인가 가짜인가, 그리고 어떻게 끊는가.
+        /// 그 두 물음도 같은 자리에서 같은 모양으로 묻는다. 화면은 무엇이 정답인지 모른다.
+        /// </summary>
+        public class Option
+        {
+            public string Id;
+            public string Head;
+            public string Note;
+
+            /// <summary>이미 골라 봤다가 아닌 것으로 밝혀진 답인가.</summary>
+            public bool Tried;
+        }
+
+        /// <summary>
+        /// 오른쪽 칸을 규칙 후보 대신 답 후보로 바꾼다.
+        ///
+        /// 왼쪽의 단서 칸은 그대로 둔다. 무엇을 보고 그렇게 답하는지가 옆에 서 있어야 한다.
+        /// </summary>
+        public void BindOptions(string listTitleTextId, IReadOnlyList<Option> options, Action<string> onPick)
+        {
+            _listTitleOverrideId = listTitleTextId;
+            _options = options;
+            _onPickOption = onPick;
+            Refresh();
+        }
+
+        /// <summary>답 고르기를 물리고 규칙 후보로 되돌린다.</summary>
+        public void ClearOptions()
+        {
+            _listTitleOverrideId = null;
+            _options = null;
+            _onPickOption = null;
+            Refresh();
+        }
+
+        private string _listTitleOverrideId;
+        private IReadOnlyList<Option> _options;
+        private Action<string> _onPickOption;
+
         /// <summary>직전 추론 결과를 알린다. 언어가 바뀌면 다시 조립되도록 만드는 방법을 받는다.</summary>
         public void ShowResult(Func<string> provider)
         {
@@ -201,7 +244,11 @@ namespace UrbanLegendBureau.UI
             if (_footerText != null) _footerText.text = string.IsNullOrEmpty(_footerId) ? string.Empty : loc.Get(_footerId);
 
             if (_clueTitleText != null) _clueTitleText.text = loc.Get(ClueTitleTextId);
-            if (_listTitleText != null) _listTitleText.text = loc.Get(ListTitleTextId);
+            if (_listTitleText != null)
+            {
+                _listTitleText.text = loc.Get(string.IsNullOrEmpty(_listTitleOverrideId)
+                    ? ListTitleTextId : _listTitleOverrideId);
+            }
 
             RebuildClues(loc);
 
@@ -359,7 +406,18 @@ namespace UrbanLegendBureau.UI
 
             int count = 0;
 
-            if (_rules != null)
+            // 답을 고르는 중이면 규칙 후보 대신 그 답들을 늘어놓는다.
+            if (_options != null)
+            {
+                for (int i = 0; i < _options.Count; i++)
+                {
+                    if (_options[i] == null) continue;
+
+                    SpawnOption(_options[i], loc);
+                    count++;
+                }
+            }
+            else if (_rules != null)
             {
                 for (int i = 0; i < _rules.Count; i++)
                 {
@@ -378,6 +436,42 @@ namespace UrbanLegendBureau.UI
                 _emptyText.gameObject.SetActive(count == 0);
             }
         }
+
+        /// <summary>답 후보 한 칸. 규칙 칸과 같은 틀을 쓰되 정답 여부는 모른다.</summary>
+        private void SpawnOption(Option option, LocalizationService loc)
+        {
+            var item = Instantiate(_itemTemplate, _listRoot);
+            item.gameObject.name = "Option_" + option.Id;
+            item.gameObject.SetActive(true);
+
+            var head = item.transform.Find(HeadName)?.GetComponent<TMP_Text>();
+            if (head != null) head.text = option.Head;
+
+            var note = item.transform.Find(NoteName)?.GetComponent<TMP_Text>();
+            if (note != null)
+            {
+                note.text = option.Note ?? string.Empty;
+                note.gameObject.SetActive(!string.IsNullOrEmpty(option.Note));
+            }
+
+            // 한 번 짚어 봤다가 아니었던 답에는 딱지를 붙인다. 같은 자리를 두 번 헤매지 않게 한다.
+            var badge = item.transform.Find(BadgeName);
+            if (badge != null)
+            {
+                badge.gameObject.SetActive(option.Tried);
+
+                var badgeText = badge.GetComponentInChildren<TMP_Text>(true);
+                if (badgeText != null) badgeText.text = loc.Get(TriedMarkTextId);
+            }
+
+            string captured = option.Id;
+            item.onClick.RemoveAllListeners();
+            item.onClick.AddListener(() => _onPickOption?.Invoke(captured));
+
+            _spawned.Add(item);
+        }
+
+        private const string TriedMarkTextId = "ui.rule.tried_mark";
 
         private void SpawnItem(RuleSO rule, LocalizationService loc)
         {

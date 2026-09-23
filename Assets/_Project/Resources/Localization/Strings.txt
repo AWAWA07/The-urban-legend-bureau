@@ -218,6 +218,18 @@ ui.rule.list_title	세워 볼 수 있는 규칙	Rules you can test	규칙 추론
 ui.rule.no_candidate	아직 세워 볼 수 있는 규칙이 없다. 현장에서 단서를 더 모아야 한다.	Nothing to test yet. Gather more at the site.	후보가 하나도 없을 때
 ui.rule.no_clue	아직 모은 단서가 없다. 현장을 더 뒤져야 한다.	Nothing collected yet. Search the site.	단서 칸이 비었을 때
 ui.rule.evidence_mismatch	그 근거로는 이 규칙이 서지 않는다. 왼쪽에서 근거로 삼을 단서를 골라 보자.	That evidence does not hold this rule up. Pick what you are reasoning from.	고른 근거가 규칙과 맞지 않을 때
+ui.rule.tried_mark	아니었음	Ruled out	잘못 짚어 본 답 표시
+ui.rule.verdict_question	이 괴담은 진짜인가?	Is this legend real?	규칙을 세운 뒤 첫 번째 물음
+ui.rule.counter_question	그럼 어떻게 끊는가?	Then how do we break it?	두 번째 물음
+ui.rule.verdict_opt_fake	가짜다. 애초에 없던 일이 이야기로만 돌고 있다.	Fake. Nothing ever happened; only the story goes around.	
+ui.rule.verdict_opt_real	진짜다. 도는 이야기 그대로 일어난다.	Real. It happens exactly as the story says.	
+ui.rule.verdict_opt_half	절반만 진짜다. 알맹이는 실재하고 나머지는 나중에 덧붙었다.	Half real. The core is there; the rest was added later.	
+ui.rule.verdict_hit	판정이 섰다. 남은 것은 이걸 어떻게 끊느냐다.	The call holds. What is left is how to break it.	
+ui.rule.verdict_miss	모은 증언이 그 판정을 받쳐 주지 않는다. 왼쪽 단서를 다시 읽어 보자.	The testimony you gathered does not hold that call up. Read the clues again.	
+ui.rule.counter_miss	그 방법으로는 끊기지 않는다. 무엇이 실제로 일어났는지부터 다시 본다.	That will not break it. Start again from what actually happened.	
+ui.rule.conclude_done	결론이 섰다.	The conclusion holds.	
+ui.result.misjudge_none	결론: 한 번에 짚었다.	Conclusion: called it on the first try.	
+ui.result.misjudge_count	결론: {0}번 헛짚고 닿았다.	Conclusion: reached after {0} wrong calls.	
 ui.rule.conclusion_title	조사 결론	Conclusion	규칙을 맞힌 뒤 뜨는 칸 제목
 ui.rule.verdict_label	이 괴담은 진짜인가?	Is this legend real?	결론 - 첫 번째 물음
 ui.rule.counter_label	어떻게 끊는가?	How do we break it?	결론 - 두 번째 물음
@@ -244,17 +256,38 @@ rule.subway.002.text	옆자리에 누가 앉은 기척이 들어도, 돌아보�
 rule.subway.003.text	옆자리에 앉은 그것의 얼굴을 보면, 그것이 집까지 따라온다.	Look at the face of the thing beside you and it follows you home.	함정 B
 legend.subway.verdict	절반만 진짜다. 옆자리의 기척은 실재하고, '얼굴을 보면 따라온다'는 나중에 덧붙은 가짜다.	Half of it is real. The presence beside the seat is real; the part about being followed was added later.	규칙을 맞힌 뒤의 판정 (한 줄)
 legend.subway.counter	기척이 들어도 돌아보지 않는다. 덧붙은 '얼굴' 대목은 검열해 끊는다.	Do not turn and look, however clearly you feel it. Censor the added line about the face.	규칙을 맞힌 뒤의 파훼법 (한 줄)
+legend.subway.counter_opt_seat	빈자리에는 절대 앉지 않는다.	Never sit in the empty seat.	함정 - 확산글 1번
+legend.subway.counter_opt_flee	얼굴을 봤다면 즉시 다음 역에서 내린다.	If you saw its face, get off at the very next station.	함정 - 확산글 2번
+legend.subway.counter_opt_avoid	막차를 아예 타지 않는다.	Do not take the last train at all.	함정 - 확산글 3번
 clue.subway.001.text	목격자는 옆자리에 사람이 앉는 기척을 분명히 느꼈다고 진술했다. 그러나 같은 칸 승객들은 그 자리가 계속 비어 있었다고 말한다.	The witness clearly felt someone settle into the next seat. Everyone else in the car says it stayed empty.	
 clue.subway.002.text	같은 시간대 다른 칸에서도 같은 일이 있었다. 기척을 느낀 사람은 모두 자리를 확인한 뒤에 이야기가 끊겼다.	The same thing happened in another car that night. Everyone who felt it stopped telling their story right after they checked the seat.	
 clue.subway.003.text	CCTV에는 해당 좌석 주변의 움직임이 전혀 잡히지 않는다. 앉은 사람도, 일어난 사람도 없다.	The camera shows no movement around that seat at all. Nobody sat down, nobody got up.	
 clue.subway.004.text	"얼굴을 보면 따라온다"는 대목은 최초 목격담에 없었다. 나중에 퍼진 글에서만 등장한다.	The line about being followed if you see its face is absent from the first account. It only shows up in the later posts.	
 clue.subway.005.text	역 기록에도 같은 좌석을 두고 비슷한 신고가 반복됐다. 신고자들은 하나같이 "확인했다"고 적었다.	Station records show the same complaints about that one seat, year after year. Every complainant wrote that they checked.	
 web.subway.001.title	어제 막차에서 있었던 일	What happened on the last train	최초 목격담
-web.subway.001.body	옆자리에 누가 앉는 느낌이 났는데 아무도 없었습니다. 옷깃 스치는 소리까지 들렸어요. 같은 칸에 있던 분들은 계속 빈자리였다고 하시더군요. 이런 경험 있으신 분 계신가요.	I felt someone sit down next to me, but there was no one there. I even heard fabric brush. The others in the car said the seat had been empty the whole time. Has anyone else had this happen?	
+web.subway.001.body	어제 9-4 승강장에서 막차를 탔습니다. 칸에 사람은 거의 없었고 저는 문 옆 두 자리 중 안쪽에 앉았어요.\n출발하고 얼마 안 돼서 옆자리에 누가 앉는 느낌이 났습니다. 방석이 눌리는 감각이랑 옷깃 스치는 소리까지 분명했어요. 팔이 닿을 뻔한 거리였습니다.\n그런데 그때부터 목이 굳어서 고개가 안 돌아가더라고요. 그냥 앞만 보고 있다가 다음 역에서 내렸습니다.\n내려서 창문 너머로 봤는데 그 자리는 비어 있었어요. 같은 칸에 계시던 분한테 물어보니까 처음부터 아무도 안 앉았다고 하시고요.\n이런 경험 있으신 분 계신가요. 제가 피곤해서 그런 거면 좋겠습니다.	I took the last train from platform 9-4 yesterday. The car was nearly empty and I sat on the inner of two seats by the door.\nNot long after we pulled out, I felt someone sit down beside me. The cushion gave, and I heard fabric brush. Close enough that our arms almost touched.\nBut from that moment my neck locked up and I could not turn my head. I just stared straight ahead until I got off at the next station.\nFrom the platform I looked back through the window. The seat was empty. I asked someone from the same car and they said nobody had ever sat there.\nHas anyone else had this happen? I would like to believe I was just tired.	최초 목격담 - 돌아보지 않았다
+web.subway.001.c1	9-4면 맨 끝칸이네요. 거기 원래 사람 잘 안 타는 자리 맞죠	Platform 9-4, so the last car. Hardly anyone rides there, right?	
+web.subway.001.c2	그래서 옆자리 확인은 해보셨어요? 궁금하네	So did you actually check the seat? I am curious.	
+web.subway.001.c3	아니요. 무서워서 끝까지 못 돌아봤습니다. 지금 생각하면 그게 다행이었나 싶기도 하고요.	No. I was too scared to look the whole time. Now I wonder if that was lucky.	글쓴이 - 확인 안 함
+web.subway.001.c4	저희 어머니가 예전에 그 자리 얘기 하셨던 것 같은데. 꽤 오래된 얘기예요.	I think my mother used to talk about that seat. It is an old story.	
 web.subway.002.title	저도 같은 날 비슷한 일을 겪었습니다	Same night, same thing	추가 목격담
-web.subway.002.body	다른 칸이었는데 똑같았습니다. 기척이 분명했고, 확인하려고 고개를 돌린 순간부터 기억이 흐릿합니다. 그 뒤로 막차는 타지 않습니다.	Different car, same thing. The presence was unmistakable, and everything after I turned to look is a blur. I do not take the last train any more.	
+web.subway.002.body	윗글 보고 씁니다. 저는 다른 칸이었는데 거의 똑같았어요.\n옆자리에 누가 앉는 기척이 너무 분명해서, 저는 확인하려고 고개를 돌렸습니다.\n문제는 거기서부터인데요. 그 다음이 기억이 안 납니다. 정신 차려 보니 종점 승강장 의자에 앉아 있었고 휴대폰은 꺼져 있었습니다.\n집에 어떻게 왔는지도 모르겠어요. 그 뒤로 막차는 안 탑니다.\n혹시 저 같은 분 계시면 댓글 남겨 주세요.	Writing this after reading the post above. Different car, but almost exactly the same.\nThe presence beside me was so clear that I turned to check.\nThat is where it goes wrong. I do not remember what came after. I came to sitting on a bench at the terminus with my phone dead.\nI have no idea how I got home. I have not taken the last train since.\nIf this happened to you too, please leave a comment.	추가 목격담 - 돌아봤다
+web.subway.002.c1	돌아보신 거랑 기억 끊긴 거랑 순서가 정확히 이거 맞아요? 그게 중요한 것 같은데	Are you sure of the order, turning to look and then the memory going? That seems to matter.	
+web.subway.002.c2	네. 고개 돌린 그 순간까지는 기억나고 그 뒤로는 없습니다.	Yes. I remember up to the moment I turned, and nothing after.	글쓴이
+web.subway.002.c3	저도 확인했었어요. 저는 멀쩡한데 그날 이후로 이 얘기만 꺼내면 목이 막혀요.	I checked too. I am fine, but ever since that night my throat closes up whenever I bring it up.	
+web.subway.002.c4	이 글 이후로 글쓴이분 글이 하나도 없네요. 괜찮으신가요	There has not been a single post from OP since this one. Are you all right?	이후 끊김
 web.subway.003.title	[정리] 막차 괴담 규칙 총정리	[Summary] Last train rules, all in one place	변형 확산글
-web.subway.003.body	정리해 드립니다. 1. 빈자리에 앉으면 사라집니다. 2. 얼굴을 보면 집까지 따라옵니다. 3. 막차는 무조건 피하세요. 출처는 여기저기서 모았습니다. 공유 부탁드립니다.	Here is the full list. 1. Sit in the empty seat and you vanish. 2. See its face and it follows you home. 3. Just avoid the last train. Sources collected from around. Please share.	
+web.subway.003.body	얘기가 여기저기 흩어져 있길래 제가 보기 좋게 정리해 드립니다.\n1. 빈자리에 앉으면 다음 역에서 사라집니다.\n2. 옆에 앉은 것의 얼굴을 보면 집까지 따라옵니다.\n3. 막차는 그냥 타지 마세요.\n출처는 여기저기서 모았고 링크는 지워져서 못 올립니다. 공유 부탁드려요. 많이 퍼질수록 피해자가 줄어듭니다.	The story was scattered all over, so I put it in order for you.\n1. Sit in the empty seat and you vanish at the next station.\n2. Look at the face of the thing beside you and it follows you home.\n3. Just do not take the last train.\nI collected the sources from here and there; the links are gone so I cannot post them. Please share. The more people know, the fewer victims.	변형 확산글
+web.subway.003.c1	2번 어디서 나온 얘기예요? 원글에는 얼굴 봤다는 말 자체가 없는데요	Where does 2 come from? The original post never mentions seeing a face.	원글 대조
+web.subway.003.c2	원글쓴이는 고개를 못 돌렸다고 했고, 두 번째 분은 돌아보고 기억이 끊겼다고 했지 따라왔다는 말은 안 했음	OP said he could not turn his head, and the second one said he turned and lost his memory. Neither said anything followed them.	원글 대조
+web.subway.003.c3	다른 커뮤니티에서 봤습니다. 출처는 기억 안 나는데 다들 그렇게 알고 있어요.	I saw it on another board. I do not remember the source but everyone knows it that way.	글쓴이 - 출처 없음
+web.subway.003.c4	1번도 처음 듣는데. 앉으면 사라진다는 건 또 뭐예요	First time hearing 1 as well. Since when do you vanish for sitting down?	
+web.subway.003.c5	무섭다 공유함	terrifying, sharing this	확산
+
+web.test.001.c1	저도 어제 봤어요. 지운 거 맞아요?	I saw it yesterday too. Are you sure you deleted it?	
+web.test.001.c2	이거 몇 번째 올라오는 거예요	How many times has this been posted now?	
+web.test.003.c1	3층은 원래 안 서지 않나요	Three is not even a stop, is it?	
+web.test.003.c2	닫힘 버튼 안 먹는 건 그냥 고장 아님?	The close button not working just sounds broken to me.	
 
 # --- 20단계: 막차 사건 - 조사 지점과 조사 방법 ---
 field.subway.seat	빈자리	The empty seat	
@@ -314,6 +347,8 @@ ui.net.author_nick_4	오늘도야근	StillAtWork
 ui.net.post_meta	작성자 {0}    조회 {1}    댓글 {2}    {3}	by {0}    views {1}    comments {2}    {3}	
 ui.net.post_time_tutorial	어제 01:33	Yesterday 01:33	
 ui.net.comment_header	댓글 {0}	Comments {0}	
+ui.net.no_comment	아직 댓글이 없습니다.	No comments yet.	
+ui.net.author_mark	글쓴이	OP	댓글에서 글쓴이 본인 표시
 ui.net.like	▲ 좋아요 {0}	Like {0}	
 ui.net.dislike	▼ 싫어요 {0}	Dislike {0}	
 ui.net.choice_header	댓글 쓰기	Write a comment	

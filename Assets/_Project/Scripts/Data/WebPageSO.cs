@@ -23,6 +23,25 @@ namespace UrbanLegendBureau.Data
     }
 
     /// <summary>
+    /// 게시글에 달린 댓글 하나.
+    ///
+    /// 여기에는 판정 데이터를 넣지 않는다. 댓글은 읽는 사람이 스스로 앞뒤를 맞춰 보라고 있는 것이지,
+    /// 정답을 알려 주는 자리가 아니다. 무엇이 단서가 되는지는 ClueSO 와 조사 행동이 정한다.
+    /// </summary>
+    [System.Serializable]
+    public class WebComment
+    {
+        [Tooltip("작성자 표기의 String ID. 예: ui.net.author_anon")]
+        public string AuthorTextId;
+
+        [Tooltip("댓글 내용의 String ID. 예: web.subway.001.c1")]
+        public string BodyTextId;
+
+        [Tooltip("글쓴이 본인이 단 댓글인가. 표기를 다르게 한다.")]
+        public bool IsAuthor;
+    }
+
+    /// <summary>
     /// 인터넷 조사에서 만나는 페이지 하나의 정적 정의.
     ///
     /// 검열 여부는 여기에 저장하지 않는다. 검열하면
@@ -49,6 +68,10 @@ namespace UrbanLegendBureau.Data
         [Tooltip("이 글이 검색되는 키워드 ID들. 단서로 해금된 키워드만 검색할 수 있다.")]
         [SerializeField] private List<string> _searchKeywordIds = new List<string>();
 
+        [Header("댓글")]
+        [Tooltip("이 글에 달린 댓글들. 위에서부터 순서대로 표시된다.")]
+        [SerializeField] private List<WebComment> _comments = new List<WebComment>();
+
         [Header("연결된 단서")]
         [Tooltip("이 글을 읽어서 얻을 수 있는 단서들의 ID.")]
         [SerializeField] private List<string> _relatedClueIds = new List<string>();
@@ -70,6 +93,7 @@ namespace UrbanLegendBureau.Data
         public WebPageType PageType => _pageType;
         public IReadOnlyList<string> SearchKeywordIds => _searchKeywordIds;
         public IReadOnlyList<string> RelatedClueIds => _relatedClueIds;
+        public IReadOnlyList<WebComment> Comments => _comments;
         public float SpreadWeight => _spreadWeight;
         public bool IsCensorable => _isCensorable;
         public float WrongCensorPenalty => _wrongCensorPenalty;

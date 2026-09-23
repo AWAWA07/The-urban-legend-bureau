@@ -2979,28 +2979,73 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<InternetPageScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
-            var titleText = AddText(go.transform, "Title", 54f, UIFontWeight.Bold, TextColor,
-                new Vector2(0f, 330f), new Vector2(1500f, 100f), TextAlignmentOptions.Center);
-            var bodyText = AddText(go.transform, "Body", 32f, UIFontWeight.Regular, TextColor,
-                new Vector2(0f, 110f), new Vector2(1300f, 300f), TextAlignmentOptions.Top);
-            // 세 줄이 아래로 나란히 선다. 사이를 10 씩 띄운다. -95~-145, -155~-205, -215~-265.
-            var statusText = AddText(go.transform, "Status", 30f, UIFontWeight.SemiBold, DimTextColor,
-                new Vector2(0f, -120f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
-            var statsText = AddText(go.transform, "Stats", 30f, UIFontWeight.SemiBold, AccentColor,
-                new Vector2(0f, -180f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
-            var feedbackText = AddText(go.transform, "Feedback", 28f, UIFontWeight.Medium, WarnColor,
-                new Vector2(0f, -240f), new Vector2(1300f, 50f), TextAlignmentOptions.Center);
+            var titleText = AddText(go.transform, "Title", 50f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 438f), new Vector2(1500f, 90f), TextAlignmentOptions.Center);
+
+            // 본문과 댓글은 글마다 길이가 크게 다르다. 한 화면에 욱여넣지 않고 굴러가게 둔다.
+            // 글을 다 읽어야 앞뒤가 맞는지 따져 볼 수 있으므로, 잘려 보이는 쪽이 더 나쁘다.
+            var viewport = new GameObject("ReadViewport", typeof(RectTransform));
+            viewport.transform.SetParent(go.transform, false);
+            var viewRt = (RectTransform)viewport.transform;
+            viewRt.anchorMin = new Vector2(0.5f, 0.5f);
+            viewRt.anchorMax = new Vector2(0.5f, 0.5f);
+            viewRt.pivot = new Vector2(0.5f, 0.5f);
+            viewRt.anchoredPosition = new Vector2(0f, 92f);
+            viewRt.sizeDelta = new Vector2(1420f, 590f);
+            viewport.AddComponent<RectMask2D>();
+
+            // 글자가 없는 빈 곳을 잡아도 끌리도록 눌림만 받는 판을 깐다.
+            var grab = viewport.AddComponent<Image>();
+            grab.color = new Color(1f, 1f, 1f, 0f);
+            grab.raycastTarget = true;
+
+            var content = new GameObject("ReadContent", typeof(RectTransform));
+            content.transform.SetParent(viewport.transform, false);
+            var contentRt = (RectTransform)content.transform;
+            contentRt.anchorMin = new Vector2(0f, 1f);
+            contentRt.anchorMax = new Vector2(1f, 1f);
+            contentRt.pivot = new Vector2(0.5f, 1f);
+            contentRt.anchoredPosition = Vector2.zero;
+            contentRt.sizeDelta = Vector2.zero;
+            AddStack(content, 28f, new RectOffset(40, 40, 8, 24));
+
+            var bodyText = AddText(content.transform, "Body", 32f, UIFontWeight.Regular, TextColor,
+                Vector2.zero, new Vector2(1340f, 300f), TextAlignmentOptions.TopLeft);
+            ConfigureScrolledText(bodyText, 32f, 16f);
+
+            AddStackRule(content.transform, new Color(1f, 1f, 1f, 0.12f), 2f);
+
+            var commentsText = AddText(content.transform, "Comments", 28f, UIFontWeight.Regular, TextColor,
+                Vector2.zero, new Vector2(1340f, 200f), TextAlignmentOptions.TopLeft);
+            ConfigureScrolledText(commentsText, 28f, 12f);
+
+            var scroll = viewport.AddComponent<ScrollRect>();
+            scroll.viewport = viewRt;
+            scroll.content = contentRt;
+            scroll.horizontal = false;
+            scroll.vertical = true;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 40f;
+
+            // 세 줄이 아래로 나란히 선다.
+            var statusText = AddText(go.transform, "Status", 28f, UIFontWeight.SemiBold, DimTextColor,
+                new Vector2(0f, -252f), new Vector2(1420f, 44f), TextAlignmentOptions.Center);
+            var statsText = AddText(go.transform, "Stats", 28f, UIFontWeight.SemiBold, AccentColor,
+                new Vector2(0f, -300f), new Vector2(1420f, 44f), TextAlignmentOptions.Center);
+            var feedbackText = AddText(go.transform, "Feedback", 26f, UIFontWeight.Medium, WarnColor,
+                new Vector2(0f, -348f), new Vector2(1420f, 44f), TextAlignmentOptions.Center);
 
             var so = new SerializedObject(screen);
             so.Update();
             so.FindProperty("_titleText").objectReferenceValue = titleText;
             so.FindProperty("_bodyText").objectReferenceValue = bodyText;
+            so.FindProperty("_commentsText").objectReferenceValue = commentsText;
             so.FindProperty("_statusText").objectReferenceValue = statusText;
             so.FindProperty("_statsText").objectReferenceValue = statsText;
             so.FindProperty("_feedbackText").objectReferenceValue = feedbackText;
             so.ApplyModifiedPropertiesWithoutUndo();
 
-            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -330f), new Vector2(1000f, 110f));
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -432f), new Vector2(1000f, 110f));
             return screen;
         }
 
@@ -3762,6 +3807,7 @@ namespace UrbanLegendBureau.EditorTools
         ///
         /// minRatio 는 줄여도 되는 밑바닥이다. 여기보다 작아지지 않으므로 대사가 갑자기 잘아지지 않는다.
         /// </summary>
+
         private static void ConfigureBodyText(TMP_Text text, float size, float minRatio = 0.8f, float lineGap = 14f)
         {
             text.fontSize = size;
@@ -3771,6 +3817,23 @@ namespace UrbanLegendBureau.EditorTools
             text.fontSizeMax = size;
             text.fontSizeMin = Mathf.Round(size * minRatio);
             text.lineSpacing = lineGap;
+            text.raycastTarget = false;
+        }
+
+        /// <summary>
+        /// 굴러가는 칸 안에 드는 글. 글자를 줄이지 않고 칸이 글을 따라 늘어나게 둔다.
+        ///
+        /// 여기서 글자 크기를 저절로 줄이게 하면, 칸은 글에 맞추려 하고 글은 칸에 맞추려 해서
+        /// 둘이 서로를 쫓는다. 굴러가는 자리에서는 넘치는 쪽이 아니라 길어지는 쪽이 맞다.
+        /// </summary>
+        private static void ConfigureScrolledText(TMP_Text text, float size, float lineGap)
+        {
+            text.enableAutoSizing = false;
+            text.fontSize = size;
+            text.textWrappingMode = TextWrappingModes.Normal;
+            text.overflowMode = TextOverflowModes.Overflow;
+            text.lineSpacing = lineGap;
+            text.paragraphSpacing = 22f;
             text.raycastTarget = false;
         }
 

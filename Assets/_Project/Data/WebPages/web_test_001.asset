@@ -18,6 +18,13 @@ MonoBehaviour:
   _pageType: 0
   _searchKeywordIds:
   - keyword_test_delete
+  _comments:
+  - AuthorTextId: ui.net.author_anon
+    BodyTextId: web.test.001.c1
+    IsAuthor: 0
+  - AuthorTextId: ui.net.author_nick_1
+    BodyTextId: web.test.001.c2
+    IsAuthor: 0
   _relatedClueIds:
   - clue_test_001
   _spreadWeight: 15

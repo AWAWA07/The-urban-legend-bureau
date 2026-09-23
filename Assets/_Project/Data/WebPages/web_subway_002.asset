@@ -17,6 +17,19 @@ MonoBehaviour:
   _bodyTextId: web.subway.002.body
   _pageType: 0
   _searchKeywordIds: []
+  _comments:
+  - AuthorTextId: ui.net.author_anon
+    BodyTextId: web.subway.002.c1
+    IsAuthor: 0
+  - AuthorTextId: ui.net.author_anon
+    BodyTextId: web.subway.002.c2
+    IsAuthor: 1
+  - AuthorTextId: ui.net.author_nick_2
+    BodyTextId: web.subway.002.c3
+    IsAuthor: 0
+  - AuthorTextId: ui.net.author_nick_4
+    BodyTextId: web.subway.002.c4
+    IsAuthor: 0
   _relatedClueIds: []
   _spreadWeight: 8
   _isCensorable: 0

@@ -106,6 +106,17 @@ namespace UrbanLegendBureau.Systems
         /// <summary>고른 근거가 규칙과 맞지 않을 때.</summary>
         private const string EvidenceMismatchTextId = "ui.rule.evidence_mismatch";
 
+        // 규칙을 세운 뒤에 남는 두 물음. 답은 플레이어가 짚는다.
+        private const string VerdictQuestionTextId = "ui.rule.verdict_question";
+        private const string CounterQuestionTextId = "ui.rule.counter_question";
+        private const string VerdictOptionPrefix = "ui.rule.verdict_opt_";
+        private const string VerdictHitTextId = "ui.rule.verdict_hit";
+        private const string VerdictMissTextId = "ui.rule.verdict_miss";
+        private const string CounterMissTextId = "ui.rule.counter_miss";
+        private const string ConcludeDoneTextId = "ui.rule.conclude_done";
+        private const string MisjudgeNoneTextId = "ui.result.misjudge_none";
+        private const string MisjudgeCountTextId = "ui.result.misjudge_count";
+
         /// <summary>규칙의 근거가 되는 단서를 처음 찾았을 때의 팝업 제목.</summary>
         private const string KeyClueFoundTextId = "ui.slice.key_clue_found";
         private const string NothingFoundTextId = "ui.slice.nothing_found";
@@ -293,6 +304,11 @@ namespace UrbanLegendBureau.Systems
             {
                 _save.Current.doneActions.RemoveAll(key => key != null && key.StartsWith(_caseId + "|"));
             }
+
+            // 내려 둔 결론도 물린다. 다시 조사하면 판정도 파훼법도 다시 짚어야 한다.
+            _concludeStep = ConcludeStep.None;
+            _triedAnswers.Clear();
+            _misjudgeCount = 0;
 
             if (_spread != null && _legend != null)
             {
@@ -1726,10 +1742,160 @@ namespace UrbanLegendBureau.Systems
                 BuildRuleCandidateHead, BuildRuleCandidateNote, IsRuleDeduced,
                 OnRuleCandidateSelected, BuildAcquiredClueEntries);
 
-            // 맞는 규칙을 이미 세워 두었으면 결론도 함께 편다.
-            // 화면을 닫았다 다시 열어도 한 번 닿은 결론은 그대로 있어야 한다.
-            if (IsTrueRuleDeduced()) ShowConclusion();
-            else _ruleListScreen.ShowConclusion(null, null);
+            // 규칙이 서고 나서도 아직 답한 것이 없다. 남은 두 물음은 플레이어가 직접 짚는다.
+            // 화면을 닫았다 다시 열어도 어디까지 답했는지는 그대로 이어진다.
+            if (_concludeStep == ConcludeStep.Done)
+            {
+                _ruleListScreen.ClearOptions();
+                ShowConclusion();
+                return;
+            }
+
+            _ruleListScreen.ShowConclusion(null, null);
+
+            if (!IsTrueRuleDeduced())
+            {
+                _concludeStep = ConcludeStep.None;
+                _ruleListScreen.ClearOptions();
+                return;
+            }
+
+            if (_concludeStep == ConcludeStep.None) _concludeStep = ConcludeStep.Verdict;
+            AskCurrentQuestion();
+        }
+
+        /// <summary>
+        /// 규칙을 세우고 남은 두 물음.
+        ///
+        /// 이 괴담이 진짜인가 가짜인가. 그리고 어떻게 끊는가.
+        /// 답을 대신 내주지 않는다. 짚어 보게 하고 맞는지만 알려 준다.
+        /// </summary>
+        private enum ConcludeStep
+        {
+            None = 0,
+            Verdict = 1,
+            Counter = 2,
+            Done = 3
+        }
+
+        private ConcludeStep _concludeStep;
+
+        /// <summary>고르고 나서 아니었던 답들. 같은 자리를 두 번 헤매지 않게 딱지를 붙인다.</summary>
+        private readonly HashSet<string> _triedAnswers = new HashSet<string>();
+
+        /// <summary>몇 번 잘못 짚었는가. 사건이 끝난 뒤 결과에 적힌다.</summary>
+        private int _misjudgeCount;
+
+        private void AskCurrentQuestion()
+        {
+            if (_concludeStep == ConcludeStep.Verdict)
+            {
+                _ruleListScreen.BindOptions(VerdictQuestionTextId, BuildVerdictOptions(), OnAnswerPicked);
+            }
+            else if (_concludeStep == ConcludeStep.Counter)
+            {
+                _ruleListScreen.BindOptions(CounterQuestionTextId, BuildCounterOptions(), OnAnswerPicked);
+            }
+            else
+            {
+                _ruleListScreen.ClearOptions();
+            }
+        }
+
+        /// <summary>진짜인가 가짜인가. 고를 수 있는 답은 어느 괴담에서나 같다.</summary>
+        private IReadOnlyList<RuleListScreen.Option> BuildVerdictOptions()
+        {
+            var list = new List<RuleListScreen.Option>();
+
+            foreach (LegendVerdict kind in System.Enum.GetValues(typeof(LegendVerdict)))
+            {
+                string id = kind.ToString();
+                list.Add(new RuleListScreen.Option
+                {
+                    Id = id,
+                    Head = _loc.Get(VerdictOptionPrefix + id.ToLowerInvariant()),
+                    Note = string.Empty,
+                    Tried = _triedAnswers.Contains(id)
+                });
+            }
+            return list;
+        }
+
+        /// <summary>어떻게 끊는가. 후보는 괴담 자료가 들고 있고, 그중 하나가 맞는 파훼법이다.</summary>
+        private IReadOnlyList<RuleListScreen.Option> BuildCounterOptions()
+        {
+            var list = new List<RuleListScreen.Option>();
+            if (_legend == null) return list;
+
+            var options = _legend.CounterOptionTextIds;
+            if (options != null)
+            {
+                for (int i = 0; i < options.Count; i++)
+                {
+                    string id = options[i];
+                    if (string.IsNullOrEmpty(id)) continue;
+
+                    list.Add(new RuleListScreen.Option
+                    {
+                        Id = id,
+                        Head = _loc.Get(id),
+                        Note = string.Empty,
+                        Tried = _triedAnswers.Contains(id)
+                    });
+                }
+            }
+
+            // 후보를 적어 두지 않은 괴담이라면 맞는 파훼법 한 줄만이라도 세워 둔다.
+            if (list.Count == 0 && !string.IsNullOrEmpty(_legend.CounterTextId))
+            {
+                list.Add(new RuleListScreen.Option
+                {
+                    Id = _legend.CounterTextId,
+                    Head = _loc.Get(_legend.CounterTextId),
+                    Note = string.Empty
+                });
+            }
+            return list;
+        }
+
+        /// <summary>남은 두 물음의 답을 골랐을 때. 맞으면 다음으로 넘어가고, 아니면 그 자리에 남는다.</summary>
+        private void OnAnswerPicked(string answerId)
+        {
+            if (string.IsNullOrEmpty(answerId) || _legend == null) return;
+
+            bool correct = _concludeStep == ConcludeStep.Verdict
+                ? answerId == _legend.VerdictKind.ToString()
+                : answerId == _legend.CounterTextId;
+
+            if (!correct)
+            {
+                _misjudgeCount++;
+                _triedAnswers.Add(answerId);
+
+                string missId = _concludeStep == ConcludeStep.Verdict
+                    ? VerdictMissTextId : CounterMissTextId;
+                _ruleListScreen.ShowResult(() => _loc.Get(missId));
+                AskCurrentQuestion();
+
+                Debug.Log($"[CaseDirector] 결론 {_concludeStep} | {answerId} - 아니다 (오판 {_misjudgeCount}회)");
+                return;
+            }
+
+            if (_concludeStep == ConcludeStep.Verdict)
+            {
+                _concludeStep = ConcludeStep.Counter;
+                _ruleListScreen.ShowResult(() => _loc.Get(VerdictHitTextId));
+                AskCurrentQuestion();
+            }
+            else
+            {
+                _concludeStep = ConcludeStep.Done;
+                _ruleListScreen.ClearOptions();
+                _ruleListScreen.ShowResult(() => _loc.Get(ConcludeDoneTextId));
+                ShowConclusion();
+            }
+
+            Debug.Log($"[CaseDirector] 결론 | {answerId} - 맞다 -> {_concludeStep}");
         }
 
         /// <summary>이 괴담의 진짜 규칙을 이미 세웠는가. 결론은 그때에만 나온다.</summary>
@@ -2055,6 +2221,16 @@ namespace UrbanLegendBureau.Systems
                     sb.AppendLine(_loc.Get(LabelCensoredTextId));
                     sb.Append(lines);
                 }
+            }
+
+            // 결론에 닿기까지 몇 번 헛짚었는가. 한 번에 갔다면 적지 않는다.
+            if (_concludeStep == ConcludeStep.Done)
+            {
+                sb.AppendLine();
+                sb.Append(_misjudgeCount == 0
+                    ? _loc.Get(MisjudgeNoneTextId)
+                    : _loc.Get(MisjudgeCountTextId, _misjudgeCount));
+                sb.AppendLine();
             }
 
             // 괴담 봉인 여부

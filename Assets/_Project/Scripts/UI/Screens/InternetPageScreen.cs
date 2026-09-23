@@ -16,9 +16,16 @@ namespace UrbanLegendBureau.UI
     /// </summary>
     public class InternetPageScreen : UIScreen
     {
+        private const string CommentHeaderTextId = "ui.net.comment_header";
+        private const string NoCommentTextId = "ui.net.no_comment";
+        private const string AuthorMarkTextId = "ui.net.author_mark";
+
         [Header("표시 대상")]
         [SerializeField] private TMP_Text _titleText;
         [SerializeField] private TMP_Text _bodyText;
+        [Tooltip("본문 아래에 붙는 댓글 묶음. 한 덩어리 글로 조립해 넣는다.")]
+        [SerializeField] private TMP_Text _commentsText;
+
         [SerializeField] private TMP_Text _statusText;
 
         [Tooltip("확산도 / 믿음도 표시줄.")]
@@ -98,6 +105,7 @@ namespace UrbanLegendBureau.UI
             {
                 if (_titleText != null) _titleText.text = loc.Get("ui.net.page_missing");
                 if (_bodyText != null) _bodyText.text = string.Empty;
+                if (_commentsText != null) _commentsText.text = string.Empty;
                 if (_statusText != null) _statusText.text = string.Empty;
                 if (_statsText != null) _statsText.text = string.Empty;
                 if (_feedbackText != null) _feedbackText.text = string.Empty;
@@ -107,6 +115,7 @@ namespace UrbanLegendBureau.UI
 
             if (_titleText != null) _titleText.text = loc.Get(_page.TitleTextId);
             if (_bodyText != null) _bodyText.text = loc.Get(_page.BodyTextId);
+            if (_commentsText != null) _commentsText.text = BuildComments(loc);
             if (_statusText != null && _statusProvider != null) _statusText.text = _statusProvider(_page);
             if (_statsText != null) _statsText.text = _statsProvider != null ? _statsProvider() : string.Empty;
             if (_feedbackText != null)
@@ -121,6 +130,52 @@ namespace UrbanLegendBureau.UI
                 bool showButton = _canCensorProvider == null || _canCensorProvider(_page);
                 _censorButton.gameObject.SetActive(showButton);
             }
+        }
+
+
+        /// <summary>
+        /// 본문 아래에 붙일 댓글 덩어리를 만든다.
+        ///
+        /// 댓글은 게시글마다 개수가 다르고 길이도 들쭉날쭉하다. 줄마다 오브젝트를 만들어 두면
+        /// 화면 하나가 글마다 다른 높이로 흔들리므로, 여기서는 글 한 덩어리로 조립해 넘긴다.
+        /// 굴러가는 것은 본문과 댓글을 함께 담은 바깥 스크롤이다.
+        /// </summary>
+        private string BuildComments(LocalizationService loc)
+        {
+            var comments = _page != null ? _page.Comments : null;
+            int count = 0;
+            if (comments != null)
+            {
+                for (int i = 0; i < comments.Count; i++)
+                {
+                    if (comments[i] != null && !string.IsNullOrEmpty(comments[i].BodyTextId)) count++;
+                }
+            }
+
+            var sb = new System.Text.StringBuilder();
+            sb.Append("<color=#6B7280>").Append(loc.Get(CommentHeaderTextId, count)).Append("</color>");
+
+            if (count == 0)
+            {
+                sb.Append('\n').Append("<color=#6B7280>").Append(loc.Get(NoCommentTextId)).Append("</color>");
+                return sb.ToString();
+            }
+
+            for (int i = 0; i < comments.Count; i++)
+            {
+                var comment = comments[i];
+                if (comment == null || string.IsNullOrEmpty(comment.BodyTextId)) continue;
+
+                // 작성자는 작고 흐리게, 내용은 그대로. 커뮤니티 댓글이 보이는 모양 그대로 둔다.
+                sb.Append("\n\n<size=82%><color=#6B7280>").Append(loc.Get(comment.AuthorTextId));
+                if (comment.IsAuthor)
+                {
+                    sb.Append(" <color=#DDB86E>").Append(loc.Get(AuthorMarkTextId)).Append("</color>");
+                }
+                sb.Append("</color></size>\n").Append(loc.Get(comment.BodyTextId));
+            }
+
+            return sb.ToString();
         }
 
         public WebPageSO CurrentPage => _page;
