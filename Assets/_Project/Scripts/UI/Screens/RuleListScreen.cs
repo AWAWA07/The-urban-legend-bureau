@@ -106,6 +106,9 @@ namespace UrbanLegendBureau.UI
             public string ClueId;
             public string Text;
 
+            /// <summary>내가 찾은 것이 아니라 한영이 짚어 준 단서인가. 표를 붙이고 색을 달리한다.</summary>
+            public bool IsGiven;
+
         }
 
         private readonly List<Button> _clueButtons = new List<Button>();
@@ -335,7 +338,12 @@ namespace UrbanLegendBureau.UI
             }
         }
 
-        /// <summary>고른 줄은 밝게, 고르지 않은 줄은 어둡게. 앞의 표로도 구분한다.</summary>
+        /// <summary>
+        /// 고른 줄은 밝게, 고르지 않은 줄은 어둡게. 앞의 표로도 구분한다.
+        ///
+        /// 한영이 짚어 준 단서는 바탕을 따뜻한 쪽으로 돌리고 앞에 표를 하나 더 단다.
+        /// 내가 뒤져서 찾은 것과 받은 것이 섞여 있으면, 무엇을 놓쳤는지가 남지 않는다.
+        /// </summary>
         private void PaintClue(Button item, ClueEntry entry)
         {
             if (item == null || entry == null) return;
@@ -343,18 +351,35 @@ namespace UrbanLegendBureau.UI
             bool on = _picked.Contains(entry.ClueId);
 
             var image = item.targetGraphic as Image;
-            if (image != null) image.color = on ? PickedClueColor : IdleClueColor;
+            if (image != null)
+            {
+                image.color = entry.IsGiven
+                    ? (on ? PickedGivenColor : IdleGivenColor)
+                    : (on ? PickedClueColor : IdleClueColor);
+            }
 
             var label = item.GetComponentInChildren<TMP_Text>(true);
             if (label == null) return;
 
+            string mark = string.Empty;
+            if (entry.IsGiven && ServiceRegistry.TryGet<LocalizationService>(out var loc))
+            {
+                mark = "<size=78%><color=#DDB86E>[" + loc.Get(GivenMarkTextId) + "]</color></size> ";
+            }
+
             // 앞의 네모가 고른 것을 말한다. 어느 것이 근거가 되는지는 알려 주지 않는다.
-            label.text = (on ? "■ " : "□ ") + entry.Text;
+            label.text = (on ? "■ " : "□ ") + mark + entry.Text;
             label.color = on ? TextColor : DimClueColor;
         }
 
+        private const string GivenMarkTextId = "ui.rule.clue_given";
+
         private static readonly Color PickedClueColor = new Color(0.22f, 0.28f, 0.24f, 1f);
         private static readonly Color IdleClueColor = new Color(0.13f, 0.14f, 0.19f, 1f);
+
+        // 한영이 짚어 준 줄. 바탕을 따뜻한 쪽으로 돌려 내가 찾은 것과 갈라 둔다.
+        private static readonly Color PickedGivenColor = new Color(0.30f, 0.26f, 0.17f, 1f);
+        private static readonly Color IdleGivenColor = new Color(0.20f, 0.17f, 0.13f, 1f);
         private static readonly Color TextColor = new Color(0.93f, 0.93f, 0.96f);
         private static readonly Color DimClueColor = new Color(0.70f, 0.71f, 0.76f);
 

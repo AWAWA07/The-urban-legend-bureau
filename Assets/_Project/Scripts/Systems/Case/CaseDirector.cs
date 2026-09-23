@@ -317,6 +317,7 @@ namespace UrbanLegendBureau.Systems
             _concludeStep = ConcludeStep.None;
             _triedAnswers.Clear();
             _misjudgeCount = 0;
+            _givenClueIds.Clear();
 
             if (_spread != null && _legend != null)
             {
@@ -1348,28 +1349,19 @@ namespace UrbanLegendBureau.Systems
         {
             if (_legend == null || _caseId != UrbanLegendBureau.Systems.TutorialDirector.TutorialCaseId) return 0;
 
-            RuleSO trueRule = null;
-            foreach (var rule in _legend.Rules)
-            {
-                if (rule != null && rule.IsTrue) { trueRule = rule; break; }
-            }
-            if (trueRule == null) return 0;
-
-            var need = trueRule.RequiredClueIds;
-            if (need == null) return 0;
-
+            // 이 사건에서 얻을 수 있는 것을 전부 채운다. 정답에 필요한 것만 주면
+            // 후보 칸에 맞는 규칙 하나만 떠서, 고르는 일이 읽는 일이 되어 버린다.
+            // 함정 규칙도 함께 서야 무엇을 근거로 무엇을 세우는지가 물음으로 남는다.
             int given = 0;
-            foreach (var clueId in need)
+            foreach (var clue in _legend.Clues)
             {
-                if (string.IsNullOrEmpty(clueId) || CaseFlow.HasClue(_save, clueId)) continue;
+                if (clue == null || string.IsNullOrEmpty(clue.ClueId)) continue;
+                if (CaseFlow.HasClue(_save, clue.ClueId)) continue;
 
-                CaseFlow.AcquireClue(_save, clueId);
+                CaseFlow.AcquireClue(_save, clue.ClueId);
+                _givenClueIds.Add(clue.ClueId);
                 given++;
             }
-
-            // 판정과 파훼법도 그 나름의 근거를 요구한다. 규칙만 세우고 막히지 않게 함께 채운다.
-            given += GiveClues(_legend.VerdictClueIds);
-            given += GiveClues(_legend.CounterClueIds);
 
             if (given > 0)
             {
@@ -1379,21 +1371,8 @@ namespace UrbanLegendBureau.Systems
             return given;
         }
 
-        /// <summary>아직 없는 것만 건네준다. 건넨 수를 돌려준다.</summary>
-        private int GiveClues(IReadOnlyList<string> clueIds)
-        {
-            if (clueIds == null) return 0;
-
-            int given = 0;
-            for (int i = 0; i < clueIds.Count; i++)
-            {
-                if (string.IsNullOrEmpty(clueIds[i]) || CaseFlow.HasClue(_save, clueIds[i])) continue;
-
-                CaseFlow.AcquireClue(_save, clueIds[i]);
-                given++;
-            }
-            return given;
-        }
+        /// <summary>한영이 건네준 단서. 내가 찾은 것과 섞이지 않게 표를 붙인다.</summary>
+        private readonly HashSet<string> _givenClueIds = new HashSet<string>();
 
         private void CheckTerminus()
         {
@@ -2121,6 +2100,7 @@ namespace UrbanLegendBureau.Systems
                 {
                     ClueId = clue.ClueId,
                     Text = _loc.Get(clue.ClueTextId),
+                    IsGiven = _givenClueIds.Contains(clue.ClueId),
                 });
             }
             return list;
