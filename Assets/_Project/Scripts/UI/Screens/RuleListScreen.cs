@@ -205,12 +205,30 @@ namespace UrbanLegendBureau.UI
             Refresh();
         }
 
-        /// <summary>직전 추론 결과를 알린다. 언어가 바뀌면 다시 조립되도록 만드는 방법을 받는다.</summary>
+        /// <summary>
+        /// 직전 추론 결과를 알린다. 언어가 바뀌면 다시 조립되도록 만드는 방법을 받는다.
+        ///
+        /// 한 줄은 잠깐 떴다가 옅어지며 사라진다. 방금 한 일의 결과인지
+        /// 아까 것인지 헷갈리지 않게 하려면 남겨 두지 않는 편이 낫다.
+        /// </summary>
         public void ShowResult(Func<string> provider)
         {
             _resultProvider = provider;
             Refresh();
+
+            if (_resultFade != null) { StopCoroutine(_resultFade); _resultFade = null; }
+            if (provider == null || _resultRoot == null || !isActiveAndEnabled) return;
+
+            UiFade.Show(_resultRoot);
+            _resultFade = StartCoroutine(UiFade.Play(_resultRoot, () =>
+            {
+                _resultFade = null;
+                _resultProvider = null;
+                if (_resultRoot != null) _resultRoot.SetActive(false);
+            }));
         }
+
+        private Coroutine _resultFade;
 
         /// <summary>
         /// 조사가 닿은 결론을 알린다.

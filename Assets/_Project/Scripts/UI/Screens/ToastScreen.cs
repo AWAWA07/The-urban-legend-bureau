@@ -15,7 +15,7 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private TMP_Text _text;
 
         [Tooltip("떠 있는 시간(초).")]
-        [SerializeField] private float _seconds = 2.6f;
+        [SerializeField] private float _seconds = 2.2f;
 
         private Coroutine _timer;
 
@@ -27,13 +27,16 @@ namespace UrbanLegendBureau.UI
         {
             if (_text != null) _text.text = line;
 
+            UiFade.Show(gameObject);
+
             if (_timer != null) StopCoroutine(_timer);
             if (isActiveAndEnabled) _timer = StartCoroutine(HideLater());
         }
 
         private IEnumerator HideLater()
         {
-            yield return new WaitForSecondsRealtime(_seconds);
+            // 잠깐 두었다가 옅어지며 사라진다. 갑자기 없어지면 사라진 것을 보지 못한다.
+            yield return UiFade.Play(gameObject, null, _seconds, UiFade.Fade);
 
             _timer = null;
             Closed?.Invoke(this);

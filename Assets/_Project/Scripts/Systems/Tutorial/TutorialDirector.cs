@@ -375,7 +375,7 @@ namespace UrbanLegendBureau.Systems
         {
             if (_communityScreen == null || entry == null) return;
 
-            _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextId, entry.AuthorTextId,
+            _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextId, entry.AuthorTextId, entry.BoardTextId,
                 entry.Views, entry.PostedMinutesAgo,
                 entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
             _communityScreen.BindComments(entry.Comments);
@@ -558,39 +558,60 @@ namespace UrbanLegendBureau.Systems
                     Likes = TutorialPostLikes,
                     Dislikes = TutorialPostDislikes,
                 },
-                Filler("009", views: 512, belief: 31, minutesAgo: 1523, comments: 4, hot: true),
+                Filler("009", views: 512, belief: 31, minutesAgo: 1523, up: 142, down: 38,
+                    by: "nick_5|nick_7|nick_6|op|nick_12", hot: true),
 
                 // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
+                // 믿음도가 0인 글은 일상 게시판으로 걸린다. 무섭지 않은 이야기가
+                // 실화 게시판에 섞여 있으면 게시판 전체가 괴담처럼 보인다.
                 //
                 // 사흘 전에 문을 연 사이트다. 처음 이틀은 글이 드문드문 올라오다가
                 // 요 며칠 사이 부쩍 늘었다. 괴담이 퍼지는 중이라는 것을 글 수로 보여준다.
 
                 // --- 오늘 ---
-                Filler("006", views: 96, belief: 28, minutesAgo: 12, comments: 4),
-                Filler("007", views: 340, belief: 19, minutesAgo: 34, comments: 3),
-                Filler("008", views: 28, belief: 0, minutesAgo: 60, comments: 2),
-                Filler("004", views: 203, belief: 25, minutesAgo: 120, comments: 4, opComment: 3),
-                Filler("005", views: 157, belief: 0, minutesAgo: 240, comments: 3),
-                Filler("001", views: 41, belief: 0, minutesAgo: 360, comments: 3),
-                Filler("002", views: 88, belief: 0, minutesAgo: 540, comments: 3),
-                Filler("010", views: 62, belief: 0, minutesAgo: 660, comments: 3),
+                Filler("006", views: 96, belief: 28, minutesAgo: 12, up: 97, down: 12,
+                    by: "nick_5|nick_10|nick_7|op"),
+                Filler("007", views: 340, belief: 19, minutesAgo: 34, up: 54, down: 31,
+                    by: "nick_11|nick_6|nick_12|op"),
+                Filler("008", views: 28, belief: 0, minutesAgo: 60, up: 11, down: 1,
+                    by: "nick_4|nick_1"),
+                Filler("004", views: 203, belief: 25, minutesAgo: 120, up: 88, down: 19,
+                    by: "nick_11|nick_7|op|nick_10"),
+                Filler("005", views: 157, belief: 0, minutesAgo: 240, up: 23, down: 3,
+                    by: "nick_6|nick_9|anon"),
+                Filler("001", views: 41, belief: 0, minutesAgo: 360, up: 31, down: 0,
+                    by: "nick_9|nick_6|anon"),
+                Filler("002", views: 88, belief: 0, minutesAgo: 540, up: 17, down: 2,
+                    by: "nick_4|anon|nick_1"),
+                Filler("010", views: 62, belief: 0, minutesAgo: 660, up: 26, down: 1,
+                    by: "nick_8|anon|nick_1"),
 
                 // --- 어제 ---
                 // 막차연구회의 글은 같은 괴담을 좇고 있다. 이 사건을 조사하면 함께 오른다.
-                Filler("003", views: 12, belief: 16, minutesAgo: 1360, comments: 3, opComment: 3, legendId: SubwayLegendId),
-                Filler("011", views: 288, belief: 24, minutesAgo: 1578, comments: 3),
-                Filler("012", views: 44, belief: 0, minutesAgo: 1677, comments: 2),
-                Filler("013", views: 431, belief: 30, minutesAgo: 1945, comments: 4, opComment: 3, legendId: SubwayLegendId),
-                Filler("014", views: 19, belief: 0, minutesAgo: 2229, comments: 2),
+                Filler("003", views: 12, belief: 16, minutesAgo: 1360, up: 19, down: 9,
+                    by: "anon|nick_5|op|nick_7", legendId: SubwayLegendId),
+                Filler("011", views: 288, belief: 24, minutesAgo: 1578, up: 76, down: 44,
+                    by: "nick_6|nick_5|op|nick_12"),
+                Filler("012", views: 44, belief: 0, minutesAgo: 1677, up: 9, down: 0,
+                    by: "anon|nick_4"),
+                Filler("013", views: 431, belief: 30, minutesAgo: 1945, up: 168, down: 22,
+                    by: "nick_7|nick_5|op|nick_12|nick_10", legendId: SubwayLegendId),
+                Filler("014", views: 19, belief: 0, minutesAgo: 2229, up: 6, down: 0,
+                    by: "nick_9|nick_4"),
 
                 // --- 이틀 전 ---
-                Filler("015", views: 176, belief: 17, minutesAgo: 2810, comments: 3),
-                Filler("016", views: 33, belief: 0, minutesAgo: 3328, comments: 2),
-                Filler("017", views: 152, belief: 21, minutesAgo: 3552, comments: 3, opComment: 3),
+                Filler("015", views: 176, belief: 17, minutesAgo: 2810, up: 41, down: 35,
+                    by: "nick_11|nick_6|op|nick_12"),
+                Filler("016", views: 33, belief: 0, minutesAgo: 3328, up: 8, down: 1,
+                    by: "nick_9|anon"),
+                Filler("017", views: 152, belief: 21, minutesAgo: 3552, up: 63, down: 26,
+                    by: "nick_7|nick_5|nick_10|op"),
 
                 // --- 사흘 전. 사이트가 문을 연 날 ---
-                Filler("018", views: 97, belief: 13, minutesAgo: 5023, comments: 3),
-                Filler("019", views: 210, belief: 0, minutesAgo: 5070, comments: 3),
+                Filler("018", views: 97, belief: 13, minutesAgo: 5023, up: 29, down: 24,
+                    by: "nick_5|nick_6|op|nick_1"),
+                Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 53, down: 4,
+                    by: "nick_1|nick_12|anon"),
             };
         }
 
@@ -600,22 +621,29 @@ namespace UrbanLegendBureau.Systems
         /// 이 글들은 검열에도 단서에도 얽히지 않는다. 그래서 에셋으로 만들지 않고
         /// 문구 ID 만으로 세운다. 제목 / 작성자 / 본문 / 댓글이 모두 board.filler.NNN 아래에 있다.
         ///
+        /// by 는 댓글을 단 사람들을 순서대로 적은 것이다. "nick_5|op|anon" 처럼 세로줄로 잇는다.
+        /// op 는 글쓴이 자신이다. 사람마다 말투가 달라서, 누가 어느 줄을 썼는지가 곧 그 줄의 말투다.
+        /// 그래서 돌려 가며 붙이지 않고 한 줄씩 정해 둔다.
+        ///
+        /// 믿음도가 0인 글은 일상 게시판으로 간다. 그런 글에는 믿음도도 붙지 않는다.
+        ///
         /// 처음에는 열리지 않는다. 한영의 설명이 끝나고 현장으로 나간 뒤에야 열린다.
         /// 설명 도중에 다른 글로 새면 튜토리얼이 어디까지 말했는지 알 수 없게 된다.
         /// </summary>
         private static CommunityBoardEntry Filler(string n, int views, int belief, int minutesAgo,
-            int comments, bool hot = false, int opComment = 0, string legendId = null)
+            int up, int down, string by, bool hot = false, string legendId = null)
         {
             string key = "board.filler." + n;
 
             var list = new List<CommunityComment>();
-            for (int i = 1; i <= comments; i++)
+            var writers = by.Split('|');
+            for (int i = 0; i < writers.Length; i++)
             {
-                // 글쓴이가 단 댓글에는 그 글의 작성자 이름을 그대로 쓴다. 답을 다는 사람이 누구인지 보인다.
+                string who = writers[i];
                 list.Add(new CommunityComment
                 {
-                    AuthorTextId = i == opComment ? key + ".author" : FillerCommentAuthors[i % FillerCommentAuthors.Length],
-                    BodyTextId = key + ".c" + i,
+                    AuthorTextId = who == "op" ? key + ".author" : "ui.net.author_" + who,
+                    BodyTextId = key + ".c" + (i + 1),
                 });
             }
 
@@ -625,20 +653,21 @@ namespace UrbanLegendBureau.Systems
                 MetaTextId = key + ".meta",
                 BodyTextId = key + ".body",
                 AuthorTextId = key + ".author",
+                BoardTextId = belief > 0 ? BoardLegendTextId : BoardDailyTextId,
                 Comments = list,
                 Views = views,
                 IsHot = hot,
                 BeliefPercent = belief,
                 LegendId = legendId,
                 PostedMinutesAgo = minutesAgo,
+                Likes = up,
+                Dislikes = down,
             };
         }
 
-        /// <summary>댓글 다는 사람들. 돌려 가며 붙인다. 게시판이 한 사람만 떠드는 곳처럼 보이지 않게 한다.</summary>
-        private static readonly string[] FillerCommentAuthors =
-        {
-            "ui.net.author_anon", "ui.net.author_nick_1", "ui.net.author_nick_2", "ui.net.author_nick_4",
-        };
+        /// <summary>글이 걸리는 게시판. 무서운 이야기와 그렇지 않은 이야기를 갈라 둔다.</summary>
+        private const string BoardLegendTextId = "ui.net.board_free";
+        private const string BoardDailyTextId = "ui.net.board_daily";
 
         /// <summary>막차 괴담의 ID. 이 괴담을 실어 나르는 글만 그 사건 조사에 반응한다.</summary>
         private const string SubwayLegendId = "legend_subway_last_train";

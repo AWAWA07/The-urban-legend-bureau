@@ -73,12 +73,27 @@ namespace UrbanLegendBureau.UI
         /// <summary>
         /// 수치 변화처럼 조립이 필요한 안내를 알린다.
         /// 완성된 문자열이 아니라 만드는 방법을 받아 두어야 언어가 바뀔 때 다시 조립된다.
+        ///
+        /// 한 줄은 잠깐 떴다가 옅어지며 사라진다. 방금 한 일의 결과라는 것이 분명해야 한다.
         /// </summary>
         public void ShowFeedbackProvider(Func<string> provider)
         {
             _feedbackProvider = provider;
             Refresh();
+
+            if (_feedbackFade != null) { StopCoroutine(_feedbackFade); _feedbackFade = null; }
+            if (provider == null || _feedbackText == null || !isActiveAndEnabled) return;
+
+            UiFade.Show(_feedbackText.gameObject);
+            _feedbackFade = StartCoroutine(UiFade.Play(_feedbackText.gameObject, () =>
+            {
+                _feedbackFade = null;
+                _feedbackProvider = null;
+                if (_feedbackText != null) _feedbackText.text = string.Empty;
+            }));
         }
+
+        private Coroutine _feedbackFade;
 
         protected override void OnOpen()
         {

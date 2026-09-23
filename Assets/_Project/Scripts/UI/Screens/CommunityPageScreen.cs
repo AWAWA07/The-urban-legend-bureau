@@ -35,6 +35,9 @@ namespace UrbanLegendBureau.UI
         /// <summary>작성자 표기의 String ID. 비어 있으면 익명으로 적는다.</summary>
         public string AuthorTextId;
 
+        /// <summary>이 글이 걸린 게시판 이름의 String ID. 비어 있으면 실화게시판으로 적는다.</summary>
+        public string BoardTextId;
+
         /// <summary>조회수. 목록의 작성자 줄에 적힌 것과 같은 수를 쓴다.</summary>
         public int Views;
 
@@ -727,6 +730,7 @@ namespace UrbanLegendBureau.UI
         private string _titleId;
         private string _bodyId;
         private string _authorId;
+        private string _boardId;
         private int _views;
         private int _likes;
         private int _beliefPercent;
@@ -827,6 +831,7 @@ namespace UrbanLegendBureau.UI
             _titleId = page != null ? page.TitleTextId : null;
             _bodyId = page != null ? page.BodyTextId : null;
             _authorId = null;
+            _boardId = null;
             _views = views;
             _beliefPercent = beliefPercent;
             _likes = likes;
@@ -848,7 +853,7 @@ namespace UrbanLegendBureau.UI
         /// 게시판을 채우는 글들은 검열이나 단서에 얽히지 않는다. 그런 글까지 에셋으로 만들어 두면
         /// 데이터는 늘고 쓰이는 것은 제목과 본문뿐이다. 그래서 문구 ID 만 받아 그대로 보여준다.
         /// </summary>
-        public void BindPost(string titleTextId, string bodyTextId, string authorTextId,
+        public void BindPost(string titleTextId, string bodyTextId, string authorTextId, string boardTextId,
             int views, int postedMinutesAgo,
             int likes = 0, int dislikes = 0, int beliefPercent = 0,
             bool likePressed = false, bool dislikePressed = false)
@@ -856,6 +861,7 @@ namespace UrbanLegendBureau.UI
             _titleId = titleTextId;
             _bodyId = bodyTextId;
             _authorId = authorTextId;
+            _boardId = boardTextId;
             _views = views;
             _beliefPercent = beliefPercent;
             _likes = likes;
@@ -1051,7 +1057,10 @@ namespace UrbanLegendBureau.UI
             RefreshStatusBelief(loc);
             SetAll(_siteTexts, loc.Get(SiteTextId));
             if (_boardListText != null) _boardListText.text = loc.Get(BoardListTextId);
-            if (_boardPostText != null) _boardPostText.text = loc.Get(BoardPostTextId);
+            if (_boardPostText != null)
+            {
+                _boardPostText.text = loc.Get(string.IsNullOrEmpty(_boardId) ? BoardPostTextId : _boardId);
+            }
 
             if (_showingBoard)
             {
