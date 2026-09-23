@@ -166,6 +166,10 @@ namespace UrbanLegendBureau.Systems
             MemoScreen.ResetAll();
             MemoScreen.SeedDefaultNotes();
 
+            // 게시판도 다시 잠근다. 튜토리얼을 다시 돌리면 설명을 듣는 동안에는
+            // 인기글 하나만 열린다. 그러지 않으면 한영이 말하는 사이에 다른 글로 새 버린다.
+            PostsUnlocked = false;
+
             IsRunning = true;
             _finished = false;
             _censored = false;
@@ -346,10 +350,61 @@ namespace UrbanLegendBureau.Systems
             ShowTalk(PcLine2TextId, AfterTalk.OpenHotPost, showCharacter: false);
         }
 
+        /// <summary>
+        /// 게시판에서 글 한 줄을 눌렀을 때.
+        ///
+        /// 인기글은 튜토리얼이 걸어 둔 그 글로 들어간다.
+        /// 나머지는 현장으로 나간 뒤부터 열린다. 그 전에는 눌러도 아무 일이 없다.
+        /// </summary>
         private void OnBoardEntryClicked(CommunityBoardEntry entry)
         {
-            if (entry == null || !entry.Openable) return;
-            OpenCommunity();
+            if (entry == null) return;
+
+            if (entry.Openable) { OpenCommunity(); return; }
+            if (!PostsUnlocked || string.IsNullOrEmpty(entry.BodyTextId)) return;
+
+            OpenFillerPost(entry);
+        }
+
+        /// <summary>
+        /// 게시판을 채우는 글 하나를 편다. 에셋이 아니라 문구 ID 로 걸린다.
+        ///
+        /// 댓글은 읽기만 한다. 새 댓글을 다는 것은 튜토리얼이 인기글에서 한 번 가르치는 일이다.
+        /// </summary>
+        public void OpenFillerPost(CommunityBoardEntry entry)
+        {
+            if (_communityScreen == null || entry == null) return;
+
+            _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextId, entry.AuthorTextId,
+                entry.Views, entry.PostedMinutesAgo,
+                entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
+            _communityScreen.BindComments(entry.Comments);
+            _communityScreen.BindChoices(null, null, null);
+
+            var pressed = entry;
+            _communityScreen.BindReactions(
+                on => pressed.LikePressed = on,
+                on => pressed.DislikePressed = on);
+
+            _communityScreen.ShowNotice(null);
+            _communityScreen.ShowBoard(false);
+        }
+
+        /// <summary>
+        /// 게시판의 다른 글들을 읽을 수 있는가.
+        ///
+        /// 한영의 설명을 듣는 동안에는 잠겨 있다. 설명이 끝나고 승강장으로 나갈 때 열린다.
+        /// 사건마다 다시 잠그지 않는다. 한 번 배운 것을 두 번 가르치지 않는다.
+        /// </summary>
+        public static bool PostsUnlocked { get; private set; }
+
+        /// <summary>게시판의 다른 글을 열어 준다. 이미 열려 있으면 아무것도 하지 않고 false.</summary>
+        private bool UnlockPosts()
+        {
+            if (PostsUnlocked) return false;
+
+            PostsUnlocked = true;
+            return true;
         }
 
         private List<CommunityBoardEntry> _boardEntries;
@@ -503,7 +558,7 @@ namespace UrbanLegendBureau.Systems
                     Likes = TutorialPostLikes,
                     Dislikes = TutorialPostDislikes,
                 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.009", MetaTextId = "board.filler.009.meta", IsHot = true, BeliefPercent = 31, PostedMinutesAgo = 1523 },
+                Filler("009", views: 512, belief: 31, minutesAgo: 1523, comments: 4, hot: true),
 
                 // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
                 //
@@ -511,33 +566,79 @@ namespace UrbanLegendBureau.Systems
                 // 요 며칠 사이 부쩍 늘었다. 괴담이 퍼지는 중이라는 것을 글 수로 보여준다.
 
                 // --- 오늘 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.006", MetaTextId = "board.filler.006.meta", BeliefPercent = 28, PostedMinutesAgo = 12 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.007", MetaTextId = "board.filler.007.meta", BeliefPercent = 19, PostedMinutesAgo = 34 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.008", MetaTextId = "board.filler.008.meta", PostedMinutesAgo = 60 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.004", MetaTextId = "board.filler.004.meta", BeliefPercent = 25, PostedMinutesAgo = 120 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.005", MetaTextId = "board.filler.005.meta", PostedMinutesAgo = 240 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.001", MetaTextId = "board.filler.001.meta", PostedMinutesAgo = 360 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.002", MetaTextId = "board.filler.002.meta", PostedMinutesAgo = 540 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.010", MetaTextId = "board.filler.010.meta", PostedMinutesAgo = 660 },
+                Filler("006", views: 96, belief: 28, minutesAgo: 12, comments: 4),
+                Filler("007", views: 340, belief: 19, minutesAgo: 34, comments: 3),
+                Filler("008", views: 28, belief: 0, minutesAgo: 60, comments: 2),
+                Filler("004", views: 203, belief: 25, minutesAgo: 120, comments: 4, opComment: 3),
+                Filler("005", views: 157, belief: 0, minutesAgo: 240, comments: 3),
+                Filler("001", views: 41, belief: 0, minutesAgo: 360, comments: 3),
+                Filler("002", views: 88, belief: 0, minutesAgo: 540, comments: 3),
+                Filler("010", views: 62, belief: 0, minutesAgo: 660, comments: 3),
 
                 // --- 어제 ---
                 // 막차연구회의 글은 같은 괴담을 좇고 있다. 이 사건을 조사하면 함께 오른다.
-                new CommunityBoardEntry { TitleTextId = "board.filler.003", MetaTextId = "board.filler.003.meta", LegendId = SubwayLegendId, BeliefPercent = 16, PostedMinutesAgo = 1360 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.011", MetaTextId = "board.filler.011.meta", BeliefPercent = 24, PostedMinutesAgo = 1578 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.012", MetaTextId = "board.filler.012.meta", PostedMinutesAgo = 1677 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.013", MetaTextId = "board.filler.013.meta", LegendId = SubwayLegendId, BeliefPercent = 30, PostedMinutesAgo = 1945 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.014", MetaTextId = "board.filler.014.meta", PostedMinutesAgo = 2229 },
+                Filler("003", views: 12, belief: 16, minutesAgo: 1360, comments: 3, opComment: 3, legendId: SubwayLegendId),
+                Filler("011", views: 288, belief: 24, minutesAgo: 1578, comments: 3),
+                Filler("012", views: 44, belief: 0, minutesAgo: 1677, comments: 2),
+                Filler("013", views: 431, belief: 30, minutesAgo: 1945, comments: 4, opComment: 3, legendId: SubwayLegendId),
+                Filler("014", views: 19, belief: 0, minutesAgo: 2229, comments: 2),
 
                 // --- 이틀 전 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.015", MetaTextId = "board.filler.015.meta", BeliefPercent = 17, PostedMinutesAgo = 2810 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.016", MetaTextId = "board.filler.016.meta", PostedMinutesAgo = 3328 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.017", MetaTextId = "board.filler.017.meta", BeliefPercent = 21, PostedMinutesAgo = 3552 },
+                Filler("015", views: 176, belief: 17, minutesAgo: 2810, comments: 3),
+                Filler("016", views: 33, belief: 0, minutesAgo: 3328, comments: 2),
+                Filler("017", views: 152, belief: 21, minutesAgo: 3552, comments: 3, opComment: 3),
 
                 // --- 사흘 전. 사이트가 문을 연 날 ---
-                new CommunityBoardEntry { TitleTextId = "board.filler.018", MetaTextId = "board.filler.018.meta", BeliefPercent = 13, PostedMinutesAgo = 5023 },
-                new CommunityBoardEntry { TitleTextId = "board.filler.019", MetaTextId = "board.filler.019.meta", PostedMinutesAgo = 5070 },
+                Filler("018", views: 97, belief: 13, minutesAgo: 5023, comments: 3),
+                Filler("019", views: 210, belief: 0, minutesAgo: 5070, comments: 3),
             };
         }
+
+        /// <summary>
+        /// 게시판을 채우는 글 하나를 짓는다.
+        ///
+        /// 이 글들은 검열에도 단서에도 얽히지 않는다. 그래서 에셋으로 만들지 않고
+        /// 문구 ID 만으로 세운다. 제목 / 작성자 / 본문 / 댓글이 모두 board.filler.NNN 아래에 있다.
+        ///
+        /// 처음에는 열리지 않는다. 한영의 설명이 끝나고 현장으로 나간 뒤에야 열린다.
+        /// 설명 도중에 다른 글로 새면 튜토리얼이 어디까지 말했는지 알 수 없게 된다.
+        /// </summary>
+        private static CommunityBoardEntry Filler(string n, int views, int belief, int minutesAgo,
+            int comments, bool hot = false, int opComment = 0, string legendId = null)
+        {
+            string key = "board.filler." + n;
+
+            var list = new List<CommunityComment>();
+            for (int i = 1; i <= comments; i++)
+            {
+                // 글쓴이가 단 댓글에는 그 글의 작성자 이름을 그대로 쓴다. 답을 다는 사람이 누구인지 보인다.
+                list.Add(new CommunityComment
+                {
+                    AuthorTextId = i == opComment ? key + ".author" : FillerCommentAuthors[i % FillerCommentAuthors.Length],
+                    BodyTextId = key + ".c" + i,
+                });
+            }
+
+            return new CommunityBoardEntry
+            {
+                TitleTextId = key,
+                MetaTextId = key + ".meta",
+                BodyTextId = key + ".body",
+                AuthorTextId = key + ".author",
+                Comments = list,
+                Views = views,
+                IsHot = hot,
+                BeliefPercent = belief,
+                LegendId = legendId,
+                PostedMinutesAgo = minutesAgo,
+            };
+        }
+
+        /// <summary>댓글 다는 사람들. 돌려 가며 붙인다. 게시판이 한 사람만 떠드는 곳처럼 보이지 않게 한다.</summary>
+        private static readonly string[] FillerCommentAuthors =
+        {
+            "ui.net.author_anon", "ui.net.author_nick_1", "ui.net.author_nick_2", "ui.net.author_nick_4",
+        };
 
         /// <summary>막차 괴담의 ID. 이 괴담을 실어 나르는 글만 그 사건 조사에 반응한다.</summary>
         private const string SubwayLegendId = "legend_subway_last_train";
@@ -1304,6 +1405,10 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            // 설명이 끝났다. 여기서부터 괴담넷의 다른 글도 읽을 수 있다.
+            // 조사할 거리가 게시판에도 있다는 것을 알려 준다.
+            if (UnlockPosts()) ShowToast(PostsUnlockedTextId);
+
             _inFieldTalk = true;
             _fieldLineIndex = 0;
 
@@ -1352,6 +1457,9 @@ namespace UrbanLegendBureau.Systems
         private const int FieldMemoLineAt = 4;
 
         private const string MemoUnlockedTextId = "ui.memo.unlocked";
+
+        /// <summary>게시판의 다른 글이 열렸다는 알림.</summary>
+        private const string PostsUnlockedTextId = "ui.net.posts_unlocked";
 
         /// <summary>
         /// 메모장을 열어 주고 그 사실을 화면에 알린다.

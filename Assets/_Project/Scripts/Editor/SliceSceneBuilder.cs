@@ -2752,36 +2752,34 @@ namespace UrbanLegendBureau.EditorTools
             listLayout.childForceExpandHeight = false;
 
             // --- 후보 한 칸 ---
-            // 규칙 문장은 크고 밝게, 근거 단서는 작고 흐리게, 딱지는 오른쪽 위 구석에.
-            // 한 글에 몰아 넣으면 크기가 같은 줄이 이어져 어디까지가 한 후보인지 읽히지 않는다.
+            // 규칙 문장 하나와, 이미 짚어 봤다는 딱지. 그게 전부다.
+            //
+            // 예전에는 "근거가 된 단서" 한 줄을 곁들였다. 그것을 없앴다.
+            // 어느 단서가 어느 규칙을 받치는지는 플레이어가 골라서 맞혀야 하는 것이지,
+            // 후보 칸이 미리 적어 둘 것이 아니다. 적어 두면 왼쪽에서 고르는 일이 베끼기가 된다.
+            //
+            // 높이는 네 칸이 들어가게 잡는다. 파훼법을 묻는 대목에서 답이 넷이라
+            // 칸이 크면 마지막 답이 아래 띠를 뚫고 내려간다.
             var template = CreatePanel(listGo.transform, "ItemTemplate", cardColor);
             var templateButton = template.AddComponent<Button>();
             templateButton.targetGraphic = template.GetComponent<Image>();
 
-            ((RectTransform)template.transform).sizeDelta = new Vector2(1120f, 148f);
+            const float ItemHeight = 108f;
+            ((RectTransform)template.transform).sizeDelta = new Vector2(1120f, ItemHeight);
 
             var itemSize = template.AddComponent<LayoutElement>();
-            itemSize.preferredHeight = 148f;
-            itemSize.minHeight = 148f;
+            itemSize.preferredHeight = ItemHeight;
+            itemSize.minHeight = ItemHeight;
 
             var head = AddText(template.transform, "ItemLabel", RuleHead, UIFontWeight.Medium, TextColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
             var headRt = head.rectTransform;
-            headRt.anchorMin = new Vector2(0f, 1f);
-            headRt.anchorMax = new Vector2(1f, 1f);
-            headRt.pivot = new Vector2(0.5f, 1f);
-            headRt.anchoredPosition = new Vector2(-70f, -20f);
-            headRt.sizeDelta = new Vector2(-196f, 74f);
-
-            var note = AddText(template.transform, "ItemNote", SubText, UIFontWeight.Regular, DimTextColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
-            var noteRt = note.rectTransform;
-            noteRt.anchorMin = new Vector2(0f, 1f);
-            noteRt.anchorMax = new Vector2(1f, 1f);
-            noteRt.pivot = new Vector2(0.5f, 1f);
-            noteRt.anchoredPosition = new Vector2(0f, -100f);
-            noteRt.sizeDelta = new Vector2(-56f, 38f);
-            note.textWrappingMode = TextWrappingModes.NoWrap;
+            headRt.anchorMin = Vector2.zero;
+            headRt.anchorMax = Vector2.one;
+            headRt.pivot = new Vector2(0.5f, 0.5f);
+            // 오른쪽은 딱지 자리를 비워 둔다. 딱지가 붙어도 글자가 그 아래로 들어가지 않는다.
+            headRt.offsetMin = new Vector2(24f, 14f);
+            headRt.offsetMax = new Vector2(-172f, -14f);
 
             var badge = CreatePanel(template.transform, "Badge", new Color(0.24f, 0.34f, 0.28f, 1f));
             var badgeRt = (RectTransform)badge.transform;

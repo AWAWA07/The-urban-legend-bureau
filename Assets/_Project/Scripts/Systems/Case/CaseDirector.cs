@@ -114,6 +114,11 @@ namespace UrbanLegendBureau.Systems
         private const string VerdictMissTextId = "ui.rule.verdict_miss";
         private const string CounterMissTextId = "ui.rule.counter_miss";
         private const string ConcludeDoneTextId = "ui.rule.conclude_done";
+        private const string RuleScreenHintVerdictTextId = "ui.rule.screen_hint_verdict";
+        private const string RuleScreenHintCounterTextId = "ui.rule.screen_hint_counter";
+        private const string RuleScreenHintDoneTextId = "ui.rule.screen_hint_done";
+        private const string VerdictEvidenceMissTextId = "ui.rule.verdict_evidence_miss";
+        private const string CounterEvidenceMissTextId = "ui.rule.counter_evidence_miss";
         private const string MisjudgeNoneTextId = "ui.result.misjudge_none";
         private const string MisjudgeCountTextId = "ui.result.misjudge_count";
 
@@ -505,7 +510,16 @@ namespace UrbanLegendBureau.Systems
 
         private void OnPhoneBoardEntry(CommunityBoardEntry entry)
         {
-            if (entry == null || !entry.Openable || entry.Page == null) return;
+            if (entry == null) return;
+
+            // 게시판을 채우는 글들. 현장으로 나온 뒤부터 읽을 수 있다.
+            if (!entry.Openable)
+            {
+                if (_tutorial != null) _tutorial.OpenFillerPost(entry);
+                return;
+            }
+
+            if (entry.Page == null) return;
 
             // 조회수도 목록에 적힌 것과 같아야 한다. 숫자를 여기서 새로 짓지 않는다.
             int views = _tutorial != null ? _tutorial.HotPageViews : 0;
@@ -1737,9 +1751,9 @@ namespace UrbanLegendBureau.Systems
         private void BindRuleScreen()
         {
             _ruleListScreen.Bind(
-                RuleScreenTitleTextId, RuleScreenHintTextId,
+                RuleScreenTitleTextId, BuildRuleScreenHintId(),
                 _rules.GetRuleCandidates(_save, _legend),
-                BuildRuleCandidateHead, BuildRuleCandidateNote, IsRuleDeduced,
+                BuildRuleCandidateHead, IsRuleDeduced,
                 OnRuleCandidateSelected, BuildAcquiredClueEntries);
 
             // 규칙이 서고 나서도 아직 답한 것이 없다. 남은 두 물음은 플레이어가 직접 짚는다.
@@ -1760,8 +1774,26 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            if (_concludeStep == ConcludeStep.None) _concludeStep = ConcludeStep.Verdict;
+            if (_concludeStep == ConcludeStep.None)
+            {
+                _concludeStep = ConcludeStep.Verdict;
+
+                // 규칙을 세운 근거는 그대로 남아 있다. 판정은 다른 증언이 받치므로 놓고 새로 고르게 한다.
+                _ruleListScreen.ClearPicks();
+            }
             AskCurrentQuestion();
+        }
+
+        /// <summary>어디까지 답했는지에 따라 아래 안내 한 줄이 바뀐다. 지금 무엇을 해야 하는지만 적는다.</summary>
+        private string BuildRuleScreenHintId()
+        {
+            switch (_concludeStep)
+            {
+                case ConcludeStep.Verdict: return RuleScreenHintVerdictTextId;
+                case ConcludeStep.Counter: return RuleScreenHintCounterTextId;
+                case ConcludeStep.Done: return RuleScreenHintDoneTextId;
+                default: return RuleScreenHintTextId;
+            }
         }
 
         /// <summary>
@@ -1788,6 +1820,8 @@ namespace UrbanLegendBureau.Systems
 
         private void AskCurrentQuestion()
         {
+            _ruleListScreen.SetHint(BuildRuleScreenHintId());
+
             if (_concludeStep == ConcludeStep.Verdict)
             {
                 _ruleListScreen.BindOptions(VerdictQuestionTextId, BuildVerdictOptions(), OnAnswerPicked);
@@ -1814,7 +1848,6 @@ namespace UrbanLegendBureau.Systems
                 {
                     Id = id,
                     Head = _loc.Get(VerdictOptionPrefix + id.ToLowerInvariant()),
-                    Note = string.Empty,
                     Tried = _triedAnswers.Contains(id)
                 });
             }
@@ -1839,7 +1872,6 @@ namespace UrbanLegendBureau.Systems
                     {
                         Id = id,
                         Head = _loc.Get(id),
-                        Note = string.Empty,
                         Tried = _triedAnswers.Contains(id)
                     });
                 }
@@ -1851,19 +1883,39 @@ namespace UrbanLegendBureau.Systems
                 list.Add(new RuleListScreen.Option
                 {
                     Id = _legend.CounterTextId,
-                    Head = _loc.Get(_legend.CounterTextId),
-                    Note = string.Empty
+                    Head = _loc.Get(_legend.CounterTextId)
                 });
             }
             return list;
         }
 
-        /// <summary>남은 두 물음의 답을 골랐을 때. 맞으면 다음으로 넘어가고, 아니면 그 자리에 남는다.</summary>
+        /// <summary>
+        /// 남은 두 물음의 답을 골랐을 때.
+        ///
+        /// 답만 짚어서는 서지 않는다. 규칙을 세울 때와 같이, 무엇을 근거로 그렇게 보는지
+        /// 왼쪽에서 먼저 골라야 한다. 근거가 어긋나면 답이 맞아도 세우지 못한다.
+        /// </summary>
         private void OnAnswerPicked(string answerId)
         {
             if (string.IsNullOrEmpty(answerId) || _legend == null) return;
 
-            bool correct = _concludeStep == ConcludeStep.Verdict
+            // 묻고 있지 않을 때 들어온 답은 버린다. 화면에 없는 칸을 눌렀다는 뜻이다.
+            if (_concludeStep != ConcludeStep.Verdict && _concludeStep != ConcludeStep.Counter) return;
+
+            bool verdictStep = _concludeStep == ConcludeStep.Verdict;
+
+            var need = verdictStep ? _legend.VerdictClueIds : _legend.CounterClueIds;
+            if (!IsEvidenceMatched(need))
+            {
+                string missId = verdictStep ? VerdictEvidenceMissTextId : CounterEvidenceMissTextId;
+                _ruleListScreen.ShowResult(() => _loc.Get(missId));
+
+                Debug.Log($"[CaseDirector] 결론 {_concludeStep} | 근거가 어긋난다 (고른 단서 " +
+                          _ruleListScreen.PickedCount + "개)");
+                return;
+            }
+
+            bool correct = verdictStep
                 ? answerId == _legend.VerdictKind.ToString()
                 : answerId == _legend.CounterTextId;
 
@@ -1872,18 +1924,20 @@ namespace UrbanLegendBureau.Systems
                 _misjudgeCount++;
                 _triedAnswers.Add(answerId);
 
-                string missId = _concludeStep == ConcludeStep.Verdict
-                    ? VerdictMissTextId : CounterMissTextId;
-                _ruleListScreen.ShowResult(() => _loc.Get(missId));
+                string wrongId = verdictStep ? VerdictMissTextId : CounterMissTextId;
+                _ruleListScreen.ShowResult(() => _loc.Get(wrongId));
                 AskCurrentQuestion();
 
                 Debug.Log($"[CaseDirector] 결론 {_concludeStep} | {answerId} - 아니다 (오판 {_misjudgeCount}회)");
                 return;
             }
 
-            if (_concludeStep == ConcludeStep.Verdict)
+            if (verdictStep)
             {
                 _concludeStep = ConcludeStep.Counter;
+
+                // 다음 물음은 다른 증언이 받친다. 골라 둔 것을 놓고 새로 고르게 한다.
+                _ruleListScreen.ClearPicks();
                 _ruleListScreen.ShowResult(() => _loc.Get(VerdictHitTextId));
                 AskCurrentQuestion();
             }
@@ -1891,6 +1945,7 @@ namespace UrbanLegendBureau.Systems
             {
                 _concludeStep = ConcludeStep.Done;
                 _ruleListScreen.ClearOptions();
+                _ruleListScreen.SetHint(BuildRuleScreenHintId());
                 _ruleListScreen.ShowResult(() => _loc.Get(ConcludeDoneTextId));
                 ShowConclusion();
             }
@@ -1952,30 +2007,6 @@ namespace UrbanLegendBureau.Systems
             return rule != null ? _loc.Get(rule.RuleTextId) : string.Empty;
         }
 
-        /// <summary>
-        /// 후보 한 칸의 곁가지 한 줄. 이 규칙을 세운 근거가 무엇인지 적는다.
-        /// 한 줄에 담기게 단서를 가운뎃점으로 잇는다. 여러 줄로 늘어놓으면 칸마다 높이가 달라진다.
-        /// </summary>
-        private string BuildRuleCandidateNote(RuleSO rule)
-        {
-            var required = rule != null ? rule.RequiredClueIds : null;
-            if (required == null || required.Count == 0) return string.Empty;
-
-            var sb = new StringBuilder();
-            sb.Append(_loc.Get(RuleRelatedClueTextId)).Append("  ");
-
-            int shown = 0;
-            for (int i = 0; i < required.Count; i++)
-            {
-                if (string.IsNullOrEmpty(required[i])) continue;
-                if (shown > 0) sb.Append("  ·  ");
-                sb.Append(ResolveClueText(required[i]));
-                shown++;
-            }
-
-            return shown > 0 ? sb.ToString() : string.Empty;
-        }
-
         /// <summary>이미 골라 본 규칙인가. 화면이 작은 딱지를 붙일지 정할 때 물어본다.</summary>
         private bool IsRuleDeduced(RuleSO rule)
         {
@@ -2001,7 +2032,6 @@ namespace UrbanLegendBureau.Systems
                 {
                     ClueId = clue.ClueId,
                     Text = _loc.Get(clue.ClueTextId),
-                    IsKey = IsKeyClue(clue.ClueId),
                 });
             }
             return list;
@@ -2086,7 +2116,7 @@ namespace UrbanLegendBureau.Systems
 
             // 규칙만 짚어서는 세워지지 않는다. 무엇을 근거로 그렇게 보는지 왼쪽에서 골라야 한다.
             // 근거가 어긋나면 옳은 규칙이라도 세우지 못한다. 맞혔다기보다 찍은 것이기 때문이다.
-            if (!IsEvidenceMatched(rule))
+            if (!IsEvidenceMatched(rule.RequiredClueIds))
             {
                 _ruleListScreen.ShowResult(() => _loc.Get(EvidenceMismatchTextId));
                 Debug.Log($"[CaseDirector] 규칙 추론 | {rule.RuleId} - 근거가 어긋난다 (고른 단서 " +
@@ -2112,10 +2142,14 @@ namespace UrbanLegendBureau.Systems
         /// 남거나 모자라면 맞지 않은 것으로 본다. 상관없는 증언을 함께 얹어 놓고
         /// 맞혔다고 치면, 무엇이 무엇을 받치는지 모른 채로 넘어가게 된다.
         /// </summary>
-        private bool IsEvidenceMatched(RuleSO rule)
+        /// <summary>
+        /// 고른 근거가 요구하는 것과 맞는가.
+        ///
+        /// 남거나 모자라면 맞지 않은 것으로 본다. 상관없는 증언을 함께 얹어 놓고
+        /// 맞혔다고 치면, 무엇이 무엇을 받치는지 모른 채로 넘어가게 된다.
+        /// </summary>
+        private bool IsEvidenceMatched(IReadOnlyList<string> need)
         {
-            var need = rule.RequiredClueIds;
-
             int required = 0;
             if (need != null)
             {
@@ -2130,6 +2164,7 @@ namespace UrbanLegendBureau.Systems
 
             return _ruleListScreen.PickedCount == required;
         }
+
 
         /// <summary>규칙 추론 화면의 돌아가기 버튼. 현장으로 돌아가 조사를 이어간다.</summary>
         public void OnRulesBackClicked()

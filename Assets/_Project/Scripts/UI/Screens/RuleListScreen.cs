@@ -82,7 +82,6 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>한 칸 안에서 각 글을 찾을 때 쓰는 이름. 씬을 짓는 쪽과 같아야 한다.</summary>
         private const string HeadName = "Text_ItemLabel";
-        private const string NoteName = "Text_ItemNote";
         private const string BadgeName = "Badge";
 
         private const string ClueTitleTextId = "ui.slice.label_clue";
@@ -96,7 +95,6 @@ namespace UrbanLegendBureau.UI
         private string _footerId;
         private IReadOnlyList<RuleSO> _rules;
         private Func<RuleSO, string> _headProvider;
-        private Func<RuleSO, string> _noteProvider;
         private Func<RuleSO, bool> _deducedProvider;
         private Action<RuleSO> _onSelect;
         private Func<IReadOnlyList<ClueEntry>> _clueProvider;
@@ -108,8 +106,6 @@ namespace UrbanLegendBureau.UI
             public string ClueId;
             public string Text;
 
-            /// <summary>규칙의 근거가 되는 단서인가. 표를 하나 더 붙인다.</summary>
-            public bool IsKey;
         }
 
         private readonly List<Button> _clueButtons = new List<Button>();
@@ -120,6 +116,14 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>이 단서를 근거로 골라 두었는가.</summary>
         public bool IsPicked(string clueId) => _picked.Contains(clueId);
+
+
+        /// <summary>골라 둔 근거를 모두 놓는다. 다음 물음은 새 근거로 답해야 한다.</summary>
+        public void ClearPicks()
+        {
+            _picked.Clear();
+            Refresh();
+        }
 
         /// <summary>근거로 고른 단서가 몇 개인가.</summary>
         public int PickedCount => _picked.Count;
@@ -133,7 +137,6 @@ namespace UrbanLegendBureau.UI
         public void Bind(string titleTextId, string footerTextId,
             IReadOnlyList<RuleSO> rules,
             Func<RuleSO, string> headProvider,
-            Func<RuleSO, string> noteProvider,
             Func<RuleSO, bool> deducedProvider,
             Action<RuleSO> onSelect,
             Func<IReadOnlyList<ClueEntry>> clueProvider = null)
@@ -142,7 +145,6 @@ namespace UrbanLegendBureau.UI
             _footerId = footerTextId;
             _rules = rules;
             _headProvider = headProvider;
-            _noteProvider = noteProvider;
             _deducedProvider = deducedProvider;
             _onSelect = onSelect;
             _clueProvider = clueProvider;
@@ -164,7 +166,6 @@ namespace UrbanLegendBureau.UI
         {
             public string Id;
             public string Head;
-            public string Note;
 
             /// <summary>이미 골라 봤다가 아닌 것으로 밝혀진 답인가.</summary>
             public bool Tried;
@@ -195,6 +196,14 @@ namespace UrbanLegendBureau.UI
         private string _listTitleOverrideId;
         private IReadOnlyList<Option> _options;
         private Action<string> _onPickOption;
+
+
+        /// <summary>아래 안내 한 줄만 갈아 끼운다. 목록을 다시 세우지 않는다.</summary>
+        public void SetHint(string footerTextId)
+        {
+            _footerId = footerTextId;
+            Refresh();
+        }
 
         /// <summary>직전 추론 결과를 알린다. 언어가 바뀌면 다시 조립되도록 만드는 방법을 받는다.</summary>
         public void ShowResult(Func<string> provider)
@@ -339,8 +348,8 @@ namespace UrbanLegendBureau.UI
             var label = item.GetComponentInChildren<TMP_Text>(true);
             if (label == null) return;
 
-            // 앞의 네모가 고른 것을 말한다. 뒤의 ◆ 는 규칙의 근거가 되는 단서라는 뜻이다.
-            label.text = (on ? "■ " : "□ ") + (entry.IsKey ? "◆ " : string.Empty) + entry.Text;
+            // 앞의 네모가 고른 것을 말한다. 어느 것이 근거가 되는지는 알려 주지 않는다.
+            label.text = (on ? "■ " : "□ ") + entry.Text;
             label.color = on ? TextColor : DimClueColor;
         }
 
@@ -447,13 +456,6 @@ namespace UrbanLegendBureau.UI
             var head = item.transform.Find(HeadName)?.GetComponent<TMP_Text>();
             if (head != null) head.text = option.Head;
 
-            var note = item.transform.Find(NoteName)?.GetComponent<TMP_Text>();
-            if (note != null)
-            {
-                note.text = option.Note ?? string.Empty;
-                note.gameObject.SetActive(!string.IsNullOrEmpty(option.Note));
-            }
-
             // 한 번 짚어 봤다가 아니었던 답에는 딱지를 붙인다. 같은 자리를 두 번 헤매지 않게 한다.
             var badge = item.transform.Find(BadgeName);
             if (badge != null)
@@ -481,14 +483,6 @@ namespace UrbanLegendBureau.UI
 
             var head = item.transform.Find(HeadName)?.GetComponent<TMP_Text>();
             if (head != null && _headProvider != null) head.text = _headProvider(rule);
-
-            var note = item.transform.Find(NoteName)?.GetComponent<TMP_Text>();
-            if (note != null)
-            {
-                string text = _noteProvider != null ? _noteProvider(rule) : string.Empty;
-                note.text = text;
-                note.gameObject.SetActive(!string.IsNullOrEmpty(text));
-            }
 
             var badge = item.transform.Find(BadgeName);
             if (badge != null)

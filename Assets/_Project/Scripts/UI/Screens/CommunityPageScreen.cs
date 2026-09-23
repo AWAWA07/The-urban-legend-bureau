@@ -26,6 +26,18 @@ namespace UrbanLegendBureau.UI
         /// <summary>열었을 때 보여줄 글. Openable이 아니면 비어 있어도 된다.</summary>
         public WebPageSO Page;
 
+        /// <summary>본문의 String ID. Page 를 따로 두지 않는 글은 이것으로 연다.</summary>
+        public string BodyTextId;
+
+        /// <summary>이 글에 달린 댓글. 컴퓨터로 보든 휴대폰으로 보든 같은 것을 본다.</summary>
+        public List<CommunityComment> Comments;
+
+        /// <summary>작성자 표기의 String ID. 비어 있으면 익명으로 적는다.</summary>
+        public string AuthorTextId;
+
+        /// <summary>조회수. 목록의 작성자 줄에 적힌 것과 같은 수를 쓴다.</summary>
+        public int Views;
+
         /// <summary>
         /// 이 글이 괴담의 믿음에 얼마나 보태고 있는가(%).
         /// 0이면 괴담과 무관한 글이라 표시하지 않는다.
@@ -712,7 +724,9 @@ namespace UrbanLegendBureau.UI
 
         private RectOffset[] _deskPads;
 
-        private WebPageSO _page;
+        private string _titleId;
+        private string _bodyId;
+        private string _authorId;
         private int _views;
         private int _likes;
         private int _beliefPercent;
@@ -810,7 +824,9 @@ namespace UrbanLegendBureau.UI
             int likes = 0, int dislikes = 0, int beliefPercent = 0,
             bool likePressed = false, bool dislikePressed = false)
         {
-            _page = page;
+            _titleId = page != null ? page.TitleTextId : null;
+            _bodyId = page != null ? page.BodyTextId : null;
+            _authorId = null;
             _views = views;
             _beliefPercent = beliefPercent;
             _likes = likes;
@@ -822,6 +838,32 @@ namespace UrbanLegendBureau.UI
             _postedMinutesAgo = postedMinutesAgo;
 
             // 새 글이므로 맨 위부터 보여준다.
+            _shownCommentCount = -1;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 에셋 없이 글 하나를 건다.
+        ///
+        /// 게시판을 채우는 글들은 검열이나 단서에 얽히지 않는다. 그런 글까지 에셋으로 만들어 두면
+        /// 데이터는 늘고 쓰이는 것은 제목과 본문뿐이다. 그래서 문구 ID 만 받아 그대로 보여준다.
+        /// </summary>
+        public void BindPost(string titleTextId, string bodyTextId, string authorTextId,
+            int views, int postedMinutesAgo,
+            int likes = 0, int dislikes = 0, int beliefPercent = 0,
+            bool likePressed = false, bool dislikePressed = false)
+        {
+            _titleId = titleTextId;
+            _bodyId = bodyTextId;
+            _authorId = authorTextId;
+            _views = views;
+            _beliefPercent = beliefPercent;
+            _likes = likes;
+            _dislikes = dislikes;
+            _likePressed = likePressed;
+            _dislikePressed = dislikePressed;
+            _postedMinutesAgo = postedMinutesAgo;
+
             _shownCommentCount = -1;
             Refresh();
         }
@@ -1020,12 +1062,12 @@ namespace UrbanLegendBureau.UI
             if (_titleText != null)
             {
                 // 실제 커뮤니티처럼 제목 옆에 댓글 수를 붙인다.
-                _titleText.text = _page == null
+                _titleText.text = string.IsNullOrEmpty(_titleId)
                     ? string.Empty
-                    : loc.Get(_page.TitleTextId) +
+                    : loc.Get(_titleId) +
                       " <size=72%><color=#C0392B>[" + _comments.Count + "]</color></size>";
             }
-            if (_bodyText != null) _bodyText.text = _page != null ? loc.Get(_page.BodyTextId) : string.Empty;
+            if (_bodyText != null) _bodyText.text = string.IsNullOrEmpty(_bodyId) ? string.Empty : loc.Get(_bodyId);
 
             string belief = _beliefPercent > 0 ? loc.Get(BeliefPercentTextId, _beliefPercent) : string.Empty;
 
@@ -1035,10 +1077,10 @@ namespace UrbanLegendBureau.UI
 
             if (_metaText != null)
             {
-                string meta = _page == null
+                string meta = string.IsNullOrEmpty(_titleId)
                     ? string.Empty
-                    : loc.Get(MetaTextId, loc.Get("ui.net.author_anon"), _views, _comments.Count,
-                        BuildPostedText(loc, _postedMinutesAgo));
+                    : loc.Get(MetaTextId, loc.Get(string.IsNullOrEmpty(_authorId) ? "ui.net.author_anon" : _authorId),
+                        _views, _comments.Count, BuildPostedText(loc, _postedMinutesAgo));
 
                 // 좁은 화면에서는 한 줄에 다 들어가지 않는다. 다음 줄에 오른쪽으로 붙여 세운다.
                 if (beliefInMeta && !string.IsNullOrEmpty(meta))
