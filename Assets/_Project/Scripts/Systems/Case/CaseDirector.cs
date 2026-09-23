@@ -45,6 +45,9 @@ namespace UrbanLegendBureau.Systems
 
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
+
+        [Tooltip("규칙을 세우지 못한 채 사건을 접는 버튼. 봉인할 수 없을 때에만 뜬다.")]
+        [SerializeField] private GameObject _withdrawButton;
         [SerializeField] private GameObject _sealConfirmButton;
 
         [Header("현장")]
@@ -1333,6 +1336,65 @@ namespace UrbanLegendBureau.Systems
         /// 알린 뒤에는 지금까지 얻은 것을 취합하는 자리(규칙 추론)로 넘어간다.
         /// 장소는 그대로 보이지만 더 뒤질 것은 없다.
         /// </summary>
+        /// <summary>
+        /// 종점에 닿았는데 맞는 규칙을 세울 단서가 모자란 경우, 한영이 모자란 것을 짚어 준다.
+        ///
+        /// 첫 사건에서까지 못 풀고 끝나면 배우는 것이 없다. 무엇을 봐야 했는지를 알려 주는 것이
+        /// 튜토리얼이 할 일이다. 두 번째 사건부터는 이 도움이 없고, 못 풀면 못 푼 채로 끝난다.
+        ///
+        /// 돌려주는 것은 이때 건네준 단서의 수다. 모자란 것이 없었으면 0.
+        /// </summary>
+        private int HelpWithMissingClues()
+        {
+            if (_legend == null || _caseId != UrbanLegendBureau.Systems.TutorialDirector.TutorialCaseId) return 0;
+
+            RuleSO trueRule = null;
+            foreach (var rule in _legend.Rules)
+            {
+                if (rule != null && rule.IsTrue) { trueRule = rule; break; }
+            }
+            if (trueRule == null) return 0;
+
+            var need = trueRule.RequiredClueIds;
+            if (need == null) return 0;
+
+            int given = 0;
+            foreach (var clueId in need)
+            {
+                if (string.IsNullOrEmpty(clueId) || CaseFlow.HasClue(_save, clueId)) continue;
+
+                CaseFlow.AcquireClue(_save, clueId);
+                given++;
+            }
+
+            // 판정과 파훼법도 그 나름의 근거를 요구한다. 규칙만 세우고 막히지 않게 함께 채운다.
+            given += GiveClues(_legend.VerdictClueIds);
+            given += GiveClues(_legend.CounterClueIds);
+
+            if (given > 0)
+            {
+                _save.MarkDirty();
+                Debug.Log($"[CaseDirector] 종점 | 모자란 단서 {given}개를 한영이 짚어 줬다 (튜토리얼)");
+            }
+            return given;
+        }
+
+        /// <summary>아직 없는 것만 건네준다. 건넨 수를 돌려준다.</summary>
+        private int GiveClues(IReadOnlyList<string> clueIds)
+        {
+            if (clueIds == null) return 0;
+
+            int given = 0;
+            for (int i = 0; i < clueIds.Count; i++)
+            {
+                if (string.IsNullOrEmpty(clueIds[i]) || CaseFlow.HasClue(_save, clueIds[i])) continue;
+
+                CaseFlow.AcquireClue(_save, clueIds[i]);
+                given++;
+            }
+            return given;
+        }
+
         private void CheckTerminus()
         {
             if (_terminusDone || !IsAfterTerminus()) return;
@@ -1348,10 +1410,14 @@ namespace UrbanLegendBureau.Systems
             _terminusDone = true;
             _field.InvestigationAllowed = false;
 
-            Debug.Log("[CaseDirector] 막차 종점 | 현장 조사를 닫는다");
+            // 첫 사건에서는 못 푼 채로 끝나지 않게 한영이 모자란 것을 짚어 준다.
+            int helped = HelpWithMissingClues();
+
+            Debug.Log("[CaseDirector] 막차 종점 | 현장 조사를 닫는다" +
+                      (helped > 0 ? " | 모자란 단서 " + helped + "개를 채웠다" : string.Empty));
 
             // 한영이 한 마디 하고 나서 취합으로 넘어간다. 걸 자리가 없으면 곧바로 넘어간다.
-            if (_tutorial != null && _tutorial.ShowTerminusLine(OnOpenRulesClicked)) return;
+            if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, OnOpenRulesClicked)) return;
             OnOpenRulesClicked();
         }
 
@@ -1501,6 +1567,24 @@ namespace UrbanLegendBureau.Systems
                       $"isSealed={_exorcism.IsSealed(_save.Current, _legendId)} 확산={GetSpread():F0}");
         }
 
+
+        /// <summary>
+        /// 봉인 화면의 [철수] 버튼. 규칙을 세우지 못한 채 사건을 접는다.
+        ///
+        /// 괴담은 그대로 남는다. 확산도 믿음도 손대지 않는다. 풀지 못했으니 아무것도 달라지지 않는 것이다.
+        /// 결과 화면에 봉인하지 못했다고 적히고, 그 기록이 남는다.
+        /// </summary>
+        public void OnWithdrawClicked()
+        {
+            if (_exorcism != null && _exorcism.IsSealed(_save.Current, _legendId)) return;
+            if (CanSealNow()) return;
+
+            Debug.Log($"[CaseDirector] 철수 | {_legendId} 규칙을 세우지 못한 채 사건을 접는다 " +
+                      $"| 확산={GetSpread():F0}");
+
+            CompleteCase();
+        }
+
         /// <summary>봉인 화면의 확인 버튼. 봉인이 끝난 뒤에만 사건을 종료한다.</summary>
         public void OnExorcismConfirmClicked()
         {
@@ -1520,13 +1604,18 @@ namespace UrbanLegendBureau.Systems
         private void RefreshExorcismButtons()
         {
             bool sealed_ = _exorcism != null && _exorcism.IsSealed(_save.Current, _legendId);
+            bool canSeal = CanSealNow();
 
             if (_sealButton != null)
             {
                 _sealButton.SetActive(!sealed_);
                 var button = _sealButton.GetComponent<UnityEngine.UI.Button>();
-                if (button != null) button.interactable = CanSealNow();
+                if (button != null) button.interactable = canSeal;
             }
+
+            // 규칙을 세우지 못했으면 봉인할 방법이 없다. 그렇다고 사건이 끝나지 않으면
+            // 화면에서 나갈 길이 사라진다. 못 풀었다는 것도 조사의 결말이므로 접을 수 있게 둔다.
+            if (_withdrawButton != null) _withdrawButton.SetActive(!sealed_ && !canSeal);
 
             if (_sealConfirmButton != null) _sealConfirmButton.SetActive(sealed_);
         }

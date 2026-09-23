@@ -645,6 +645,8 @@ tutorial.field.004	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷
 tutorial.field.005	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.	You will be taking notes on your phone too, so keep it handy and follow me.	
 tutorial.field.006	넵, 알겠습니다.	Yes, understood.	차지한
 tutorial.field.terminus	이제 막차의 종점이야 내려야 돼.	This is the last train's final stop. We have to get off.	00:30, 종점에 닿았을 때 - 한영
+tutorial.field.terminus_help	아, 너 이건 못 봤지? 내가 본 것도 같이 적어 둘게. 첫 건이니까 이번만이야.	Ah, you missed this one. I will write down what I saw too. First case, so just this once.	00:30, 단서가 모자랄 때 - 한영
+ui.seal.btn_withdraw	철수	Withdraw	규칙을 세우지 못한 채 사건을 접는다
 ui.field.platform	9-4 승강장	Platform 9-4	현장 위쪽 한 줄 - 열차를 기다리는 자리
 ui.field.train_arriving	열차가 들어온다.	A train is pulling in.	열차 진입 알림
 

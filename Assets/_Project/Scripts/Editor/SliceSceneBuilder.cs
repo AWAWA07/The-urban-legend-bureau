@@ -226,6 +226,7 @@ namespace UrbanLegendBureau.EditorTools
             ResizeButton(btnDeduce, new Vector2(280f, 84f), 26f);
             ResizeButton(btnFieldDone, new Vector2(280f, 84f), 26f);
             var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
+            var btnWithdraw = CreateButton(exorcismButtons, "Btn_Withdraw", "ui.seal.btn_withdraw");
             var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
             var btnBack = CreateButton(resultButtons, "Btn_BackToTitle", "ui.slice.btn_back_to_title");
             var btnClueOk = CreateButton(clueButtons, "Btn_ClueOk", "ui.common.ok");
@@ -253,6 +254,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_exorcismScreen").objectReferenceValue = exorcism;
             dso.FindProperty("_sealButton").objectReferenceValue = btnSeal;
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
+            dso.FindProperty("_withdrawButton").objectReferenceValue = btnWithdraw;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
             // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다. 메모장도 마찬가지다.
@@ -313,6 +315,7 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnFieldDone.GetComponent<Button>().onClick, director.OnFieldDoneClicked);
             UnityEventTools.AddPersistentListener(btnSeal.GetComponent<Button>().onClick, director.OnSealClicked);
             UnityEventTools.AddPersistentListener(btnSealOk.GetComponent<Button>().onClick, director.OnExorcismConfirmClicked);
+            UnityEventTools.AddPersistentListener(btnWithdraw.GetComponent<Button>().onClick, director.OnWithdrawClicked);
             UnityEventTools.AddPersistentListener(btnBack.GetComponent<Button>().onClick, director.OnBackToTitleClicked);
             UnityEventTools.AddPersistentListener(btnClueOk.GetComponent<Button>().onClick, director.OnCluePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnRuleOk.GetComponent<Button>().onClick, director.OnRulePopupConfirmClicked);

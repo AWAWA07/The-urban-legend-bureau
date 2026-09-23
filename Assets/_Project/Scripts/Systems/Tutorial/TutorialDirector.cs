@@ -1375,7 +1375,8 @@ namespace UrbanLegendBureau.Systems
         // ------------------------------------------------------------- 현장 조사
 
         /// <summary>튜토리얼이 곧바로 이어 가는 첫 사건. 괴담넷에서 검열한 그 막차 괴담이다.</summary>
-        private const string TutorialCaseId = "case_001_subway";
+        /// <summary>튜토리얼이 여는 사건. 첫 사건에서는 막히지 않게 도와주는 곳이 몇 군데 있다.</summary>
+        public const string TutorialCaseId = "case_001_subway";
 
         /// <summary>현장에서 주고받는 말. 앞의 넷은 열차가 오기 전, 뒤의 둘은 열차가 들어오며.</summary>
         private static readonly string[] FieldLineTextIds =
@@ -1513,21 +1514,35 @@ namespace UrbanLegendBureau.Systems
         /// 걸 자리(현장 화면)가 없으면 아무것도 하지 않고 false 를 돌려준다.
         /// 그때는 부르는 쪽이 말 없이 다음으로 넘어간다.
         /// </summary>
-        public bool ShowTerminusLine(System.Action onDone)
+        public bool ShowTerminusLine(bool helped, System.Action onDone)
         {
             var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
             if (hud == null || _loc == null) return false;
 
             _fieldHud = hud;
-            hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusTextId), () =>
+
+            // 모자란 것을 채워 줬으면 한영이 그렇다고 말하고 넘어간다.
+            // 말없이 단서만 늘어나 있으면 플레이어는 자기가 찾은 줄 안다.
+            System.Action go = () =>
             {
                 hud.ClearSpeech();
                 onDone?.Invoke();
+            };
+
+            hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusTextId), () =>
+            {
+                if (!helped) { go(); return; }
+
+                hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusHelpTextId), go);
             });
 
-            Debug.Log("[TutorialDirector] 막차 종점 | 조사를 닫고 취합으로 넘어간다");
+            Debug.Log("[TutorialDirector] 막차 종점 | 조사를 닫고 취합으로 넘어간다"
+                      + (helped ? " | 놓친 것을 짚어 준다" : string.Empty));
             return true;
         }
+
+        /// <summary>첫 사건에서 놓친 단서를 한영이 채워 줄 때 하는 말.</summary>
+        private const string TerminusHelpTextId = "tutorial.field.terminus_help";
 
         /// <summary>잠깐 떴다 사라지는 알림 한 줄. 시간이 다 되면 스스로 닫힌다.</summary>
         private void ShowToast(string textId)
