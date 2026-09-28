@@ -490,7 +490,7 @@ board.filler.001.c2	ㅇㅇ 역무실 경찰서 가면 하루종일 걸림	yeah s
 board.filler.001.c3	요즘 이런 분 진짜 없는데 감사합니다	you really do not see this any more. thank you	
 board.filler.002.body	별거 없음. 그냥 새벽 두 시 거리임.\n사람 하나도 없는데 이게 더 편한 건 왜일까\n다들 고생 많으십니다	nothing much. just the street at 2am.\nnot a soul out and somehow that is easier. why is that\nhang in there everyone	
 board.filler.002.c1	저는 아직 사무실임	still at the office here	
-board.filler.002.c2	사진 좋네요	nice shot	
+board.filler.002.c2	사진 개야르네ㅋㅋ	this shot is fire lol	
 board.filler.002.c3	이 시간에 걸어다니는 사람 또 있었노ㅋㅋㅋ😂	lol someone else out walking at this hour😂	
 board.filler.003.body	문의드립니다.\n평일 기준 종점 방향 막차 시각을 아시는 분 계신지요.\n최근 이 노선 막차 관련 목격담이 3건 이상 확인되어 대조가 필요합니다.\n가능하면 직접 승차해 기록할 예정입니다.	Inquiry.\nDoes anyone know the weekday departure time toward the terminus?\nAt least three accounts tied to this line need cross-checking.\nI intend to ride it and record if possible.	
 board.filler.003.c1	종점 도착 00시 30분이요	terminus at 00:30	
@@ -517,7 +517,7 @@ board.filler.007.c2	ㄹㅇ 우리집 고양이도 벽 봄 걍 습관임	fr mine 
 board.filler.007.c3	이런 사례 모으고 있는데 벽 쳐다보는 얘기는 이 동네에서만 네 번째임	I collect these. wall staring is the fourth from this neighborhood alone	
 board.filler.007.c4	네 번째요? 그건 또 처음 듣네요	Fourth? That is news to me.	글쓴이
 board.filler.008.body	지하철 끊기고 버스도 눈앞에서 놓침 ㅋㅋㅋㅋ😂 그래서 걸어옴\n두 시간 걸렸고 다리 아직 아픔\n택시비 아끼려다 다음날 날림. 스불재임	trains done and the bus pulled away in front of me lol😂 so I walked\ntwo hours, legs still hurt\nsaved a fare, lost the next day. brought it on myself	
-board.filler.008.c1	저도 지난주에 똑같이 걸었어요 ㅋㅋㅋ 동지네	walked the same way last week lol comrades	
+board.filler.008.c1	저도 지난주에 똑같이 걸었어요ㅋㅋㅋ 집 와서 라면 끓여먹었는데 야르렁~	walked the same way last week lol. made ramen when I got home, so good	
 board.filler.008.c2	그 구간 딱 두 시간 맞음	that stretch is exactly two hours	
 board.filler.009.body	지난주에 찍은 사진인데 뒤쪽 유리에 뭐가 비쳐 있어요.\n보정 1도 안 했고 연사 네 장 중 세 번째에만 나옵니다. 앞뒤 사진엔 없어요.\n반사면 네 장에 다 나와야 하는 거 아닌가요?\n원본 필요하신 분 댓글 주세요	Took this last week, something in the glass behind me.\nZero edits, and out of four burst frames it is only in the third. Not in the ones around it.\nIf it were a reflection it would be in all four right?\nComment if you want the original	
 board.filler.009.c1	연사 세 번째에만 나온다면 반사는 배제됩니다. 다만 셔터 타이밍에 지나간 사람일 가능성은 남습니다.	If it is only in the third frame, reflection is out. A passerby caught on the shutter is still possible.	
@@ -565,7 +565,7 @@ board.filler.018.c2	ㅋㅋ 이런 거 어디서 자꾸 주워옴 😅	lol where 
 board.filler.018.c3	주워오는 게 제 취미입니다.	Picking them up is the hobby.	글쓴이
 board.filler.018.c4	ㄹㅇ 막차 빈자리 얘기 요새 개자주 보임	fr the empty seat thing is everywhere lately	
 board.filler.019.body	안녕하세요. 겪은 일을 편하게 적는 곳으로 열었습니다.\n괴담에 휩쓸리지 마시길 😊	Hello. Opened this as a place to write down what you went through.\nTry not to get swept up. 😊	
-board.filler.019.c1	잘 쓰겠습니다	will make good use of it	
+board.filler.019.c1	사이트 개야르네요 잘 쓰겠습니다	site is fire. will make good use of it	
 board.filler.019.c2	휩쓸리지 말라면서 사이트 이름이 괴담넷인 건 셀프 뇌절 아님?ㅋㅋㅋ	telling us not to get swept up while naming it LegendNet is peak irony lol	
 board.filler.019.c3	운영 화이팅입니다	good luck with the board	
 
