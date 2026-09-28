@@ -21,7 +21,7 @@ MonoBehaviour:
   _verdictKind: 2
   _verdictClueIds:
   - clue_subway_003
-  - clue_subway_002
+  - clue_subway_005
   - clue_subway_004
   _counterTextId: legend.subway.counter
   _counterOptionTextIds:
@@ -31,7 +31,7 @@ MonoBehaviour:
   - legend.subway.counter_opt_avoid
   _counterClueIds:
   - clue_subway_002
-  - clue_subway_005
+  - clue_subway_006
   _rules:
   - {fileID: 11400000, guid: ce0c980c851613d4c80f19f6bf9937c7, type: 2}
   - {fileID: 11400000, guid: f068abddcd45824459c4402c6f07f3b3, type: 2}
@@ -42,9 +42,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 157f960a8bd49ae4c89bf74f5d3c5892, type: 2}
   - {fileID: 11400000, guid: 331e31a81b7a66645887ca2f6ab14a9f, type: 2}
   - {fileID: 11400000, guid: 2d4014cab010cb447bbce8df9fd92fb6, type: 2}
+  - {fileID: 11400000, guid: 13e8bdf0bcab5979b46bf52651bd5697, type: 2}
   _webPages:
   - {fileID: 11400000, guid: 11657dc1aa4d16a4f88bd8f3b610b021, type: 2}
   - {fileID: 11400000, guid: 9011df14f78233849b813ebe7964f227, type: 2}
   - {fileID: 11400000, guid: 947a42ba24e65e0458b50a75e89b77ad, type: 2}
+  - {fileID: 11400000, guid: 08fb68eb5566b28f2157c2556444ac8e, type: 2}
   _investigationActions:
+  - {fileID: 11400000, guid: afda3036c927703ddbffa329bf76f7e8, type: 2}
   - {fileID: 11400000, guid: 1dcc0e18a9b99704bb9c3aab72a09457, type: 2}

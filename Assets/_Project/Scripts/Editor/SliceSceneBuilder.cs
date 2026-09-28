@@ -145,8 +145,10 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "clue_subway_001" }, false, CaseStep.Started);
             // 글끼리 견줘 보는 조사는 여기에 둔다. 승강장 기록을 뒤지는 자리라 견줄 거리가 있다.
             // 이 방법이 주는 단서(clue_subway_004)가 없으면 맞는 규칙을 세울 수 없다. 어디에도 걸려 있지 않았다.
+            // 목격담 대조도 여기에 둔다. 겪고도 멀쩡한 사람이 하나 있다는 것(clue_subway_006)이
+            // 파훼법의 다른 한쪽이다. 돌아본 쪽과 안 돌아본 쪽을 나란히 놓아야 무엇이 갈랐는지가 보인다.
             ConfigurePoint(platform, "point_subway_platform",
-                new[] { "action_subway_platform_search", "action_subway_platform_trace", "action_subway_compare" },
+                new[] { "action_subway_platform_search", "action_subway_platform_trace", "action_subway_compare", "action_subway_witness" },
                 null, false, CaseStep.Started);
 
             // 열차가 들어오면 승강장 대신 열차 안이 보인다.
