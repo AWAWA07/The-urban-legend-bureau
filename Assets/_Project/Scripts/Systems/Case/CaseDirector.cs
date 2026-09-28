@@ -314,7 +314,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             // 내려 둔 결론도 물린다. 다시 조사하면 판정도 파훼법도 다시 짚어야 한다.
-            _concludeStep = ConcludeStep.None;
+            _concludeStep = ConcludeStep.Verdict;
             _triedAnswers.Clear();
             _misjudgeCount = 0;
             _givenClueIds.Clear();
@@ -1824,8 +1824,10 @@ namespace UrbanLegendBureau.Systems
                 BuildRuleCandidateHead, IsRuleDeduced,
                 OnRuleCandidateSelected, BuildAcquiredClueEntries);
 
-            // 규칙이 서고 나서도 아직 답한 것이 없다. 남은 두 물음은 플레이어가 직접 짚는다.
             // 화면을 닫았다 다시 열어도 어디까지 답했는지는 그대로 이어진다.
+            // 규칙을 이미 세워 둔 채로 들어왔으면 그 대목은 건너뛴다.
+            if (_concludeStep == ConcludeStep.Rule && IsTrueRuleDeduced()) _concludeStep = ConcludeStep.Counter;
+
             if (_concludeStep == ConcludeStep.Done)
             {
                 _ruleListScreen.ClearOptions();
@@ -1834,21 +1836,6 @@ namespace UrbanLegendBureau.Systems
             }
 
             _ruleListScreen.ShowConclusion(null, null);
-
-            if (!IsTrueRuleDeduced())
-            {
-                _concludeStep = ConcludeStep.None;
-                _ruleListScreen.ClearOptions();
-                return;
-            }
-
-            if (_concludeStep == ConcludeStep.None)
-            {
-                _concludeStep = ConcludeStep.Verdict;
-
-                // 규칙을 세운 근거는 그대로 남아 있다. 판정은 다른 증언이 받치므로 놓고 새로 고르게 한다.
-                _ruleListScreen.ClearPicks();
-            }
             AskCurrentQuestion();
         }
 
@@ -1865,15 +1852,18 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 규칙을 세우고 남은 두 물음.
+        /// 취합에서 답해야 하는 것 셋. 순서가 있다.
         ///
-        /// 이 괴담이 진짜인가 가짜인가. 그리고 어떻게 끊는가.
+        /// 먼저 이 괴담이 진짜인가 가짜인가를 정한다. 그것을 정하지 않고 규칙부터 짚으면
+        /// 무엇의 규칙을 세우는지 모르는 채로 세우는 것이 된다.
+        /// 그 다음 이 괴담이 어떤 규칙으로 움직이는지, 마지막으로 그 규칙을 어떻게 끊는지.
+        ///
         /// 답을 대신 내주지 않는다. 짚어 보게 하고 맞는지만 알려 준다.
         /// </summary>
         private enum ConcludeStep
         {
-            None = 0,
-            Verdict = 1,
+            Verdict = 0,
+            Rule = 1,
             Counter = 2,
             Done = 3
         }
@@ -2002,7 +1992,8 @@ namespace UrbanLegendBureau.Systems
 
             if (verdictStep)
             {
-                _concludeStep = ConcludeStep.Counter;
+                // 진위를 가렸으면 다음은 규칙이다. 무엇의 규칙인지 정해 두고 세우게 한다.
+                _concludeStep = ConcludeStep.Rule;
 
                 // 다음 물음은 다른 증언이 받친다. 골라 둔 것을 놓고 새로 고르게 한다.
                 _ruleListScreen.ClearPicks();
@@ -2183,6 +2174,9 @@ namespace UrbanLegendBureau.Systems
         {
             if (_rules == null || rule == null) return;
 
+            // 규칙을 묻고 있을 때에만 받는다. 진위를 가리기 전에는 후보가 떠 있지도 않다.
+            if (_concludeStep != ConcludeStep.Rule) return;
+
             // 규칙만 짚어서는 세워지지 않는다. 무엇을 근거로 그렇게 보는지 왼쪽에서 골라야 한다.
             // 근거가 어긋나면 옳은 규칙이라도 세우지 못한다. 맞혔다기보다 찍은 것이기 때문이다.
             if (!IsEvidenceMatched(rule.RequiredClueIds))
@@ -2195,6 +2189,18 @@ namespace UrbanLegendBureau.Systems
 
             var result = _rules.AttemptRule(_save, rule.RuleId);
 
+            // 맞는 규칙이 섰으면 마지막 물음으로 넘어간다. 함정을 세웠으면 그 자리에 남는다.
+            // 틀린 규칙도 기록에는 남는다. 그 대가는 봉인에서 치른다.
+            if (result.Success && result.IsCorrect && IsTrueRuleDeduced())
+            {
+                _concludeStep = ConcludeStep.Counter;
+                _ruleListScreen.ClearPicks();
+            }
+            else if (!result.IsCorrect)
+            {
+                _misjudgeCount++;
+            }
+
             BindRuleScreen();
             var captured = result;
             _ruleListScreen.ShowResult(() => _loc.Get(captured.MessageTextId));
@@ -2202,7 +2208,7 @@ namespace UrbanLegendBureau.Systems
             Debug.Log($"[CaseDirector] 규칙 추론 시도 | {rule.RuleId} -> " +
                       (result.Success
                           ? (result.AlreadyDeduced ? "이미 확인함" : (result.IsCorrect ? "정확" : "오류"))
-                          : "불가(" + result.Failure + ")"));
+                          : "불가(" + result.Failure + ")") + " | 다음 단계=" + _concludeStep);
         }
 
         /// <summary>
