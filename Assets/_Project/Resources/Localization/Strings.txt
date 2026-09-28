@@ -293,7 +293,7 @@ web.subway.003.c5	무섭다 공유함	terrifying. sharing	확산
 web.subway.004.title	저는 아무 일도 없었는데요	Nothing happened to me though	안 돌아본 목격자 - 대조군
 web.subway.004.body	며칠 전 막차에서 옆에 인기척이 느껴졌습니다.\n여기서 본 글들이 딱 생각나더라고요. 그래서 무서워서 옆도 안 보고 앞만 보다가 내렸습니다.\n다른 분들처럼 몸 무겁거나 일 안 풀리거나 할 줄 알았는데, 저는 몸도 팔팔하고 일도 잘 됩니다 😅\n기분 탓이었을까요? 아니면 제가 운이 좋은 건가요.	A few nights ago I felt someone beside me on the last train.\nThe posts here came straight to mind so I was too scared to look. Faced forward until my stop.\nI expected the heaviness and the bad luck everyone describes. I am in good shape and things are going fine 😅\nWas it in our heads? Or did I just get lucky?	안 돌아본 목격자 - 대조군
 web.subway.004.c1	이게 제일 중요한 글입니다. 다른 분들과 다른 조건이 딱 하나예요. 돌아보지 않았다는 것.	This is the most important post here. Exactly one condition differs from the others. You did not turn.	
-web.subway.004.c2	와 그럼 안 보면 괜찮은 거예요...? 저는 눈 감고 탈래요ㅠㅠ	wait so you are fine if you do not look...? I am riding with my eyes shut	
+web.subway.004.c2	와 실화임...? 그럼 안 보면 괜찮은 거예요? 저는 눈 감고 탈래요ㅠㅠ	wait for real...? so you are fine if you do not look? I am riding with my eyes shut	
 web.subway.004.c3	저도 그게 이상해서 적어봤어요. 옆에 있었던 건 분명한데 저만 멀쩡하니까요.	That is why I posted. Something was definitely there and I am the only one who is fine.	
 web.subway.004.c4	비슷한 얘기 하나 더 있었음. 그분도 안 봤다고 했던 걸로 기억함	there was one more like this. pretty sure that person did not look either	
 
@@ -499,11 +499,11 @@ board.filler.003.c3	말씀대로 세부는 어긋납니다. 다만 어긋나는 
 board.filler.003.c4	진짜 타보신다고요...? ㅠㅠ 제발 가지 마세요	you are actually going...? please do not	
 board.filler.004.body	아무도 안 눌렀는데 4층에서 꼭 한 번 섭니다. 문 열리면 복도 캄캄하고요.\n관리실에 세 번 말했는데 센서래요. 한 달째 그대로.\n근데 오늘은 문 닫히는 데 십 초 걸렸습니다. 원래 삼 초예요. 이건 좀 아니지 않나요	Nobody presses it but it stops on four every time. Doors open on a dark hallway.\nTold management three times, they say sensor. A month now.\nToday the doors took ten seconds to close. Normally three. That is not normal right	
 board.filler.004.c1	적외선 센서는 먼지나 습기에도 오작동합니다. 다만 십 초는 센서가 아니라 도어 모터 쪽입니다. 두 개가 같이 고장 날 확률은 낮아요.	IR sensors misfire on dust or damp. But ten seconds is the door motor, not the sensor. Two failures at once is unlikely.	
-board.filler.004.c2	이런 글 보면 엘베 못 타요 진짜 ㅠㅠ	posts like this and I cannot ride elevators	
+board.filler.004.c2	이런 글 보면 엘베 못 타요 진짜ㅠㅠ 빼박 계단각	posts like this and I cannot ride elevators. stairs it is	
 board.filler.004.c3	4층 예전에 사무실이었는데 지금은 통째로 비어 있습니다.	Four used to be an office. Whole floor is empty now.	글쓴이
 board.filler.004.c4	빈 층에서 센서 오작동 흔함. 사람 안 다니면 청소도 안 함. 십 초는 좀 걸리긴 함	sensors misfire on empty floors all the time. nobody cleans where nobody walks. ten seconds does bug me though	
 board.filler.005.body	새벽에 보자길래 나갔음\n물건은 안 가져오고 내 얼굴만 계속 봄 ㅋㅋㅋ😅 말도 안 하고\n그냥 돌아왔는데 지금 생각하니까 좀 소름\n다들 밤거래 하지 마셈	guy asked to meet at dawn so I went\nshows up with no item and just stares at my face lol😅 says nothing\nI left. thinking about it now it is creepy\nnobody do night trades	
-board.filler.005.c1	ㅇㅇ 그거 거래가 목적이 아님	yeah the trade was not the point	
+board.filler.005.c1	ㄹㅇ 그거 거래가 목적이 아님	fr that was not about the trade	
 board.filler.005.c2	낮에 사람 많은 곳에서 하시는 게 좋습니다.	Do it in daylight somewhere busy.	
 board.filler.005.c3	무사히 오셔서 다행이에요	glad you got back okay	
 board.filler.006.body	세 시쯤 되면 복도에서 발소리 납니다. 매일은 아니고 사흘에 두 번 정도.\n문 열어보면 아무도 없어요.\n근데 제일 이상한 건 센서등이 안 켜져 있다는 겁니다. 사람 지나가면 무조건 켜지는 건데요.\n소리는 나는데 불은 안 켜져요. 이게 말이 됩니까	Around three there are footsteps in the hall. Not daily, about twice in three days.\nI open the door, nobody there.\nStrangest part is the motion light never fires. Anyone walking past trips it.\nSound but no light. How does that work	
@@ -513,32 +513,32 @@ board.filler.006.c3	사흘에 두 번이요...? 저 같으면 벌써 이사했�
 board.filler.006.c4	벽에 붙어 걸었다고 쳐도요, 매번 그렇게 걷는 사람이 있다는 게 더 이상하지 않나요	Even granting the wall thing. Someone walking like that every single time is stranger.	글쓴이
 board.filler.007.body	9년째 같이 사는 앤데 요새 거실 벽 한 곳만 한참 봅니다\n부르면 돌아보긴 해요. 근데 또 그쪽 봄.\n벽 뒤는 그냥 옆집이고 귀 대봐도 아무 소리 안 나요. 병원 다녀왔는데 눈도 멀쩡하대요.\n뭘 보는 걸까요	nine years with her and lately she stares at one spot on the wall\nshe looks over when I call. then goes right back.\nbehind that wall is just the neighbor and I hear nothing. vet says her eyes are fine.\nwhat is she looking at	
 board.filler.007.c1	고양이 가청 범위가 사람의 약 세 배입니다. 배관이나 벽체 소음일 가능성이 가장 높습니다.	A cat hears about three times our range. Plumbing or structural noise is most likely.	
-board.filler.007.c2	ㅇㅇ 우리집 고양이도 벽 봄 그냥 습관임	yeah mine stares at walls too. just a habit	
+board.filler.007.c2	ㄹㅇ 우리집 고양이도 벽 봄 걍 습관임	fr mine stares at walls too. just a habit	
 board.filler.007.c3	이런 사례 모으고 있는데 벽 쳐다보는 얘기는 이 동네에서만 네 번째임	I collect these. wall staring is the fourth from this neighborhood alone	
 board.filler.007.c4	네 번째요? 그건 또 처음 듣네요	Fourth? That is news to me.	글쓴이
-board.filler.008.body	지하철 끊기고 버스도 눈앞에서 놓침 ㅋㅋㅋㅋ😂 그래서 걸어옴\n두 시간 걸렸고 다리 아직 아픔\n택시비 아끼려다 다음날을 날림	trains done and the bus pulled away in front of me lol😂 so I walked\ntwo hours, legs still hurt\nsaved a fare, lost the next day	
+board.filler.008.body	지하철 끊기고 버스도 눈앞에서 놓침 ㅋㅋㅋㅋ😂 그래서 걸어옴\n두 시간 걸렸고 다리 아직 아픔\n택시비 아끼려다 다음날 날림. 스불재임	trains done and the bus pulled away in front of me lol😂 so I walked\ntwo hours, legs still hurt\nsaved a fare, lost the next day. brought it on myself	
 board.filler.008.c1	저도 지난주에 똑같이 걸었어요 ㅋㅋㅋ 동지네	walked the same way last week lol comrades	
 board.filler.008.c2	그 구간 딱 두 시간 맞음	that stretch is exactly two hours	
 board.filler.009.body	지난주에 찍은 사진인데 뒤쪽 유리에 뭐가 비쳐 있어요.\n보정 1도 안 했고 연사 네 장 중 세 번째에만 나옵니다. 앞뒤 사진엔 없어요.\n반사면 네 장에 다 나와야 하는 거 아닌가요?\n원본 필요하신 분 댓글 주세요	Took this last week, something in the glass behind me.\nZero edits, and out of four burst frames it is only in the third. Not in the ones around it.\nIf it were a reflection it would be in all four right?\nComment if you want the original	
 board.filler.009.c1	연사 세 번째에만 나온다면 반사는 배제됩니다. 다만 셔터 타이밍에 지나간 사람일 가능성은 남습니다.	If it is only in the third frame, reflection is out. A passerby caught on the shutter is still possible.	
-board.filler.009.c2	확대한 거 보고 소름 돋았어요ㅠㅠㅠㅠ 저 진짜 못 보겠어요	the zoom gave me chills I cannot look at it	
+board.filler.009.c2	확대한 거 보고 개소름 돋았어요ㅠㅠㅠㅠ 저 진짜 못 보겠어요	the zoom gave me chills for real I cannot look at it	
 board.filler.009.c3	ㅇㅇ 근데 확대하면 뭐든 사람같이 보임	yeah but zoom far enough and anything looks human	
 board.filler.009.c4	그 자리 통유리 안쪽이라 사람이 못 섭니다. 그래서 올린 거예요.	That spot is inside the sealed glass. Nobody can stand there. That is why I posted.	글쓴이
 board.filler.009.c5	이 구도 어디서 봤는데. 작년에도 비슷한 사진 올라왔음	seen this framing before. a similar photo went up last year	
 board.filler.010.body	위에 막차 시각 물어보신 분 있길래 역에서 찍어옴\n종점 도착 00시 30분. 그 뒤 편성은 차고지행이라 못 탐.\n주말은 십 분 늦음	someone asked about the last train so I photographed the board\nterminus 00:30. anything after that deadheads to the depot, no passengers.\nweekends run ten minutes later	
 board.filler.010.c1	감사합니다. 기록에 반영하겠습니다.	Thank you. I will add it to the record.	
 board.filler.010.c2	00시 30분이면 생각보다 늦네요	00:30 is later than I thought	
-board.filler.010.c3	그 시간에 종점 내리면 집은 어떻게 가냐고ㅋㅋㅋ	get off at the terminus then and go home how lol	
+board.filler.010.c3	그 시간에 종점 내리면 집은 어떻게 가냐고ㅋㅋㅋ 그냥 나락임	get off at the terminus then and go home how lol. just doomed	
 board.filler.011.body	거울 앞에서 셀카 찍었는데 제 어깨 옆에 어깨가 하나 더 있어요ㅠㅠ\n친구는 제 옆에 서 있었고 뒤에는 아무도 없었습니다\n옷 색도 저희 둘 다 아닌 색이에요 진짜 무서워요	mirror selfie and there is an extra shoulder next to mine\nmy friend was beside me and nobody was behind us\nthe color is not what either of us wore. I am scared	
-board.filler.011.c1	옷걸이임 100퍼	coat rack. 100%	
+board.filler.011.c1	옷걸이 ㄹㅇ 100퍼임	coat rack. 100% fr	
 board.filler.011.c2	거울 두 개가 마주 보는 구조면 반사가 한 겹 더 생깁니다. 화장실이었다면 가능성이 큽니다.	Two facing mirrors give one extra bounce. If it was a restroom, likely.	
 board.filler.011.c3	거울 한 개였어요. 그래서 계속 걸려요ㅠㅠ	There was only one mirror. That is what keeps bothering me	글쓴이
 board.filler.011.c4	거울 얘기는 흔함. 근데 옷 색이 다르다는 건 드문 축임	mirror stories are common. a different color is rarer	
 board.filler.012.body	기사님 친절하셔서 편하게 왔음. 요금도 생각보다 적게 나옴 😊\n앞으로는 그냥 부르려고요	driver was kind, easy ride. cheaper than expected too 😊\njust calling one from now on	
 board.filler.012.c1	어디 업체예요?	which company?	
-board.filler.012.c2	회식을 없애는 게 근본 해결임	abolishing work dinners is the root fix	
+board.filler.012.c2	회식 없애는 게 국룰임	scrapping work dinners is the standard fix	
 board.filler.013.body	자세히는 못 적겠습니다.\n그 칸은 타지 마세요. 막차는 특히요.\n저는 두 번 겪었고 두 번째부터는 아예 안 탑니다.\n믿든 안 믿든 상관없습니다. 적어야 될 것 같아서 적습니다.	I cannot write the details.\nDo not ride that car. The last train especially.\nTwice for me. After the second I stopped riding it.\nBelieve it or not. I just felt I had to put it down.	
-board.filler.013.c1	9-4가 어느 쪽 끝이에요...?ㅠㅠ 알아야 피하죠	which end is 9-4...? I need to know to avoid it	
+board.filler.013.c1	9-4가 어느 쪽 끝이에요...?ㅠㅠ 그거 알아야 피하죠 진심	which end is 9-4...? I need to know to avoid it seriously	
 board.filler.013.c2	무엇을 겪으셨는지 없이 타지 말라고만 하시면, 읽는 사람은 상상으로 빈칸을 채웁니다. 소문은 그렇게 커집니다.	Leave the warning without the account and readers fill the blank with imagination. That is how rumors grow.	
 board.filler.013.c3	적으면 더 퍼질 것 같아서요.	I thought writing it would spread it further.	글쓴이
 board.filler.013.c4	이미 다른 커뮤니티로 넘어갔음. 어제만 세 군데서 봤음	already crossed to other boards. saw it in three places yesterday	
@@ -548,12 +548,12 @@ board.filler.014.c1	조용한 편입니다. 막차 시간대만 잠깐 사람이
 board.filler.014.c2	저는 그 소리 들어야 잠이 옴	I need that sound to fall asleep	
 board.filler.015.body	새벽 세 시쯤 비어 있어야 할 대역에서 변조된 소리가 잡혔습니다.\n말소리 같은데 안 들려요. SDR로 녹음은 해뒀습니다.\n같은 시각에 두 번 더 잡혔고요. 이게 제일 이상합니다.	Around three I picked up modulated audio on a dead band.\nSounds like speech, cannot make it out. Recorded on the SDR.\nCaught it twice more at the same hour. That is the strange part.	
 board.filler.015.c1	야간에는 전리층 반사로 원거리 신호가 유입됩니다. 외국 방송일 가능성이 높습니다.	At night the ionosphere brings in distant signals. Foreign broadcast is likely.	
-board.filler.015.c2	파일 좀	file pls	
+board.filler.015.c2	파일 좀요 ㅇㅇ	file pls	
 board.filler.015.c3	올리겠습니다. 다만 세 번 다 같은 시각인 건 반사로는 설명이 안 됩니다.	I will upload it. But all three at the same hour is not explained by propagation.	글쓴이
 board.filler.015.c4	새벽 세 시 얘기 이 게시판에만 벌써 두 번째임	three in the morning. second one on this board already	
 board.filler.016.body	역에서 도보 십 분 안쪽으로 보고 있습니다. 예산은 넉넉하지 않아요.\n이 근처 사시는 분들 어디가 괜찮을까요?	Looking within a ten minute walk of the station. Budget is tight.\nFor those nearby, where is decent?	
 board.filler.016.c1	역 바로 앞은 비쌉니다. 한 정거장만 나가셔도 확 내려가요.	Right by the station is expensive. One stop out and it drops.	
-board.filler.016.c2	저도 같은 고민 중이에요	same search here	
+board.filler.016.c2	저도 같은 고민 중이에요. 역 근처 시세 보고 어질어질	same search here. the prices by the station made me dizzy	
 board.filler.017.body	계단으로 올라갈 때마다 위에서 누가 내려다보는 느낌이 듭니다.\n고개 들면 아무도 없어요.\n처음엔 몇 번 올려다봤는데 이제 안 봅니다. 안 보는 게 편해요.	Every time I climb the stairs it feels like someone is looking down.\nI look up, nobody.\nI checked a few times at first. Not any more. Easier that way.	
 board.filler.017.c1	저도 계단 못 써요... 엘베만 타요ㅠㅠ	I cannot use stairs either. elevator only	
 board.filler.017.c2	계단은 상방 시야가 구조적으로 잘립니다. 그런 느낌이 나기 쉬운 공간이에요.	Stairwells structurally cut the upward field of view. That feeling is easy to produce there.	
@@ -563,10 +563,10 @@ board.filler.018.body	사이트 열렸다길래 하나 꺼내봅니다.\n오래�
 board.filler.018.c1	출처를 모르는 이야기는 대개 출처가 없습니다.	A story with no known source usually has none.	
 board.filler.018.c2	ㅋㅋ 이런 거 어디서 자꾸 주워옴 😅	lol where do you keep finding these 😅	
 board.filler.018.c3	주워오는 게 제 취미입니다.	Picking them up is the hobby.	글쓴이
-board.filler.018.c4	근데 막차 빈자리 얘기 요새 진짜 자주 보이긴 함	the empty seat thing does come up a lot lately though	
+board.filler.018.c4	ㄹㅇ 막차 빈자리 얘기 요새 개자주 보임	fr the empty seat thing is everywhere lately	
 board.filler.019.body	안녕하세요. 겪은 일을 편하게 적는 곳으로 열었습니다.\n괴담에 휩쓸리지 마시길 😊	Hello. Opened this as a place to write down what you went through.\nTry not to get swept up. 😊	
 board.filler.019.c1	잘 쓰겠습니다	will make good use of it	
-board.filler.019.c2	휩쓸리지 말라면서 사이트 이름이 괴담넷인 건 좀ㅋㅋㅋ	telling us not to get swept up while naming it LegendNet lol	
+board.filler.019.c2	휩쓸리지 말라면서 사이트 이름이 괴담넷인 건 셀프 뇌절 아님?ㅋㅋㅋ	telling us not to get swept up while naming it LegendNet is peak irony lol	
 board.filler.019.c3	운영 화이팅입니다	good luck with the board	
 
 # --- 괴담넷: 게시판 글 본문과 댓글 ---
