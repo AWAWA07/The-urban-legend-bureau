@@ -88,8 +88,8 @@ namespace UrbanLegendBureau.Systems
 
         // --- 커뮤니티 ---
         private const string TutorialPostViews = "1284";
-        private const int TutorialPostLikes = 12;
-        private const int TutorialPostDislikes = 2;
+        private const int TutorialPostLikes = 17;
+        private const int TutorialPostDislikes = 3;
 
         /// <summary>튜토리얼 글이 괴담의 믿음에 보태고 있는 몫(%). 정답 댓글을 달면 절반쯤으로 내려간다.</summary>
         private const int TutorialPostBelief = 46;
@@ -558,7 +558,7 @@ namespace UrbanLegendBureau.Systems
                     Likes = TutorialPostLikes,
                     Dislikes = TutorialPostDislikes,
                 },
-                Filler("009", views: 512, belief: 31, minutesAgo: 1523, up: 142, down: 38,
+                Filler("009", views: 512, belief: 31, minutesAgo: 1523, up: 13, down: 5,
                     by: "nick_5|nick_7|nick_6|op|nick_12", hot: true),
 
                 // 여기부터 최신순. 괴담과 상관없는 글은 믿음에 보태는 것이 없어 0이다.
@@ -569,48 +569,48 @@ namespace UrbanLegendBureau.Systems
                 // 요 며칠 사이 부쩍 늘었다. 괴담이 퍼지는 중이라는 것을 글 수로 보여준다.
 
                 // --- 오늘 ---
-                Filler("006", views: 96, belief: 28, minutesAgo: 12, up: 97, down: 12,
+                Filler("006", views: 96, belief: 28, minutesAgo: 12, up: 12, down: 2,
                     by: "nick_5|nick_10|nick_7|op"),
-                Filler("007", views: 340, belief: 19, minutesAgo: 34, up: 54, down: 31,
+                Filler("007", views: 340, belief: 19, minutesAgo: 34, up: 9, down: 6,
                     by: "nick_11|nick_6|nick_12|op"),
-                Filler("008", views: 28, belief: 0, minutesAgo: 60, up: 11, down: 1,
+                Filler("008", views: 28, belief: 0, minutesAgo: 60, up: 4, down: 0,
                     by: "nick_4|nick_1"),
-                Filler("004", views: 203, belief: 25, minutesAgo: 120, up: 88, down: 19,
+                Filler("004", views: 203, belief: 25, minutesAgo: 120, up: 11, down: 3,
                     by: "nick_11|nick_7|op|nick_10"),
-                Filler("005", views: 157, belief: 0, minutesAgo: 240, up: 23, down: 3,
+                Filler("005", views: 157, belief: 0, minutesAgo: 240, up: 7, down: 1,
                     by: "nick_6|nick_9|anon"),
-                Filler("001", views: 41, belief: 0, minutesAgo: 360, up: 31, down: 0,
+                Filler("001", views: 41, belief: 0, minutesAgo: 360, up: 8, down: 0,
                     by: "nick_9|nick_6|anon"),
-                Filler("002", views: 88, belief: 0, minutesAgo: 540, up: 17, down: 2,
+                Filler("002", views: 88, belief: 0, minutesAgo: 540, up: 5, down: 0,
                     by: "nick_4|anon|nick_1"),
-                Filler("010", views: 62, belief: 0, minutesAgo: 660, up: 26, down: 1,
+                Filler("010", views: 62, belief: 0, minutesAgo: 660, up: 9, down: 0,
                     by: "nick_8|anon|nick_1"),
 
                 // --- 어제 ---
                 // 막차연구회의 글은 같은 괴담을 좇고 있다. 이 사건을 조사하면 함께 오른다.
-                Filler("003", views: 12, belief: 16, minutesAgo: 1360, up: 19, down: 9,
+                Filler("003", views: 12, belief: 16, minutesAgo: 1360, up: 3, down: 1,
                     by: "anon|nick_5|op|nick_7", legendId: SubwayLegendId),
-                Filler("011", views: 288, belief: 24, minutesAgo: 1578, up: 76, down: 44,
+                Filler("011", views: 288, belief: 24, minutesAgo: 1578, up: 8, down: 7,
                     by: "nick_6|nick_5|op|nick_12"),
-                Filler("012", views: 44, belief: 0, minutesAgo: 1677, up: 9, down: 0,
+                Filler("012", views: 44, belief: 0, minutesAgo: 1677, up: 3, down: 0,
                     by: "anon|nick_4"),
-                Filler("013", views: 431, belief: 30, minutesAgo: 1945, up: 168, down: 22,
+                Filler("013", views: 431, belief: 30, minutesAgo: 1945, up: 16, down: 3,
                     by: "nick_7|nick_5|op|nick_12|nick_10", legendId: SubwayLegendId),
-                Filler("014", views: 19, belief: 0, minutesAgo: 2229, up: 6, down: 0,
+                Filler("014", views: 19, belief: 0, minutesAgo: 2229, up: 1, down: 0,
                     by: "nick_9|nick_4"),
 
                 // --- 이틀 전 ---
-                Filler("015", views: 176, belief: 17, minutesAgo: 2810, up: 41, down: 35,
+                Filler("015", views: 176, belief: 17, minutesAgo: 2810, up: 6, down: 5,
                     by: "nick_11|nick_6|op|nick_12"),
-                Filler("016", views: 33, belief: 0, minutesAgo: 3328, up: 8, down: 1,
+                Filler("016", views: 33, belief: 0, minutesAgo: 3328, up: 2, down: 0,
                     by: "nick_9|anon"),
-                Filler("017", views: 152, belief: 21, minutesAgo: 3552, up: 63, down: 26,
+                Filler("017", views: 152, belief: 21, minutesAgo: 3552, up: 8, down: 4,
                     by: "nick_7|nick_5|nick_10|op"),
 
                 // --- 사흘 전. 사이트가 문을 연 날 ---
-                Filler("018", views: 97, belief: 13, minutesAgo: 5023, up: 29, down: 24,
+                Filler("018", views: 97, belief: 13, minutesAgo: 5023, up: 5, down: 4,
                     by: "nick_5|nick_6|op|nick_1"),
-                Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 53, down: 4,
+                Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 15, down: 2,
                     by: "nick_1|nick_12|anon"),
             };
         }
