@@ -212,9 +212,9 @@ ui.action.cost_spread	확산도 +{0}%	Spread +{0}%
 
 # --- 19단계: 규칙 추론 선택 ---
 ui.rule.screen_title	규칙 추론	Deduction	규칙 추론 화면 제목
-ui.rule.screen_hint	왼쪽에서 근거로 삼을 단서를 고르고, 그 근거로 세울 수 있는 규칙을 짚으세요.	Pick the clues you are reasoning from, then choose the rule they hold up.	규칙 단계 안내
+ui.rule.screen_hint	왼쪽에서 근거로 삼을 단서를 고르고, 이 괴담이 어떻게 움직이는지 짚으세요.	Pick the clues you are reasoning from, then say how this legend works.	규칙 단계 안내
 ui.rule.already_mark	확인함	Checked	이미 추론한 규칙 표시
-ui.rule.list_title	세워 볼 수 있는 규칙	Rules you can test	규칙 추론 화면 - 후보 칸 제목
+ui.rule.list_title	이 괴담이 움직이는 방식	How it works	규칙 추론 화면 - 후보 칸 제목
 ui.rule.no_candidate	아직 세워 볼 수 있는 규칙이 없다. 현장에서 단서를 더 모아야 한다.	Nothing to test yet. Gather more at the site.	후보가 하나도 없을 때
 ui.rule.no_clue	아직 모은 단서가 없다. 현장을 더 뒤져야 한다.	Nothing collected yet. Search the site.	단서 칸이 비었을 때
 ui.rule.evidence_mismatch	그 근거로는 이 규칙이 서지 않는다. 왼쪽에서 근거로 삼을 단서를 골라 보자.	That evidence does not hold this rule up. Pick what you are reasoning from.	고른 근거가 규칙과 맞지 않을 때
@@ -225,7 +225,7 @@ ui.rule.counter_question	그럼 파훼법은 무엇인가?	Then what breaks it?	
 ui.rule.verdict_opt_fake	가짜다. 애초에 없던 일이 이야기로만 돌고 있다.	Fake. Nothing ever happened; only the story goes around.	
 ui.rule.verdict_opt_real	진짜다. 도는 이야기 그대로 일어난다.	Real. It happens exactly as the story says.	
 ui.rule.verdict_opt_half	절반만 진짜다. 알맹이는 실재하고 나머지는 나중에 덧붙었다.	Half real. The core is there; the rest was added later.	
-ui.rule.verdict_hit	판정이 섰다. 이제 이 괴담이 어떤 규칙으로 움직이는지 짚어 보자.	The call holds. Now work out the rule it runs on.	
+ui.rule.verdict_hit	판정이 섰다. 이제 이것이 어떻게 움직이는지 짚어 보자.	The call holds. Now work out how it operates.	
 ui.rule.verdict_miss	모은 증언이 그 판정을 받쳐 주지 않는다. 왼쪽 단서를 다시 읽어 보자.	The testimony you gathered does not hold that call up. Read the clues again.	
 ui.rule.counter_miss	그 방법으로는 이 괴담을 막지 못한다. 무엇이 실제로 일어났는지부터 다시 본다.	That will not stop this one. Start again from what actually happened.	
 ui.rule.conclude_done	결론이 섰다.	The conclusion holds.	
@@ -258,7 +258,7 @@ case.001.subway.description	막차에서 옆자리에 누군가 앉아 있었다
 legend.subway.name	막차의 빈자리	The Empty Seat on the Last Train	
 legend.subway.description	종착역으로 향하는 막차. 옆자리에 누군가 앉은 기척이 분명한데, 고개를 돌려 확인한 사람들은 그 뒤가 흐릿하다고 말한다. 증언은 조금씩 어긋나고, 온라인에서는 이야기가 계속 불어나고 있다.	On the last train to the terminus, passengers feel someone settle into the seat beside them. The ones who turned to look say everything after that is blurred. The accounts do not quite line up, and online the story keeps growing.	
 rule.subway.001.text	옆자리에 앉은 기척은 착각이다. 이 괴담에는 실체가 없다.	The presence in the next seat is imagined. There is nothing behind this legend.	함정 A - 근거 001+003 (다른 승객은 비어 있었다 하고, CCTV에도 아무것도 없다)
-rule.subway.002.text	옆자리에 누가 앉은 기척이 들어도, 돌아보아 그 자리를 확인해서는 안 된다.	Even when you feel someone take the seat beside you, do not turn and look.	정답
+rule.subway.002.text	옆자리의 그것은 고개를 돌려 확인한 사람에게만 남는다. 확인하지 않으면 그냥 지나간다.	The thing in the next seat stays only with those who turn and look. Do not check, and it passes you by.	정답
 rule.subway.003.text	옆자리에 앉은 그것의 얼굴을 보면, 그것이 집까지 따라온다.	Look at the face of the thing beside you and it follows you home.	함정 B
 legend.subway.verdict	절반만 진짜다. 옆자리의 기척도, 돌아본 사람에게 남는 것도 실재한다. 다만 '얼굴을 보면 집까지 따라온다'는 나중에 덧붙은 가짜다.	Half of it is real. The presence beside the seat is real, and so is what stays with those who turn. The part about it following you home was added later.	규칙을 맞힌 뒤의 판정 (한 줄)
 legend.subway.counter	기척이 들어도 소리가 나는 쪽으로 돌아보지 않는다.	However clearly you feel it, do not turn toward the sound.	규칙을 맞힌 뒤의 파훼법 (한 줄)
@@ -271,8 +271,7 @@ clue.subway.003.text	CCTV에는 해당 좌석 주변의 움직임이 전혀 잡�
 clue.subway.004.text	"얼굴을 보면 따라온다"는 대목은 최초 목격담에 없었다. 나중에 퍼진 글에서만 등장한다.	The line about being followed if you see its face is absent from the first account. It only shows up in the later posts.	
 clue.subway.005.text	역 기록에도 같은 좌석을 두고 비슷한 신고가 반복됐다. 신고자들은 하나같이 "누군가 옆에 있었다"라고 적었다.	Station records show the same complaints about that one seat, year after year. Every complainant wrote the same thing: someone was sitting beside me.	
 clue.subway.006.text	돌아보지 않은 목격자도 있다. 무서워서 끝내 고개를 못 돌렸다는 사람은 기억도 멀쩡하고 그 뒤로 아무 일도 없었다고 한다.	One witness never turned. Too afraid to look, and their memory is intact; they say nothing has happened to them since.	
-clue.subway.007.text	그 좌석 방석에 사람이 앉았다 일어난 자국이 그대로 눌려 있다. 손을 대 보면 아직 미지근하다. 같은 칸 어디에도 그 자리에서 일어난 사람은 없다.	The cushion of that seat still holds the dent of someone who sat and rose. It is warm to the touch. Nobody in the car got up from it.	현장에서만 - 빈자리
-clue.subway.008.text	창유리 안쪽에 손자국이 하나 찍혀 있다. 바깥이 아니라 안쪽이고, 앉은 사람의 어깨쯤 되는 높이다. 승무원은 매일 닦는다고 한다.	There is a handprint on the inside of the window glass. Not outside, inside, at about the shoulder height of someone seated. The crew says they wipe it down daily.	현장에서만 - 창문
+clue.subway.008.text	창유리에 옆자리가 비친다. 고개를 돌리지 않고 유리로만 확인했다는 사람이 있는데, 그 사람에게는 아무 일도 없었다.	The next seat reflects in the window glass. One person checked it only in the reflection, without turning, and nothing happened to them.	현장에서만 - 창문
 web.subway.001.title	어제 막차에서 있었던 일	What happened on the last train	최초 목격담
 web.subway.001.body	어제 9-4 승강장에서 막차 탔습니다. 칸에 사람 거의 없었고 저는 문 옆 두 자리 중 안쪽에 앉았어요.\n출발하고 얼마 안 돼서 옆자리에 누가 앉는 느낌이 났습니다. 방석 눌리는 감각이랑 옷깃 스치는 소리까지 났어요. 팔 닿을 뻔한 거리였습니다.\n근데 그때부터 목이 안 돌아가더라고요. 그냥 앞만 보다가 다음 역에서 내렸습니다.\n내려서 창문으로 봤는데 그 자리 비어 있었어요. 같은 칸 계시던 분한테 물어보니까 처음부터 아무도 안 앉았다고 하시고요.\n이런 경험 있으신 분 계신가요. 제가 피곤해서 그런 거면 좋겠는데 아직도 좀 그렇습니다.	Took the last train from 9-4 yesterday. Car was nearly empty, I sat on the inner of two seats by the door.\nNot long after we pulled out I felt someone sit down beside me. The cushion gave, fabric brushed. Close enough our arms almost touched.\nBut from then my neck would not turn. I stared ahead until the next station and got off.\nFrom the platform I looked back through the window. Seat was empty. Asked someone from the car and they said nobody ever sat there.\nAnyone else had this? I would like it to be tiredness but it is still sitting with me.	최초 목격담 - 돌아보지 않았다
 web.subway.001.c1	9-4면 맨 끝칸이네요. 거기 원래 사람 잘 안 타는 자리 맞죠	9-4 is the last car right. hardly anyone rides there	
@@ -330,12 +329,9 @@ action.subway.platform_trace.result	승강장에서는 건질 것이 없었다. 
 action.subway.witness.name	목격담 대조	Cross-check accounts	
 action.subway.witness.desc	같은 괴담을 다룬 글들을 끝까지 찾아 읽는다. 겪고도 멀쩡한 사람이 있는지 본다.	Read every account of this legend to the end. Look for anyone who went through it and came out fine.	
 action.subway.witness.result	겪고도 아무 일 없었다는 글이 하나 있었다. 그 사람만 옆을 보지 않았다.	One account says nothing happened at all. That person is the only one who did not look.	
-action.subway.seat_check.name	자리 살피기	Examine the seat	
-action.subway.seat_check.desc	빈자리에 직접 손을 대고 방석과 등받이를 살핀다. 여기 서 있지 않으면 알 수 없는 것이다.	Put a hand on the empty seat and look over the cushion and back. You cannot learn this from anywhere else.	
-action.subway.seat_check.result	방석이 눌려 있다. 그리고 아직 따뜻하다.	The cushion is pressed down. And it is still warm.	
 action.subway.glass_check.name	유리 살피기	Examine the glass	
-action.subway.glass_check.desc	창에 얼굴을 가까이 대고 비스듬히 본다. 자국은 정면에서는 보이지 않는다.	Lean in close and look at the glass on the slant. The mark does not show head on.	
-action.subway.glass_check.result	손자국이 하나 있다. 유리 안쪽이다.	One handprint. On the inside of the glass.	
+action.subway.glass_check.desc	창에 얼굴을 가까이 대고 비스듬히 본다. 이 자리에서 무엇이 보이는지는 여기 서 봐야 안다.	Lean in close and look at the glass on the slant. What this seat can see, you learn only by sitting in it.	
+action.subway.glass_check.result	이 각도라면 고개를 돌리지 않고도 옆자리가 보인다.	At this angle you can see the next seat without turning your head.	
 action.subway.compare.name	게시글 대조	Compare the posts	사무실 전용
 action.subway.compare.desc	확보한 게시글을 나란히 놓고 어느 대목이 나중에 붙었는지 본다.	Lay the posts side by side and find which lines were added later.	
 action.subway.compare.result	최초 목격담에 없던 문장이 나중 글에서 늘어나 있다.	Sentences absent from the first account have multiplied in the later ones.	

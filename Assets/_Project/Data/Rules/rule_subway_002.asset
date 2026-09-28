@@ -17,6 +17,5 @@ MonoBehaviour:
   _isTrue: 1
   _requiredClueIds:
   - clue_subway_002
-  - clue_subway_004
   - clue_subway_006
   _conditions: []
