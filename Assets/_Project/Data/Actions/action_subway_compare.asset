@@ -17,7 +17,7 @@ MonoBehaviour:
   _descriptionTextId: action.subway.compare.desc
   _resultTextId: action.subway.compare.result
   _actionKind: 5
-  _usage: 1
+  _usage: 0
   _minutesOverride: 10
   _useSpreadOverride: 1
   _spreadOverride: 0.5

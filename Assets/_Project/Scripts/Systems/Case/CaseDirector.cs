@@ -338,6 +338,12 @@ namespace UrbanLegendBureau.Systems
 
             // 내려 둔 결론도 물린다. 다시 조사하면 판정도 파훼법도 다시 짚어야 한다.
             _concludeStep = ConcludeStep.Verdict;
+            _settledVerdictId = null;
+            _settledRuleId = null;
+            _settledCounterId = null;
+            _reportBlanks = null;
+            _reportAnswers.Clear();
+            _reportFiled = false;
             _triedAnswers.Clear();
             _misjudgeCount = 0;
             _givenClueIds.Clear();
@@ -1888,7 +1894,8 @@ namespace UrbanLegendBureau.Systems
                 Label = _loc.Get(ReportLabelVerdictTextId),
                 Options = verdictOptions,
             });
-            _reportAnswers.Add((int)_legend.VerdictKind);
+            // 괴담 자료가 아니라 플레이어가 1단계에서 실제로 세운 판정을 정답으로 삼는다.
+            _reportAnswers.Add(IndexOfVerdict(_settledVerdictId));
 
             // 2. 이 괴담이 움직이는 방식
             var ruleOptions = new List<string>();
@@ -1898,7 +1905,7 @@ namespace UrbanLegendBureau.Systems
                 var rule = _legend.Rules[i];
                 if (rule == null) continue;
 
-                if (rule.IsTrue) ruleAnswer = ruleOptions.Count;
+                if (rule.RuleId == _settledRuleId) ruleAnswer = ruleOptions.Count;
                 ruleOptions.Add(_loc.Get(rule.RuleTextId));
             }
             list.Add(new ReportScreen.Blank
@@ -1918,7 +1925,7 @@ namespace UrbanLegendBureau.Systems
                 {
                     if (string.IsNullOrEmpty(counters[i])) continue;
 
-                    if (counters[i] == _legend.CounterTextId) counterAnswer = counterOptions.Count;
+                    if (counters[i] == _settledCounterId) counterAnswer = counterOptions.Count;
                     counterOptions.Add(_loc.Get(counters[i]));
                 }
             }
@@ -1950,6 +1957,19 @@ namespace UrbanLegendBureau.Systems
             _reportAnswers.Add(pageAnswer);
 
             return list;
+        }
+
+
+        /// <summary>플레이어가 세운 판정이 후보 목록에서 몇 번째인가. 못 찾으면 자료의 답으로 돌아간다.</summary>
+        private int IndexOfVerdict(string settled)
+        {
+            int i = 0;
+            foreach (LegendVerdict kind in System.Enum.GetValues(typeof(LegendVerdict)))
+            {
+                if (kind.ToString() == settled) return i;
+                i++;
+            }
+            return (int)_legend.VerdictKind;
         }
 
         /// <summary>이 괴담을 가장 크게 실어 나르는 글의 확산량.</summary>
@@ -2120,6 +2140,12 @@ namespace UrbanLegendBureau.Systems
 
         private ConcludeStep _concludeStep;
 
+        // 추론에서 실제로 세운 것들. 보고서는 괴담 자료가 아니라 이것을 보고 채점한다.
+        // 플레이어가 짚어서 선 결론과 보고서에 적는 결론이 어긋나면 안 된다.
+        private string _settledVerdictId;
+        private string _settledRuleId;
+        private string _settledCounterId;
+
         /// <summary>고르고 나서 아니었던 답들. 같은 자리를 두 번 헤매지 않게 딱지를 붙인다.</summary>
         private readonly HashSet<string> _triedAnswers = new HashSet<string>();
 
@@ -2246,6 +2272,7 @@ namespace UrbanLegendBureau.Systems
             if (verdictStep)
             {
                 // 진위를 가렸으면 다음은 규칙이다. 무엇의 규칙인지 정해 두고 세우게 한다.
+                _settledVerdictId = answerId;
                 _concludeStep = ConcludeStep.Rule;
 
                 // 다음 물음은 다른 증언이 받친다. 골라 둔 것을 놓고 새로 고르게 한다.
@@ -2255,6 +2282,7 @@ namespace UrbanLegendBureau.Systems
             }
             else
             {
+                _settledCounterId = answerId;
                 _concludeStep = ConcludeStep.Done;
                 _ruleListScreen.ClearOptions();
                 _ruleListScreen.SetHint(BuildRuleScreenHintId());
@@ -2451,6 +2479,7 @@ namespace UrbanLegendBureau.Systems
             // 틀린 규칙도 기록에는 남는다. 그 대가는 봉인에서 치른다.
             if (result.Success && result.IsCorrect && IsTrueRuleDeduced())
             {
+                _settledRuleId = rule.RuleId;
                 _concludeStep = ConcludeStep.Counter;
                 _ruleListScreen.ClearPicks();
             }
@@ -2494,6 +2523,18 @@ namespace UrbanLegendBureau.Systems
             strayClueId = null;
             missing = false;
 
+            // 끼어든 것을 먼저 본다. 고른 것 가운데 이 물음과 상관없는 단서가 있는가.
+            // 모자란 것보다 이것을 먼저 짚어야 한다. 엉뚱한 것을 든 채로 "더 찾아라" 는 말을 들으면
+            // 있는 것을 또 찾으러 간다.
+            foreach (var entry in BuildAcquiredClueEntries())
+            {
+                if (entry == null || !_ruleListScreen.IsPicked(entry.ClueId)) continue;
+                if (Contains(required, entry.ClueId) || Contains(allowed, entry.ClueId)) continue;
+
+                strayClueId = entry.ClueId;
+                break;
+            }
+
             if (required != null)
             {
                 for (int i = 0; i < required.Count; i++)
@@ -2502,21 +2543,11 @@ namespace UrbanLegendBureau.Systems
                     if (_ruleListScreen.IsPicked(required[i])) continue;
 
                     missing = true;
-                    return false;
+                    break;
                 }
             }
 
-            // 고른 것 가운데 이 물음과 상관없는 것이 있는가. 첫 번째 것을 짚어 준다.
-            foreach (var entry in BuildAcquiredClueEntries())
-            {
-                if (entry == null || !_ruleListScreen.IsPicked(entry.ClueId)) continue;
-                if (Contains(required, entry.ClueId) || Contains(allowed, entry.ClueId)) continue;
-
-                strayClueId = entry.ClueId;
-                return false;
-            }
-
-            return true;
+            return strayClueId == null && !missing;
         }
 
         private static bool Contains(IReadOnlyList<string> list, string id)
@@ -2530,14 +2561,29 @@ namespace UrbanLegendBureau.Systems
             return false;
         }
 
-        /// <summary>어긋난 근거를 짚어 주는 한 줄. 무엇이 모자라고 무엇이 끼었는지까지 적는다.</summary>
+        /// <summary>
+        /// 어긋난 근거를 짚어 주는 글.
+        ///
+        /// 끼어든 것이 있으면 그 단서를 그대로 인용해 먼저 알린다. 번호는 적지 않는다.
+        /// 모자란 것이 있으면 무엇을 더 봐야 하는지를 말로 이른다. 어느 단서가 필요한지는 말하지 않는다.
+        /// 둘 다면 끼어든 것을 먼저 적고 줄을 바꿔 모자란 것을 적는다.
+        /// </summary>
         private string BuildEvidenceMiss(string strayClueId, bool missing, string missingTextId)
         {
+            var sb = new StringBuilder();
+
             if (!string.IsNullOrEmpty(strayClueId))
             {
-                return _loc.Get(StrayClueTextId, ResolveClueText(strayClueId));
+                sb.Append(_loc.Get(StrayClueTextId, ResolveClueText(strayClueId)));
             }
-            return _loc.Get(missing ? missingTextId : EvidenceMismatchTextId);
+
+            if (missing)
+            {
+                if (sb.Length > 0) sb.Append('\n');
+                sb.Append(_loc.Get(missingTextId));
+            }
+
+            return sb.Length > 0 ? sb.ToString() : _loc.Get(EvidenceMismatchTextId);
         }
 
 
