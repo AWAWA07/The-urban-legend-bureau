@@ -137,9 +137,9 @@ namespace UrbanLegendBureau.EditorTools
 
             // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
             ConfigurePoint(seat, "point_subway_seat",
-                new[] { "action_subway_seat_search", "action_subway_photo" }, null, false, CaseStep.Started);
+                new[] { "action_subway_seat_search", "action_subway_seat_check", "action_subway_photo" }, null, false, CaseStep.Started);
             ConfigurePoint(window, "point_subway_window",
-                new[] { "action_subway_photo", "action_subway_window_trace" }, null, false, CaseStep.Started);
+                new[] { "action_subway_window_trace", "action_subway_glass_check", "action_subway_photo" }, null, false, CaseStep.Started);
             ConfigurePoint(cctv, "point_subway_cctv",
                 new[] { "action_subway_cctv_inspect", "action_subway_photo" },
                 new[] { "clue_subway_001" }, false, CaseStep.Started);
