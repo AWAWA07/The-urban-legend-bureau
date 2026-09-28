@@ -75,6 +75,10 @@ namespace UrbanLegendBureau.Data
         [Tooltip("이 규칙을 추론하려면 필요한 단서들의 ID.")]
         [SerializeField] private List<string> _requiredClueIds = new List<string>();
 
+        [Tooltip("이 규칙을 세울 때 곁들여도 되는 단서들. 답을 받치지는 않지만 어긋나지도 않는 것들이다. " +
+                 "여기에도 위에도 없는 단서를 함께 고르면 이 규칙은 서지 않는다.")]
+        [SerializeField] private List<string> _allowedClueIds = new List<string>();
+
         [Header("규칙 조건 (판정 로직은 이후 단계)")]
         [Tooltip("규칙이 발동하는 조건들. 이번 단계에서는 데이터로만 존재한다.")]
         [SerializeField] private List<RuleCondition> _conditions = new List<RuleCondition>();
@@ -84,6 +88,7 @@ namespace UrbanLegendBureau.Data
         public string RuleTextId => _ruleTextId;
         public bool IsTrue => _isTrue;
         public IReadOnlyList<string> RequiredClueIds => _requiredClueIds;
+        public IReadOnlyList<string> AllowedClueIds => _allowedClueIds;
         public IReadOnlyList<RuleCondition> Conditions => _conditions;
 
         private void OnValidate()

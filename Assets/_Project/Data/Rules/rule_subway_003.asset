@@ -18,4 +18,5 @@ MonoBehaviour:
   _requiredClueIds:
   - clue_subway_001
   - clue_subway_002
+  _allowedClueIds: []
   _conditions: []

@@ -60,6 +60,9 @@ namespace UrbanLegendBureau.Data
         [Tooltip("판정의 근거가 되는 단서들. 결론 칸이 이 단서들을 그대로 인용한다.")]
         [SerializeField] private List<string> _verdictClueIds = new List<string>();
 
+        [Tooltip("판정에 곁들여도 되는 단서들. 판정을 받치지는 않지만 어긋나지도 않는 것들이다.")]
+        [SerializeField] private List<string> _verdictAllowedClueIds = new List<string>();
+
         [Tooltip("이 괴담을 어떻게 피하거나 끊는가. 맞는 규칙에서 따라 나오는 한 줄이다.")]
         [SerializeField] private string _counterTextId;
 
@@ -68,6 +71,9 @@ namespace UrbanLegendBureau.Data
 
         [Tooltip("파훼법의 근거가 되는 단서들.")]
         [SerializeField] private List<string> _counterClueIds = new List<string>();
+
+        [Tooltip("파훼법에 곁들여도 되는 단서들.")]
+        [SerializeField] private List<string> _counterAllowedClueIds = new List<string>();
 
         [Header("구성 데이터")]
         [Tooltip("이 괴담의 규칙들. 진짜 규칙과 함정 규칙이 섞여 있을 수 있다.")]
@@ -98,6 +104,8 @@ namespace UrbanLegendBureau.Data
         public IReadOnlyList<string> CounterOptionTextIds => _counterOptionTextIds;
         public IReadOnlyList<string> VerdictClueIds => _verdictClueIds;
         public IReadOnlyList<string> CounterClueIds => _counterClueIds;
+        public IReadOnlyList<string> VerdictAllowedClueIds => _verdictAllowedClueIds;
+        public IReadOnlyList<string> CounterAllowedClueIds => _counterAllowedClueIds;
         public IReadOnlyList<RuleSO> Rules => _rules;
         public IReadOnlyList<ClueSO> Clues => _clues;
         public IReadOnlyList<WebPageSO> WebPages => _webPages;

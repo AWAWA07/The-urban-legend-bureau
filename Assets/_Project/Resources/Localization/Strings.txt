@@ -229,8 +229,8 @@ ui.rule.verdict_hit	판정이 섰다. 이제 이것이 어떻게 움직이는지
 ui.rule.verdict_miss	모은 증언이 그 판정을 받쳐 주지 않는다. 왼쪽 단서를 다시 읽어 보자.	The testimony you gathered does not hold that call up. Read the clues again.	
 ui.rule.counter_miss	그 방법으로는 이 괴담을 막지 못한다. 무엇이 실제로 일어났는지부터 다시 본다.	That will not stop this one. Start again from what actually happened.	
 ui.rule.conclude_done	결론이 섰다.	The conclusion holds.	
-ui.rule.verdict_evidence_miss	그 근거만으로는 진위를 가릴 수 없다. 왼쪽에서 판정의 바탕이 될 단서를 골라 보자.	That is not enough to tell true from false. Pick what the call rests on.	
-ui.rule.counter_evidence_miss	그 근거로는 파훼법이 서지 않는다. 무엇이 사람을 갈라놓았는지를 짚어 보자.	That evidence does not hold up a countermeasure. Point at what separated the two groups.	
+ui.rule.verdict_evidence_miss	진위를 가리기에는 근거가 모자라다. 이 일이 실제로 일어나는지 말해 주는 단서를 찾아보자.	Not enough to tell true from false. Look for what says whether this actually happens.	
+ui.rule.counter_evidence_miss	파훼법을 세우기에는 근거가 모자라다. 겪고도 멀쩡한 사람을 짚어 보자.	Not enough to hold up a countermeasure. Point at the ones who came through fine.	
 ui.rule.screen_hint_verdict	왼쪽에서 판정의 근거가 될 단서를 고르고, 오른쪽에서 진위를 짚으세요.	Pick the clues your call rests on, then decide true or false.	
 ui.rule.screen_hint_counter	왼쪽에서 파훼법의 근거가 될 단서를 고르고, 오른쪽에서 답을 짚으세요.	Pick the clues the countermeasure rests on, then choose the answer.	
 ui.rule.screen_hint_done	조사가 끝났다. 아래 결론을 확인하고 현장으로 돌아가세요.	The investigation is done. Read the conclusion below and head back.	
@@ -703,3 +703,5 @@ ui.net.board_daily	일상게시판	Everyday	괴담과 무관한 글이 걸리는
 ui.net.author_nick_5	회의주의자	Skeptic	또박또박 반박하는 사람
 ui.net.author_nick_6	ㅇㅇ	yeah	짧게 반말로 던지는 사람
 ui.net.author_nick_7	겁많은고3	ScaredSenior	무서워하는 사람
+ui.rule.rule_evidence_miss	이 규칙을 세우기에는 근거가 모자라다.	There is not enough here to hold that rule up.	규칙 - 필요한 근거가 빠졌을 때
+ui.rule.evidence_stray	「{0}」 이건 지금 묻는 것과 상관이 없다. 빼고 다시 보자.	"{0}" has nothing to do with what is being asked. Take it out and look again.	고른 근거에 엉뚱한 것이 끼었을 때

@@ -117,6 +117,8 @@ namespace UrbanLegendBureau.Systems
         private const string VerdictMissTextId = "ui.rule.verdict_miss";
         private const string CounterMissTextId = "ui.rule.counter_miss";
         private const string ConcludeDoneTextId = "ui.rule.conclude_done";
+        private const string StrayClueTextId = "ui.rule.evidence_stray";
+        private const string RuleEvidenceMissTextId = "ui.rule.rule_evidence_miss";
         private const string RuleScreenHintVerdictTextId = "ui.rule.screen_hint_verdict";
         private const string RuleScreenHintCounterTextId = "ui.rule.screen_hint_counter";
         private const string RuleScreenHintDoneTextId = "ui.rule.screen_hint_done";
@@ -1963,13 +1965,16 @@ namespace UrbanLegendBureau.Systems
             bool verdictStep = _concludeStep == ConcludeStep.Verdict;
 
             var need = verdictStep ? _legend.VerdictClueIds : _legend.CounterClueIds;
-            if (!IsEvidenceMatched(need))
+            var okToAdd = verdictStep ? _legend.VerdictAllowedClueIds : _legend.CounterAllowedClueIds;
+            if (!IsEvidenceMatched(need, okToAdd, out string stray, out bool missing))
             {
                 string missId = verdictStep ? VerdictEvidenceMissTextId : CounterEvidenceMissTextId;
-                _ruleListScreen.ShowResult(() => _loc.Get(missId));
+                string line = BuildEvidenceMiss(stray, missing, missId);
+                _ruleListScreen.ShowResult(() => line);
 
                 Debug.Log($"[CaseDirector] 결론 {_concludeStep} | 근거가 어긋난다 (고른 단서 " +
-                          _ruleListScreen.PickedCount + "개)");
+                          _ruleListScreen.PickedCount + "개" +
+                          (stray != null ? ", 상관없는 것=" + stray : ", 모자람") + ")");
                 return;
             }
 
@@ -2179,11 +2184,13 @@ namespace UrbanLegendBureau.Systems
 
             // 규칙만 짚어서는 세워지지 않는다. 무엇을 근거로 그렇게 보는지 왼쪽에서 골라야 한다.
             // 근거가 어긋나면 옳은 규칙이라도 세우지 못한다. 맞혔다기보다 찍은 것이기 때문이다.
-            if (!IsEvidenceMatched(rule.RequiredClueIds))
+            if (!IsEvidenceMatched(rule.RequiredClueIds, rule.AllowedClueIds, out string stray, out bool missing))
             {
-                _ruleListScreen.ShowResult(() => _loc.Get(EvidenceMismatchTextId));
+                string line = BuildEvidenceMiss(stray, missing, RuleEvidenceMissTextId);
+                _ruleListScreen.ShowResult(() => line);
                 Debug.Log($"[CaseDirector] 규칙 추론 | {rule.RuleId} - 근거가 어긋난다 (고른 단서 " +
-                          _ruleListScreen.PickedCount + "개)");
+                          _ruleListScreen.PickedCount + "개" +
+                          (stray != null ? ", 상관없는 것=" + stray : ", 모자람") + ")");
                 return;
             }
 
@@ -2218,27 +2225,70 @@ namespace UrbanLegendBureau.Systems
         /// 맞혔다고 치면, 무엇이 무엇을 받치는지 모른 채로 넘어가게 된다.
         /// </summary>
         /// <summary>
-        /// 고른 근거가 요구하는 것과 맞는가.
+        /// 고른 근거가 이 물음에 답할 만한가.
         ///
-        /// 남거나 모자라면 맞지 않은 것으로 본다. 상관없는 증언을 함께 얹어 놓고
-        /// 맞혔다고 치면, 무엇이 무엇을 받치는지 모른 채로 넘어가게 된다.
+        /// 예전에는 정해 둔 조합과 한 글자도 다르지 않아야 통과시켰다. 그래서 말이 되는
+        /// 다른 조합을 골라도 까닭 없이 튕겼다. 무엇이 틀렸는지 알 길도 없었다.
+        ///
+        /// 이제 두 가지만 본다.
+        ///   답을 받치는 단서를 빠짐없이 골랐는가.
+        ///   이 물음과 상관없는 단서를 끼워 넣지 않았는가.
+        /// 곁들여도 되는 단서는 함께 골라도 통과한다. 그것도 그 물음에 대한 말이기 때문이다.
+        ///
+        /// 어긋났으면 무엇이 어긋났는지 돌려준다. 빠진 것이 있으면 null, 끼어든 것이 있으면 그 단서 ID.
         /// </summary>
-        private bool IsEvidenceMatched(IReadOnlyList<string> need)
+        private bool IsEvidenceMatched(IReadOnlyList<string> required, IReadOnlyList<string> allowed,
+            out string strayClueId, out bool missing)
         {
-            int required = 0;
-            if (need != null)
-            {
-                for (int i = 0; i < need.Count; i++)
-                {
-                    if (string.IsNullOrEmpty(need[i])) continue;
+            strayClueId = null;
+            missing = false;
 
-                    required++;
-                    if (!_ruleListScreen.IsPicked(need[i])) return false;
+            if (required != null)
+            {
+                for (int i = 0; i < required.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(required[i])) continue;
+                    if (_ruleListScreen.IsPicked(required[i])) continue;
+
+                    missing = true;
+                    return false;
                 }
             }
 
-            return _ruleListScreen.PickedCount == required;
+            // 고른 것 가운데 이 물음과 상관없는 것이 있는가. 첫 번째 것을 짚어 준다.
+            foreach (var entry in BuildAcquiredClueEntries())
+            {
+                if (entry == null || !_ruleListScreen.IsPicked(entry.ClueId)) continue;
+                if (Contains(required, entry.ClueId) || Contains(allowed, entry.ClueId)) continue;
+
+                strayClueId = entry.ClueId;
+                return false;
+            }
+
+            return true;
         }
+
+        private static bool Contains(IReadOnlyList<string> list, string id)
+        {
+            if (list == null) return false;
+
+            for (int i = 0; i < list.Count; i++)
+            {
+                if (list[i] == id) return true;
+            }
+            return false;
+        }
+
+        /// <summary>어긋난 근거를 짚어 주는 한 줄. 무엇이 모자라고 무엇이 끼었는지까지 적는다.</summary>
+        private string BuildEvidenceMiss(string strayClueId, bool missing, string missingTextId)
+        {
+            if (!string.IsNullOrEmpty(strayClueId))
+            {
+                return _loc.Get(StrayClueTextId, ResolveClueText(strayClueId));
+            }
+            return _loc.Get(missing ? missingTextId : EvidenceMismatchTextId);
+        }
+
 
 
         /// <summary>규칙 추론 화면의 돌아가기 버튼. 현장으로 돌아가 조사를 이어간다.</summary>
