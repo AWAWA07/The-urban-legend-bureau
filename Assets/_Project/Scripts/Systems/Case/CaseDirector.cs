@@ -40,6 +40,12 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("괴담넷. 컴퓨터로 여는 것과 휴대폰으로 여는 것이 같은 화면이다.")]
         [SerializeField] private CommunityPageScreen _communityScreen;
 
+        [Tooltip("보고서 작성 화면.")]
+        [SerializeField] private ReportScreen _reportScreen;
+
+        [Tooltip("잠깐 떴다 사라지는 알림 띠.")]
+        [SerializeField] private ToastScreen _toastScreen;
+
         [Tooltip("메모장. 이것도 컴퓨터와 휴대폰이 같은 화면을 쓴다.")]
         [SerializeField] private MemoScreen _memoScreen;
 
@@ -117,6 +123,21 @@ namespace UrbanLegendBureau.Systems
         private const string VerdictMissTextId = "ui.rule.verdict_miss";
         private const string CounterMissTextId = "ui.rule.counter_miss";
         private const string ConcludeDoneTextId = "ui.rule.conclude_done";
+        private const string ReportTitleTextId = "ui.report.title";
+        private const string ReportHintTextId = "ui.report.hint";
+        private const string ReportLabelVerdictTextId = "ui.report.label_verdict";
+        private const string ReportLabelRuleTextId = "ui.report.label_rule";
+        private const string ReportLabelCounterTextId = "ui.report.label_counter";
+        private const string ReportLabelCensorTextId = "ui.report.label_censor";
+        private const string ReportEmptyTextId = "ui.report.empty";
+        private const string ReportWrongTextId = "ui.report.wrong";
+        private const string ReportDoneTextId = "ui.report.done";
+        private const string ReportSavedTextId = "ui.report.saved";
+        private const string ReportAlreadySavedTextId = "ui.report.already_saved";
+        private const string ReportNoteTitleTextId = "ui.report.note_title";
+        private const string ReportNoteFooterTextId = "ui.report.note_footer";
+        private const string HanyoungNameTextId = "tutorial.char.hanyoung";
+        private const string ReportPraiseTextId = "tutorial.field.report_done";
         private const string StrayClueTextId = "ui.rule.evidence_stray";
         private const string RuleEvidenceMissTextId = "ui.rule.rule_evidence_miss";
         private const string RuleScreenHintVerdictTextId = "ui.rule.screen_hint_verdict";
@@ -1803,6 +1824,233 @@ namespace UrbanLegendBureau.Systems
             return true;
         }
 
+
+
+        /// <summary>
+        /// 결론이 선 직후. 한영이 보고서를 쓰자고 이른다.
+        ///
+        /// 현장 화면에 말을 걸지 않는다. 이때는 규칙 추론 화면이 떠 있어서 현장 띠가 가려져 있고,
+        /// 거기 건 대사는 보이지도 넘어가지도 않는다. 그래서 보고서 화면을 먼저 열고
+        /// 그 아래 띠에 한영의 말을 얹는다.
+        /// </summary>
+        private void ShowReportCue()
+        {
+            OnOpenReportClicked();
+
+            if (_reportScreen == null) return;
+            _reportScreen.ShowResult(() => _loc.Get(HanyoungNameTextId) + "  " + _loc.Get(ReportCueTextId));
+        }
+
+        private const string ReportCueTextId = "tutorial.field.report_cue";
+
+        // ------------------------------------------------------------- 보고서
+
+        /// <summary>
+        /// 결론이 선 뒤에 쓰는 보고서.
+        ///
+        /// 답을 다시 묻는 것이 아니다. 알아낸 것을 제 손으로 한 장에 옮겨 적게 하는 자리다.
+        /// 옮겨 적고 나면 그 장이 메모장에 남아, 다음 사건에서 지난 건을 들춰 볼 수 있다.
+        /// </summary>
+        public void OnOpenReportClicked()
+        {
+            if (_reportScreen == null || _legend == null) return;
+
+            if (_reportBlanks == null) _reportBlanks = BuildReportBlanks();
+
+            _reportScreen.Bind(ReportTitleTextId, ReportHintTextId, _reportBlanks, OnReportSubmitClicked);
+            _reportScreen.SetSubmitVisible(!_reportFiled);
+
+            if (_ui.Contains(_reportScreen)) _reportScreen.Refresh();
+            else _ui.Replace(_reportScreen);
+
+            Debug.Log($"[CaseDirector] 보고서 작성 | 칸 {_reportBlanks.Count}개 | 이미 제출={_reportFiled}");
+        }
+
+        /// <summary>
+        /// 보고서의 빈칸들.
+        ///
+        /// 넣어 볼 말은 전부 이 사건에서 실제로 나온 것들이다. 판정은 세 가지 답,
+        /// 규칙은 세워 볼 수 있던 규칙들, 파훼법은 괴담넷이 퍼뜨린 것들을 포함한 후보,
+        /// 조치는 이 괴담을 실어 나르던 글들이다. 밖에서 가져온 보기는 하나도 없다.
+        /// </summary>
+        private List<ReportScreen.Blank> BuildReportBlanks()
+        {
+            var list = new List<ReportScreen.Blank>();
+
+            // 1. 진짜인가 가짜인가
+            var verdictOptions = new List<string>();
+            foreach (LegendVerdict kind in System.Enum.GetValues(typeof(LegendVerdict)))
+            {
+                verdictOptions.Add(_loc.Get(VerdictOptionPrefix + kind.ToString().ToLowerInvariant()));
+            }
+            list.Add(new ReportScreen.Blank
+            {
+                Label = _loc.Get(ReportLabelVerdictTextId),
+                Options = verdictOptions,
+            });
+            _reportAnswers.Add((int)_legend.VerdictKind);
+
+            // 2. 이 괴담이 움직이는 방식
+            var ruleOptions = new List<string>();
+            int ruleAnswer = 0;
+            for (int i = 0; i < _legend.Rules.Count; i++)
+            {
+                var rule = _legend.Rules[i];
+                if (rule == null) continue;
+
+                if (rule.IsTrue) ruleAnswer = ruleOptions.Count;
+                ruleOptions.Add(_loc.Get(rule.RuleTextId));
+            }
+            list.Add(new ReportScreen.Blank
+            {
+                Label = _loc.Get(ReportLabelRuleTextId),
+                Options = ruleOptions,
+            });
+            _reportAnswers.Add(ruleAnswer);
+
+            // 3. 파훼법
+            var counterOptions = new List<string>();
+            int counterAnswer = 0;
+            var counters = _legend.CounterOptionTextIds;
+            if (counters != null)
+            {
+                for (int i = 0; i < counters.Count; i++)
+                {
+                    if (string.IsNullOrEmpty(counters[i])) continue;
+
+                    if (counters[i] == _legend.CounterTextId) counterAnswer = counterOptions.Count;
+                    counterOptions.Add(_loc.Get(counters[i]));
+                }
+            }
+            list.Add(new ReportScreen.Blank
+            {
+                Label = _loc.Get(ReportLabelCounterTextId),
+                Options = counterOptions,
+            });
+            _reportAnswers.Add(counterAnswer);
+
+            // 4. 어느 글을 지워야 하는가.
+            // 소문을 불린 것은 목격담이 아니라 출처 없이 규칙을 정리해 퍼뜨린 글이다.
+            var pageOptions = new List<string>();
+            int pageAnswer = 0;
+            for (int i = 0; i < _legend.WebPages.Count; i++)
+            {
+                var page = _legend.WebPages[i];
+                if (page == null) continue;
+
+                if (page.SpreadWeight > HighestSpread(_legend)) continue;
+                if (Mathf.Approximately(page.SpreadWeight, HighestSpread(_legend))) pageAnswer = pageOptions.Count;
+                pageOptions.Add(_loc.Get(page.TitleTextId));
+            }
+            list.Add(new ReportScreen.Blank
+            {
+                Label = _loc.Get(ReportLabelCensorTextId),
+                Options = pageOptions,
+            });
+            _reportAnswers.Add(pageAnswer);
+
+            return list;
+        }
+
+        /// <summary>이 괴담을 가장 크게 실어 나르는 글의 확산량.</summary>
+        private static float HighestSpread(LegendSO legend)
+        {
+            float top = 0f;
+            foreach (var page in legend.WebPages)
+            {
+                if (page != null && page.SpreadWeight > top) top = page.SpreadWeight;
+            }
+            return top;
+        }
+
+        /// <summary>
+        /// 보고서의 확인 단추.
+        ///
+        /// 칸마다 맞았는지 틀렸는지를 적어 넣고 화면에 알린다. 다 맞으면 한영이 한마디 하고
+        /// 그 보고서가 메모장으로 들어간다.
+        /// </summary>
+        private void OnReportSubmitClicked()
+        {
+            if (_reportBlanks == null || _reportFiled) return;
+
+            int wrong = 0;
+            int empty = 0;
+
+            for (int i = 0; i < _reportBlanks.Count; i++)
+            {
+                var blank = _reportBlanks[i];
+                if (blank.Picked < 0) { blank.Correct = null; empty++; continue; }
+
+                blank.Correct = i < _reportAnswers.Count && blank.Picked == _reportAnswers[i];
+                if (blank.Correct == false) wrong++;
+            }
+
+            if (empty > 0)
+            {
+                _reportScreen.ShowResult(() => _loc.Get(ReportEmptyTextId));
+                _reportScreen.Refresh();
+                Debug.Log($"[CaseDirector] 보고서 | 빈칸 {empty}개 남음");
+                return;
+            }
+
+            if (wrong > 0)
+            {
+                _reportScreen.ShowResult(() => _loc.Get(ReportWrongTextId, wrong));
+                _reportScreen.Refresh();
+                Debug.Log($"[CaseDirector] 보고서 | 틀린 칸 {wrong}개");
+                return;
+            }
+
+            _reportFiled = true;
+            _reportScreen.SetSubmitVisible(false);
+            _reportScreen.Refresh();
+
+            // 한영이 한마디 하고, 쓴 글이 메모장으로 들어간다.
+            bool saved = MemoScreen.AddNote(BuildReportNote());
+
+            // 한영이 먼저 한마디 하고, 그 다음 메모장에 들어갔다고 알린다.
+            _reportScreen.ShowResult(() => _loc.Get(HanyoungNameTextId) + "  " + _loc.Get(ReportPraiseTextId));
+            if (_toastScreen != null) ShowToast(saved ? ReportSavedTextId : ReportAlreadySavedTextId);
+
+            Debug.Log($"[CaseDirector] 보고서 | 다 맞았다. 메모장에 적음={saved}");
+        }
+
+        /// <summary>메모장에 남길 보고서 한 장. 플레이어가 채워 넣은 그대로 적는다.</summary>
+        private string BuildReportNote()
+        {
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(ReportNoteTitleTextId, _loc.Get(_legend.NameTextId)));
+
+            for (int i = 0; i < _reportBlanks.Count; i++)
+            {
+                var blank = _reportBlanks[i];
+                if (blank == null || blank.Picked < 0) continue;
+
+                sb.Append("\n\n").Append(blank.Label);
+                sb.Append('\n').Append(blank.Options[blank.Picked]);
+            }
+
+            sb.Append("\n\n").Append(_loc.Get(ReportNoteFooterTextId, BuildTimeLine()));
+            return sb.ToString();
+        }
+
+        /// <summary>잠깐 떴다 사라지는 알림. 튜토리얼이 쓰는 그 띠를 함께 쓴다.</summary>
+        private void ShowToast(string textId)
+        {
+            if (_toastScreen == null || _ui == null) return;
+
+            _toastScreen.Closed = s => _ui.Close(s);
+            if (!_ui.Contains(_toastScreen)) _ui.Push(_toastScreen);
+
+            _toastScreen.Show(_loc.Get(textId));
+        }
+
+        private List<ReportScreen.Blank> _reportBlanks;
+        private readonly List<int> _reportAnswers = new List<int>();
+
+        /// <summary>보고서를 이미 냈는가. 내고 나면 고쳐 쓰지 않는다.</summary>
+        private bool _reportFiled;
+
         // ------------------------------------------------------------- 규칙 추론 화면
 
         /// <summary>현장 화면의 규칙 추론 버튼. 확보한 단서와 규칙 후보를 보여준다.</summary>
@@ -2012,6 +2260,9 @@ namespace UrbanLegendBureau.Systems
                 _ruleListScreen.SetHint(BuildRuleScreenHintId());
                 _ruleListScreen.ShowResult(() => _loc.Get(ConcludeDoneTextId));
                 ShowConclusion();
+
+                // 결론이 섰으니 이제 보고서를 쓴다. 한영이 먼저 한마디 하고 넘어간다.
+                ShowReportCue();
             }
 
             Debug.Log($"[CaseDirector] 결론 | {answerId} - 맞다 -> {_concludeStep}");

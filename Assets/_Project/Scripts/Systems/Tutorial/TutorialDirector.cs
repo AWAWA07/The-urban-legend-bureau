@@ -610,7 +610,7 @@ namespace UrbanLegendBureau.Systems
                 // --- 사흘 전. 사이트가 문을 연 날 ---
                 Filler("018", views: 97, belief: 13, minutesAgo: 5023, up: 5, down: 4,
                     by: "nick_5|nick_6|op|nick_1"),
-                Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 15, down: 2,
+                Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 32, down: 4,
                     by: "nick_1|nick_12|anon"),
             };
         }
@@ -1543,6 +1543,17 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>첫 사건에서 놓친 단서를 한영이 채워 줄 때 하는 말.</summary>
         private const string TerminusHelpTextId = "tutorial.field.terminus_help";
+
+
+        /// <summary>
+        /// 결론이 선 뒤 한영이 보고서를 쓰자고 이른다. 말이 끝나면 onDone 을 부른다.
+        ///
+        /// 걸 자리(현장 화면)가 없으면 아무것도 하지 않고 false 를 돌려준다.
+        /// 그때는 부르는 쪽이 말 없이 다음으로 넘어간다.
+        /// </summary>
+
+        /// <summary>보고서를 쓰자고 이르는 말.</summary>
+        private const string ReportCueTextId = "tutorial.field.report_cue";
 
         /// <summary>잠깐 떴다 사라지는 알림 한 줄. 시간이 다 되면 스스로 닫힌다.</summary>
         private void ShowToast(string textId)

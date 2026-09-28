@@ -242,6 +242,27 @@ ui.rule.counter_label	파훼법은 무엇인가?	What breaks it?	결론 - 두 �
 ui.field.clue_match	이 증언과 맞물리는 것	This lines up with	단서를 찾았을 때 - 같은 규칙을 가리키는 증언들
 ui.rule.btn_deduce	규칙 추론	Deduce	현장 HUD 버튼
 ui.rule.btn_back	현장으로	Back to site	
+
+# --- 조정: 보고서 작성 ---
+ui.report.title	보고서 작성	Filing the Report	보고서 화면 제목
+ui.report.hint	왼쪽 칸을 고르고, 오른쪽에서 거기 들어갈 말을 짚으세요. 다 채우면 아래에서 확인합니다.	Pick a field on the left, then choose what belongs in it. Fill them all and check below.	
+ui.report.paper_title	괴담 검열국 조사 보고서	Bureau Investigation Report	보고서 종이 머리
+ui.report.choice_title	넣을 말	What goes in	
+ui.report.label_verdict	진위	Verdict	
+ui.report.label_rule	괴담의 규칙	The rule	
+ui.report.label_counter	파훼법	Countermeasure	
+ui.report.label_censor	검열 대상	To censor	
+ui.report.empty	아직 비어 있는 칸이 있다.	Some fields are still empty.	
+ui.report.wrong	{0}칸이 사실과 다르다. 붉은 칸을 다시 보자.	{0} fields do not match what you found. Look at the red ones again.	
+ui.report.done	보고서를 마쳤다.	The report is done.	
+ui.report.saved	보고서가 메모장에 저장되었습니다!	The report has been saved to your notepad.	
+ui.report.already_saved	이미 메모장에 들어 있는 보고서입니다.	That report is already in your notepad.	
+ui.report.note_title	[조사 보고서] {0}	[Report] {0}	메모장에 적히는 머리
+ui.report.note_footer	— 괴담 검열국 / {0}	— Bureau of Urban Legend Censorship / {0}	메모장에 적히는 꼬리
+ui.report.btn_submit	제출	Submit	
+ui.report.btn_back	돌아가기	Back	
+tutorial.field.report_cue	자, 이제 보고서 작성하고 게시물을 직접 올려볼까?	Right. Shall we write it up and post it ourselves?	결론이 선 뒤 - 한영
+tutorial.field.report_done	잘했어. 첫 건 치고는 깔끔하네. 이건 네 메모장에 넣어 뒀으니까 나중에 꺼내 봐.	Well done. Clean work for a first case. I put it in your notepad, so pull it up later.	보고서를 다 맞혔을 때 - 한영
 ui.rule.candidate_found	짚이는 것이 있다	Something clicks	새 단서로 후보가 생겼을 때 팝업 제목
 ui.rule.candidate_hint	지금까지 모은 단서로 세워 볼 수 있는 규칙이 {0}개 있다.
 규칙 추론에서 직접 골라야 한다.	You can now form {0} possible rule(s) from what you have.

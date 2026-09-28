@@ -186,6 +186,7 @@ namespace UrbanLegendBureau.EditorTools
             var caseList = BuildCaseListScreen("Screen_CaseList");
             var actionList = BuildActionListScreen("Screen_Actions", out var actionButtons);
             var ruleList = BuildRuleListScreen("Screen_Rules", out var ruleScreenButtons);
+            var report = BuildReportScreen("Screen_Report", out var reportButtons);
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -227,6 +228,8 @@ namespace UrbanLegendBureau.EditorTools
             // 현장 버튼은 장면을 가리지 않게 작게 줄인다.
             ResizeButton(btnDeduce, new Vector2(280f, 84f), 26f);
             ResizeButton(btnFieldDone, new Vector2(280f, 84f), 26f);
+            var btnReportSubmit = CreateButton(reportButtons, "Btn_ReportSubmit", "ui.report.btn_submit");
+            var btnReportBack = CreateButton(reportButtons, "Btn_ReportBack", "ui.report.btn_back");
             var btnSeal = CreateButton(exorcismButtons, "Btn_Seal", "ui.seal.btn_seal");
             var btnWithdraw = CreateButton(exorcismButtons, "Btn_Withdraw", "ui.seal.btn_withdraw");
             var btnSealOk = CreateButton(exorcismButtons, "Btn_SealConfirm", "ui.common.ok");
@@ -257,6 +260,8 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_sealButton").objectReferenceValue = btnSeal;
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
             dso.FindProperty("_withdrawButton").objectReferenceValue = btnWithdraw;
+            dso.FindProperty("_reportScreen").objectReferenceValue = report;
+            dso.FindProperty("_toastScreen").objectReferenceValue = toast;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
             // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다. 메모장도 마찬가지다.
@@ -318,6 +323,14 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnSeal.GetComponent<Button>().onClick, director.OnSealClicked);
             UnityEventTools.AddPersistentListener(btnSealOk.GetComponent<Button>().onClick, director.OnExorcismConfirmClicked);
             UnityEventTools.AddPersistentListener(btnWithdraw.GetComponent<Button>().onClick, director.OnWithdrawClicked);
+            // 제출 단추는 Build 에서 만들므로 여기서 걸어 준다. 다 맞히면 화면이 스스로 거둔다.
+            var rso = new SerializedObject(report);
+            rso.Update();
+            rso.FindProperty("_submitButton").objectReferenceValue = btnReportSubmit;
+            rso.ApplyModifiedPropertiesWithoutUndo();
+
+            UnityEventTools.AddPersistentListener(btnReportSubmit.GetComponent<Button>().onClick, report.OnSubmitClicked);
+            UnityEventTools.AddPersistentListener(btnReportBack.GetComponent<Button>().onClick, director.OnRulesBackClicked);
             UnityEventTools.AddPersistentListener(btnBack.GetComponent<Button>().onClick, director.OnBackToTitleClicked);
             UnityEventTools.AddPersistentListener(btnClueOk.GetComponent<Button>().onClick, director.OnCluePopupConfirmClicked);
             UnityEventTools.AddPersistentListener(btnRuleOk.GetComponent<Button>().onClick, director.OnRulePopupConfirmClicked);
@@ -328,7 +341,7 @@ namespace UrbanLegendBureau.EditorTools
             var screens = new UIScreen[]
             {
                 title, bureau, caseList, actionList, ruleList, internetList, internetPage, fieldHud,
-                exorcism, result, help, settings, dialogue, talk, desktop, community, memo, toast,
+                exorcism, result, help, settings, dialogue, talk, desktop, community, memo, toast, report,
                 cluePopup, rulePopup, warningPopup,
             };
             for (int i = 0; i < screens.Length; i++)
@@ -3005,6 +3018,211 @@ namespace UrbanLegendBureau.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -380f), new Vector2(900f, 110f));
+            return screen;
+        }
+
+        /// <summary>
+        /// 보고서 작성 화면.
+        ///
+        /// 왼쪽이 종이고 오른쪽이 넣을 말이다. 종이의 한 줄을 고르면 오른쪽이 그 줄의 후보로 바뀐다.
+        /// 규칙 추론 화면과 같은 두 칸 짜임을 쓴다. 조사 끝에 이어지는 화면이라 모습이 이어져야 한다.
+        /// </summary>
+        private static ReportScreen BuildReportScreen(string name, out Transform buttonRow)
+        {
+            var go = CreatePanel(null, name, PanelColor);
+            StretchFull(go);
+
+            var screen = go.AddComponent<ReportScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            const float SectionTitle = 32f;
+            const float RowLabel = 26f;
+            const float RowSlot = 28f;
+            const float GuideText = 26f;
+
+            var cardColor = new Color(0.16f, 0.17f, 0.23f, 1f);
+
+            var titleText = AddText(go.transform, "Title", 54f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 430f), new Vector2(1500f, 70f), TextAlignmentOptions.Center);
+            var footerText = AddText(go.transform, "Footer", GuideText, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 368f), new Vector2(1500f, 50f), TextAlignmentOptions.Center);
+
+            // --- 왼쪽: 종이 ---
+            var paper = CreatePanel(go.transform, "Paper", cardColor);
+            var paperRt = (RectTransform)paper.transform;
+            paperRt.anchorMin = new Vector2(0.5f, 0.5f);
+            paperRt.anchorMax = new Vector2(0.5f, 0.5f);
+            paperRt.pivot = new Vector2(0f, 1f);
+            paperRt.anchoredPosition = new Vector2(-900f, 320f);
+            paperRt.sizeDelta = new Vector2(900f, 590f);
+
+            var paperTitle = AddText(paper.transform, "PaperTitle", SectionTitle, UIFontWeight.SemiBold, AccentColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            var paperTitleRt = paperTitle.rectTransform;
+            paperTitleRt.anchorMin = new Vector2(0f, 1f);
+            paperTitleRt.anchorMax = new Vector2(1f, 1f);
+            paperTitleRt.pivot = new Vector2(0.5f, 1f);
+            paperTitleRt.anchoredPosition = new Vector2(0f, -22f);
+            paperTitleRt.sizeDelta = new Vector2(-56f, 44f);
+            paperTitle.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var paperDivider = CreatePanel(paper.transform, "Divider", new Color(0.32f, 0.33f, 0.40f, 1f));
+            var paperDividerRt = (RectTransform)paperDivider.transform;
+            paperDividerRt.anchorMin = new Vector2(0f, 1f);
+            paperDividerRt.anchorMax = new Vector2(1f, 1f);
+            paperDividerRt.pivot = new Vector2(0.5f, 1f);
+            paperDividerRt.anchoredPosition = new Vector2(0f, -76f);
+            paperDividerRt.sizeDelta = new Vector2(-56f, 2f);
+            paperDivider.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(paperDivider, 2f);
+
+            var rows = new GameObject("Rows", typeof(RectTransform));
+            rows.transform.SetParent(paper.transform, false);
+            var rowsRt = (RectTransform)rows.transform;
+            StretchInside(rowsRt, 22f, 22f, 92f, 20f);
+
+            var rowsLayout = rows.AddComponent<VerticalLayoutGroup>();
+            rowsLayout.spacing = 16f;
+            rowsLayout.childAlignment = TextAnchor.UpperLeft;
+            rowsLayout.childControlWidth = true;
+            rowsLayout.childControlHeight = false;
+            rowsLayout.childForceExpandWidth = true;
+            rowsLayout.childForceExpandHeight = false;
+
+            // 한 줄. 위에 칸 이름, 아래에 채우는 자리.
+            var rowTemplate = CreatePanel(rows.transform, "RowTemplate", new Color(0.13f, 0.14f, 0.19f, 1f));
+            var rowButton = rowTemplate.AddComponent<Button>();
+            rowButton.targetGraphic = rowTemplate.GetComponent<Image>();
+            ((RectTransform)rowTemplate.transform).sizeDelta = new Vector2(856f, 96f);
+
+            var rowSize = rowTemplate.AddComponent<LayoutElement>();
+            rowSize.preferredHeight = 96f;
+            rowSize.minHeight = 96f;
+
+            var rowLabel = AddText(rowTemplate.transform, "RowLabel", RowLabel, UIFontWeight.SemiBold, AccentColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            var rowLabelRt = rowLabel.rectTransform;
+            rowLabelRt.anchorMin = new Vector2(0f, 1f);
+            rowLabelRt.anchorMax = new Vector2(1f, 1f);
+            rowLabelRt.pivot = new Vector2(0.5f, 1f);
+            rowLabelRt.anchoredPosition = new Vector2(0f, -12f);
+            rowLabelRt.sizeDelta = new Vector2(-40f, 32f);
+            rowLabel.textWrappingMode = TextWrappingModes.NoWrap;
+            rowLabel.raycastTarget = false;
+
+            var rowSlot = AddText(rowTemplate.transform, "RowSlot", RowSlot, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            var rowSlotRt = rowSlot.rectTransform;
+            rowSlotRt.anchorMin = new Vector2(0f, 1f);
+            rowSlotRt.anchorMax = new Vector2(1f, 1f);
+            rowSlotRt.pivot = new Vector2(0.5f, 1f);
+            rowSlotRt.anchoredPosition = new Vector2(0f, -48f);
+            rowSlotRt.sizeDelta = new Vector2(-40f, 40f);
+            rowSlot.raycastTarget = false;
+            rowTemplate.SetActive(false);
+
+            // --- 오른쪽: 넣을 말 ---
+            var choiceTitle = AddText(go.transform, "ChoiceTitle", SectionTitle, UIFontWeight.SemiBold, AccentColor,
+                Vector2.zero, new Vector2(820f, 44f), TextAlignmentOptions.Left);
+            var choiceTitleRt = choiceTitle.rectTransform;
+            choiceTitleRt.pivot = new Vector2(0f, 1f);
+            choiceTitleRt.anchoredPosition = new Vector2(60f, 320f);
+            choiceTitle.textWrappingMode = TextWrappingModes.NoWrap;
+
+            var choiceViewport = new GameObject("ChoiceViewport", typeof(RectTransform));
+            choiceViewport.transform.SetParent(go.transform, false);
+            var choiceViewRt = (RectTransform)choiceViewport.transform;
+            choiceViewRt.anchorMin = new Vector2(0.5f, 0.5f);
+            choiceViewRt.anchorMax = new Vector2(0.5f, 0.5f);
+            choiceViewRt.pivot = new Vector2(0f, 1f);
+            choiceViewRt.anchoredPosition = new Vector2(60f, 258f);
+            choiceViewRt.sizeDelta = new Vector2(820f, 528f);
+            choiceViewport.AddComponent<RectMask2D>();
+
+            var choiceGrab = choiceViewport.AddComponent<Image>();
+            choiceGrab.color = new Color(1f, 1f, 1f, 0f);
+            choiceGrab.raycastTarget = true;
+
+            var choices = new GameObject("Choices", typeof(RectTransform));
+            choices.transform.SetParent(choiceViewport.transform, false);
+            var choicesRt = (RectTransform)choices.transform;
+            choicesRt.anchorMin = new Vector2(0f, 1f);
+            choicesRt.anchorMax = new Vector2(1f, 1f);
+            choicesRt.pivot = new Vector2(0.5f, 1f);
+            choicesRt.anchoredPosition = Vector2.zero;
+            choicesRt.sizeDelta = Vector2.zero;
+
+            var choicesFitter = choices.AddComponent<ContentSizeFitter>();
+            choicesFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            choicesFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var choiceScroll = choiceViewport.AddComponent<ScrollRect>();
+            choiceScroll.viewport = choiceViewRt;
+            choiceScroll.content = choicesRt;
+            choiceScroll.horizontal = false;
+            choiceScroll.vertical = true;
+            choiceScroll.movementType = ScrollRect.MovementType.Clamped;
+            choiceScroll.scrollSensitivity = 32f;
+
+            var choicesLayout = choices.AddComponent<VerticalLayoutGroup>();
+            choicesLayout.spacing = 12f;
+            choicesLayout.childAlignment = TextAnchor.UpperLeft;
+            choicesLayout.childControlWidth = true;
+            choicesLayout.childControlHeight = true;
+            choicesLayout.childForceExpandWidth = true;
+            choicesLayout.childForceExpandHeight = false;
+
+            var choiceTemplate = CreatePanel(choices.transform, "ChoiceTemplate", new Color(0.13f, 0.14f, 0.19f, 1f));
+            var choiceButton = choiceTemplate.AddComponent<Button>();
+            choiceButton.targetGraphic = choiceTemplate.GetComponent<Image>();
+
+            var choiceFit = choiceTemplate.AddComponent<ContentSizeFitter>();
+            choiceFit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            choiceFit.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var choiceRowLayout = choiceTemplate.AddComponent<VerticalLayoutGroup>();
+            choiceRowLayout.padding = new RectOffset(18, 18, 14, 14);
+            choiceRowLayout.childControlWidth = true;
+            choiceRowLayout.childControlHeight = true;
+            choiceRowLayout.childForceExpandWidth = true;
+            choiceRowLayout.childForceExpandHeight = false;
+
+            var choiceLabel = AddText(choiceTemplate.transform, "ChoiceLabel", 24f, UIFontWeight.Regular,
+                TextColor, Vector2.zero, new Vector2(760f, 40f), TextAlignmentOptions.TopLeft);
+            choiceLabel.raycastTarget = false;
+            choiceTemplate.SetActive(false);
+
+            // --- 아래 ---
+            var resultBar = CreatePanel(go.transform, "ResultBar", new Color(0.12f, 0.13f, 0.18f, 1f));
+            var resultRt = (RectTransform)resultBar.transform;
+            resultRt.anchorMin = new Vector2(0.5f, 0.5f);
+            resultRt.anchorMax = new Vector2(0.5f, 0.5f);
+            resultRt.pivot = new Vector2(0.5f, 0.5f);
+            resultRt.anchoredPosition = new Vector2(0f, -305f);
+            resultRt.sizeDelta = new Vector2(1760f, 62f);
+
+            var resultText = AddText(resultBar.transform, "Text_Result", GuideText, UIFontWeight.Medium,
+                WarnColor, Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(resultText.rectTransform, 24f, 24f, 6f, 6f);
+            resultText.raycastTarget = false;
+            resultBar.SetActive(false);
+
+            buttonRow = CreateButtonRow(go.transform, new Vector2(0f, -425f), new Vector2(900f, 110f));
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = titleText;
+            so.FindProperty("_footerText").objectReferenceValue = footerText;
+            so.FindProperty("_paperTitleText").objectReferenceValue = paperTitle;
+            so.FindProperty("_rowRoot").objectReferenceValue = rowsRt;
+            so.FindProperty("_rowTemplate").objectReferenceValue = rowButton;
+            so.FindProperty("_choiceTitleText").objectReferenceValue = choiceTitle;
+            so.FindProperty("_choiceRoot").objectReferenceValue = choicesRt;
+            so.FindProperty("_choiceTemplate").objectReferenceValue = choiceButton;
+            so.FindProperty("_resultRoot").objectReferenceValue = resultBar;
+            so.FindProperty("_resultText").objectReferenceValue = resultText;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
             return screen;
         }
 

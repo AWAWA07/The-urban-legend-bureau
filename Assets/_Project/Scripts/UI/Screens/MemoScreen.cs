@@ -185,6 +185,31 @@ namespace UrbanLegendBureau.UI
             save.MarkDirty();
         }
 
+
+        /// <summary>
+        /// 글 한 장을 메모장에 적어 둔다. 맨 앞장에 넣어서 열면 이것부터 보이게 한다.
+        ///
+        /// 조사를 마치고 쓴 보고서가 여기로 들어온다. 화면을 닫으면 사라지는 것이 아니라
+        /// 들고 다니는 메모장에 남아야, 다음 사건에서 지난 건을 들춰 볼 수 있다.
+        /// 같은 글이 이미 있으면 다시 넣지 않는다.
+        /// </summary>
+        public static bool AddNote(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return false;
+
+            var save = GetSave();
+            var data = save?.Current;
+            if (data == null) return false;
+
+            data.memos ??= new List<string>();
+            if (data.memos.Contains(text)) return false;
+
+            // 메모장이 잠겨 있어도 적어 둔다. 열리는 대로 거기 있어야 한다.
+            data.memos.Insert(0, text);
+            save.MarkDirty();
+            return true;
+        }
+
         private const string GradeNoteTitleTextId = "ui.memo.default_grade";
 
         /// <summary>등급 쪽지의 열쇠들. 브리핑이 펴 보이는 순서와 같다.</summary>
