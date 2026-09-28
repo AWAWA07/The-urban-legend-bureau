@@ -2669,7 +2669,9 @@ namespace UrbanLegendBureau.EditorTools
             clueRt.anchorMax = new Vector2(0.5f, 0.5f);
             clueRt.pivot = new Vector2(0f, 1f);
             clueRt.anchoredPosition = new Vector2(-900f, 320f);
-            clueRt.sizeDelta = new Vector2(600f, 560f);
+            // 단서가 여섯 줄이고 줄마다 여백을 두므로 칸을 아래로 늘린다.
+            // 아래 결과 띠(-274 즈음)에 닿지 않는 선까지다.
+            clueRt.sizeDelta = new Vector2(600f, 590f);
 
             var clueTitle = AddText(clueCard.transform, "ClueTitle", SectionTitle, UIFontWeight.SemiBold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
@@ -2693,13 +2695,46 @@ namespace UrbanLegendBureau.EditorTools
             AddCrisp(clueDivider, 2f);
 
             // 단서는 한 줄씩 눌러 고르는 칸이다. 근거로 삼을 것을 직접 골라야 규칙이 세워진다.
+            //
+            // 사건마다 단서 수가 다르고, 한 줄이 두 줄로 접히기도 한다. 칸 높이를 손으로 잡아 두면
+            // 단서가 하나 늘 때마다 아래로 넘쳐 흐른다. 그래서 끌어서 볼 수 있게 둔다.
+            // 막대는 붙이지 않는다. 다섯 줄이든 여덟 줄이든 잡아서 올리면 된다.
+            var clueViewport = new GameObject("ClueViewport", typeof(RectTransform));
+            clueViewport.transform.SetParent(clueCard.transform, false);
+            var clueViewRt = (RectTransform)clueViewport.transform;
+            StretchInside(clueViewRt, 22f, 22f, 92f, 20f);
+            clueViewport.AddComponent<RectMask2D>();
+
+            // 글자가 없는 빈 곳을 잡아도 끌리게 한다. 보이지 않지만 눌림은 받는 판이다.
+            var clueGrab = clueViewport.AddComponent<Image>();
+            clueGrab.color = new Color(1f, 1f, 1f, 0f);
+            clueGrab.raycastTarget = true;
+
             var clueList = new GameObject("Clues", typeof(RectTransform));
-            clueList.transform.SetParent(clueCard.transform, false);
+            clueList.transform.SetParent(clueViewport.transform, false);
             var clueListRt = (RectTransform)clueList.transform;
-            StretchInside(clueListRt, 22f, 22f, 92f, 20f);
+            clueListRt.anchorMin = new Vector2(0f, 1f);
+            clueListRt.anchorMax = new Vector2(1f, 1f);
+            clueListRt.pivot = new Vector2(0.5f, 1f);
+            clueListRt.anchoredPosition = Vector2.zero;
+            clueListRt.sizeDelta = Vector2.zero;
+
+            var clueFitter = clueList.AddComponent<ContentSizeFitter>();
+            clueFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            clueFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
+
+            var clueScroll = clueViewport.AddComponent<ScrollRect>();
+            clueScroll.viewport = clueViewRt;
+            clueScroll.content = clueListRt;
+            clueScroll.horizontal = false;
+            clueScroll.vertical = true;
+            clueScroll.movementType = ScrollRect.MovementType.Clamped;
+            clueScroll.scrollSensitivity = 32f;
 
             var clueLayout = clueList.AddComponent<VerticalLayoutGroup>();
-            clueLayout.spacing = 8f;
+            // 줄과 줄 사이를 넉넉히 띄운다. 붙여 두면 다섯 줄이 한 덩어리로 읽혀서
+            // 어디까지가 한 단서인지 눈으로 끊지 못한다.
+            clueLayout.spacing = 16f;
             clueLayout.childAlignment = TextAnchor.UpperLeft;
             clueLayout.childControlWidth = true;
             clueLayout.childControlHeight = true;
@@ -2715,7 +2750,7 @@ namespace UrbanLegendBureau.EditorTools
             clueRowFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
 
             var clueRowLayout = clueTemplate.AddComponent<VerticalLayoutGroup>();
-            clueRowLayout.padding = new RectOffset(14, 14, 10, 10);
+            clueRowLayout.padding = new RectOffset(18, 18, 14, 14);
             clueRowLayout.childControlWidth = true;
             clueRowLayout.childControlHeight = true;
             clueRowLayout.childForceExpandWidth = true;
