@@ -211,7 +211,7 @@ namespace UrbanLegendBureau.UI
         /// <summary>
         /// 직전 추론 결과를 알린다. 언어가 바뀌면 다시 조립되도록 만드는 방법을 받는다.
         ///
-        /// 두 해쯤 읽을 만큼 떠 있다가 옅어지며 사라진다. 남겨 두면 방금 한 일의 결과인지
+        /// 3초쯤, 한 줄을 다 읽을 만큼 떠 있다가 옅어지며 사라진다. 남겨 두면 방금 한 일의 결과인지
         /// 아까 것인지 헷갈리고, 띠가 계속 자리를 차지한다.
         /// </summary>
         public void ShowResult(Func<string> provider)
@@ -232,7 +232,7 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>결과 한 줄이 떠 있는 시간(초).</summary>
-        private const float ResultHold = 2f;
+        private const float ResultHold = 3f;
 
         private Coroutine _resultFade;
 

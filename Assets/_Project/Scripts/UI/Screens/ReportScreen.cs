@@ -100,7 +100,7 @@ namespace UrbanLegendBureau.UI
                 _resultFade = null;
                 _resultProvider = null;
                 if (_resultRoot != null) _resultRoot.SetActive(false);
-            }, 2f));
+            }, 3f));
         }
 
         /// <summary>다 맞아서 더 고칠 것이 없을 때. 제출 단추를 거둔다.</summary>
