@@ -58,6 +58,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("장소를 옮겨 가는 동안 덮는 화면. 종점에서 숙소로 갈 때 쓴다.")]
         [SerializeField] private TravelScreen _travelScreen;
 
+        [Tooltip("시간이 흐르면 괴담넷 글에 조회수와 반응이 붙게 하는 쪽.")]
+        [SerializeField] private BoardActivityDirector _boardActivity;
+
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
 
@@ -237,7 +240,10 @@ namespace UrbanLegendBureau.Systems
             {
                 Debug.Log($"[CaseDirector] 저장 불러옴 | 완료된 사건 {_save.Current.completedCaseIds.Count}개, " +
                           $"보유 단서 {_save.Current.acquiredClueIds.Count}개");
+                RestoreClock();
             }
+
+            if (_postWriting != null) _postWriting.Succeeded += OnPostSucceeded;
 
             if (_field != null)
             {
@@ -262,6 +268,7 @@ namespace UrbanLegendBureau.Systems
             _inRoom = false;
             _postCuePending = false;
             _alighted = false;
+            _night = NightState.None;
             if (_postWriting != null) _postWriting.ResetProgress();
 
             _case = caseData;
@@ -347,6 +354,17 @@ namespace UrbanLegendBureau.Systems
             if (_save.Current?.doneActions != null && !string.IsNullOrEmpty(_caseId))
             {
                 _save.Current.doneActions.RemoveAll(key => key != null && key.StartsWith(_caseId + "|"));
+            }
+
+            // 이 사건에서 올린 글과 그날 밤의 기록도 지운다. 처음부터 다시 하면 글도 다시 쓰고 밤도 다시 맞는다.
+            if (_save.Current?.storyFlags != null && _case != null)
+            {
+                if (_case.PostWriting != null) _save.Current.storyFlags.Remove(PostWritingDirector.PublishedFlag(_case.PostWriting));
+                if (_caseId == TutorialDirector.TutorialCaseId)
+                {
+                    _save.Current.storyFlags.Remove(TutorialNightStartedFlag);
+                    _save.Current.storyFlags.Remove(TutorialNightCompletedFlag);
+                }
             }
 
             // 내려 둔 결론도 물린다. 다시 조사하면 판정도 파훼법도 다시 짚어야 한다.
@@ -572,6 +590,7 @@ namespace UrbanLegendBureau.Systems
             int views = _tutorial != null ? _tutorial.HotPageViews : 0;
             _communityScreen.BindPage(entry.Page, views, entry.PostedMinutesAgo,
                 entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
+            _communityScreen.CurrentEntry = entry;
 
             // 댓글은 컴퓨터로 볼 때와 같은 것이다. 플레이어가 단 댓글도 그대로 따라온다.
             _communityScreen.BindComments(_tutorial != null ? _tutorial.Comments : null);
@@ -2143,7 +2162,7 @@ namespace UrbanLegendBureau.Systems
         private const int RoomTravelMinutes = 50;
 
         /// <summary>옮겨 가는 화면을 보여 주는 시간(초). 50분이 이 동안 흐른다.</summary>
-        private const float RoomTravelSeconds = 3.2f;
+        private const float RoomTravelSeconds = 4.8f;
 
         private const string TravelToRoomTextId = "ui.travel.to_room";
 
@@ -2193,9 +2212,193 @@ namespace UrbanLegendBureau.Systems
                 foreach (var follower in _field.ActiveRoot.GetComponentsInChildren<FieldFollower>(true)) follower.ResetToStart();
             }
 
+            _night = NightState.None;
+            var room = GetRoomNight();
+            if (room != null) room.ResetRoom();
+
             Debug.Log("[CaseDirector] 숙소로 옮겼다");
 
             if (_caseId == TutorialDirector.TutorialCaseId && _tutorial != null) _tutorial.ShowRoomIntro(null);
+        }
+
+        // ------------------------------------------------------------- 첫날 밤
+
+        /// <summary>숙소의 밤이 어디까지 왔는가.</summary>
+        private enum NightState
+        {
+            /// <summary>아직 밤이 아니다. 게시물을 쓰기 전이다.</summary>
+            None,
+
+            /// <summary>한영과 말을 나누고 한영이 나가는 중이다.</summary>
+            Talking,
+
+            /// <summary>잘 시간이다. 돌아다닐 수 있지만 침대와 스위치 말고는 한마디씩만 한다.</summary>
+            Bedtime,
+
+            /// <summary>침대로 가서 눕는 중이다.</summary>
+            Sleeping,
+
+            /// <summary>잠들었다. 다음 날로 넘어가기를 기다린다.</summary>
+            Asleep,
+        }
+
+        private NightState _night;
+
+        private const string RoomSwitchPointId = "point_room_switch";
+        private const string RoomBedPointId = "point_room_bed";
+
+        /// <summary>잘 시간에 쓰는 문장은 원래 문장 ID 에 이것을 붙인 것이다. 예: field.room.clock.result.night</summary>
+        private const string NightLineSuffix = ".night";
+
+        private const string SleepAskTextId = "field.room.bed.ask";
+        private const string SleepYesTextId = "field.room.bed.sleep";
+        private const string SleepNoTextId = "field.room.bed.stay";
+        private const string LightStillOnTextId = "field.room.bed.light_on";
+
+        /// <summary>게시물을 마치면 시계는 이 시각이 된다.</summary>
+        private const int NightHour = 2;
+        private const int NightMinute = 12;
+
+        /// <summary>
+        /// 첫날 밤을 시작했다는 표시. 저장본을 불러올 때 이것이 있으면 시계를 적어 둔 시각으로 되돌린다.
+        /// 새로운 저장 구조를 만들지 않고 기존 이야기 표시(storyFlags)를 쓴다.
+        /// </summary>
+        public const string TutorialNightStartedFlag = "tutorial_night_started";
+
+        /// <summary>
+        /// 첫날 밤에 잠들었다는 표시. 다음 단계(06:00, 실전 시작)가 이것을 보고 이어 간다.
+        /// 기존 CaseStep 에는 "하루가 끝났다"에 맞는 자리가 없어 이야기 표시로 둔다.
+        /// </summary>
+        public const string TutorialNightCompletedFlag = "tutorial_night_completed";
+
+        /// <summary>
+        /// 저장본을 불러온 뒤 벽시계를 적어 둔 시각으로 되돌린다.
+        /// 첫날 밤에 들어선 저장본만 그렇게 한다. 그 전에는 사건을 열 때 시계를 제자리에 맞추므로 되돌릴 필요가 없다.
+        /// 게시판도 적어 둔 곳까지는 반영한 것으로 친다. 같은 시간만큼 또 늘지 않는다.
+        /// </summary>
+        public void RestoreClock()
+        {
+            var global = _save != null && _save.Current != null ? _save.Current.global : null;
+            if (global == null || global.clockElapsedMinutes < 0) return;
+            if (!_save.Current.storyFlags.Contains(TutorialNightStartedFlag)) return;
+
+            GameClock.RestoreElapsed(global.clockElapsedMinutes);
+            if (_boardActivity != null) _boardActivity.RestoreFromSave();
+            Debug.Log($"[CaseDirector] 시계 복구 | {GameClock.FormatShort()}");
+        }
+
+        private RoomNight GetRoomNight()
+        {
+            return _field != null && _field.ActiveRoot != null ? _field.ActiveRoot.GetComponentInChildren<RoomNight>(true) : null;
+        }
+
+        /// <summary>
+        /// 게시물을 다 올렸다. 컴퓨터를 끄고 방으로 돌아오면 새벽 2시 12분이다.
+        /// 한영이 쉬라고 하고 방을 나간다. 차지한은 혼잣말을 하고 잘 준비를 한다.
+        /// </summary>
+        private void OnPostSucceeded(PostWritingSO data)
+        {
+            if (data == null || !data.IsTutorial || !_inRoom) return;
+
+            // 컴퓨터를 끈다. 위에 떠 있는 괴담넷과 메모장부터 닫는다.
+            if (_memoScreen != null && _ui.Contains(_memoScreen)) _ui.Close(_memoScreen);
+            if (_communityScreen != null && _ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
+            if (_desktopScreen != null && _ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
+
+            // 게시물을 쓰다 보니 이 시각이 됐다. 한 번만 맞춘다.
+            GameClock.SetExactly(NightHour, NightMinute);
+            PushStatus();
+            if (_save.Current != null)
+            {
+                _save.Current.global.clockElapsedMinutes = GameClock.ElapsedMinutes;
+                if (!_save.Current.storyFlags.Contains(TutorialNightStartedFlag)) _save.Current.storyFlags.Add(TutorialNightStartedFlag);
+                _save.MarkDirty();
+            }
+
+            ShowRoom();
+            _night = NightState.Talking;
+            _field.InvestigationAllowed = false;
+
+            Debug.Log($"[CaseDirector] 첫날 밤 | 시각 {GameClock.FormatShort()}");
+
+            if (_tutorial == null || !_tutorial.ShowNightTalk(OnNightTalkDone)) OnNightTalkDone();
+        }
+
+        /// <summary>한영이 할 말을 마쳤다. 차지한은 그 자리에 서 있고 한영만 문으로 나간다.</summary>
+        private void OnNightTalkDone()
+        {
+            var room = GetRoomNight();
+            if (room == null) { OnHanyoungLeft(); return; }
+            room.PlayHanyoungExit(OnHanyoungLeft);
+        }
+
+        private void OnHanyoungLeft()
+        {
+            if (_tutorial == null || !_tutorial.ShowNightMonologue(EnterBedtime)) EnterBedtime();
+        }
+
+        /// <summary>혼잣말까지 끝났다. 여기서부터는 직접 돌아다니며 잘 준비를 한다.</summary>
+        private void EnterBedtime()
+        {
+            _night = NightState.Bedtime;
+            if (_field != null) _field.InvestigationAllowed = true;
+            Debug.Log("[CaseDirector] 잘 시간 | 침대와 조명 스위치만 제 구실을 한다");
+        }
+
+        /// <summary>침대 앞. 바로 자지 않고 한 번 묻는다.</summary>
+        private void AskSleep()
+        {
+            _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(SleepAskTextId), () =>
+            {
+                _fieldHudScreen.ShowChoices(FieldSpeakerTextId, new List<System.Func<string>>
+                {
+                    () => _loc.Get(SleepYesTextId),
+                    () => _loc.Get(SleepNoTextId),
+                }, OnSleepChoice);
+            });
+        }
+
+        private void OnSleepChoice(int index)
+        {
+            // 조금 더 둘러본다. 고르는 칸만 닫는다.
+            if (index != 0)
+            {
+                _fieldHudScreen.ClearSpeech();
+                return;
+            }
+
+            // 불을 켠 채로는 자지 않는다. 대신 꺼 주지도 않는다. 직접 가서 끄게 한다.
+            var room = GetRoomNight();
+            if (room != null && room.IsLightOn)
+            {
+                _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(LightStillOnTextId),
+                    () => _fieldHudScreen.ClearSpeech());
+                Debug.Log("[CaseDirector] 잘 시간 | 불이 켜져 있어 자지 않는다");
+                return;
+            }
+
+            _fieldHudScreen.ClearSpeech();
+            _night = NightState.Sleeping;
+            if (_field != null) _field.InvestigationAllowed = false;
+
+            if (room == null) { OnFellAsleep(); return; }
+            room.PlaySleep(OnFellAsleep);
+        }
+
+        /// <summary>잠들었다. 시계는 그대로 두고 다음 날로 넘어갈 준비만 해 둔다.</summary>
+        private void OnFellAsleep()
+        {
+            _night = NightState.Asleep;
+
+            if (_save.Current != null)
+            {
+                if (!_save.Current.storyFlags.Contains(TutorialNightCompletedFlag)) _save.Current.storyFlags.Add(TutorialNightCompletedFlag);
+                _save.Current.global.clockElapsedMinutes = GameClock.ElapsedMinutes;
+                _save.MarkDirty();
+                _save.AutoSave();
+            }
+
+            Debug.Log($"[CaseDirector] 첫날 밤 끝 | 잠들었다 | 시각 {GameClock.FormatShort()} (다음 단계에서 06:00 으로)");
         }
 
         /// <summary>
@@ -2231,6 +2434,34 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnRoomPointUsed(InvestigationPoint point)
         {
+            // 한영이 나가거나 잠드는 동안에는 아무것도 만지지 않는다.
+            if (_night == NightState.Talking || _night == NightState.Sleeping || _night == NightState.Asleep) return;
+
+            // 조명 스위치는 언제든 누를 수 있다.
+            if (point.PointId == RoomSwitchPointId)
+            {
+                var room = GetRoomNight();
+                if (room != null) room.ToggleLight();
+                return;
+            }
+
+            // 잘 시간이다. 침대 말고는 한마디씩만 한다.
+            if (_night == NightState.Bedtime)
+            {
+                if (point.PointId == RoomBedPointId)
+                {
+                    AskSleep();
+                    return;
+                }
+
+                string nightId = point.ResultTextId + NightLineSuffix;
+                _fieldHudScreen.ShowLine(FieldSpeakerTextId,
+                    () => _tutorial != null ? _tutorial.FormatWithClock(nightId) : _loc.Get(nightId),
+                    () => _fieldHudScreen.ClearSpeech());
+                Debug.Log($"[CaseDirector] 숙소(잘 시간) | {point.PointId} 살펴봄");
+                return;
+            }
+
             if (point.PointId == RoomComputerPointId)
             {
                 OpenRoomComputer();

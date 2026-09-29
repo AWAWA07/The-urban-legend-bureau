@@ -307,6 +307,18 @@ namespace UrbanLegendBureau.EditorTools
             tso.FindProperty("_toastScreen").objectReferenceValue = toast;
             tso.FindProperty("_caseDirector").objectReferenceValue = director;
 
+            // 시간이 흐르면 괴담넷 글에 조회수와 반응이 붙고 새 글이 올라온다. 게시판은 튜토리얼이 들고 있는 그것이다.
+            var boardActivity = tutorialGo.AddComponent<BoardActivityDirector>();
+            var baso = new SerializedObject(boardActivity);
+            baso.Update();
+            baso.FindProperty("_data").objectReferenceValue =
+                AssetDatabase.LoadAssetAtPath<UrbanLegendBureau.Data.BoardActivitySO>("Assets/_Project/Data/Board/board_activity.asset");
+            baso.FindProperty("_tutorial").objectReferenceValue = tutorial;
+            baso.FindProperty("_communityScreen").objectReferenceValue = community;
+            baso.ApplyModifiedPropertiesWithoutUndo();
+            dso.FindProperty("_boardActivity").objectReferenceValue = boardActivity;
+            dso.ApplyModifiedPropertiesWithoutUndo();
+
             var pwso = new SerializedObject(postWriting);
             pwso.Update();
             pwso.FindProperty("_communityScreen").objectReferenceValue = community;
@@ -841,14 +853,61 @@ namespace UrbanLegendBureau.EditorTools
             door.transform.SetParent(root.transform, false);
             door.transform.localPosition = new Vector3(12.8f, 0f, 0f);
             AddFieldRect(door.transform, "Frame", new Vector2(0f, -0.65f), new Vector2(2.7f, 5.5f), trim, -7);
-            AddFieldRect(door.transform, "Panel", new Vector2(0f, -0.78f), new Vector2(2.3f, 5.2f), wood, -6);
-            AddFieldRect(door.transform, "PanelInset_T", new Vector2(0f, 0.6f), new Vector2(1.6f, 1.6f), woodDark, -5);
-            AddFieldRect(door.transform, "PanelInset_B", new Vector2(0f, -1.9f), new Vector2(1.6f, 2.2f), woodDark, -5);
-            AddFieldCircle(door.transform, "Knob", new Vector2(-0.85f, -1.0f), 0.22f, new Color(0.78f, 0.66f, 0.40f), -4);
+
+            // 닫힌 문. 문짝과 문고리.
+            var doorClosed = new GameObject("Closed");
+            doorClosed.transform.SetParent(door.transform, false);
+            AddFieldRect(doorClosed.transform, "Panel", new Vector2(0f, -0.78f), new Vector2(2.3f, 5.2f), wood, -6);
+            AddFieldRect(doorClosed.transform, "PanelInset_T", new Vector2(0f, 0.6f), new Vector2(1.6f, 1.6f), woodDark, -5);
+            AddFieldRect(doorClosed.transform, "PanelInset_B", new Vector2(0f, -1.9f), new Vector2(1.6f, 2.2f), woodDark, -5);
+            AddFieldCircle(doorClosed.transform, "Knob", new Vector2(-0.85f, -1.0f), 0.22f, new Color(0.78f, 0.66f, 0.40f), -4);
+
+            // 열린 문. 문간 너머는 불 꺼진 복도다. 문짝은 방 안쪽으로 젖혀져 모서리만 보인다.
+            var doorOpen = new GameObject("Open");
+            doorOpen.transform.SetParent(door.transform, false);
+            AddFieldRect(doorOpen.transform, "Hallway", new Vector2(0f, -0.78f), new Vector2(2.3f, 5.2f),
+                new Color(0.05f, 0.05f, 0.07f), -6);
+            AddFieldRect(doorOpen.transform, "HallwayFloor", new Vector2(0f, -3.2f), new Vector2(2.3f, 0.36f),
+                new Color(0.10f, 0.09f, 0.10f), -5);
+            AddFieldRect(doorOpen.transform, "Leaf", new Vector2(-1.3f, -0.78f), new Vector2(0.3f, 5.2f), wood, -2);
+            doorOpen.SetActive(false);
+
+            // 방 조명 스위치. 방문 옆 벽, 손 닿는 높이에 붙어 있다.
+            AddFieldRect(root.transform, "SwitchPlate", new Vector2(11.1f, -0.35f), new Vector2(0.36f, 0.56f),
+                new Color(0.86f, 0.84f, 0.80f), -5);
+            AddFieldRect(root.transform, "SwitchToggle", new Vector2(11.1f, -0.29f), new Vector2(0.12f, 0.2f),
+                new Color(0.62f, 0.60f, 0.58f), -4);
+
+            // 누운 몸 위로 덮는 이불. 잠자리에 들 때만 켜진다. 사람보다 앞에 그린다.
+            var blanketOver = AddFieldRect(root.transform, "BlanketOver", new Vector2(-9.85f, -1.72f), new Vector2(1.9f, 0.86f),
+                new Color(0.29f, 0.36f, 0.52f), 7);
+            AddFieldRect(blanketOver.transform, "Fold", new Vector2(-0.8f, 0.3f), new Vector2(0.3f, 0.26f),
+                new Color(0.36f, 0.43f, 0.60f), 8);
+            blanketOver.SetActive(false);
+
+            // 조명. 방 전체를 비추는 전역 조명 하나와, 불을 끄면 창으로 들어오는 달빛.
+            // 방 뿌리 아래에 두므로 숙소가 보일 때만 켜진다. 다른 현장의 밝기는 그대로다.
+            var roomLightGo = new GameObject("RoomLight");
+            roomLightGo.transform.SetParent(root.transform, false);
+            var roomLight = roomLightGo.AddComponent<UnityEngine.Rendering.Universal.Light2D>();
+            roomLight.lightType = UnityEngine.Rendering.Universal.Light2D.LightType.Global;
+            roomLight.intensity = 1f;
+            roomLight.color = Color.white;
+
+            var moonGo = new GameObject("MoonLight");
+            moonGo.transform.SetParent(root.transform, false);
+            moonGo.transform.localPosition = new Vector3(-9.2f, 1.2f, 0f);
+            var moon = moonGo.AddComponent<UnityEngine.Rendering.Universal.Light2D>();
+            moon.lightType = UnityEngine.Rendering.Universal.Light2D.LightType.Point;
+            moon.color = new Color(0.62f, 0.72f, 1f);
+            moon.intensity = 0.9f;
+            moon.pointLightInnerRadius = 1.2f;
+            moon.pointLightOuterRadius = 7.5f;
+            moonGo.SetActive(false);
 
             // --- 살펴볼 수 있는 것 ---
             var computer = BuildPoint(root.transform, "InvestigationPoint_RoomComputer", new Vector2(0.5f, -0.4f),
-                new Vector2(2.6f, 2.2f), new Color(0.40f, 0.56f, 0.72f), "field.room.computer", string.Empty, null);
+                new Vector2(2.6f, 2.2f), new Color(0.40f, 0.56f, 0.72f), "field.room.computer", "field.room.computer.result", null);
             var bedPoint = BuildPoint(root.transform, "InvestigationPoint_RoomBed", new Vector2(-9.2f, -2.4f),
                 new Vector2(6.4f, 1.8f), new Color(0.46f, 0.50f, 0.62f), "field.room.bed", "field.room.bed.result", null);
             var shelfPoint = BuildPoint(root.transform, "InvestigationPoint_RoomBookshelf", new Vector2(6.8f, -0.7f),
@@ -867,6 +926,30 @@ namespace UrbanLegendBureau.EditorTools
             // 방에 들어선 두 사람. 방문 바로 안쪽에서 방을 바라보고 선다. 밖에서 막 들어온 것이다.
             // 한영이 한 걸음 앞서 방 안쪽에 있다. 차지한은 문 앞이라 곁에 선 것이 방문이다.
             BuildFieldActors(root.transform, -3.86f, 11.6f, 2.4f, -12f, 12f, faceLeft: true);
+
+            // 조명 스위치. 방문 옆 벽의 그것이다. 누르면 불이 켜지고 꺼진다.
+            var switchPoint = BuildPoint(root.transform, "InvestigationPoint_RoomSwitch", new Vector2(11.1f, -0.35f),
+                new Vector2(0.9f, 1.1f), new Color(0.86f, 0.84f, 0.80f), "field.room.switch", string.Empty, null);
+            ConfigureRoomPoint(switchPoint, "point_room_switch", "ui.field.prompt_press");
+
+            // 방의 밤. 조명과 문과 두 사람의 움직임을 한데 쥔다.
+            var lead = root.transform.Find("Actor_Chajihan");
+            var mate = root.transform.Find("Actor_Hanyoung");
+            var night = root.AddComponent<RoomNight>();
+            var nso = new SerializedObject(night);
+            nso.Update();
+            nso.FindProperty("_chajihan").objectReferenceValue = lead != null ? lead.GetComponent<FieldWalker>() : null;
+            nso.FindProperty("_hanyoung").objectReferenceValue = mate != null ? mate.GetComponent<FieldFollower>() : null;
+            var eyes = nso.FindProperty("_eyes");
+            eyes.arraySize = 2;
+            eyes.GetArrayElementAtIndex(0).objectReferenceValue = lead != null ? lead.Find("Eye_A") : null;
+            eyes.GetArrayElementAtIndex(1).objectReferenceValue = lead != null ? lead.Find("Eye_B") : null;
+            nso.FindProperty("_doorClosed").objectReferenceValue = doorClosed;
+            nso.FindProperty("_doorOpen").objectReferenceValue = doorOpen;
+            nso.FindProperty("_roomLight").objectReferenceValue = roomLight;
+            nso.FindProperty("_moonLight").objectReferenceValue = moon;
+            nso.FindProperty("_blanketOver").objectReferenceValue = blanketOver;
+            nso.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>숙소의 물건 하나. 조사 방법도 해금 조건도 없고, 말풍선 글만 제 것을 쓴다.</summary>

@@ -776,7 +776,6 @@ ui.post.result_down	이 괴담의 믿음도 {0}% → {1}% ▼	Belief in this leg
 ui.post.result_up	이 괴담의 믿음도 {0}% → {1}% ▲	Belief in this legend {0}% → {1}% ▲	게시 뒤
 ui.post.result_flat	이 괴담의 믿음도 {0}% → {1}% (변화 없음)	Belief in this legend {0}% → {1}% (no change)	게시 뒤
 ui.post.taken_down	실패한 글을 내렸다. 이 괴담의 믿음도 {0}% → {1}%	The failed post is down. Belief in this legend {0}% → {1}%	다시 쓰기 전
-post.subway.author	막차단골	LastTrainRegular	차지한의 부계정
 post.subway.title.fear	[주의] 막차에서 이상한 사람을 보면 절대 돌아보지 마세요	[Warning] If you see someone strange on the last train, never look back	제목 - 공포 조장
 post.subway.title.refute	막차 괴담, 확인되지 않은 이야기가 퍼지고 있습니다	The last-train story: unverified details are spreading	제목 - 반박
 post.subway.title.calm	막차 이용할 때 이것만 기억하세요	Taking the last train? Just remember this	제목 - 안심
@@ -808,3 +807,57 @@ post.subway.react.weak_3	애매하네 ㅇㅇ	kinda vague yeah	모자람 반응 -
 ui.travel.to_room	숙소로 가는 중	Heading back to the quarters	종점에서 숙소로 옮기는 화면
 ui.travel.duration	종점에서 숙소까지 {0}분	{0} minutes from the terminus to the quarters	옮기는 화면 - {0} 걸리는 분
 ui.field.terminus_platform	종점 승강장	Terminus platform	종점에서 내린 뒤 위쪽 한 줄
+ui.net.author_alias	괴담 분석 덕후	LegendAnalysisNerd	차지한이 괴담넷에서 쓰는 부계정 닉네임. 표시될 때 (차지한)이 붙는다
+ui.field.prompt_press	[E] {0} 누르기	[E] Press {0}	숙소 스위치의 말풍선
+field.room.switch	방 조명 스위치	Light switch	
+field.room.computer.result	책상 위의 컴퓨터다.	The computer on the desk.	
+field.room.computer.result.night	내일은 실전이니까, 오늘은 이만 쉬자.	Tomorrow is the real thing. Better call it a night.	잘 시간 - 차지한
+field.room.bookshelf.result.night	지금 읽기 시작하면 잠들 시간이 더 늦어질 것 같다.	If I start reading now, I'll never get to sleep.	잘 시간 - 차지한
+field.room.clock.result.night	벌써 새벽 {0}시 {1}분이다. 내일은 6시부터 시작이다.	It's already {2} in the morning. Tomorrow starts at six.	잘 시간 - 차지한, {0} 시 {1} 분 {2} 2:12 꼴
+field.room.door.result.night	지금은 나갈 시간이 아니다. 내일을 위해 쉬어야 한다.	This is no time to go out. I need rest for tomorrow.	잘 시간 - 차지한
+field.room.bed.ask	오늘은 여기까지 할까?	Call it a day?	침대 - 차지한
+field.room.bed.sleep	잔다	Go to sleep	
+field.room.bed.stay	조금 더 둘러본다	Look around a bit more	
+field.room.bed.light_on	그래도 불은 끄고 자야지.	I should turn off the light first.	불을 켠 채 자려 할 때 - 차지한
+tutorial.night.001	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.	It's already {2} in the morning. That's enough for today, get some rest.	게시물을 마친 뒤 - 한영, {0} 시 {1} 분 {2} 2:12 꼴
+tutorial.night.002	감사합니다. 안녕히 주무세요.	Thank you. Good night.	차지한
+tutorial.night.003	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.	Right. See you at six tomorrow. That's when the real work starts.	한영
+tutorial.night.mono_1	...다사다난한 하루였다..	...What a day that was..	한영이 나간 뒤 - 차지한
+tutorial.night.mono_2	내일부터 진짜 시작이구나.	Tomorrow it really begins.	차지한
+tutorial.night.mono_3	..잠이나 자자	..Let's just get some sleep.	차지한
+board.live.believer_1	헐 이거 보고 오늘 막차 못 타겠어요ㅠㅠ	omg I can't take the last train tonight after this ㅠㅠ	시간이 흘러 붙는 댓글 - 믿는 쪽 - 겁많은고3
+board.live.believer_2	비슷한 얘기 다른 데서도 봄. 점점 늘어나는 중	saw a similar one elsewhere. it keeps growing	믿는 쪽 - 소문수집
+board.live.believer_3	ㄷㄷ 또 올라왔네	yikes another one	믿는 쪽 - ㅇㅇ
+board.live.believer_4	야간 근무 끝나고 가는 길이라 좀 신경 쓰이네요.	I head home after the night shift, so this bugs me a little.	믿는 쪽 - 야간경비
+board.live.believer_5	나만 소름 돋음?	is it just me or	믿는 쪽 - 익명
+board.live.skeptic_1	출처가 없는 이야기는 조심해서 읽어야 합니다.	Stories with no source deserve careful reading.	의심하는 쪽 - 회의주의자
+board.live.skeptic_2	착시로 설명되는 부분이 꽤 많아 보입니다.	A fair amount of this reads like an optical illusion.	의심하는 쪽 - 물리학도
+board.live.skeptic_3	ㅇㅇ 주작 같음	yeah looks made up	의심하는 쪽 - ㅇㅇ
+board.live.skeptic_4	매일 막차 타는데 아무 일 없었음 ㅋㅋ	I ride the last train every day. nothing ever happened lol	의심하는 쪽 - 퇴근길전사
+board.live.daily_1	ㅋㅋ 공감합니다	lol same	일상 글 - 동네주민입니다
+board.live.daily_2	저도 야근 중인데 같이 힘내요	working late too, hang in there	일상 글 - 오늘도야근
+board.live.daily_3	이런 글이 좋음	love posts like this	일상 글 - 익명
+board.live.daily_4	와 개야르네 ㅋㅋ	whoa that's fire lol	일상 글 - 퇴근길전사
+board.live.player_1	정리 감사합니다. 자료로 저장해 둘게요.	Thanks for laying it out. Saving this for reference.	플레이어 글 - 막차연구회
+board.live.player_2	이 글 보고 좀 안심됐어요ㅠ	this actually calmed me down ㅠ	플레이어 글 - 겁많은고3
+board.live.player_3	동네 단톡방에도 공유함	shared it in the neighborhood chat	플레이어 글 - 동네주민입니다
+board.filler.020	편의점 야간 알바 중인데 손님이 한 명도 없음	night shift at the convenience store and not a single customer	새로 올라오는 글 - 23:30
+board.filler.020.author	편돌이	StoreClerk	
+board.filler.020.body	두 시간째 아무도 안 옴\n폐기 삼각김밥 먹으면서 버티는 중 ㅋㅋ	two hours and nobody\nsurviving on expired rice balls lol	
+board.filler.020.c1	저도 야근 중인데 같이 힘내요ㅠ	working late too, hang in there ㅠ	
+board.filler.020.c2	폐기가 제일 맛있는 거 인정	expired ones taste best, facts	
+board.filler.021	버스 맨 뒷자리에 누가 앉아 있다는 얘기 아시나요	anyone heard about someone sitting in the back seat of the bus	새로 올라오는 글 - 01:00
+board.filler.021.author	심야버스러	NightBusRider	
+board.filler.021.body	막차 얘기 보다가 생각나서 씀. 우리 동네 심야버스도 비슷한 얘기가 돌아요.\n근데 이건 그냥 들은 거라 확실하진 않음.	thought of this reading the last-train posts. our night bus has a similar story.\nonly secondhand though, not sure.	
+board.filler.021.c1	막차 얘기랑 구조가 완전 똑같네. 이렇게 옮겨 붙는 거임	same structure as the last-train one. this is how they spread	
+board.filler.021.c2	들은 얘기라면 출처부터 찾아보시는 게 좋겠습니다.	If it's secondhand, it's worth tracing the source first.	
+board.filler.022	새벽에 라면 끓이는 소리 옆집에 들릴까요	will my neighbors hear me cooking ramen at this hour	새로 올라오는 글 - 01:50
+board.filler.022.author	자취3년차	LivingAlone3yrs	
+board.filler.022.body	배고파서 끓이려는데 벽이 얇아서 고민 중\n그냥 먹을까	starving but the walls are thin\nshould I just go for it	
+board.filler.022.c1	걍 먹어	just eat	
+board.filler.022.c2	야르렁 각이네 ㅋㅋ	sounds like a yarreong moment lol	
+board.filler.023	방금 막차 정리 글 봤는데 이제 좀 덜 무섭네요	just read that last-train breakdown and I'm less scared now	새로 올라오는 글 - 02:12
+board.filler.023.author	새벽감성	DawnMood	
+board.filler.023.body	얼굴 보면 따라온다는 거 출처가 없다던데 맞나요?\n저만 그렇게 믿고 있었나 봐요 ㅋㅋ	so the "follows you if you see its face" thing had no source?\nguess I was the only one who believed it lol	
+board.filler.023.c1	저도 그 글 봤어요. 기록 얘기가 설득력 있더라고요.	I saw it too. The part about the records was convincing.	
+board.filler.023.c2	ㅇㅇ 그거 원래 없던 말임	yeah that bit was never in the original	

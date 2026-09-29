@@ -231,6 +231,34 @@ namespace UrbanLegendBureau.UI
         /// <summary>댓글 쓰기 칸의 머리말을 이 글에서만 바꿔 적는다. 비어 있으면 원래대로 "댓글 쓰기"다.</summary>
         private string _choiceHeaderId;
 
+        /// <summary>글쓴이가 플레이어의 부계정인가. 그러면 "닉네임(차지한)" 으로 적는다. 댓글과 같은 표기다.</summary>
+        private bool _authorIsPlayer;
+
+        /// <summary>
+        /// 지금 열려 있는 글의 목록 줄. 연 쪽이 알려 준다. 글을 새로 걸면 비워진다.
+        /// 시간이 흘러 조회수와 반응이 늘면 이 줄의 값을 다시 읽어 화면에 옮긴다.
+        /// </summary>
+        public CommunityBoardEntry CurrentEntry { get; set; }
+
+        /// <summary>열려 있는 글의 조회수와 좋아요 / 싫어요를 그 목록 줄의 값으로 다시 맞춘다. 스크롤은 건드리지 않는다.</summary>
+        public void RefreshCounts()
+        {
+            if (CurrentEntry != null)
+            {
+                _views = CurrentEntry.Views;
+                _likes = CurrentEntry.Likes;
+                _dislikes = CurrentEntry.Dislikes;
+            }
+            Refresh();
+        }
+
+        /// <summary>작성자 표기. 플레이어의 부계정이면 댓글과 같이 "닉네임(차지한)" 으로 적는다.</summary>
+        private static string AuthorName(LocalizationService loc, string authorTextId, bool isPlayer)
+        {
+            string name = loc.Get(string.IsNullOrEmpty(authorTextId) ? "ui.net.author_anon" : authorTextId);
+            return isPlayer ? loc.Get(PlayerAuthorTextId, name) : name;
+        }
+
         // ------------------------------------------------------------- 생김새
 
         [Header("생김새 (컴퓨터 창 / 휴대폰)")]
@@ -859,6 +887,8 @@ namespace UrbanLegendBureau.UI
             _titleId = page != null ? page.TitleTextId : null;
             _bodyId = page != null ? page.BodyTextId : null;
             _bodyIds = null;
+            _authorIsPlayer = false;
+            CurrentEntry = null;
             _choiceHeaderId = null;
             _authorId = null;
             _boardId = null;
@@ -891,6 +921,8 @@ namespace UrbanLegendBureau.UI
             _titleId = titleTextId;
             _bodyId = bodyTextId;
             _bodyIds = null;
+            _authorIsPlayer = false;
+            CurrentEntry = null;
             _choiceHeaderId = null;
             _authorId = authorTextId;
             _boardId = boardTextId;
@@ -912,12 +944,13 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         public void BindPost(string titleTextId, IReadOnlyList<string> bodyTextIds, string authorTextId,
             string boardTextId, int views, int postedMinutesAgo, int likes = 0, int dislikes = 0,
-            bool likePressed = false, bool dislikePressed = false)
+            bool likePressed = false, bool dislikePressed = false, bool authorIsPlayer = false)
         {
             BindPost(titleTextId, (string)null, authorTextId, boardTextId, views, postedMinutesAgo,
                 likes, dislikes, 0, likePressed, dislikePressed);
 
             _bodyIds = bodyTextIds;
+            _authorIsPlayer = authorIsPlayer;
             Refresh();
         }
 
@@ -1173,7 +1206,7 @@ namespace UrbanLegendBureau.UI
             {
                 string meta = string.IsNullOrEmpty(_titleId)
                     ? string.Empty
-                    : loc.Get(MetaTextId, loc.Get(string.IsNullOrEmpty(_authorId) ? "ui.net.author_anon" : _authorId),
+                    : loc.Get(MetaTextId, AuthorName(loc, _authorId, _authorIsPlayer),
                         _views, _comments.Count, BuildPostedText(loc, _postedMinutesAgo));
 
                 // 좁은 화면에서는 한 줄에 다 들어가지 않는다. 다음 줄에 오른쪽으로 붙여 세운다.
@@ -1277,18 +1310,18 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>
         /// 목록 줄의 곁가지 한 줄.
-        /// 미리 적어 둔 문구가 있으면 그것을 쓰고, 없으면 작성자와 조회수와 댓글 수로 짓는다.
-        /// 플레이어가 올린 글은 댓글이 늘어나므로 적어 둔 문구로는 맞출 수 없다.
+        /// 작성자를 아는 글은 작성자와 지금 조회수와 댓글 수로 짓는다. 시간이 흐르면 숫자가 늘기 때문이다.
+        /// 작성자를 모르는 글만 미리 적어 둔 문구를 쓴다.
         /// </summary>
         private static string BuildEntryMeta(LocalizationService loc, CommunityBoardEntry entry)
         {
-            if (!string.IsNullOrEmpty(entry.MetaTextId) || string.IsNullOrEmpty(entry.AuthorTextId))
+            if (string.IsNullOrEmpty(entry.AuthorTextId))
             {
                 return BuildMetaLine(loc, entry.MetaTextId, entry.PostedMinutesAgo);
             }
 
             int comments = entry.Comments != null ? entry.Comments.Count : 0;
-            string who = loc.Get(BoardMetaTextId, loc.Get(entry.AuthorTextId), entry.Views, comments);
+            string who = loc.Get(BoardMetaTextId, AuthorName(loc, entry.AuthorTextId, entry.IsPlayerPost), entry.Views, comments);
             return who + "    " + BuildPostedText(loc, entry.PostedMinutesAgo);
         }
 

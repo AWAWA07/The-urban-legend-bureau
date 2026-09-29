@@ -1,0 +1,94 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c17634f856681641ac4a2cf5edaad95, type: 3}
+  m_Name: board_activity
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.BoardActivitySO
+  _viewsPerHour: 4
+  _viewsPerHourPerBelief: 0.5
+  _hotViewMultiplier: 2.5
+  _likesPerHour: 0.3
+  _likesPerHourPerBelief: 0.03
+  _dislikesPerHour: 0.25
+  _dislikesPerHourPerDoubt: 0.02
+  _commentsPerHour: 0.2
+  _commentsPerHourPerBelief: 0.015
+  _maxAddedComments: 4
+  _believerThreshold: 25
+  _believerComments:
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: board.live.believer_1
+  - authorTextId: ui.net.author_nick_12
+    bodyTextId: board.live.believer_2
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: board.live.believer_3
+  - authorTextId: ui.net.author_nick_10
+    bodyTextId: board.live.believer_4
+  - authorTextId: ui.net.author_anon
+    bodyTextId: board.live.believer_5
+  _skepticComments:
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: board.live.skeptic_1
+  - authorTextId: ui.net.author_nick_11
+    bodyTextId: board.live.skeptic_2
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: board.live.skeptic_3
+  - authorTextId: ui.net.author_nick_1
+    bodyTextId: board.live.skeptic_4
+  _dailyComments:
+  - authorTextId: ui.net.author_nick_9
+    bodyTextId: board.live.daily_1
+  - authorTextId: ui.net.author_nick_4
+    bodyTextId: board.live.daily_2
+  - authorTextId: ui.net.author_anon
+    bodyTextId: board.live.daily_3
+  - authorTextId: ui.net.author_nick_1
+    bodyTextId: board.live.daily_4
+  _playerPostComments:
+  - authorTextId: ui.net.author_nick_8
+    bodyTextId: board.live.player_1
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: board.live.player_2
+  - authorTextId: ui.net.author_nick_9
+    bodyTextId: board.live.player_3
+  _scheduledPosts:
+  - atElapsedMinute: 60
+    fillerKey: 020
+    views: 14
+    belief: 0
+    likes: 3
+    dislikes: 1
+    commenters: nick_4|nick_6
+    legendId: 
+  - atElapsedMinute: 150
+    fillerKey: 021
+    views: 31
+    belief: 18
+    likes: 4
+    dislikes: 2
+    commenters: nick_12|nick_5
+    legendId: 
+  - atElapsedMinute: 200
+    fillerKey: 022
+    views: 9
+    belief: 0
+    likes: 2
+    dislikes: 0
+    commenters: nick_6|nick_1
+    legendId: 
+  - atElapsedMinute: 222
+    fillerKey: 023
+    views: 22
+    belief: 9
+    likes: 5
+    dislikes: 0
+    commenters: nick_8|nick_6
+    legendId: 

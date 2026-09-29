@@ -58,6 +58,18 @@ namespace UrbanLegendBureau.Save
 
         /// <summary>누적 플레이 시간(초).</summary>
         public int totalPlaySeconds;
+
+        /// <summary>
+        /// 그날 밤 벽시계(GameClock)가 시작한 뒤로 흐른 분 (v7). -1 이면 적어 둔 적이 없다.
+        /// 저장본을 불러오면 이 값으로 시계를 되돌린다. 새벽 2시 12분에 저장했으면 불러와도 2시 12분이다.
+        /// </summary>
+        public int clockElapsedMinutes = -1;
+
+        /// <summary>
+        /// 괴담넷 게시판이 어느 시각까지 살아 움직였는가 (v7). 벽시계의 흐른 분으로 적는다.
+        /// 불러온 뒤 같은 시간만큼 조회수와 댓글이 또 늘지 않게, 이 뒤로 흐른 몫만 새로 반영한다.
+        /// </summary>
+        public int boardActivityMinute = -1;
     }
 
     /// <summary>플레이어 설정. 진행과 별개지만 같은 파일에 함께 둔다.</summary>

@@ -73,7 +73,7 @@ MonoBehaviour:
   _allowRewrite: 1
   _maxAttempts: 0
   _takeDownFailedPost: 1
-  _authorTextId: post.subway.author
+  _authorTextId: ui.net.author_alias
   _boardTextId: ui.net.board_free
   _views: 37
   _successLikes: 14

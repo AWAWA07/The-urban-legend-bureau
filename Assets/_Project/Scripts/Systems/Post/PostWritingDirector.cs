@@ -50,6 +50,9 @@ namespace UrbanLegendBureau.Systems
 
         private const string PublishedFlagPrefix = "post_published:";
 
+        /// <summary>이 글쓰기를 마쳤다는 이야기 표시. 사건을 처음부터 다시 할 때 지우는 쪽도 이것을 쓴다.</summary>
+        public static string PublishedFlag(PostWritingSO data) => PublishedFlagPrefix + (data != null ? data.PostWritingId : string.Empty);
+
         private const string TitlePlaceholderTextId = "ui.post.title_placeholder";
         private static readonly string[] BodyPlaceholderTextIds =
         {
@@ -94,6 +97,9 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>마지막 반응을 읽고 한영이 입을 열기까지의 뜸(초).</summary>
         private const float TalkDelay = 1.4f;
+
+        /// <summary>글쓰기를 성공으로 마쳤을 때. 사건 쪽이 이것을 받아 다음 흐름(첫날 밤)으로 넘어간다.</summary>
+        public event Action<PostWritingSO> Succeeded;
 
         private void Start()
         {
@@ -177,7 +183,7 @@ namespace UrbanLegendBureau.Systems
 
             // 아직 올리지 않은 글이다. 방금 쓴 것으로 보이도록 올린 시각을 지금으로 둔다.
             _communityScreen.BindPost(titleId, body, _data.AuthorTextId, _data.BoardTextId,
-                0, -GameClock.ElapsedMinutes);
+                0, -GameClock.ElapsedMinutes, authorIsPlayer: true);
             _communityScreen.BindComments(new List<CommunityComment>());
             _communityScreen.BindReactions(null, null);
 
@@ -390,7 +396,9 @@ namespace UrbanLegendBureau.Systems
             }
 
             _communityScreen.BindWrite(null);
-            Debug.Log($"[PostWriting] 성공 | {_data.PostWritingId} | 다음 튜토리얼 단계로 넘어갈 자리");
+            Debug.Log($"[PostWriting] 성공 | {_data.PostWritingId}");
+
+            Succeeded?.Invoke(_data);
         }
 
         /// <summary>

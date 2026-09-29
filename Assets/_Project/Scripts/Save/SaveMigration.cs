@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 6;
+        public const int CurrentVersion = 7;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -96,6 +96,18 @@ namespace UrbanLegendBureau.Save
                 // 방법이 주는 단서를 이미 들고 있으면 해 본 것으로 치므로 크게 어긋나지 않는다.
                 data.doneActions ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 6;
+            }
+
+            if (data.saveVersion == 6)
+            {
+                // v7에서 벽시계와 게시판이 어디까지 흘렀는지(clockElapsedMinutes, boardActivityMinute)가 추가됐다.
+                // 구버전 저장본에는 적어 둔 적이 없다. -1 로 두면 시계와 게시판은 처음부터 센다.
+                if (data.global != null)
+                {
+                    data.global.clockElapsedMinutes = -1;
+                    data.global.boardActivityMinute = -1;
+                }
+                data.saveVersion = 7;
             }
 
             if (data.saveVersion < CurrentVersion)

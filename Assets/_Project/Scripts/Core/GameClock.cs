@@ -77,6 +77,40 @@ namespace UrbanLegendBureau.Core
         }
 
         /// <summary>
+        /// 그 시각으로 정확히 맞춘다. 앞으로든 뒤로든 가까운 쪽으로 돈다.
+        ///
+        /// SetTo 는 앞으로만 돌아서, 이미 조금 지난 시각을 주면 하루를 통째로 넘긴다.
+        /// "일을 마치니 새벽 2시 12분" 처럼 그 시각이어야만 하는 대목에서는 이것을 쓴다.
+        /// 반나절 안에서 가까운 쪽을 고르므로 날짜가 바뀌지 않는다.
+        /// </summary>
+        public static void SetExactly(int hour, int minute)
+        {
+            EnsureStarted();
+
+            int diff = hour * 60 + minute - MinutesOfDay;
+            if (diff > 720) diff -= 1440;
+            if (diff < -720) diff += 1440;
+
+            _skipped += diff;
+        }
+
+        /// <summary>
+        /// 저장해 둔 흐른 분으로 되돌린다. 저장본을 불러온 뒤 시계를 이어 가게 할 때 쓴다.
+        /// 그 뒤로는 다시 실제 시간만큼 흐른다.
+        /// </summary>
+        public static void RestoreElapsed(int elapsedMinutes)
+        {
+            Restart();
+            _skipped = Mathf.Max(0, elapsedMinutes);
+        }
+
+        /// <summary>지금 시각을 12시간제로 나눠 준다. 대사에 "2시 12분" 처럼 넣을 때 쓴다.</summary>
+        public static void GetHourMinute(out int hour12, out int minute)
+        {
+            Split(out hour12, out minute, out _);
+        }
+
+        /// <summary>
         /// 지금이 그날의 몇 분째인가(0~1439). 자정을 넘기면 다시 0부터다.
         /// "몇 시가 되면" 하는 일을 거는 쪽이 이 값을 본다.
         /// </summary>

@@ -20,6 +20,8 @@ namespace UrbanLegendBureau.Systems
         {
             transform.localPosition = _start;
             if (_body != null) _body.localScale = _startScale;
+            _autoX = null;
+            _onArrived = null;
         }
 
         [Tooltip("따라갈 인물.")]
@@ -44,8 +46,45 @@ namespace UrbanLegendBureau.Systems
             _startScale = _body.localScale;
         }
 
+        private float? _autoX;
+        private float _autoSpeed;
+        private System.Action _onArrived;
+
+        /// <summary>
+        /// 따라가기를 멈추고 그 자리까지 혼자 걸어간다. 닿으면 onArrived 를 한 번 부른다.
+        /// 걸을 수 있는 좌우 끝은 따지지 않는다. 문 밖으로 나가는 걸음이 그 끝을 넘기 때문이다.
+        /// </summary>
+        public void WalkTo(float localX, float speed, System.Action onArrived)
+        {
+            _autoX = localX;
+            _autoSpeed = speed > 0f ? speed : _speed;
+            _onArrived = onArrived;
+        }
+
+        /// <summary>혼자 걷는 중인가.</summary>
+        public bool IsWalkingAlone => _autoX.HasValue;
+
         private void Update()
         {
+            if (_autoX.HasValue)
+            {
+                var q = transform.localPosition;
+                float ax = _autoX.Value - q.x;
+                if (Mathf.Abs(ax) < 0.02f)
+                {
+                    _autoX = null;
+                    var done = _onArrived;
+                    _onArrived = null;
+                    done?.Invoke();
+                    return;
+                }
+
+                q.x += Mathf.Sign(ax) * Mathf.Min(Mathf.Abs(ax), _autoSpeed * Time.deltaTime);
+                transform.localPosition = q;
+                FaceTo(Mathf.Sign(ax));
+                return;
+            }
+
             if (_target == null) return;
 
             float dx = _target.localPosition.x - transform.localPosition.x;
@@ -60,12 +99,16 @@ namespace UrbanLegendBureau.Systems
             p.x = Mathf.Clamp(p.x + side * step, _minX, _maxX);
             transform.localPosition = p;
 
-            if (_body != null)
-            {
-                var s = _body.localScale;
-                s.x = Mathf.Abs(s.x) * side;
-                _body.localScale = s;
-            }
+            FaceTo(side);
+        }
+
+        private void FaceTo(float side)
+        {
+            if (_body == null) return;
+
+            var s = _body.localScale;
+            s.x = Mathf.Abs(s.x) * side;
+            _body.localScale = s;
         }
     }
 }

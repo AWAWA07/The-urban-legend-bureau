@@ -87,7 +87,7 @@ namespace UrbanLegendBureau.Systems
         private static readonly bool[] LineChajihanVisible = { false, false, false, false, true, true };
 
         // --- 커뮤니티 ---
-        private const string TutorialPostViews = "1284";
+        private const int TutorialPostViews = 1284;
         private const int TutorialPostLikes = 17;
         private const int TutorialPostDislikes = 3;
 
@@ -379,7 +379,8 @@ namespace UrbanLegendBureau.Systems
             if (entry.BodyTextIds != null)
             {
                 _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextIds, entry.AuthorTextId, entry.BoardTextId,
-                    entry.Views, entry.PostedMinutesAgo, entry.Likes, entry.Dislikes, entry.LikePressed, entry.DislikePressed);
+                    entry.Views, entry.PostedMinutesAgo, entry.Likes, entry.Dislikes, entry.LikePressed, entry.DislikePressed,
+                    entry.IsPlayerPost);
             }
             else
             {
@@ -387,6 +388,7 @@ namespace UrbanLegendBureau.Systems
                     entry.Views, entry.PostedMinutesAgo,
                     entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
             }
+            _communityScreen.CurrentEntry = entry;
             _communityScreen.BindComments(entry.Comments);
             _communityScreen.BindChoices(null, null, null);
 
@@ -435,7 +437,7 @@ namespace UrbanLegendBureau.Systems
         public UrbanLegendBureau.Data.WebPageSO HotPage => _tutorialPage;
 
         /// <summary>그 글의 조회수. 목록에 적힌 숫자와 어긋나지 않게 여기서만 들고 있는다.</summary>
-        public int HotPageViews => int.Parse(TutorialPostViews);
+        public int HotPageViews => HotEntry.Views;
 
         /// <summary>
         /// 게시판이 만들어 내고 있는 전체 믿음도(%).
@@ -545,6 +547,8 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void BuildBoardEntries()
         {
+            BoardGeneration++;
+
             // 인기글이 시간과 상관없이 맨 위에 붙고, 나머지는 새로 올라온 것부터 내려간다.
             // 실제 게시판이 그렇게 늘어놓는다.
             // 올라온 시각은 "게임을 시작한 밤 10시 30분에서 몇 분 전인가" 로 적는다.
@@ -557,7 +561,10 @@ namespace UrbanLegendBureau.Systems
                 new CommunityBoardEntry
                 {
                     TitleTextId = _tutorialPage != null ? _tutorialPage.TitleTextId : string.Empty,
-                    MetaTextId = "board.subway.meta",
+                    // 작성자 / 조회 / 댓글은 글이 들고 있는 값으로 적는다. 시간이 흐르면 늘어나기 때문이다.
+                    AuthorTextId = "ui.net.author_anon",
+                    Views = TutorialPostViews,
+                    Comments = _comments,
                     IsHot = true,
                     Openable = true,
                     Page = _tutorialPage,
@@ -787,6 +794,29 @@ namespace UrbanLegendBureau.Systems
             _boardEntries.Insert(at, entry);
         }
 
+        /// <summary>
+        /// 게시판을 몇 번 새로 지었는가. 튜토리얼을 다시 돌리면 늘어난다.
+        /// 게시판을 살아 움직이게 하는 쪽이 이 값으로 "처음부터 다시"를 알아챈다.
+        /// </summary>
+        public int BoardGeneration { get; private set; }
+
+        /// <summary>
+        /// 시간이 흘러 새 글이 올라온다. 게시판을 채우는 다른 글들과 같은 방식(Filler)으로 짓는다.
+        /// 올라온 시각은 지금이 아니라 그 글이 올라오기로 한 시각이다. 늦게 열어 보면 "몇 분 전"으로 보인다.
+        /// </summary>
+        public CommunityBoardEntry AddScheduledPost(UrbanLegendBureau.Data.ScheduledBoardPost post)
+        {
+            if (post == null || string.IsNullOrEmpty(post.fillerKey)) return null;
+
+            var entry = Filler(post.fillerKey, post.views, post.belief, -post.atElapsedMinute,
+                post.likes, post.dislikes, string.IsNullOrEmpty(post.commenters) ? "anon" : post.commenters,
+                legendId: string.IsNullOrEmpty(post.legendId) ? null : post.legendId);
+
+            AddBoardPost(entry);
+            PushBeliefToTaskbar();
+            return entry;
+        }
+
         /// <summary>올린 글을 내린다. 다시 쓰기 전에 실패한 글을 걷어 낼 때 쓴다.</summary>
         public bool RemoveBoardPost(CommunityBoardEntry entry)
         {
@@ -807,8 +837,9 @@ namespace UrbanLegendBureau.Systems
             // 휴대폰으로 같은 글을 열어도 같은 것을 보게 하려면 한 곳에서만 들고 있어야 한다.
             var hot = HotEntry;
 
-            _communityScreen.BindPage(_tutorialPage, int.Parse(TutorialPostViews), hot.PostedMinutesAgo,
+            _communityScreen.BindPage(_tutorialPage, hot.Views, hot.PostedMinutesAgo,
                 hot.Likes, hot.Dislikes, _postBelief, hot.LikePressed, hot.DislikePressed);
+            _communityScreen.CurrentEntry = hot;
             _communityScreen.BindComments(_comments);
             _communityScreen.BindChoices(_choices, BuildChoiceLabel, OnChoiceSelected, BuildChoiceNote);
             _communityScreen.BindReactions(OnLikeToggled, OnDislikeToggled);
@@ -1022,6 +1053,9 @@ namespace UrbanLegendBureau.Systems
                 new CommunityComment { AuthorTextId = "ui.net.author_nick_2", BodyTextId = "tutorial.comment.existing_3" },
                 new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = "tutorial.comment.existing_4" },
             };
+
+            // 인기글 줄도 이 댓글 목록을 함께 본다. 목록의 댓글 수와 글 화면의 댓글이 어긋나지 않는다.
+            if (_boardEntries != null && _boardEntries.Count > 0 && _boardEntries[0] != null) _boardEntries[0].Comments = _comments;
         }
 
         private void BuildChoices()
@@ -1693,6 +1727,77 @@ namespace UrbanLegendBureau.Systems
             string id = RoomLineTextIds[index];
             string name = RoomLineIsHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
             hud.ShowLine(name, () => _loc.Get(id), () => ShowRoomLine(hud, index + 1, onDone));
+        }
+
+        // ------------------------------------------------------------- 첫날 밤
+
+        /// <summary>게시물을 다 올린 뒤 숙소에서 주고받는 말. 한영, 차지한, 한영 순이다.</summary>
+        private static readonly string[] NightLineTextIds =
+        {
+            "tutorial.night.001",
+            "tutorial.night.002",
+            "tutorial.night.003",
+        };
+
+        private static readonly bool[] NightLineIsHanyoung = { true, false, true };
+
+        /// <summary>한영이 나간 뒤 차지한 혼자 하는 말.</summary>
+        private static readonly string[] MonologueTextIds =
+        {
+            "tutorial.night.mono_1",
+            "tutorial.night.mono_2",
+            "tutorial.night.mono_3",
+        };
+
+        /// <summary>
+        /// 게시물을 마치고 숙소로 돌아온 뒤의 말. 말이 끝나면 onDone 을 부른다.
+        /// 첫 마디는 지금 시각을 읽어 "새벽 2시 12분" 처럼 넣는다. 시각을 글에 박아 두지 않는다.
+        /// </summary>
+        public bool ShowNightTalk(System.Action onDone)
+        {
+            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (hud == null || _loc == null) return false;
+
+            _fieldHud = hud;
+            ShowLines(hud, NightLineTextIds, NightLineIsHanyoung, 0, onDone);
+            return true;
+        }
+
+        /// <summary>한영이 나간 뒤 차지한의 혼잣말. 말이 끝나면 띠를 비우고 onDone 을 부른다.</summary>
+        public bool ShowNightMonologue(System.Action onDone)
+        {
+            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (hud == null || _loc == null) return false;
+
+            _fieldHud = hud;
+            ShowLines(hud, MonologueTextIds, null, 0, onDone);
+            return true;
+        }
+
+        /// <summary>
+        /// 대사 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.
+        /// 문장에는 지금 시각(12시간제 시와 분, "2:12" 꼴)을 넘겨 준다. 쓰지 않는 문장은 무시한다.
+        /// </summary>
+        private void ShowLines(UrbanLegendBureau.UI.FieldHudScreen hud, string[] ids, bool[] isHanyoung,
+            int index, System.Action onDone)
+        {
+            if (index >= ids.Length)
+            {
+                hud.ClearSpeech();
+                onDone?.Invoke();
+                return;
+            }
+
+            string id = ids[index];
+            string name = isHanyoung != null && isHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
+            hud.ShowLine(name, () => FormatWithClock(id), () => ShowLines(hud, ids, isHanyoung, index + 1, onDone));
+        }
+
+        /// <summary>문장에 지금 시각을 넣는다. {0} 시, {1} 분, {2} "2:12" 꼴.</summary>
+        public string FormatWithClock(string textId)
+        {
+            UrbanLegendBureau.Core.GameClock.GetHourMinute(out int hour, out int minute);
+            return _loc.Get(textId, hour, minute, hour + ":" + minute.ToString("00"));
         }
 
 

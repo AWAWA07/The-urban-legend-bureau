@@ -29,6 +29,9 @@ namespace UrbanLegendBureau.Systems
             transform.localPosition = _start;
             Facing = _startFacing;
             IsWalking = false;
+            Locked = false;
+            _autoX = null;
+            _onArrived = null;
             ApplyFacing();
         }
 
@@ -65,8 +68,62 @@ namespace UrbanLegendBureau.Systems
             _startFacing = Facing;
         }
 
+        /// <summary>
+        /// 붙잡아 둔다. 켜 두는 동안에는 입력을 받아도 걷지 않는다.
+        /// 다른 사람이 움직이는 연출 동안 플레이어가 제자리에 서 있어야 할 때 쓴다.
+        /// </summary>
+        public bool Locked { get; set; }
+
+        private float? _autoX;
+        private float _autoSpeedScale = 1f;
+        private System.Action _onArrived;
+
+        /// <summary>
+        /// 입력 없이 그 자리까지 걸어간다. 닿으면 onArrived 를 한 번 부른다.
+        /// 걷는 빠르기와 뒤집기는 평소 걸을 때와 같다. speedScale 로 조금 늦출 수 있다.
+        /// 붙잡혀 있어도, 누가 말하는 중이어도 이 걸음은 간다. 연출이 부르는 것이기 때문이다.
+        /// </summary>
+        public void WalkTo(float localX, System.Action onArrived, float speedScale = 1f)
+        {
+            _autoX = Mathf.Clamp(localX, _minX, _maxX);
+            _autoSpeedScale = Mathf.Max(0.1f, speedScale);
+            _onArrived = onArrived;
+        }
+
+        /// <summary>연출이 시킨 걸음을 한 번 옮긴다. 닿았으면 true.</summary>
+        private bool StepAuto()
+        {
+            var p = transform.localPosition;
+            float dx = _autoX.Value - p.x;
+
+            if (Mathf.Abs(dx) < 0.02f)
+            {
+                IsWalking = false;
+                _autoX = null;
+                var done = _onArrived;
+                _onArrived = null;
+                done?.Invoke();
+                return true;
+            }
+
+            IsWalking = true;
+            Facing = Mathf.Sign(dx);
+            p.x += Mathf.Sign(dx) * Mathf.Min(Mathf.Abs(dx), _speed * _autoSpeedScale * Time.deltaTime);
+            transform.localPosition = p;
+            ApplyFacing();
+            return false;
+        }
+
         private void Update()
         {
+            if (_autoX.HasValue) { StepAuto(); return; }
+
+            if (Locked)
+            {
+                IsWalking = false;
+                return;
+            }
+
             // 서 있어야 할 때가 둘이다.
             //   누가 말하는 동안 - 서서 듣는다. 뒤따르는 쪽도 함께 멈춘다.
             //   다른 화면이 위에 떠 있는 동안 - 규칙 추론이나 조사 방법을 고르는 중이다.
