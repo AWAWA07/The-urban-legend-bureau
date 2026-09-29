@@ -490,6 +490,10 @@ namespace UrbanLegendBureau.EditorTools
                     new Vector2(2.9f, 2.3f), new Color(0.38f, 0.40f, 0.46f), -7);
                 AddFieldRect(train.transform, "CarWindow_" + i, new Vector2(windowX[i], 1.0f),
                     new Vector2(2.6f, 2.0f), new Color(0.07f, 0.08f, 0.12f), -6);
+
+                // 유리에 비친 승강장 조명. 위쪽이 옅게 밝다.
+                AddFieldGradient(train.transform, "CarWindowSheen_" + i, new Vector2(windowX[i], 1.5f),
+                    new Vector2(2.6f, 1.0f), new Color(1f, 1f, 1f, 0.07f), -5);
             }
 
             // 열차 문. 열리면 그 너머로 객실 안이 드러난다.
@@ -556,6 +560,45 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.30f, 0.31f, 0.38f), -3);
             AddFieldRect(root.transform, "Sign", new Vector2(-5f, 2.2f), new Vector2(5.2f, 1.1f),
                 new Color(0.16f, 0.20f, 0.30f), -3);
+
+            // --- 승강장의 결 ---
+            // 역 이름. 이름표가 비어 있으면 판자처럼 보인다.
+            AddFieldWorldText(root.transform, "SignText", new Vector2(-5f, 2.2f), new Vector2(4.8f, 0.9f),
+                "ui.field.platform", new Color(0.86f, 0.88f, 0.94f), -2);
+
+            // 천장 조명. 처마 아래에 형광등이 줄지어 있고, 그 아래로 빛이 번진다.
+            for (int i = -3; i <= 3; i++)
+            {
+                AddFieldRect(root.transform, "PlatformLamp_" + (i + 3), new Vector2(i * 6.2f, 3.2f),
+                    new Vector2(2.4f, 0.12f), new Color(0.86f, 0.86f, 0.78f), -2);
+                AddFieldSoft(root.transform, "PlatformLampGlow_" + (i + 3), new Vector2(i * 6.2f, 2.7f),
+                    new Vector2(4.4f, 1.6f), new Color(1f, 0.97f, 0.85f, 0.12f), -2);
+            }
+
+            // 처마 그늘. 천장 바로 아래가 조금 어둡다.
+            AddFieldGradient(root.transform, "SoffitShade", new Vector2(0f, 2.9f), new Vector2(44f, 0.9f),
+                new Color(0f, 0f, 0f, 0.28f), -3);
+
+            // 바닥 타일. 세로 이음새와 가로 이음새 하나. 안전선 쪽이 조명을 받아 조금 밝다.
+            AddFieldGradient(root.transform, "FloorLight", new Vector2(0f, -3.4f), new Vector2(44f, 1.2f),
+                new Color(1f, 1f, 1f, 0.05f), 0);
+            for (int i = 0; i <= 27; i++)
+            {
+                AddFieldRect(root.transform, "FloorJoint_" + i, new Vector2(-21.6f + i * 1.6f, -4.15f),
+                    new Vector2(0.04f, 2.6f), new Color(0.18f, 0.18f, 0.22f), 0);
+            }
+            AddFieldRect(root.transform, "FloorJointH", new Vector2(0f, -4.3f), new Vector2(44f, 0.04f),
+                new Color(0.18f, 0.18f, 0.22f), 0);
+
+            // 안전선 위의 점자 블록 홈. 노란 선이 한 장의 띠가 아니라 블록처럼 보인다.
+            AddFieldRect(root.transform, "SafetyGroove_A", new Vector2(0f, -2.66f), new Vector2(44f, 0.03f),
+                new Color(0.58f, 0.49f, 0.20f), 1);
+            AddFieldRect(root.transform, "SafetyGroove_B", new Vector2(0f, -2.78f), new Vector2(44f, 0.03f),
+                new Color(0.58f, 0.49f, 0.20f), 1);
+
+            // 벽과 바닥이 만나는 곳. 스크린도어 발치가 조금 어둡다.
+            AddFieldGradient(root.transform, "FloorContact", new Vector2(0f, -2.34f), new Vector2(44f, 0.5f),
+                new Color(0f, 0f, 0f, 0.25f), 0, 180f);
 
             // --- 탈 자리 ---
             // 가운데 문 앞. 문이 다 열린 뒤에만 켜진다.
@@ -676,6 +719,42 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "CctvArm", new Vector2(-10.6f, 3.25f), new Vector2(0.28f, 1.0f), trim, -5);
             AddFieldRect(root.transform, "CctvShade", new Vector2(-10.6f, 2.6f), new Vector2(2.2f, 1.7f), dark, -6);
 
+            // --- 객실의 빛과 그늘 ---
+            // 형광등 아래로 번지는 빛. 등 하나하나가 제 몫의 빛을 떨군다.
+            for (int i = -3; i <= 3; i++)
+            {
+                AddFieldSoft(root.transform, "CeilingLampGlow_" + (i + 3), new Vector2(i * 4.4f, 3.45f),
+                    new Vector2(4.6f, 1.8f), new Color(1f, 0.98f, 0.86f, 0.13f), -6);
+            }
+
+            // 천장 모서리 아래의 그늘과, 벽과 바닥이 만나는 곳의 어둠.
+            AddFieldGradient(root.transform, "CeilingShade", new Vector2(0f, 3.1f), new Vector2(44f, 0.9f),
+                new Color(0f, 0f, 0f, 0.25f), -7);
+            AddFieldGradient(root.transform, "FloorContact", new Vector2(0f, -3.05f), new Vector2(44f, 0.8f),
+                new Color(0f, 0f, 0f, 0.3f), -7, 180f);
+
+            // 바닥. 형광등이 비쳐 벽 쪽이 옅게 번들거리고, 가운데로 미끄럼 방지 줄이 지나간다.
+            AddFieldGradient(root.transform, "FloorSheen", new Vector2(0f, -3.85f), new Vector2(44f, 0.8f),
+                new Color(1f, 1f, 1f, 0.05f), -7);
+            AddFieldRect(root.transform, "FloorStrip", new Vector2(0f, -4.3f), new Vector2(44f, 0.06f),
+                new Color(0.19f, 0.19f, 0.24f), -7);
+
+            // 벽판 이음새. 차체가 판 여러 장을 이어 붙인 것으로 보인다.
+            foreach (float seamX in new[] { -12.6f, -7.6f, -2.4f, 2.4f, 7.6f, 12.6f })
+            {
+                AddFieldRect(root.transform, "WallSeam_" + seamX, new Vector2(seamX, 0.3f), new Vector2(0.05f, 6.4f),
+                    new Color(0.16f, 0.17f, 0.21f), -8);
+            }
+
+            // 창 위의 광고 액자. 막차 안이 사람 사는 곳으로 보이게 한다.
+            foreach (float adX in new[] { -5f, 5f })
+            {
+                AddFieldRect(root.transform, "AdFrame_" + adX, new Vector2(adX, 2.72f), new Vector2(3.4f, 0.62f),
+                    new Color(0.30f, 0.31f, 0.37f), -7);
+                AddFieldRect(root.transform, "Ad_" + adX, new Vector2(adX, 2.72f), new Vector2(3.2f, 0.46f),
+                    adX < 0 ? new Color(0.46f, 0.40f, 0.30f) : new Color(0.30f, 0.38f, 0.46f), -6);
+            }
+
             // 객실 안에 선 두 사람. 바닥 위에 놓는다. 의자와 봉 사이를 오간다.
             BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f);
 
@@ -712,7 +791,58 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.25f, 0.19f, 0.15f), -8);
             AddFieldRect(root.transform, "FloorEdge", new Vector2(0f, -3.42f), new Vector2(44f, 0.16f), woodDark, -7);
             AddFieldRect(root.transform, "Rug", new Vector2(0.5f, -4.05f), new Vector2(7.4f, 0.5f),
-                new Color(0.36f, 0.22f, 0.22f), -7);
+                new Color(0.36f, 0.22f, 0.22f), -6);   // 마룻바닥 이음새보다 위에 깐다
+            AddFieldRect(root.transform, "RugBorder", new Vector2(0.5f, -4.05f), new Vector2(6.9f, 0.3f),
+                new Color(0.44f, 0.30f, 0.26f), -5);
+            AddFieldRect(root.transform, "RugInner", new Vector2(0.5f, -4.05f), new Vector2(6.6f, 0.2f),
+                new Color(0.36f, 0.22f, 0.22f), -4);
+
+            // --- 방의 결 ---
+            // 벽지의 옅은 세로 줄무늬. 민짜 벽이 아니라 도배한 벽으로 보인다.
+            var stripe = Color.Lerp(wall, Color.white, 0.035f);
+            for (int i = 0; i <= 48; i++)
+            {
+                AddFieldRect(root.transform, "Wallpaper_" + i, new Vector2(-21.6f + i * 0.9f, 1.25f),
+                    new Vector2(0.28f, 4.9f), stripe, -8);
+            }
+
+            // 아래 벽판의 이음새와 걸레받이.
+            for (int i = 0; i <= 24; i++)
+            {
+                AddFieldRect(root.transform, "WainscotSeam_" + i, new Vector2(-21.6f + i * 1.8f, -2.3f),
+                    new Vector2(0.05f, 2.0f), Color.Lerp(wainscot, Color.black, 0.25f), -7);
+            }
+            AddFieldRect(root.transform, "Baseboard", new Vector2(0f, -3.28f), new Vector2(44f, 0.22f), woodDark, -7);
+
+            // 마룻바닥. 가로 이음새 둘과 엇갈린 세로 이음새.
+            var plankLine = new Color(0.20f, 0.15f, 0.12f);
+            float[] plankY = { -3.95f, -4.5f, -5.05f };
+            for (int row = 0; row < plankY.Length; row++)
+            {
+                AddFieldRect(root.transform, "PlankRow_" + row, new Vector2(0f, plankY[row]), new Vector2(44f, 0.03f), plankLine, -7);
+                float offset = row % 2 == 0 ? 0f : 1.2f;
+                for (int i = 0; i <= 18; i++)
+                {
+                    AddFieldRect(root.transform, "PlankJoint_" + row + "_" + i,
+                        new Vector2(-21.6f + offset + i * 2.4f, plankY[row] + 0.27f), new Vector2(0.03f, 0.52f), plankLine, -7);
+                }
+            }
+            AddFieldGradient(root.transform, "FloorSheen", new Vector2(0f, -3.8f), new Vector2(44f, 0.7f),
+                new Color(1f, 0.95f, 0.85f, 0.05f), -7);
+
+            // 천장 아래 그늘과 벽이 바닥에 닿는 곳의 어둠.
+            AddFieldGradient(root.transform, "CeilingShade", new Vector2(0f, 3.1f), new Vector2(44f, 1.0f),
+                new Color(0f, 0f, 0f, 0.28f), -7);
+            AddFieldGradient(root.transform, "FloorContact", new Vector2(0f, -3.0f), new Vector2(44f, 0.6f),
+                new Color(0f, 0f, 0f, 0.28f), -7, 180f);
+
+            // 가구 밑의 그림자. 물건이 바닥에 놓여 있는 것으로 보인다.
+            var floorShadow = new Color(0f, 0f, 0f, 0.38f);
+            AddFieldSoft(root.transform, "Shadow_Bed", new Vector2(-9.2f, -3.42f), new Vector2(7.2f, 0.5f), floorShadow, -7);
+            AddFieldSoft(root.transform, "Shadow_Nightstand", new Vector2(-5.1f, -3.42f), new Vector2(1.8f, 0.34f), floorShadow, -7);
+            AddFieldSoft(root.transform, "Shadow_Desk", new Vector2(0.6f, -3.42f), new Vector2(5.4f, 0.42f), floorShadow, -7);
+            AddFieldSoft(root.transform, "Shadow_Shelf", new Vector2(6.8f, -3.42f), new Vector2(3.8f, 0.42f), floorShadow, -7);
+            AddFieldSoft(root.transform, "Shadow_Plant", new Vector2(9.9f, -3.42f), new Vector2(1.3f, 0.28f), floorShadow, -7);
 
             // --- 왼쪽: 잠자리 ---
             // 창 너머는 한밤의 도시다. 멀리 켜진 창 몇 개만 보인다.
@@ -729,6 +859,8 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(window.transform, "City_3", new Vector2(1.5f, -0.4f), new Vector2(0.18f, 0.22f), cityLight, -5);
             AddFieldRect(window.transform, "Mullion_V", Vector2.zero, new Vector2(0.14f, 2.5f), trim, -4);
             AddFieldRect(window.transform, "Mullion_H", Vector2.zero, new Vector2(4.0f, 0.14f), trim, -4);
+            AddFieldGradient(window.transform, "Sheen", new Vector2(0f, 0.6f), new Vector2(4.0f, 1.3f),
+                new Color(0.75f, 0.82f, 1f, 0.08f), -5);
             var curtain = new Color(0.38f, 0.25f, 0.27f);
             AddFieldRect(window.transform, "Curtain_L", new Vector2(-2.35f, -0.15f), new Vector2(0.8f, 3.3f), curtain, -3);
             AddFieldRect(window.transform, "Curtain_R", new Vector2(2.35f, -0.15f), new Vector2(0.8f, 3.3f), curtain, -3);
@@ -756,6 +888,9 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "LampStem", new Vector2(-5.1f, -1.85f), new Vector2(0.1f, 0.5f), woodDark, -5);
             AddFieldRect(root.transform, "LampShade", new Vector2(-5.1f, -1.42f), new Vector2(0.85f, 0.5f),
                 new Color(0.86f, 0.74f, 0.46f), -5);
+            // 스탠드 불빛이 벽과 협탁에 번진다.
+            AddFieldSoft(root.transform, "LampGlow", new Vector2(-5.1f, -1.6f), new Vector2(3.0f, 2.4f),
+                new Color(1f, 0.85f, 0.5f, 0.2f), -3);
 
             // --- 가운데: 일하는 자리 ---
             // 책상 위 벽의 게시판. 사건 메모가 꽂혀 있다. 검열국 사람의 방이라는 것이 여기서 보인다.
@@ -781,6 +916,9 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.12f, 0.12f, 0.15f), -5);
             AddFieldRect(root.transform, "MonitorScreen", new Vector2(0.5f, -0.25f), new Vector2(2.08f, 1.28f),
                 new Color(0.26f, 0.40f, 0.58f), -4);
+            // 켜진 화면의 푸른 빛이 책상 위로 번진다.
+            AddFieldSoft(root.transform, "MonitorGlow", new Vector2(0.5f, -0.4f), new Vector2(4.2f, 2.8f),
+                new Color(0.45f, 0.65f, 1f, 0.16f), -6);
             AddFieldRect(root.transform, "MonitorTaskbar", new Vector2(0.5f, -0.82f), new Vector2(2.08f, 0.14f),
                 new Color(0.14f, 0.18f, 0.26f), -3);
             AddFieldRect(root.transform, "Keyboard", new Vector2(0.3f, -1.34f), new Vector2(1.6f, 0.1f),
@@ -875,8 +1013,11 @@ namespace UrbanLegendBureau.EditorTools
             // 방 조명 스위치. 방문 옆 벽, 손 닿는 높이에 붙어 있다.
             AddFieldRect(root.transform, "SwitchPlate", new Vector2(11.1f, -0.35f), new Vector2(0.36f, 0.56f),
                 new Color(0.86f, 0.84f, 0.80f), -5);
-            AddFieldRect(root.transform, "SwitchToggle", new Vector2(11.1f, -0.29f), new Vector2(0.12f, 0.2f),
-                new Color(0.62f, 0.60f, 0.58f), -4);
+            // 토글이 오르내리는 홈. 토글은 켜면 위, 끄면 아래에 선다(RoomNight).
+            AddFieldRect(root.transform, "SwitchSlot", new Vector2(11.1f, -0.35f), new Vector2(0.16f, 0.36f),
+                new Color(0.52f, 0.50f, 0.48f), -4);
+            var switchToggle = AddFieldRect(root.transform, "SwitchToggle", new Vector2(11.1f, -0.27f), new Vector2(0.12f, 0.18f),
+                new Color(0.97f, 0.96f, 0.93f), -3);
 
             // 누운 몸 위로 덮는 이불. 잠자리에 들 때만 켜진다. 사람보다 앞에 그린다.
             var blanketOver = AddFieldRect(root.transform, "BlanketOver", new Vector2(-9.85f, -1.72f), new Vector2(1.9f, 0.86f),
@@ -949,6 +1090,7 @@ namespace UrbanLegendBureau.EditorTools
             nso.FindProperty("_roomLight").objectReferenceValue = roomLight;
             nso.FindProperty("_moonLight").objectReferenceValue = moon;
             nso.FindProperty("_blanketOver").objectReferenceValue = blanketOver;
+            nso.FindProperty("_switchToggle").objectReferenceValue = switchToggle.transform;
             nso.ApplyModifiedPropertiesWithoutUndo();
         }
 
@@ -1014,6 +1156,163 @@ namespace UrbanLegendBureau.EditorTools
             importer.SaveAndReimport();
 
             return AssetDatabase.LoadAssetAtPath<Sprite>(FieldCirclePath);
+        }
+
+        // ------------------------------------------------------------- 현장의 빛과 그림자
+
+        private const string FieldSoftPath = "Assets/_Project/Art/Objects/field_soft.png";
+        private const string FieldGradientPath = "Assets/_Project/Art/Objects/field_gradient.png";
+
+        /// <summary>
+        /// 가운데가 진하고 가장자리로 갈수록 옅어지는 흐린 동그라미. 없으면 그려서 저장한다.
+        /// 발밑 그림자, 가구 밑 그림자, 전등과 모니터의 빛번짐에 쓴다. 색은 쓰는 쪽이 입힌다.
+        /// </summary>
+        private static Sprite FieldSoftSprite()
+        {
+            return LoadOrPaint(FieldSoftPath, 256, 256, (u, v) =>
+            {
+                float dx = u - 0.5f, dy = v - 0.5f;
+                float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy) * 2f);
+                float a = 1f - d;
+                return a * a * (3f - 2f * a);   // 부드럽게 줄어든다
+            });
+        }
+
+        /// <summary>
+        /// 위가 진하고 아래로 갈수록 사라지는 띠. 없으면 그려서 저장한다.
+        /// 천장 아래의 그늘, 벽과 바닥이 만나는 곳의 어둠, 유리의 반사, 화면 가장자리의 어둠에 쓴다.
+        /// </summary>
+        private static Sprite FieldGradientSprite()
+        {
+            return LoadOrPaint(FieldGradientPath, 8, 256, (u, v) =>
+            {
+                float t = v;               // 아래(0)에서 위(1)로
+                return t * t;
+            });
+        }
+
+        /// <summary>
+        /// 흰 그림 한 장을 알파만 달리해 그려 저장하고 Sprite 로 들여온다. 이미 있으면 그것을 쓴다.
+        /// 한 장이 월드 1단위가 되도록 들여온다. 크기는 쓰는 쪽이 늘려서 맞춘다.
+        /// </summary>
+        private static Sprite LoadOrPaint(string path, int width, int height, System.Func<float, float, float> alpha)
+        {
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (sprite != null) return sprite;
+
+            var tex = new Texture2D(width, height, TextureFormat.RGBA32, false);
+            var pixels = new Color32[width * height];
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    float a = Mathf.Clamp01(alpha((x + 0.5f) / width, (y + 0.5f) / height));
+                    pixels[y * width + x] = new Color32(255, 255, 255, (byte)(a * 255f));
+                }
+            }
+            tex.SetPixels32(pixels);
+            tex.Apply();
+
+            System.IO.File.WriteAllBytes(path, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = Mathf.Max(width, height);
+            importer.mipmapEnabled = true;
+            importer.filterMode = FilterMode.Bilinear;
+            importer.wrapMode = TextureWrapMode.Clamp;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.alphaIsTransparency = true;
+            importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        /// <summary>흐린 동그라미 하나를 그 크기로 깐다. 그림자면 검은색, 빛번짐이면 빛의 색을 준다.</summary>
+        private static GameObject AddFieldSoft(Transform parent, string name, Vector2 position, Vector2 size,
+            Color color, int order)
+        {
+            return AddStretched(parent, name, FieldSoftSprite(), position, size, color, order, 0f);
+        }
+
+        /// <summary>
+        /// 한쪽이 진하고 반대쪽으로 사라지는 띠를 깐다. angle 0 이면 위가 진하다.
+        /// 180 이면 아래가, 90 이면 왼쪽이, -90 이면 오른쪽이 진하다.
+        /// </summary>
+        private static GameObject AddFieldGradient(Transform parent, string name, Vector2 position, Vector2 size,
+            Color color, int order, float angle = 0f)
+        {
+            return AddStretched(parent, name, FieldGradientSprite(), position, size, color, order, angle);
+        }
+
+        private static GameObject AddStretched(Transform parent, string name, Sprite sprite, Vector2 position,
+            Vector2 size, Color color, int order, float angle)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+            go.transform.localRotation = Quaternion.Euler(0f, 0f, angle);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = sprite;
+            sr.color = color;
+            sr.sortingOrder = order;
+
+            // 옆으로 눕힌 띠는 가로와 세로가 바뀐다. 돌린 뒤에 size 가 되도록 맞춘다.
+            bool sideways = Mathf.Abs(Mathf.Abs(angle) - 90f) < 1f;
+            var want = sideways ? new Vector2(size.y, size.x) : size;
+            var bounds = sprite != null ? sprite.bounds.size : Vector3.one;
+            go.transform.localScale = new Vector3(want.x / Mathf.Max(0.0001f, bounds.x), want.y / Mathf.Max(0.0001f, bounds.y), 1f);
+            return go;
+        }
+
+        /// <summary>
+        /// 현장마다 까는 공통의 분위기. 화면 위와 양옆 가장자리를 살짝 어둡게 한다.
+        /// 장면이 판때기처럼 끝나지 않고 가운데로 눈이 모인다. 사람과 물건보다 앞, 말풍선보다 뒤에 그린다.
+        /// </summary>
+        private static void AddFieldVignette(Transform parent)
+        {
+            var dark = new Color(0f, 0f, 0f, 0.42f);
+            AddFieldGradient(parent, "Vignette_Top", new Vector2(0f, 2.9f), new Vector2(44f, 2.4f), dark, 20);
+            AddFieldGradient(parent, "Vignette_Bottom", new Vector2(0f, -4.8f), new Vector2(44f, 1.6f),
+                new Color(0f, 0f, 0f, 0.30f), 20, 180f);
+            AddFieldGradient(parent, "Vignette_Left", new Vector2(-13.2f, 0f), new Vector2(3.2f, 12f), dark, 20, 90f);
+            AddFieldGradient(parent, "Vignette_Right", new Vector2(13.2f, 0f), new Vector2(3.2f, 12f), dark, 20, -90f);
+        }
+
+        /// <summary>
+        /// 현장 안에 적힌 글자. 역 이름표처럼 장면의 일부인 글에 쓴다.
+        /// 말풍선과 같은 3D TextMeshPro 이고, 글은 번역 표에서 가져온다(LocalizedText).
+        /// </summary>
+        private static TextMeshPro AddFieldWorldText(Transform parent, string name, Vector2 position, Vector2 size,
+            string textId, Color color, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+
+            var text = go.AddComponent<TextMeshPro>();
+            text.font = LoadFont(UIFontWeight.SemiBold);
+            text.color = color;
+            text.alignment = TextAlignmentOptions.Center;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
+            text.enableAutoSizing = true;
+            text.fontSizeMin = 2f;
+            text.fontSizeMax = 6f;
+            text.rectTransform.sizeDelta = size;
+
+            var mesh = go.GetComponent<MeshRenderer>();
+            if (mesh != null) mesh.sortingOrder = order;
+
+            var localized = go.AddComponent<LocalizedText>();
+            var so = new SerializedObject(localized);
+            so.Update();
+            so.FindProperty("_textId").stringValue = textId;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return text;
         }
 
         /// <summary>현장 배경에 까는 동그라미 하나. 시계판이나 문고리처럼 둥근 것에 쓴다.</summary>
@@ -1082,6 +1381,12 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(go.transform, "Back", new Vector2(0f, -1.35f), new Vector2(width, 1.9f), fabric, -6);
             AddFieldRect(go.transform, "Seat", new Vector2(0f, -2.45f), new Vector2(width, 0.6f),
                 Color.Lerp(fabric, Color.white, 0.12f), -5);
+
+            // 앉는 자리 앞 모서리가 조명을 받는다. 판이 아니라 쿠션으로 보인다.
+            AddFieldRect(go.transform, "SeatEdge", new Vector2(0f, -2.18f), new Vector2(width, 0.06f),
+                Color.Lerp(fabric, Color.white, 0.3f), -4);
+            AddFieldGradient(go.transform, "BackShade", new Vector2(0f, -1.95f), new Vector2(width, 0.6f),
+                new Color(0f, 0f, 0f, 0.18f), -5, 180f);
             AddFieldRect(go.transform, "Skirt", new Vector2(0f, -3.1f), new Vector2(width, 0.8f),
                 new Color(0.17f, 0.18f, 0.22f), -6);
 
@@ -1114,6 +1419,10 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.07f, 0.09f, 0.13f), -6);
             AddFieldRect(go.transform, "Mullion", Vector2.zero, new Vector2(0.16f, 2.3f),
                 new Color(0.30f, 0.31f, 0.37f), -5);
+
+            // 캄캄한 유리에 비친 객실 조명. 위쪽이 옅게 밝다.
+            AddFieldGradient(go.transform, "Sheen", new Vector2(0f, 0.55f), new Vector2(width, 1.2f),
+                new Color(1f, 1f, 1f, 0.07f), -5);
         }
 
         /// <summary>현장 배경에 까는 네모 하나. 조사 지점이 아니라 그냥 그림이다.</summary>
@@ -1200,6 +1509,9 @@ namespace UrbanLegendBureau.EditorTools
             // 배경이 좁으면 양옆이 비어 방이 떠 있는 것처럼 보인다.
             sr.size = new Vector2(44f, 10.8f);
             sr.sortingOrder = -10;
+
+            // 가장자리를 살짝 어둡게. 어느 현장이든 같은 틀로 보이게 한다.
+            AddFieldVignette(parent);
         }
 
         /// <summary>
@@ -1332,6 +1644,10 @@ namespace UrbanLegendBureau.EditorTools
             go.transform.localPosition = footPosition;
 
             var leg = new Color(0.17f, 0.18f, 0.23f);
+
+            // 발밑의 흐린 그림자. 바닥에 서 있는 것처럼 보이게 한다. 누우면 끈다(RoomNight).
+            AddFieldSoft(go.transform, "Shadow", new Vector2(0f, 0.02f), new Vector2(1.0f, 0.24f),
+                new Color(0f, 0f, 0f, 0.45f), Order - 1);
 
             // 다리 둘. 짧고 굵다. 발끝이 바닥에 닿는다.
             AddFieldRect(go.transform, "Leg_L", new Vector2(-0.13f, 0.16f), new Vector2(0.20f, 0.32f), leg, Order);

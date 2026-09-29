@@ -43,6 +43,11 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _lightOffIntensity = 0.22f;
         [SerializeField] private Color _lightOffColor = new Color(0.62f, 0.68f, 0.95f);
 
+        [Tooltip("스위치의 토글. 켜면 위로, 끄면 아래로 딸깍 넘어간다.")]
+        [SerializeField] private Transform _switchToggle;
+        [SerializeField] private float _switchOnY = -0.27f;
+        [SerializeField] private float _switchOffY = -0.43f;
+
         [Header("잠자리")]
         [Tooltip("침대 발치. 차지한이 여기까지 걸어와 눕는다.")]
         [SerializeField] private float _bedFootX = -6.4f;
@@ -78,6 +83,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             ApplyLight();
+            PlaceSwitch();
             SetDoorOpen(false);
         }
 
@@ -91,6 +97,7 @@ namespace UrbanLegendBureau.Systems
 
             IsLightOn = true;
             ApplyLight();
+            PlaceSwitch();
             SetDoorOpen(false);
 
             if (_hanyoung != null)
@@ -107,6 +114,7 @@ namespace UrbanLegendBureau.Systems
 
             SetEyes(1f);
             if (_blanketOver != null) _blanketOver.SetActive(false);
+            SetShadow(true);
         }
 
         // ------------------------------------------------------------- 조명
@@ -116,7 +124,46 @@ namespace UrbanLegendBureau.Systems
         {
             IsLightOn = !IsLightOn;
             ApplyLight();
+            if (_switchToggle != null) StartCoroutine(FlipSwitch(IsLightOn ? _switchOnY : _switchOffY));
             Debug.Log("[RoomNight] 방 조명 " + (IsLightOn ? "켬" : "끔"));
+        }
+
+        /// <summary>
+        /// 스위치를 누르는 모습. 토글이 한 번 눌려 들어갔다가 반대쪽으로 넘어간다. 아주 짧다.
+        /// </summary>
+        private IEnumerator FlipSwitch(float targetY)
+        {
+            var t = _switchToggle;
+            var baseScale = new Vector3(Mathf.Abs(t.localScale.x), Mathf.Abs(t.localScale.y), 1f);
+            float fromY = t.localPosition.y;
+
+            const float Seconds = 0.12f;
+            for (float e = 0f; e < Seconds; e += Time.deltaTime)
+            {
+                float k = e / Seconds;
+                var p = t.localPosition;
+                p.y = Mathf.Lerp(fromY, targetY, k * k);
+                t.localPosition = p;
+
+                // 누르는 순간 살짝 찌그러졌다 돌아온다. 눌린 느낌이 난다.
+                float squash = 1f - 0.25f * Mathf.Sin(k * Mathf.PI);
+                t.localScale = new Vector3(baseScale.x, baseScale.y * squash, 1f);
+                yield return null;
+            }
+
+            var end = t.localPosition;
+            end.y = targetY;
+            t.localPosition = end;
+            t.localScale = baseScale;
+        }
+
+        /// <summary>토글을 지금 상태의 자리에 곧바로 놓는다. 움직임 없이.</summary>
+        private void PlaceSwitch()
+        {
+            if (_switchToggle == null) return;
+            var p = _switchToggle.localPosition;
+            p.y = IsLightOn ? _switchOnY : _switchOffY;
+            _switchToggle.localPosition = p;
         }
 
         private void ApplyLight()
@@ -233,6 +280,7 @@ namespace UrbanLegendBureau.Systems
             t.localRotation = Quaternion.Euler(0f, 0f, 90f);
 
             if (_blanketOver != null) _blanketOver.SetActive(true);
+            SetShadow(false);   // 누우면 발밑 그림자가 허공에 뜬다
             Debug.Log("[RoomNight] 누웠다");
 
             // 눈을 뜬 채 잠시 있다가, 몇 번 깜빡이고, 점점 무겁게 감긴다.
@@ -269,6 +317,12 @@ namespace UrbanLegendBureau.Systems
                 yield return null;
             }
             SetEyes(target);
+        }
+
+        private void SetShadow(bool on)
+        {
+            var shadow = _chajihan != null ? _chajihan.transform.Find("Shadow") : null;
+            if (shadow != null) shadow.gameObject.SetActive(on);
         }
 
         private float _eyeOpen = 1f;
