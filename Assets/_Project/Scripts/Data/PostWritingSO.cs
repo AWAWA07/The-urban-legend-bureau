@@ -94,6 +94,10 @@ namespace UrbanLegendBureau.Data
         [Tooltip("게시 뒤 이 괴담의 믿음도가 이 값(%) 이하가 되면 성공이다.")]
         [SerializeField] private int _tutorialTargetBelief = 15;
 
+        [Tooltip("목표에 못 닿아도 이만큼(%p) 이상 끌어내렸으면 성공으로 친다. 0 이면 목표만 본다.\n" +
+                 "시작 믿음도는 조사를 얼마나 했는지에 따라 달라진다. 목표만 보면 잘 쓴 글도 떨어질 수 있다.")]
+        [SerializeField] private int _requiredDrop = 7;
+
         [Header("다시 쓰기")]
         [Tooltip("실패했을 때 다시 쓸 수 있는가. 실전에서는 끈다.")]
         [SerializeField] private bool _allowRewrite = true;
@@ -147,6 +151,7 @@ namespace UrbanLegendBureau.Data
 
         public float PostModifier => _postModifier;
         public int TutorialTargetBelief => _tutorialTargetBelief;
+        public int RequiredDrop => _requiredDrop;
         public bool AllowRewrite => _allowRewrite;
         public int MaxAttempts => _maxAttempts;
         public bool TakeDownFailedPost => _takeDownFailedPost;

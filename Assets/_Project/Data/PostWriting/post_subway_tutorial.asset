@@ -70,6 +70,7 @@ MonoBehaviour:
     beliefDelta: 4
   _postModifier: -1
   _tutorialTargetBelief: 20
+  _requiredDrop: 7
   _allowRewrite: 1
   _maxAttempts: 0
   _takeDownFailedPost: 1

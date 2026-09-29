@@ -298,7 +298,11 @@ namespace UrbanLegendBureau.Systems
             int before = _tutorial.GetLegendBelief(_data.LegendId);
             int expected = Mathf.Clamp(before + shift, 0, 100);
 
-            var outcome = expected <= _data.TutorialTargetBelief ? Outcome.Success
+            // 목표 이하가 되었거나, 목표에는 못 닿았어도 충분히 끌어내렸으면 잘 쓴 글이다.
+            bool enough = expected <= _data.TutorialTargetBelief
+                          || (_data.RequiredDrop > 0 && before - expected >= _data.RequiredDrop);
+
+            var outcome = enough ? Outcome.Success
                 : shift > 0 ? Outcome.Fail
                 : Outcome.Weak;
 
