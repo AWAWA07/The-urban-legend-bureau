@@ -2320,7 +2320,7 @@ namespace UrbanLegendBureau.EditorTools
         /// <summary>
         /// 장소를 옮겨 가는 동안 덮는 화면.
         ///
-        /// 한가운데에 어디로 가는지와 지금 시각을 적고, 그 아래 선로 위로 작은 열차가 달린다.
+        /// 한가운데에 어디로 가는지와 지금 시각을 적고, 그 아래 길 위로 작은 택시가 달린다.
         /// 맨 아래 막대가 함께 차오른다. 그림 파일 없이 네모로만 그린다.
         /// </summary>
         private static TravelScreen BuildTravelScreen(string name)
@@ -2347,67 +2347,85 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0f, -36f), new Vector2(600f, 50f), TextAlignmentOptions.Center);
             clock.gameObject.AddComponent<ClockLabel>();
 
-            // 선로. 열차는 이 선의 왼쪽 끝에서 오른쪽 끝까지 간다.
+            // 도로. 택시는 이 길의 왼쪽 끝에서 오른쪽 끝까지 간다.
+            // 길 위쪽 가장자리가 바퀴가 닿는 선이다. 가운데에 흰 점선을 긋는다.
             const float TrackWidth = 900f;
-            var track = CreatePanel(go.transform, "Track", new Color(0.30f, 0.32f, 0.40f, 1f));
+            var track = CreatePanel(go.transform, "Road", new Color(0.36f, 0.37f, 0.44f, 1f));
             var trackRt = (RectTransform)track.transform;
             trackRt.anchoredPosition = new Vector2(0f, -150f);
-            trackRt.sizeDelta = new Vector2(TrackWidth, 4f);
+            trackRt.sizeDelta = new Vector2(TrackWidth, 3f);
             track.GetComponent<Image>().raycastTarget = false;
 
-            // 침목. 선로가 선로로 보이게 한다.
-            for (int i = 0; i <= 18; i++)
+            var asphalt = CreatePanel(track.transform, "Asphalt", new Color(0.13f, 0.14f, 0.18f, 1f));
+            var asphaltRt = (RectTransform)asphalt.transform;
+            asphaltRt.anchorMin = new Vector2(0f, 0.5f);
+            asphaltRt.anchorMax = new Vector2(1f, 0.5f);
+            asphaltRt.pivot = new Vector2(0.5f, 1f);
+            asphaltRt.anchoredPosition = new Vector2(0f, -1.5f);
+            asphaltRt.sizeDelta = new Vector2(0f, 26f);
+            asphalt.GetComponent<Image>().raycastTarget = false;
+
+            for (int i = 0; i < 15; i++)
             {
-                var tie = CreatePanel(track.transform, "Tie_" + i, new Color(0.22f, 0.23f, 0.30f, 1f));
-                var tieRt = (RectTransform)tie.transform;
-                tieRt.anchorMin = new Vector2(i / 18f, 0.5f);
-                tieRt.anchorMax = new Vector2(i / 18f, 0.5f);
-                tieRt.anchoredPosition = new Vector2(0f, -6f);
-                tieRt.sizeDelta = new Vector2(6f, 10f);
-                tie.GetComponent<Image>().raycastTarget = false;
+                var dash = CreatePanel(asphalt.transform, "Lane_" + i, new Color(0.78f, 0.78f, 0.72f, 1f));
+                var dashRt = (RectTransform)dash.transform;
+                dashRt.anchorMin = new Vector2((i + 0.5f) / 15f, 0.5f);
+                dashRt.anchorMax = new Vector2((i + 0.5f) / 15f, 0.5f);
+                dashRt.anchoredPosition = Vector2.zero;
+                dashRt.sizeDelta = new Vector2(28f, 3f);
+                dash.GetComponent<Image>().raycastTarget = false;
             }
 
-            // 열차. 몸통과 창 넷과 앞머리 불빛.
-            var runner = CreatePanel(track.transform, "Train", new Color(0.62f, 0.66f, 0.76f, 1f));
+            // 택시. 노란 몸통 위에 창 둘 달린 지붕, 지붕 위에 TAXI 등, 옆구리에 체크 띠, 바퀴 둘.
+            // 오른쪽으로 달리므로 앞머리 불빛은 오른쪽, 붉은 꼬리등은 왼쪽이다.
+            var taxiYellow = new Color(0.97f, 0.78f, 0.20f, 1f);
+            var runner = CreatePanel(track.transform, "Taxi", new Color(1f, 1f, 1f, 0f));
             var runnerRt = (RectTransform)runner.transform;
             runnerRt.anchorMin = new Vector2(0f, 0.5f);
             runnerRt.anchorMax = new Vector2(0f, 0.5f);
             runnerRt.pivot = new Vector2(0.5f, 0f);
             runnerRt.anchoredPosition = Vector2.zero;
-            runnerRt.sizeDelta = new Vector2(150f, 48f);
+            runnerRt.sizeDelta = new Vector2(150f, 72f);
             runner.GetComponent<Image>().raycastTarget = false;
-            for (int i = 0; i < 4; i++)
+
+            TaxiPart(runner.transform, "Body", taxiYellow, new Vector2(0f, 10f), new Vector2(150f, 30f));
+            TaxiPart(runner.transform, "Cabin", taxiYellow, new Vector2(34f, 38f), new Vector2(82f, 22f));
+            TaxiPart(runner.transform, "Glass_Back", new Color(0.18f, 0.24f, 0.34f, 1f), new Vector2(40f, 42f), new Vector2(32f, 14f));
+            TaxiPart(runner.transform, "Glass_Front", new Color(0.18f, 0.24f, 0.34f, 1f), new Vector2(78f, 42f), new Vector2(32f, 14f));
+            TaxiPart(runner.transform, "Pillar", taxiYellow, new Vector2(73f, 42f), new Vector2(4f, 14f));
+
+            var sign = TaxiPart(runner.transform, "RoofSign", new Color(0.98f, 0.95f, 0.82f, 1f), new Vector2(57f, 60f), new Vector2(36f, 12f));
+            var signText = AddText(sign.transform, "Label", 10f, UIFontWeight.Bold, new Color(0.14f, 0.12f, 0.10f),
+                Vector2.zero, new Vector2(36f, 12f), TextAlignmentOptions.Center);
+            signText.text = "TAXI";
+            signText.raycastTarget = false;
+            signText.enableAutoSizing = false;
+
+            // 체크 띠. 흑백 네모를 번갈아 한 줄로 늘어놓는다.
+            for (int i = 0; i < 12; i++)
             {
-                var win = CreatePanel(runner.transform, "Window_" + i, new Color(0.96f, 0.86f, 0.56f, 1f));
-                var winRt = (RectTransform)win.transform;
-                winRt.anchorMin = new Vector2(0f, 1f);
-                winRt.anchorMax = new Vector2(0f, 1f);
-                winRt.pivot = new Vector2(0f, 1f);
-                winRt.anchoredPosition = new Vector2(14f + i * 30f, -10f);
-                winRt.sizeDelta = new Vector2(20f, 16f);
-                win.GetComponent<Image>().raycastTarget = false;
+                TaxiPart(runner.transform, "Check_" + i,
+                    i % 2 == 0 ? new Color(0.12f, 0.12f, 0.14f, 1f) : new Color(0.96f, 0.96f, 0.94f, 1f),
+                    new Vector2(15f + i * 10f, 22f), new Vector2(10f, 6f));
             }
-            var stripe = CreatePanel(runner.transform, "Stripe", new Color(0.30f, 0.42f, 0.66f, 1f));
-            var stripeRt = (RectTransform)stripe.transform;
-            stripeRt.anchorMin = new Vector2(0f, 0f);
-            stripeRt.anchorMax = new Vector2(1f, 0f);
-            stripeRt.pivot = new Vector2(0.5f, 0f);
-            stripeRt.anchoredPosition = new Vector2(0f, 8f);
-            stripeRt.sizeDelta = new Vector2(0f, 6f);
-            stripe.GetComponent<Image>().raycastTarget = false;
-            var light = CreatePanel(runner.transform, "HeadLight", new Color(1f, 0.95f, 0.70f, 1f));
-            var lightRt = (RectTransform)light.transform;
-            lightRt.anchorMin = new Vector2(1f, 0f);
-            lightRt.anchorMax = new Vector2(1f, 0f);
-            lightRt.pivot = new Vector2(1f, 0f);
-            lightRt.anchoredPosition = new Vector2(-6f, 16f);
-            lightRt.sizeDelta = new Vector2(8f, 8f);
-            light.GetComponent<Image>().raycastTarget = false;
+
+            TaxiPart(runner.transform, "HeadLight", new Color(1f, 0.97f, 0.78f, 1f), new Vector2(142f, 28f), new Vector2(8f, 7f));
+            TaxiPart(runner.transform, "TailLight", new Color(0.86f, 0.22f, 0.20f, 1f), new Vector2(0f, 28f), new Vector2(6f, 7f));
+
+            var wheelSprite = FieldCircleSprite();
+            foreach (var wheelX in new[] { 34f, 116f })
+            {
+                var wheel = TaxiPart(runner.transform, "Wheel_" + wheelX, new Color(0.10f, 0.10f, 0.12f, 1f),
+                    new Vector2(wheelX - 13f, 0f), new Vector2(26f, 26f));
+                wheel.GetComponent<Image>().sprite = wheelSprite;
+                var hub = TaxiPart(wheel.transform, "Hub", new Color(0.62f, 0.64f, 0.70f, 1f), new Vector2(8f, 8f), new Vector2(10f, 10f));
+                hub.GetComponent<Image>().sprite = wheelSprite;
+            }
 
             // 진행 막대.
             var bar = CreatePanel(go.transform, "Bar", new Color(0.16f, 0.17f, 0.23f, 1f));
             var barRt = (RectTransform)bar.transform;
-            barRt.anchoredPosition = new Vector2(0f, -220f);
+            barRt.anchoredPosition = new Vector2(0f, -225f);
             barRt.sizeDelta = new Vector2(TrackWidth, 10f);
             bar.GetComponent<Image>().raycastTarget = false;
 
@@ -2432,6 +2450,23 @@ namespace UrbanLegendBureau.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
 
             return screen;
+        }
+
+        /// <summary>
+        /// 택시 그림의 한 조각. 부모의 왼쪽 아래 모서리를 기준으로 자리와 크기를 준다.
+        /// 몸통과 창과 바퀴를 모두 이렇게 쌓는다. 그림 파일이 생기면 조각들을 한 장으로 바꾸면 된다.
+        /// </summary>
+        private static GameObject TaxiPart(Transform parent, string name, Color color, Vector2 bottomLeft, Vector2 size)
+        {
+            var part = CreatePanel(parent, name, color);
+            var rt = (RectTransform)part.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.zero;
+            rt.pivot = Vector2.zero;
+            rt.anchoredPosition = bottomLeft;
+            rt.sizeDelta = size;
+            part.GetComponent<Image>().raycastTarget = false;
+            return part;
         }
 
         private static ToastScreen BuildToastScreen(string name)

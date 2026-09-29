@@ -12,7 +12,7 @@ namespace UrbanLegendBureau.UI
     /// 한 장소에서 다른 장소로 옮겨 가는 동안 덮는 화면.
     ///
     /// 장면이 툭 바뀌면 그 사이에 흐른 시간이 느껴지지 않는다. 그래서 잠깐 화면을 덮고,
-    /// 그 위에서 열차가 선로를 따라 달리고 시계가 흘러가는 모습을 보여 준다.
+    /// 그 위에서 택시가 길을 따라 달리고 시계가 흘러가는 모습을 보여 준다.
     /// 흐른 만큼의 시간을 실제로 시계에 더하는 일은 부른 쪽이 넘겨준 onMinutes 가 한다.
     /// 이 화면은 그림과 박자만 맡는다.
     /// </summary>
@@ -24,10 +24,10 @@ namespace UrbanLegendBureau.UI
         [Tooltip("점 셋이 차례로 차오르는 글자. 기다리는 중이라는 표시.")]
         [SerializeField] private TMP_Text _dotsText;
 
-        [Tooltip("선로 위를 달리는 작은 열차. 왼쪽 끝에서 오른쪽 끝까지 간다.")]
+        [Tooltip("길 위를 달리는 작은 택시. 왼쪽 끝에서 오른쪽 끝까지 간다.")]
         [SerializeField] private RectTransform _runner;
 
-        [Tooltip("열차가 달리는 선로. 이 폭만큼 간다.")]
+        [Tooltip("택시가 달리는 길. 이 폭만큼 간다.")]
         [SerializeField] private RectTransform _track;
 
         [Tooltip("아래의 진행 막대. 가로로 차오른다.")]
@@ -73,7 +73,7 @@ namespace UrbanLegendBureau.UI
                 // 들어올 때와 나갈 때만 밝기가 바뀐다.
                 if (_group != null) _group.alpha = Mathf.Clamp01(Mathf.Min(t, seconds - t) / FadeSeconds);
 
-                // 가운데는 빠르고 양 끝은 느리다. 출발하고 서는 열차처럼 보인다.
+                // 가운데는 빠르고 양 끝은 느리다. 출발하고 서는 차처럼 보인다.
                 float eased = Mathf.SmoothStep(0f, 1f, p);
                 Place(eased, t);
 
@@ -96,7 +96,7 @@ namespace UrbanLegendBureau.UI
             onDone?.Invoke();
         }
 
-        /// <summary>열차와 막대를 진행한 만큼 옮긴다. 달리는 동안 열차가 살짝 들썩인다.</summary>
+        /// <summary>택시와 막대를 진행한 만큼 옮긴다. 달리는 동안 택시가 살짝 들썩인다.</summary>
         private void Place(float progress, float time)
         {
             if (_barFill != null) _barFill.anchorMax = new Vector2(progress, 1f);
