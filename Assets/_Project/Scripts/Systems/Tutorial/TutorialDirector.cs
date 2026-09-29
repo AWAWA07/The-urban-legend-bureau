@@ -1591,11 +1591,12 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 막차가 종점에 닿았다고 한영이 알린다. 말이 끝나면 onDone 을 부른다.
+        /// 첫 마디("내려야 돼")를 넘기면 onAlight 를 불러 승강장에 내려서게 한다.
         ///
         /// 걸 자리(현장 화면)가 없으면 아무것도 하지 않고 false 를 돌려준다.
         /// 그때는 부르는 쪽이 말 없이 다음으로 넘어간다.
         /// </summary>
-        public bool ShowTerminusLine(bool helped, System.Action onDone)
+        public bool ShowTerminusLine(bool helped, System.Action onAlight, System.Action onDone)
         {
             var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
             if (hud == null || _loc == null) return false;
@@ -1612,6 +1613,9 @@ namespace UrbanLegendBureau.Systems
 
             hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusTextId), () =>
             {
+                // "내려야 돼" 를 넘기면 곧바로 승강장에 내려선다. 놓친 것을 짚는 말은 승강장에서 한다.
+                onAlight?.Invoke();
+
                 if (!helped) { go(); return; }
 
                 hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusHelpTextId), go);

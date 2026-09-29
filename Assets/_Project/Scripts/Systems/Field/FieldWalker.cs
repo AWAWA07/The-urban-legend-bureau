@@ -17,6 +17,21 @@ namespace UrbanLegendBureau.Systems
     /// </summary>
     public class FieldWalker : MonoBehaviour
     {
+        private Vector3 _start;
+        private float _startFacing = 1f;
+
+        /// <summary>
+        /// 처음 세운 자리로 돌려놓는다. 보는 쪽도 처음대로다.
+        /// 숙소처럼 다른 곳에서 옮겨 와 들어서는 장소는 들어설 때마다 문 앞에서 시작해야 한다.
+        /// </summary>
+        public void ResetToStart()
+        {
+            transform.localPosition = _start;
+            Facing = _startFacing;
+            IsWalking = false;
+            ApplyFacing();
+        }
+
         [Tooltip("1초에 걷는 거리(월드 단위).")]
         [SerializeField] private float _speed = 5.5f;
 
@@ -43,6 +58,11 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_body == null) _body = transform;
+
+            // 처음 세운 자리와 보는 쪽을 기억한다. 장소에 다시 들어설 때 그 자리로 돌려놓는다.
+            _start = transform.localPosition;
+            Facing = _body.localScale.x < 0f ? -1f : 1f;
+            _startFacing = Facing;
         }
 
         private void Update()

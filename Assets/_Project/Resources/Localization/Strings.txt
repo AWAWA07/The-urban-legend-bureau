@@ -805,3 +805,6 @@ post.subway.react.bad_4	경고만 있고 근거는 없네요. 이런 글이 소�
 post.subway.react.weak_1	행동 요령은 좋은데, 퍼진 이야기 중 뭐가 사실이 아닌지는 안 적으셨네요.	The advice is fine, but you never said which parts of the story are false.	모자람 반응 - 회의주의자
 post.subway.react.weak_2	그래서 진짜라는 거예요 아니라는 거예요ㅠㅠ	so is it real or not ㅠㅠ	모자람 반응 - 겁많은고3
 post.subway.react.weak_3	애매하네 ㅇㅇ	kinda vague yeah	모자람 반응 - ㅇㅇ
+ui.travel.to_room	숙소로 가는 중	Heading back to the quarters	종점에서 숙소로 옮기는 화면
+ui.travel.duration	종점에서 숙소까지 {0}분	{0} minutes from the terminus to the quarters	옮기는 화면 - {0} 걸리는 분
+ui.field.terminus_platform	종점 승강장	Terminus platform	종점에서 내린 뒤 위쪽 한 줄

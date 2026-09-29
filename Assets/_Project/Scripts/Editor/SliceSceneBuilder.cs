@@ -209,6 +209,7 @@ namespace UrbanLegendBureau.EditorTools
             var community = BuildCommunityScreen("Screen_Community");
             var memo = BuildMemoScreen("Screen_Memo");
             var toast = BuildToastScreen("Screen_Toast");
+            var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
             var warningPopup = BuildPopupScreen("Popup_SpreadWarning", out var warningButtons);
@@ -282,6 +283,7 @@ namespace UrbanLegendBureau.EditorTools
             // 괴담넷에 글을 써 올리는 흐름. 괴담넷 화면과 게시판을 그대로 빌려 쓴다.
             var postWriting = directorGo.AddComponent<PostWritingDirector>();
             dso.FindProperty("_postWriting").objectReferenceValue = postWriting;
+            dso.FindProperty("_travelScreen").objectReferenceValue = travel;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
@@ -362,7 +364,7 @@ namespace UrbanLegendBureau.EditorTools
             var screens = new UIScreen[]
             {
                 title, bureau, caseList, actionList, ruleList, internetList, internetPage, fieldHud,
-                exorcism, result, help, settings, dialogue, talk, desktop, community, memo, toast, report,
+                exorcism, result, help, settings, dialogue, talk, desktop, community, memo, toast, report, travel,
                 cluePopup, rulePopup, warningPopup,
             };
             for (int i = 0; i < screens.Length; i++)
@@ -862,8 +864,9 @@ namespace UrbanLegendBureau.EditorTools
             ConfigureRoomPoint(clockPoint, "point_room_clock", "ui.field.prompt_look");
             ConfigureRoomPoint(doorPoint, "point_room_door", "ui.field.prompt_look");
 
-            // 방에 들어선 두 사람. 책상과 책장 사이에 선다. 어느 것에도 닿지 않는 자리다.
-            BuildFieldActors(root.transform, -3.86f, 4.2f, 2.4f, -12f, 12f);
+            // 방에 들어선 두 사람. 방문 바로 안쪽에서 방을 바라보고 선다. 밖에서 막 들어온 것이다.
+            // 한영이 한 걸음 앞서 방 안쪽에 있다. 차지한은 문 앞이라 곁에 선 것이 방문이다.
+            BuildFieldActors(root.transform, -3.86f, 11.6f, 2.4f, -12f, 12f, faceLeft: true);
         }
 
         /// <summary>숙소의 물건 하나. 조사 방법도 해금 조건도 없고, 말풍선 글만 제 것을 쓴다.</summary>
@@ -879,6 +882,57 @@ namespace UrbanLegendBureau.EditorTools
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 
+        private const string FieldCirclePath = "Assets/_Project/Art/Objects/field_circle.png";
+
+        /// <summary>현장 동그라미 그림의 한 변(픽셀). 방 하나를 가득 채울 만큼 키워도 가장자리가 뭉개지지 않는 크기다.</summary>
+        private const int FieldCircleSize = 512;
+
+        /// <summary>
+        /// 현장에 쓰는 동그라미 그림. 없으면 여기서 그려서 저장한다.
+        ///
+        /// 유니티에 딸린 동그라미(Knob)는 16픽셀짜리라 시계판만 하게 늘리면 가장자리가 흐려진다.
+        /// 그래서 넉넉한 크기로 한 장 그려 두고 그것을 늘려 쓴다. 가장자리는 1픽셀 폭으로만 부드럽게 한다.
+        /// </summary>
+        private static Sprite FieldCircleSprite()
+        {
+            var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(FieldCirclePath);
+            if (sprite != null) return sprite;
+
+            const int n = FieldCircleSize;
+            var tex = new Texture2D(n, n, TextureFormat.RGBA32, false);
+            var pixels = new Color32[n * n];
+            float r = n * 0.5f;
+            for (int y = 0; y < n; y++)
+            {
+                for (int x = 0; x < n; x++)
+                {
+                    float dx = x + 0.5f - r;
+                    float dy = y + 0.5f - r;
+                    float edge = r - Mathf.Sqrt(dx * dx + dy * dy);   // 안쪽이면 양수
+                    byte a = (byte)(Mathf.Clamp01(edge + 0.5f) * 255f);
+                    pixels[y * n + x] = new Color32(255, 255, 255, a);
+                }
+            }
+            tex.SetPixels32(pixels);
+            tex.Apply();
+
+            System.IO.File.WriteAllBytes(FieldCirclePath, tex.EncodeToPNG());
+            Object.DestroyImmediate(tex);
+            AssetDatabase.ImportAsset(FieldCirclePath, ImportAssetOptions.ForceUpdate);
+
+            var importer = (TextureImporter)AssetImporter.GetAtPath(FieldCirclePath);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.spritePixelsPerUnit = n;          // 한 장이 월드 1단위다
+            importer.mipmapEnabled = true;             // 작게 줄였을 때도 계단이 지지 않게
+            importer.filterMode = FilterMode.Trilinear;
+            importer.textureCompression = TextureImporterCompression.Uncompressed;
+            importer.alphaIsTransparency = true;
+            importer.SaveAndReimport();
+
+            return AssetDatabase.LoadAssetAtPath<Sprite>(FieldCirclePath);
+        }
+
         /// <summary>현장 배경에 까는 동그라미 하나. 시계판이나 문고리처럼 둥근 것에 쓴다.</summary>
         private static GameObject AddFieldCircle(Transform parent, string name, Vector2 position, float diameter,
             Color color, int order)
@@ -888,7 +942,7 @@ namespace UrbanLegendBureau.EditorTools
             go.transform.localPosition = position;
 
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = RoundSprite();
+            sr.sprite = FieldCircleSprite();
             sr.color = color;
             sr.sortingOrder = order;
 
@@ -1145,11 +1199,13 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         private static void BuildFieldActors(Transform parent, float groundY, float leadX, float gap,
-            float minX, float maxX)
+            float minX, float maxX, bool faceLeft = false)
         {
             var lead = BuildFieldActor(parent, "Actor_Chajihan", new Vector2(leadX, groundY),
                 new Color(0.42f, 0.52f, 0.72f), new Color(0.86f, 0.78f, 0.68f));
-            lead.transform.localScale = Vector3.one * ActorScale;
+            // 왼쪽을 보고 서야 하면 처음부터 뒤집어 세운다. 걷는 쪽이 이 방향을 처음 방향으로 기억한다.
+            float side = faceLeft ? -1f : 1f;
+            lead.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
 
             var walker = lead.AddComponent<FieldWalker>();
             var wso = new SerializedObject(walker);
@@ -1160,7 +1216,7 @@ namespace UrbanLegendBureau.EditorTools
 
             var mate = BuildFieldActor(parent, "Actor_Hanyoung", new Vector2(leadX - gap, groundY),
                 new Color(0.62f, 0.44f, 0.40f), new Color(0.88f, 0.80f, 0.70f));
-            mate.transform.localScale = Vector3.one * ActorScale;
+            mate.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
 
             var follower = mate.AddComponent<FieldFollower>();
             var fso = new SerializedObject(follower);
@@ -2261,6 +2317,123 @@ namespace UrbanLegendBureau.EditorTools
         /// 잠깐 떴다 사라지는 알림 한 줄.
         /// 누를 것이 없으므로 아래 화면을 가리지도 막지도 않는다.
         /// </summary>
+        /// <summary>
+        /// 장소를 옮겨 가는 동안 덮는 화면.
+        ///
+        /// 한가운데에 어디로 가는지와 지금 시각을 적고, 그 아래 선로 위로 작은 열차가 달린다.
+        /// 맨 아래 막대가 함께 차오른다. 그림 파일 없이 네모로만 그린다.
+        /// </summary>
+        private static TravelScreen BuildTravelScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.05f, 0.06f, 0.09f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<TravelScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, false);
+            var group = go.AddComponent<CanvasGroup>();
+
+            var title = AddText(go.transform, "Title", 50f, UIFontWeight.Bold, TextColor,
+                new Vector2(0f, 130f), new Vector2(1200f, 70f), TextAlignmentOptions.Center);
+
+            var dots = AddText(go.transform, "Dots", 50f, UIFontWeight.Bold, AccentColor,
+                new Vector2(0f, 72f), new Vector2(300f, 50f), TextAlignmentOptions.Center);
+            dots.text = "·";
+
+            var duration = AddText(go.transform, "Duration", 26f, UIFontWeight.Regular, DimTextColor,
+                new Vector2(0f, 20f), new Vector2(1200f, 40f), TextAlignmentOptions.Center);
+
+            // 지금 시각. 이동하는 동안 시계가 흘러가는 것이 여기에 그대로 보인다.
+            var clock = AddText(go.transform, "Clock", 36f, UIFontWeight.SemiBold, AccentColor,
+                new Vector2(0f, -36f), new Vector2(600f, 50f), TextAlignmentOptions.Center);
+            clock.gameObject.AddComponent<ClockLabel>();
+
+            // 선로. 열차는 이 선의 왼쪽 끝에서 오른쪽 끝까지 간다.
+            const float TrackWidth = 900f;
+            var track = CreatePanel(go.transform, "Track", new Color(0.30f, 0.32f, 0.40f, 1f));
+            var trackRt = (RectTransform)track.transform;
+            trackRt.anchoredPosition = new Vector2(0f, -150f);
+            trackRt.sizeDelta = new Vector2(TrackWidth, 4f);
+            track.GetComponent<Image>().raycastTarget = false;
+
+            // 침목. 선로가 선로로 보이게 한다.
+            for (int i = 0; i <= 18; i++)
+            {
+                var tie = CreatePanel(track.transform, "Tie_" + i, new Color(0.22f, 0.23f, 0.30f, 1f));
+                var tieRt = (RectTransform)tie.transform;
+                tieRt.anchorMin = new Vector2(i / 18f, 0.5f);
+                tieRt.anchorMax = new Vector2(i / 18f, 0.5f);
+                tieRt.anchoredPosition = new Vector2(0f, -6f);
+                tieRt.sizeDelta = new Vector2(6f, 10f);
+                tie.GetComponent<Image>().raycastTarget = false;
+            }
+
+            // 열차. 몸통과 창 넷과 앞머리 불빛.
+            var runner = CreatePanel(track.transform, "Train", new Color(0.62f, 0.66f, 0.76f, 1f));
+            var runnerRt = (RectTransform)runner.transform;
+            runnerRt.anchorMin = new Vector2(0f, 0.5f);
+            runnerRt.anchorMax = new Vector2(0f, 0.5f);
+            runnerRt.pivot = new Vector2(0.5f, 0f);
+            runnerRt.anchoredPosition = Vector2.zero;
+            runnerRt.sizeDelta = new Vector2(150f, 48f);
+            runner.GetComponent<Image>().raycastTarget = false;
+            for (int i = 0; i < 4; i++)
+            {
+                var win = CreatePanel(runner.transform, "Window_" + i, new Color(0.96f, 0.86f, 0.56f, 1f));
+                var winRt = (RectTransform)win.transform;
+                winRt.anchorMin = new Vector2(0f, 1f);
+                winRt.anchorMax = new Vector2(0f, 1f);
+                winRt.pivot = new Vector2(0f, 1f);
+                winRt.anchoredPosition = new Vector2(14f + i * 30f, -10f);
+                winRt.sizeDelta = new Vector2(20f, 16f);
+                win.GetComponent<Image>().raycastTarget = false;
+            }
+            var stripe = CreatePanel(runner.transform, "Stripe", new Color(0.30f, 0.42f, 0.66f, 1f));
+            var stripeRt = (RectTransform)stripe.transform;
+            stripeRt.anchorMin = new Vector2(0f, 0f);
+            stripeRt.anchorMax = new Vector2(1f, 0f);
+            stripeRt.pivot = new Vector2(0.5f, 0f);
+            stripeRt.anchoredPosition = new Vector2(0f, 8f);
+            stripeRt.sizeDelta = new Vector2(0f, 6f);
+            stripe.GetComponent<Image>().raycastTarget = false;
+            var light = CreatePanel(runner.transform, "HeadLight", new Color(1f, 0.95f, 0.70f, 1f));
+            var lightRt = (RectTransform)light.transform;
+            lightRt.anchorMin = new Vector2(1f, 0f);
+            lightRt.anchorMax = new Vector2(1f, 0f);
+            lightRt.pivot = new Vector2(1f, 0f);
+            lightRt.anchoredPosition = new Vector2(-6f, 16f);
+            lightRt.sizeDelta = new Vector2(8f, 8f);
+            light.GetComponent<Image>().raycastTarget = false;
+
+            // 진행 막대.
+            var bar = CreatePanel(go.transform, "Bar", new Color(0.16f, 0.17f, 0.23f, 1f));
+            var barRt = (RectTransform)bar.transform;
+            barRt.anchoredPosition = new Vector2(0f, -220f);
+            barRt.sizeDelta = new Vector2(TrackWidth, 10f);
+            bar.GetComponent<Image>().raycastTarget = false;
+
+            var fill = CreatePanel(bar.transform, "Fill", AccentColor);
+            var fillRt = (RectTransform)fill.transform;
+            fillRt.anchorMin = new Vector2(0f, 0f);
+            fillRt.anchorMax = new Vector2(0f, 1f);
+            fillRt.pivot = new Vector2(0f, 0.5f);
+            fillRt.offsetMin = Vector2.zero;
+            fillRt.offsetMax = Vector2.zero;
+            fill.GetComponent<Image>().raycastTarget = false;
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_titleText").objectReferenceValue = title;
+            so.FindProperty("_durationText").objectReferenceValue = duration;
+            so.FindProperty("_dotsText").objectReferenceValue = dots;
+            so.FindProperty("_runner").objectReferenceValue = runnerRt;
+            so.FindProperty("_track").objectReferenceValue = trackRt;
+            so.FindProperty("_barFill").objectReferenceValue = fillRt;
+            so.FindProperty("_group").objectReferenceValue = group;
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return screen;
+        }
+
         private static ToastScreen BuildToastScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0f, 0f, 0f, 0f));

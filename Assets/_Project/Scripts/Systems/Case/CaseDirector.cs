@@ -55,6 +55,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("괴담넷에 글을 써서 올리는 흐름. 사건에 게시물 데이터가 있을 때만 쓴다.")]
         [SerializeField] private PostWritingDirector _postWriting;
 
+        [Tooltip("장소를 옮겨 가는 동안 덮는 화면. 종점에서 숙소로 갈 때 쓴다.")]
+        [SerializeField] private TravelScreen _travelScreen;
+
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
 
@@ -258,6 +261,7 @@ namespace UrbanLegendBureau.Systems
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
+            _alighted = false;
             if (_postWriting != null) _postWriting.ResetProgress();
 
             _case = caseData;
@@ -393,6 +397,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private string BuildFieldTicker()
         {
+            if (_alighted) return _loc.Get(TerminusPlatformTextId) + TickerGap + BuildStatusLine();
             if (_boarded) return _loc.Get(InsideTrainTextId) + TickerGap + BuildStatusLine();
 
             // 열차가 들어오는 현장에서만 승강장이 있다. 그렇지 않은 현장은 자리 이름이 없다.
@@ -1442,9 +1447,36 @@ namespace UrbanLegendBureau.Systems
                       (helped > 0 ? " | 모자란 단서 " + helped + "개를 채웠다" : string.Empty));
 
             // 한영이 한 마디 하고 나서 취합으로 넘어간다. 걸 자리가 없으면 곧바로 넘어간다.
-            if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, OnOpenRulesClicked)) return;
+            if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, AlightAtTerminus, OnOpenRulesClicked)) return;
+            AlightAtTerminus();
             OnOpenRulesClicked();
         }
+
+        /// <summary>
+        /// 종점에서 내린다. 열차 안 대신 승강장이 보인다.
+        ///
+        /// 장소를 새로 만들지 않고 탈 때와 같은 갈아 끼우기를 거꾸로 한다. 조사는 이미 닫혀 있어
+        /// 승강장의 탈 자리도 눌리지 않는다. 위쪽 한 줄은 종점 승강장이라고 적는다.
+        /// 대사를 지우지 않도록 화면을 다시 걸지 않고 위쪽 한 줄만 바꾼다.
+        /// </summary>
+        private void AlightAtTerminus()
+        {
+            if (_alighted || _field == null || _field.ActiveRoot == null) return;
+
+            var swap = _field.ActiveRoot.GetComponent<FieldSceneSwap>();
+            if (swap == null) return;
+
+            swap.SetAfter(false);
+            _alighted = true;
+
+            if (_fieldHudScreen != null) _fieldHudScreen.SetTicker(BuildFieldTicker);
+            Debug.Log("[CaseDirector] 종점에서 내렸다 | 열차 안 -> 승강장");
+        }
+
+        /// <summary>종점에서 내려 승강장에 서 있는가.</summary>
+        private bool _alighted;
+
+        private const string TerminusPlatformTextId = "ui.field.terminus_platform";
 
         /// <summary>
         /// 확산이 1 오를 때 글의 믿음도가 오르는 비율.
@@ -2104,7 +2136,48 @@ namespace UrbanLegendBureau.Systems
 
             ShowFieldHud();
 
-            if (_tutorial == null || !_tutorial.ShowPostCue(EnterRoom)) EnterRoom();
+            if (_tutorial == null || !_tutorial.ShowPostCue(TravelToRoom)) TravelToRoom();
+        }
+
+        /// <summary>종점에서 숙소까지 걸리는 시간(분).</summary>
+        private const int RoomTravelMinutes = 50;
+
+        /// <summary>옮겨 가는 화면을 보여 주는 시간(초). 50분이 이 동안 흐른다.</summary>
+        private const float RoomTravelSeconds = 3.2f;
+
+        private const string TravelToRoomTextId = "ui.travel.to_room";
+
+        /// <summary>
+        /// 종점에서 숙소로 간다. 화면을 덮고 열차가 달리는 동안 시계가 50분 흐른다.
+        /// 시간이 흐른 만큼 게시판도 조금 더 믿긴다. 현장에서 시간을 쓸 때와 같은 규칙이다.
+        /// </summary>
+        private void TravelToRoom()
+        {
+            if (_travelScreen == null)
+            {
+                AdvanceTime(RoomTravelMinutes);
+                EnterRoom();
+                return;
+            }
+
+            if (!_ui.Contains(_travelScreen)) _ui.Push(_travelScreen);
+            _travelScreen.Play(TravelToRoomTextId, RoomTravelMinutes, RoomTravelSeconds, AdvanceTime, () =>
+            {
+                if (_ui.Contains(_travelScreen)) _ui.Close(_travelScreen);
+                EnterRoom();
+            });
+
+            Debug.Log($"[CaseDirector] 숙소로 이동 | {RoomTravelMinutes}분");
+        }
+
+        /// <summary>조사가 아닌 이동으로 시간이 흐른다. 시계와 게시판만 움직이고 조사 행동으로 세지 않는다.</summary>
+        private void AdvanceTime(int minutes)
+        {
+            if (minutes <= 0) return;
+
+            GameClock.Skip(minutes);
+            if (_tutorial != null) _tutorial.DriftBoardBelief(minutes);
+            PushStatus();
         }
 
         /// <summary>숙소로 옮긴다. 첫 사건이면 한영이 방을 소개한다.</summary>
@@ -2112,6 +2185,13 @@ namespace UrbanLegendBureau.Systems
         {
             _inRoom = true;
             ShowRoom();
+
+            // 숙소에는 밖에서 들어온다. 들어설 때마다 문 앞에서 시작한다.
+            if (_field != null && _field.ActiveRoot != null)
+            {
+                foreach (var walker in _field.ActiveRoot.GetComponentsInChildren<FieldWalker>(true)) walker.ResetToStart();
+                foreach (var follower in _field.ActiveRoot.GetComponentsInChildren<FieldFollower>(true)) follower.ResetToStart();
+            }
 
             Debug.Log("[CaseDirector] 숙소로 옮겼다");
 

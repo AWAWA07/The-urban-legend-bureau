@@ -12,6 +12,16 @@ namespace UrbanLegendBureau.Systems
     /// </summary>
     public class FieldFollower : MonoBehaviour
     {
+        private Vector3 _start;
+        private Vector3 _startScale = Vector3.one;
+
+        /// <summary>처음 세운 자리로 돌려놓는다. 앞선 인물을 되돌릴 때 함께 부른다.</summary>
+        public void ResetToStart()
+        {
+            transform.localPosition = _start;
+            if (_body != null) _body.localScale = _startScale;
+        }
+
         [Tooltip("따라갈 인물.")]
         [SerializeField] private Transform _target;
 
@@ -30,6 +40,8 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_body == null) _body = transform;
+            _start = transform.localPosition;
+            _startScale = _body.localScale;
         }
 
         private void Update()
