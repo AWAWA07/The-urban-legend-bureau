@@ -2374,7 +2374,7 @@ namespace UrbanLegendBureau.Systems
                 list.Add(new RuleListScreen.ClueEntry
                 {
                     ClueId = clue.ClueId,
-                    Text = _loc.Get(clue.ClueTextId),
+                    Text = WithTitle(clue.ClueId, _loc.Get(clue.ClueTextId)),
                     IsGiven = _givenClueIds.Contains(clue.ClueId),
                 });
             }
@@ -2564,7 +2564,10 @@ namespace UrbanLegendBureau.Systems
         /// <summary>
         /// 어긋난 근거를 짚어 주는 글.
         ///
-        /// 끼어든 것이 있으면 그 단서를 그대로 인용해 먼저 알린다. 번호는 적지 않는다.
+        /// 끼어든 것이 있으면 그 단서를 이름으로 부르고, 그 단서가 어느 물음에 더 쓸모 있는지를
+        /// 함께 말한다. "틀렸다" 가 아니라 "그건 저쪽에 쓰는 것" 으로 들려야 억울하지 않다.
+        /// 번호는 적지 않는다. 이름이 없는 단서는 본문을 그대로 인용한다.
+        ///
         /// 모자란 것이 있으면 무엇을 더 봐야 하는지를 말로 이른다. 어느 단서가 필요한지는 말하지 않는다.
         /// 둘 다면 끼어든 것을 먼저 적고 줄을 바꿔 모자란 것을 적는다.
         /// </summary>
@@ -2574,7 +2577,8 @@ namespace UrbanLegendBureau.Systems
 
             if (!string.IsNullOrEmpty(strayClueId))
             {
-                sb.Append(_loc.Get(StrayClueTextId, ResolveClueText(strayClueId)));
+                string name = ResolveClueTitle(strayClueId) ?? ResolveClueText(strayClueId);
+                sb.Append(_loc.Get(StrayReasonTextId(strayClueId), name, TopicParticle(name)));
             }
 
             if (missing)
@@ -2584,6 +2588,57 @@ namespace UrbanLegendBureau.Systems
             }
 
             return sb.Length > 0 ? sb.ToString() : _loc.Get(EvidenceMismatchTextId);
+        }
+
+        /// <summary>
+        /// 끼어든 단서가 어느 물음에 쓰이는가. 지금 묻는 것은 빼고 찾는다.
+        ///
+        /// 진위, 규칙, 행동 지침 순으로 본다. 어디에도 쓰이지 않는 단서라면 그냥 상관없다고만 말한다.
+        /// </summary>
+        private string StrayReasonTextId(string clueId)
+        {
+            if (_legend == null) return StrayClueTextId;
+
+            if (_concludeStep != ConcludeStep.Verdict
+                && (Contains(_legend.VerdictClueIds, clueId) || Contains(_legend.VerdictAllowedClueIds, clueId)))
+            {
+                return StrayForVerdictTextId;
+            }
+
+            if (_concludeStep != ConcludeStep.Rule)
+            {
+                foreach (var rule in _legend.Rules)
+                {
+                    if (rule == null || !rule.IsTrue) continue;
+                    if (Contains(rule.RequiredClueIds, clueId) || Contains(rule.AllowedClueIds, clueId)) return StrayForRuleTextId;
+                }
+            }
+
+            if (_concludeStep != ConcludeStep.Counter
+                && (Contains(_legend.CounterClueIds, clueId) || Contains(_legend.CounterAllowedClueIds, clueId)))
+            {
+                return StrayForCounterTextId;
+            }
+
+            return StrayClueTextId;
+        }
+
+        private const string StrayForVerdictTextId = "ui.rule.stray_for_verdict";
+        private const string StrayForRuleTextId = "ui.rule.stray_for_rule";
+        private const string StrayForCounterTextId = "ui.rule.stray_for_counter";
+
+        /// <summary>
+        /// 이름 뒤에 붙일 "은/는". 마지막 글자에 받침이 있으면 은, 없으면 는.
+        /// 한글로 끝나지 않으면 가리지 못하므로 둘 다 적는다.
+        /// </summary>
+        private static string TopicParticle(string word)
+        {
+            if (string.IsNullOrEmpty(word)) return "은(는)";
+
+            char last = word[word.Length - 1];
+            if (last < '\uAC00' || last > '\uD7A3') return "은(는)";
+
+            return (last - 0xAC00) % 28 != 0 ? "은" : "는";
         }
 
 
@@ -2750,6 +2805,36 @@ namespace UrbanLegendBureau.Systems
                 }
             }
             return clueId;
+        }
+
+        /// <summary>
+        /// 단서의 짧은 이름. 어디서 얻은 무엇인지를 한마디로 적은 것이다.
+        ///
+        /// 따로 필드를 두지 않고 문구 ID 끝의 .text 를 .title 로 바꿔 찾는다. 없으면 null.
+        /// 이름은 출처를 말할 뿐 무엇을 가리키는지는 말하지 않는다. "무사했던 목격자" 는
+        /// 되지만 "고개를 돌리지 않은 사람" 은 안 된다. 이름만 보고 짝이 맞아 버린다.
+        /// </summary>
+        private string ResolveClueTitle(string clueId)
+        {
+            if (_legend == null) return null;
+
+            foreach (var clue in _legend.Clues)
+            {
+                if (clue == null || clue.ClueId != clueId || string.IsNullOrEmpty(clue.ClueTextId)) continue;
+                if (!clue.ClueTextId.EndsWith(".text")) return null;
+
+                string titleId = clue.ClueTextId.Substring(0, clue.ClueTextId.Length - ".text".Length) + ".title";
+                string title = _loc.Get(titleId);
+                return title == titleId ? null : title;
+            }
+            return null;
+        }
+
+        /// <summary>단서 한 줄. 이름이 있으면 굵게 앞에 세우고 본문은 그 아래에 둔다.</summary>
+        private string WithTitle(string clueId, string body)
+        {
+            string title = ResolveClueTitle(clueId);
+            return string.IsNullOrEmpty(title) ? body : "<b>" + title + "</b>\n<size=92%>" + body + "</size>";
         }
     }
 }
