@@ -49,6 +49,12 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("메모장. 이것도 컴퓨터와 휴대폰이 같은 화면을 쓴다.")]
         [SerializeField] private MemoScreen _memoScreen;
 
+        [Tooltip("차지한의 컴퓨터 바탕화면. 튜토리얼이 처음 여는 그 화면을 숙소의 컴퓨터도 연다.")]
+        [SerializeField] private DesktopScreen _desktopScreen;
+
+        [Tooltip("괴담넷에 글을 써서 올리는 흐름. 사건에 게시물 데이터가 있을 때만 쓴다.")]
+        [SerializeField] private PostWritingDirector _postWriting;
+
         [Header("봉인 화면 버튼")]
         [SerializeField] private GameObject _sealButton;
 
@@ -250,6 +256,9 @@ namespace UrbanLegendBureau.Systems
             _boarded = false;
             _fieldTimeAdded = false;
             _terminusDone = false;
+            _inRoom = false;
+            _postCuePending = false;
+            if (_postWriting != null) _postWriting.ResetProgress();
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
@@ -1043,6 +1052,13 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현장 화면을 연다. 사건 단계는 건드리지 않는다. 지점 조사에서 돌아올 때 쓴다.</summary>
         private void ShowFieldHud()
         {
+            // 숙소로 옮긴 뒤에는 현장으로 돌아가지 않는다. 어디서 돌아오든 방을 연다.
+            if (_inRoom)
+            {
+                ShowRoom();
+                return;
+            }
+
             // 조사 방법 / 규칙 추론 화면을 먼저 확실히 닫는다.
             // Replace는 최상단만 바꾸므로, 위에 팝업이 떠 있으면 아래 화면이 스택에 남는다.
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
@@ -1055,6 +1071,7 @@ namespace UrbanLegendBureau.Systems
             // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
             _fieldHudScreen.Bind(BuildFieldTicker);
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
+            _fieldHudScreen.SetButtonsVisible(true);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
@@ -1728,6 +1745,13 @@ namespace UrbanLegendBureau.Systems
         {
             if (point == null) return;
 
+            // 숙소의 물건은 조사가 아니다. 시간도 확산도 쓰지 않는다.
+            if (_inRoom)
+            {
+                OnRoomPointUsed(point);
+                return;
+            }
+
             // 열린 문을 누르면 탄다. 이동일 뿐이라 시간도 확산도 쓰지 않는다.
             if (point.PointId == BoardingPointId)
             {
@@ -2033,6 +2057,196 @@ namespace UrbanLegendBureau.Systems
             if (_toastScreen != null) ShowToast(saved ? ReportSavedTextId : ReportAlreadySavedTextId);
 
             Debug.Log($"[CaseDirector] 보고서 | 다 맞았다. 메모장에 적음={saved}");
+
+            // 첫 사건은 여기서 숙소로 간다. 칭찬과 저장 알림을 다 읽을 만큼 기다렸다가 넘어간다.
+            // 그 전에 돌아가기를 누르면 곧바로 넘어간다.
+            if (_caseId == TutorialDirector.TutorialCaseId)
+            {
+                _postCuePending = true;
+                StartCoroutine(PostCueAfterPraise());
+            }
+        }
+
+        // ------------------------------------------------------------- 숙소
+
+        /// <summary>숙소 현장의 ID. 현장 목록(FieldController)에서 이 이름으로 찾는다.</summary>
+        public const string RoomFieldId = "place_room";
+
+        private const string RoomComputerPointId = "point_room_computer";
+        private const string RoomClockPointId = "point_room_clock";
+        private const string RoomPlaceTextId = "ui.field.room";
+
+        /// <summary>보고서 칭찬이 떠 있다 사라지는 만큼. ReportScreen 이 3초 두고 옅게 지운다.</summary>
+        private const float PostCueDelay = 3.6f;
+
+        /// <summary>보고서를 마치고 숙소로 넘어가기를 기다리는 중인가.</summary>
+        private bool _postCuePending;
+
+        /// <summary>지금 숙소에 있는가. 여기 있는 동안 현장 화면은 방을 보여준다.</summary>
+        private bool _inRoom;
+
+        private System.Collections.IEnumerator PostCueAfterPraise()
+        {
+            yield return new WaitForSecondsRealtime(PostCueDelay);
+            if (_postCuePending) GoPostCue();
+        }
+
+        /// <summary>
+        /// 보고서 화면을 닫고 열차 안으로 돌아와 한영의 말을 듣는다. 말이 끝나면 숙소로 간다.
+        /// 보고서 위에 말을 얹지 않는다. 현장 띠에서 하는 말이 다른 대사와 같은 모습이어야 한다.
+        /// </summary>
+        private void GoPostCue()
+        {
+            _postCuePending = false;
+
+            // 저장 알림이 아직 떠 있으면 먼저 거둔다. 맨 위에 남으면 화면을 바꿀 때 그것이 바뀐다.
+            if (_toastScreen != null && _ui.Contains(_toastScreen)) _ui.Close(_toastScreen);
+
+            ShowFieldHud();
+
+            if (_tutorial == null || !_tutorial.ShowPostCue(EnterRoom)) EnterRoom();
+        }
+
+        /// <summary>숙소로 옮긴다. 첫 사건이면 한영이 방을 소개한다.</summary>
+        private void EnterRoom()
+        {
+            _inRoom = true;
+            ShowRoom();
+
+            Debug.Log("[CaseDirector] 숙소로 옮겼다");
+
+            if (_caseId == TutorialDirector.TutorialCaseId && _tutorial != null) _tutorial.ShowRoomIntro(null);
+        }
+
+        /// <summary>
+        /// 숙소를 연다. 현장 화면과 걷기와 말풍선은 막차 현장과 같은 것을 쓴다. 장소만 바뀐다.
+        /// 여기는 조사하는 곳이 아니라서 추론 / 조사 마침 단추는 거둔다.
+        /// </summary>
+        private void ShowRoom()
+        {
+            if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
+            if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
+
+            PushStatus();
+
+            _fieldHudScreen.Bind(() => _loc.Get(RoomPlaceTextId));
+            _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
+            _fieldHudScreen.SetButtonsVisible(false);
+
+            if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
+            else if (_ui.Current != _fieldHudScreen) _ui.Replace(_fieldHudScreen);
+
+            if (_field != null)
+            {
+                _field.SetFieldVisible(true, RoomFieldId);
+                _field.InvestigationAllowed = true;
+            }
+        }
+
+        /// <summary>
+        /// 숙소의 물건 앞에서 상호작용 키를 눌렀을 때.
+        ///
+        /// 지금 제 구실을 하는 것은 컴퓨터 하나다. 나머지는 차지한이 한마디 하고 끝난다.
+        /// 침대에 눕거나 책장을 뒤지는 일은 나중에 붙인다. 튜토리얼을 막지 않게 아무것도 열지 않는다.
+        /// </summary>
+        private void OnRoomPointUsed(InvestigationPoint point)
+        {
+            if (point.PointId == RoomComputerPointId)
+            {
+                OpenRoomComputer();
+                return;
+            }
+
+            string lineId = point.ResultTextId;
+            if (string.IsNullOrEmpty(lineId)) return;
+
+            // 시계는 지금 시각을 읽어 준다.
+            System.Func<string> line = point.PointId == RoomClockPointId
+                ? (System.Func<string>)(() => _loc.Get(lineId, GameClock.Format(_loc)))
+                : () => _loc.Get(lineId);
+
+            _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
+            Debug.Log($"[CaseDirector] 숙소 | {point.PointId} 살펴봄 (기능 없음)");
+        }
+
+        /// <summary>
+        /// 숙소의 컴퓨터를 켠다. 튜토리얼 처음에 앉았던 그 바탕화면이다. 새 화면을 만들지 않는다.
+        ///
+        /// 방 위에 얹는다. 끄면(ESC) 그 자리의 방으로 돌아온다.
+        /// 여기서는 켜기까지만 한다. 게시물을 쓰고 올리는 일은 아직 붙이지 않았다.
+        /// </summary>
+        private void OpenRoomComputer()
+        {
+            if (_desktopScreen == null)
+            {
+                Debug.LogError("[CaseDirector] 바탕화면이 연결되지 않았다. 씬을 다시 빌드할 것.");
+                return;
+            }
+
+            // 앞서 튜토리얼이 쓰던 채로 스택 어딘가에 남아 있으면 걷어 내고 다시 올린다.
+            if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
+
+            GamePointer.SetVisible(true);
+
+            _desktopScreen.Bind(OnRoomAppClicked);
+            _desktopScreen.SetAllowedApps(NetAppId, MemoAppId);
+            _desktopScreen.SetHintApp(null);
+            _desktopScreen.SetAppBadge(NetAppId, 0);
+            if (_tutorial != null) _desktopScreen.SetBelief(_tutorial.BoardBelief);
+            _desktopScreen.Closed = OnRoomComputerClosed;
+
+            _ui.Push(_desktopScreen);
+            Debug.Log("[CaseDirector] 숙소 | 컴퓨터를 켰다");
+        }
+
+        private void OnRoomComputerClosed()
+        {
+            GamePointer.SetVisible(false);
+            Debug.Log("[CaseDirector] 숙소 | 컴퓨터를 껐다");
+        }
+
+        /// <summary>숙소 컴퓨터의 아이콘. 열리는 것은 괴담넷과 메모장, 휴대폰과 같은 둘이다.</summary>
+        private void OnRoomAppClicked(string appId)
+        {
+            if (appId == MemoAppId)
+            {
+                if (_memoScreen == null || !MemoScreen.IsUnlocked) return;
+
+                _memoScreen.SetShape(false);
+                _memoScreen.SetKeepsUnderlyingUsable(false);
+                _memoScreen.Bind(() => { if (_ui.Contains(_memoScreen)) _ui.Close(_memoScreen); });
+                if (!_ui.Contains(_memoScreen)) _ui.Push(_memoScreen);
+                return;
+            }
+
+            if (appId != NetAppId || _communityScreen == null) return;
+
+            // 컴퓨터로 여는 괴담넷. 휴대폰과 같은 게시판을 창 모양으로 띄운다.
+            PushStatus();
+            _communityScreen.SetShape(false);
+            _communityScreen.SetKeepsUnderlyingUsable(false);
+            if (!_ui.Contains(_communityScreen)) _ui.Push(_communityScreen);
+
+            _communityScreen.SetControlsEnabled(true);
+            _communityScreen.BindWindow(OnPhoneBackPressed);
+            _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
+            _communityScreen.ShowNotice(null);
+            BindWriteButton();
+            _communityScreen.ShowBoard(true);
+        }
+
+        /// <summary>
+        /// 괴담넷 목록의 글쓰기 단추를 세운다.
+        /// 이 사건에 쓸 글이 있고, 보고서를 다 쓴 뒤이고, 아직 다 쓰지 않았을 때만 선다.
+        /// 데이터가 없는 사건은 단추가 없고 예전 흐름 그대로다.
+        /// </summary>
+        private void BindWriteButton()
+        {
+            var data = _case != null ? _case.PostWriting : null;
+            bool open = data != null && _postWriting != null && _reportFiled && _postWriting.CanWrite(data);
+
+            _communityScreen.BindWrite(open ? () => _postWriting.Begin(data) : (System.Action)null,
+                open && data.IsTutorial);
         }
 
         /// <summary>메모장에 남길 보고서 한 장. 플레이어가 채워 넣은 그대로 적는다.</summary>
@@ -2646,6 +2860,13 @@ namespace UrbanLegendBureau.Systems
         /// <summary>규칙 추론 화면의 돌아가기 버튼. 현장으로 돌아가 조사를 이어간다.</summary>
         public void OnRulesBackClicked()
         {
+            // 보고서를 다 쓰고 숙소로 가기를 기다리는 중이면 기다리지 않고 곧바로 간다.
+            if (_postCuePending)
+            {
+                GoPostCue();
+                return;
+            }
+
             ShowFieldHud();
         }
 

@@ -29,6 +29,12 @@ namespace UrbanLegendBureau.UI
         /// <summary>본문의 String ID. Page 를 따로 두지 않는 글은 이것으로 연다.</summary>
         public string BodyTextId;
 
+        /// <summary>본문을 문장 여럿으로 짓는 글. 플레이어가 올린 글이 이렇다. 있으면 BodyTextId 대신 쓴다.</summary>
+        public List<string> BodyTextIds;
+
+        /// <summary>플레이어가 올린 글인가. 다시 쓸 때 내릴 글을 가리는 데 쓴다.</summary>
+        public bool IsPlayerPost;
+
         /// <summary>이 글에 달린 댓글. 컴퓨터로 보든 휴대폰으로 보든 같은 것을 본다.</summary>
         public List<CommunityComment> Comments;
 
@@ -170,6 +176,16 @@ namespace UrbanLegendBureau.UI
         [Tooltip("목록 화면 쪽 무리.")]
         [SerializeField] private CanvasGroup _boardControls;
 
+        [Header("글쓰기")]
+        [Tooltip("목록 머리말 오른쪽의 글쓰기 단추. 쓸 글이 있을 때만 켜진다. 휴대폰으로 볼 때는 켜지 않는다.")]
+        [SerializeField] private Button _writeButton;
+
+        [Tooltip("글쓰기 단추를 가리키는 세모. 튜토리얼에서만 켠다.")]
+        [SerializeField] private GameObject _writeHint;
+
+        private Action _onWrite;
+        private bool _writeHinted;
+
         private readonly List<GameObject> _spawnedComments = new List<GameObject>();
         private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
         private readonly List<GameObject> _spawnedEntries = new List<GameObject>();
@@ -202,6 +218,18 @@ namespace UrbanLegendBureau.UI
         private const string ChoiceHeaderTextId = "ui.net.choice_header";
         private const string LikeTextId = "ui.net.like";
         private const string DislikeTextId = "ui.net.dislike";
+
+        /// <summary>목록 줄의 작성자 / 조회 / 댓글. 따로 적어 둔 곁가지 문구가 없는 글(플레이어가 올린 글)이 쓴다.</summary>
+        private const string BoardMetaTextId = "ui.net.board_meta";
+
+        /// <summary>
+        /// 본문을 여러 문장 ID 로 받았을 때. 문단 사이를 한 줄 띄운다.
+        /// 플레이어가 고른 문장들로 이루어진 글이 이렇게 들어온다. 언어를 바꿔도 다시 조립된다.
+        /// </summary>
+        private IReadOnlyList<string> _bodyIds;
+
+        /// <summary>댓글 쓰기 칸의 머리말을 이 글에서만 바꿔 적는다. 비어 있으면 원래대로 "댓글 쓰기"다.</summary>
+        private string _choiceHeaderId;
 
         // ------------------------------------------------------------- 생김새
 
@@ -830,6 +858,8 @@ namespace UrbanLegendBureau.UI
         {
             _titleId = page != null ? page.TitleTextId : null;
             _bodyId = page != null ? page.BodyTextId : null;
+            _bodyIds = null;
+            _choiceHeaderId = null;
             _authorId = null;
             _boardId = null;
             _views = views;
@@ -860,6 +890,8 @@ namespace UrbanLegendBureau.UI
         {
             _titleId = titleTextId;
             _bodyId = bodyTextId;
+            _bodyIds = null;
+            _choiceHeaderId = null;
             _authorId = authorTextId;
             _boardId = boardTextId;
             _views = views;
@@ -872,6 +904,57 @@ namespace UrbanLegendBureau.UI
 
             _shownCommentCount = -1;
             Refresh();
+        }
+
+        /// <summary>
+        /// 본문이 여러 문장으로 이루어진 글을 건다. 플레이어가 문장을 골라 지은 글이 이것으로 들어온다.
+        /// 나머지는 위의 BindPost 와 같다.
+        /// </summary>
+        public void BindPost(string titleTextId, IReadOnlyList<string> bodyTextIds, string authorTextId,
+            string boardTextId, int views, int postedMinutesAgo, int likes = 0, int dislikes = 0,
+            bool likePressed = false, bool dislikePressed = false)
+        {
+            BindPost(titleTextId, (string)null, authorTextId, boardTextId, views, postedMinutesAgo,
+                likes, dislikes, 0, likePressed, dislikePressed);
+
+            _bodyIds = bodyTextIds;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 댓글 쓰기 칸의 머리말만 바꾼다. 글을 새로 걸면 원래대로 돌아간다.
+        /// 글쓰기에서 "제목 고르기" 같은 지금 할 일을 이 자리에 적는다.
+        /// </summary>
+        public void SetChoiceHeader(string textId)
+        {
+            _choiceHeaderId = textId;
+            Refresh();
+        }
+
+        /// <summary>
+        /// 목록의 글쓰기 단추가 할 일을 건다. null 을 주면 단추가 사라진다.
+        /// hint 를 켜면 단추 옆에 가리키는 세모가 선다.
+        /// </summary>
+        public void BindWrite(Action onWrite, bool hint = false)
+        {
+            _onWrite = onWrite;
+            _writeHinted = hint;
+
+            if (_writeButton != null)
+            {
+                _writeButton.onClick.RemoveAllListeners();
+                _writeButton.onClick.AddListener(() => _onWrite?.Invoke());
+            }
+
+            ApplyWriteButton();
+        }
+
+        /// <summary>글쓰기는 컴퓨터로만 한다. 휴대폰으로 볼 때는 단추를 세우지 않는다.</summary>
+        private void ApplyWriteButton()
+        {
+            bool on = _onWrite != null && !IsPhone;
+            if (_writeButton != null) _writeButton.gameObject.SetActive(on);
+            if (_writeHint != null) _writeHint.SetActive(on && _writeHinted);
         }
 
         /// <summary>
@@ -1062,6 +1145,8 @@ namespace UrbanLegendBureau.UI
                 _boardPostText.text = loc.Get(string.IsNullOrEmpty(_boardId) ? BoardPostTextId : _boardId);
             }
 
+            ApplyWriteButton();
+
             if (_showingBoard)
             {
                 RebuildBoard(loc);
@@ -1076,7 +1161,7 @@ namespace UrbanLegendBureau.UI
                     : loc.Get(_titleId) +
                       " <size=72%><color=#C0392B>[" + _comments.Count + "]</color></size>";
             }
-            if (_bodyText != null) _bodyText.text = string.IsNullOrEmpty(_bodyId) ? string.Empty : loc.Get(_bodyId);
+            if (_bodyText != null) _bodyText.text = BuildBody(loc);
 
             string belief = _beliefPercent > 0 ? loc.Get(BeliefPercentTextId, _beliefPercent) : string.Empty;
 
@@ -1115,7 +1200,8 @@ namespace UrbanLegendBureau.UI
             if (_choiceHeaderText != null)
             {
                 bool hasChoices = _choices != null && _choices.Count > 0;
-                _choiceHeaderText.text = hasChoices ? loc.Get(ChoiceHeaderTextId) : string.Empty;
+                string headerId = string.IsNullOrEmpty(_choiceHeaderId) ? ChoiceHeaderTextId : _choiceHeaderId;
+                _choiceHeaderText.text = hasChoices ? loc.Get(headerId) : string.Empty;
             }
 
             if (_noticeText != null) _noticeText.text = _noticeProvider != null ? _noticeProvider() : string.Empty;
@@ -1169,7 +1255,7 @@ namespace UrbanLegendBureau.UI
                     if (entry.IsHot) title = "[" + loc.Get(HotMarkTextId) + "] " + title;
 
                     // 닉네임 / 조회 / 댓글 / 시간은 곁가지다. 제목보다 작고 흐리게 둔다.
-                    string meta = BuildMetaLine(loc, entry.MetaTextId, entry.PostedMinutesAgo);
+                    string meta = BuildEntryMeta(loc, entry);
                     text.text = string.IsNullOrEmpty(meta)
                         ? title
                         : title + "\n<size=" + MetaSizePercent + "%><color=#6B7280>" + meta + "</color></size>";
@@ -1187,6 +1273,38 @@ namespace UrbanLegendBureau.UI
 
                 _spawnedEntries.Add(item.gameObject);
             }
+        }
+
+        /// <summary>
+        /// 목록 줄의 곁가지 한 줄.
+        /// 미리 적어 둔 문구가 있으면 그것을 쓰고, 없으면 작성자와 조회수와 댓글 수로 짓는다.
+        /// 플레이어가 올린 글은 댓글이 늘어나므로 적어 둔 문구로는 맞출 수 없다.
+        /// </summary>
+        private static string BuildEntryMeta(LocalizationService loc, CommunityBoardEntry entry)
+        {
+            if (!string.IsNullOrEmpty(entry.MetaTextId) || string.IsNullOrEmpty(entry.AuthorTextId))
+            {
+                return BuildMetaLine(loc, entry.MetaTextId, entry.PostedMinutesAgo);
+            }
+
+            int comments = entry.Comments != null ? entry.Comments.Count : 0;
+            string who = loc.Get(BoardMetaTextId, loc.Get(entry.AuthorTextId), entry.Views, comments);
+            return who + "    " + BuildPostedText(loc, entry.PostedMinutesAgo);
+        }
+
+        /// <summary>본문. 문장 여럿으로 된 글은 문단을 한 줄씩 띄워 잇는다.</summary>
+        private string BuildBody(LocalizationService loc)
+        {
+            if (_bodyIds == null) return string.IsNullOrEmpty(_bodyId) ? string.Empty : loc.Get(_bodyId);
+
+            var sb = new System.Text.StringBuilder();
+            for (int i = 0; i < _bodyIds.Count; i++)
+            {
+                if (string.IsNullOrEmpty(_bodyIds[i])) continue;
+                if (sb.Length > 0) sb.Append("\n\n");
+                sb.Append(loc.Get(_bodyIds[i]));
+            }
+            return sb.ToString();
         }
 
         private void RebuildComments(LocalizationService loc)

@@ -375,9 +375,18 @@ namespace UrbanLegendBureau.Systems
         {
             if (_communityScreen == null || entry == null) return;
 
-            _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextId, entry.AuthorTextId, entry.BoardTextId,
-                entry.Views, entry.PostedMinutesAgo,
-                entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
+            // 문장 여럿으로 지은 글(플레이어가 올린 글)은 문장 목록째로 건다.
+            if (entry.BodyTextIds != null)
+            {
+                _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextIds, entry.AuthorTextId, entry.BoardTextId,
+                    entry.Views, entry.PostedMinutesAgo, entry.Likes, entry.Dislikes, entry.LikePressed, entry.DislikePressed);
+            }
+            else
+            {
+                _communityScreen.BindPost(entry.TitleTextId, entry.BodyTextId, entry.AuthorTextId, entry.BoardTextId,
+                    entry.Views, entry.PostedMinutesAgo,
+                    entry.Likes, entry.Dislikes, entry.BeliefPercent, entry.LikePressed, entry.DislikePressed);
+            }
             _communityScreen.BindComments(entry.Comments);
             _communityScreen.BindChoices(null, null, null);
 
@@ -715,7 +724,73 @@ namespace UrbanLegendBureau.Systems
             OpenDesktopNet,
 
             /// <summary>게시판에서 인기글만 누를 수 있게 열어 준다.</summary>
-            OpenHotPost
+            OpenHotPost,
+
+            /// <summary>말을 건 쪽이 넘겨준 일을 한다. 게시물 작성처럼 튜토리얼 밖에서 한영을 빌려 쓸 때다.</summary>
+            Callback
+        }
+
+        /// <summary>AfterTalk.Callback 일 때 할 일.</summary>
+        private System.Action _afterTalkCallback;
+
+        /// <summary>
+        /// 컴퓨터 화면 위에 한영을 세우고 한마디 하게 한다. 말이 끝나면 onDone 을 부른다.
+        /// 튜토리얼 댓글 연습에서 쓰던 그 대화창이다. 새 대화 화면을 만들지 않는다.
+        /// </summary>
+        public bool ShowComputerTalk(string lineTextId, System.Action onDone)
+        {
+            if (_talkScreen == null || _loc == null || string.IsNullOrEmpty(lineTextId)) return false;
+
+            _afterTalkCallback = onDone;
+            ShowTalk(lineTextId, AfterTalk.Callback);
+            return true;
+        }
+
+        /// <summary>
+        /// 한 괴담을 실어 나르는 글들의 믿음 몫을 한꺼번에 옮긴다(%). 음수면 내려간다.
+        ///
+        /// 새 글 하나가 올라와 그 괴담을 읽는 사람들의 생각이 바뀐 것이다. 다른 괴담의 글은 그대로다.
+        /// 몫이 0 이 되면 괴담과 무관한 글로 빠져 평균에서 사라지므로 1 아래로는 내리지 않는다.
+        /// 작업 표시줄과 휴대폰 숫자도 함께 바뀐다. 바뀐 글 수를 돌려준다.
+        /// </summary>
+        public int ShiftLegendBelief(string legendId, int delta)
+        {
+            if (string.IsNullOrEmpty(legendId) || delta == 0) return 0;
+            if (_boardEntries == null) BuildBoardEntries();
+
+            int moved = 0;
+            foreach (var entry in _boardEntries)
+            {
+                if (entry == null || entry.LegendId != legendId || entry.BeliefPercent <= 0) continue;
+
+                entry.BeliefPercent = Mathf.Clamp(entry.BeliefPercent + delta, 1, 100);
+                if (entry.Openable) _postBelief = entry.BeliefPercent;   // 인기글은 제 몫을 따로 들고 있다
+                moved++;
+            }
+
+            PushBeliefToTaskbar();
+            Debug.Log($"[TutorialDirector] 게시물 반응 | {legendId} 글 {moved}개 {delta:+0;-0}% | 이 괴담 {GetLegendBelief(legendId)}% / 전체 {BoardBelief}%");
+            return moved;
+        }
+
+        /// <summary>
+        /// 플레이어가 올린 글을 게시판에 건다. 인기글들 바로 아래, 최신 글 맨 위에 선다.
+        /// 컴퓨터로 보든 휴대폰으로 보든 같은 목록이다.
+        /// </summary>
+        public void AddBoardPost(CommunityBoardEntry entry)
+        {
+            if (entry == null) return;
+            if (_boardEntries == null) BuildBoardEntries();
+
+            int at = 0;
+            while (at < _boardEntries.Count && _boardEntries[at] != null && _boardEntries[at].IsHot) at++;
+            _boardEntries.Insert(at, entry);
+        }
+
+        /// <summary>올린 글을 내린다. 다시 쓰기 전에 실패한 글을 걷어 낼 때 쓴다.</summary>
+        public bool RemoveBoardPost(CommunityBoardEntry entry)
+        {
+            return entry != null && _boardEntries != null && _boardEntries.Remove(entry);
         }
 
         private AfterTalk _afterTalk;
@@ -871,6 +946,12 @@ namespace UrbanLegendBureau.Systems
 
                 case AfterTalk.OpenHotPost:
                     // 목록은 이미 인기글만 눌리게 되어 있다. 여기서는 아무것도 더 열지 않는다.
+                    break;
+
+                case AfterTalk.Callback:
+                    var callback = _afterTalkCallback;
+                    _afterTalkCallback = null;
+                    callback?.Invoke();
                     break;
 
                 default:
@@ -1543,6 +1624,72 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>첫 사건에서 놓친 단서를 한영이 채워 줄 때 하는 말.</summary>
         private const string TerminusHelpTextId = "tutorial.field.terminus_help";
+
+        // ------------------------------------------------------------- 숙소로
+
+        /// <summary>보고서를 마친 뒤 한영이 게시물을 올리러 가자고 하는 말.</summary>
+        private const string PostCueTextId = "tutorial.room.cue";
+
+        /// <summary>숙소에 들어서서 주고받는 말. 한영, 차지한, 한영 순이다.</summary>
+        private static readonly string[] RoomLineTextIds =
+        {
+            "tutorial.room.001",
+            "tutorial.room.002",
+            "tutorial.room.003",
+        };
+
+        private static readonly bool[] RoomLineIsHanyoung = { true, false, true };
+
+        /// <summary>
+        /// 보고서를 다 쓴 뒤 한영이 한마디 한다. 말이 끝나면 onDone 을 부른다.
+        /// 걸 자리(현장 화면)가 없으면 false 를 돌려준다. 그때는 부르는 쪽이 말 없이 넘어간다.
+        /// </summary>
+        public bool ShowPostCue(System.Action onDone)
+        {
+            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (hud == null || _loc == null) return false;
+
+            _fieldHud = hud;
+            hud.ShowLine(HanyoungNameTextId, () => _loc.Get(PostCueTextId), () =>
+            {
+                hud.ClearSpeech();
+                onDone?.Invoke();
+            });
+
+            Debug.Log("[TutorialDirector] 보고서 끝 | 게시물을 올리러 숙소로 간다");
+            return true;
+        }
+
+        /// <summary>
+        /// 숙소에 들어선 직후의 말. 말이 끝나면 띠를 비우고 onDone 을 부른다.
+        /// 그 뒤로는 플레이어가 직접 걸어가 컴퓨터를 켠다. 여기서 컴퓨터를 대신 열지 않는다.
+        /// </summary>
+        public bool ShowRoomIntro(System.Action onDone)
+        {
+            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
+            if (hud == null || _loc == null) return false;
+
+            _fieldHud = hud;
+            ShowRoomLine(hud, 0, onDone);
+
+            Debug.Log("[TutorialDirector] 숙소 대사 시작 | " + RoomLineTextIds.Length + "마디");
+            return true;
+        }
+
+        private void ShowRoomLine(UrbanLegendBureau.UI.FieldHudScreen hud, int index, System.Action onDone)
+        {
+            if (index >= RoomLineTextIds.Length)
+            {
+                hud.ClearSpeech();
+                onDone?.Invoke();
+                Debug.Log("[TutorialDirector] 숙소 대사 끝 | 이제 직접 돌아다닌다");
+                return;
+            }
+
+            string id = RoomLineTextIds[index];
+            string name = RoomLineIsHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
+            hud.ShowLine(name, () => _loc.Get(id), () => ShowRoomLine(hud, index + 1, onDone));
+        }
 
 
         /// <summary>

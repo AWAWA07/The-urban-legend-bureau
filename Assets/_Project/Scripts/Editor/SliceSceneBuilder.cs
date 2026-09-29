@@ -160,12 +160,21 @@ namespace UrbanLegendBureau.EditorTools
             SetObjectArray(swapSo.FindProperty("_afterRoots"), trainInside);
             swapSo.ApplyModifiedPropertiesWithoutUndo();
 
+            // --- 숙소 ---
+            // 사건 현장이 아니라 검열국 사람들이 지내는 방이다. 걷기와 말풍선은 현장과 같은 것을 쓴다.
+            var fieldRootRoom = new GameObject("FieldRoot_Room");
+            BuildFieldBackground(fieldRootRoom.transform);
+            BuildRoom(fieldRootRoom.transform);
+
             var fieldGo = new GameObject("FieldController");
             var field = fieldGo.AddComponent<FieldController>();
             var fieldSo = new SerializedObject(field);
             fieldSo.Update();
             var groups = fieldSo.FindProperty("_fieldGroups");
-            groups.arraySize = 3;
+            groups.arraySize = 4;
+            var g3 = groups.GetArrayElementAtIndex(3);
+            g3.FindPropertyRelative("legendId").stringValue = CaseDirector.RoomFieldId;
+            g3.FindPropertyRelative("root").objectReferenceValue = fieldRootRoom;
             var g0 = groups.GetArrayElementAtIndex(0);
             g0.FindPropertyRelative("legendId").stringValue = "legend_test_001";
             g0.FindPropertyRelative("root").objectReferenceValue = fieldRoot;
@@ -267,6 +276,12 @@ namespace UrbanLegendBureau.EditorTools
             // 괴담넷은 하나뿐이다. 컴퓨터도 휴대폰도 이 화면을 연다. 메모장도 마찬가지다.
             dso.FindProperty("_communityScreen").objectReferenceValue = community;
             dso.FindProperty("_memoScreen").objectReferenceValue = memo;
+            // 바탕화면도 하나뿐이다. 튜토리얼이 처음 여는 것과 숙소의 컴퓨터가 여는 것이 같다.
+            dso.FindProperty("_desktopScreen").objectReferenceValue = desktop;
+
+            // 괴담넷에 글을 써 올리는 흐름. 괴담넷 화면과 게시판을 그대로 빌려 쓴다.
+            var postWriting = directorGo.AddComponent<PostWritingDirector>();
+            dso.FindProperty("_postWriting").objectReferenceValue = postWriting;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
@@ -289,6 +304,12 @@ namespace UrbanLegendBureau.EditorTools
             tso.FindProperty("_memoScreen").objectReferenceValue = memo;
             tso.FindProperty("_toastScreen").objectReferenceValue = toast;
             tso.FindProperty("_caseDirector").objectReferenceValue = director;
+
+            var pwso = new SerializedObject(postWriting);
+            pwso.Update();
+            pwso.FindProperty("_communityScreen").objectReferenceValue = community;
+            pwso.FindProperty("_tutorial").objectReferenceValue = tutorial;
+            pwso.ApplyModifiedPropertiesWithoutUndo();
             tso.FindProperty("_tutorialPage").objectReferenceValue =
                 AssetDatabase.LoadAssetAtPath<UrbanLegendBureau.Data.WebPageSO>(
                     "Assets/_Project/Data/WebPages/web_subway_001.asset");
@@ -646,6 +667,236 @@ namespace UrbanLegendBureau.EditorTools
 
             root.SetActive(false);
             return root;
+        }
+
+        /// <summary>
+        /// 검열국 숙소의 방 하나. 열차 안과 같은 짜임으로 옆에서 본 한 폭이다.
+        ///
+        /// 왼쪽은 잠자리(창, 침대, 협탁), 가운데는 일하는 자리(책상, 컴퓨터, 의자, 게시판),
+        /// 오른쪽은 살림(책장, 벽시계, 화분, 방문)이다. 바닥 높이와 걷는 폭은 열차 안과 같다.
+        ///
+        /// 살펴볼 수 있는 것은 컴퓨터 / 침대 / 책장 / 시계 / 방문이다. 제 구실을 하는 것은 컴퓨터뿐이고
+        /// 나머지는 차지한이 한마디 하고 끝난다. 무엇을 하는지는 CaseDirector 가 정한다.
+        /// </summary>
+        private static void BuildRoom(Transform parent)
+        {
+            var root = new GameObject("Room");
+            root.transform.SetParent(parent, false);
+
+            var wall = new Color(0.24f, 0.21f, 0.21f);
+            var wainscot = new Color(0.19f, 0.16f, 0.16f);
+            var trim = new Color(0.31f, 0.26f, 0.24f);
+            var wood = new Color(0.33f, 0.24f, 0.18f);
+            var woodDark = new Color(0.24f, 0.17f, 0.13f);
+
+            // 방 껍데기. 벽 / 아래 벽판 / 천장 몰딩 / 바닥. 높이는 열차 안과 맞춘다.
+            AddFieldRect(root.transform, "Wall", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), wall, -9);
+            AddFieldRect(root.transform, "CeilingTrim", new Vector2(0f, 3.62f), new Vector2(44f, 0.16f), trim, -7);
+            AddFieldRect(root.transform, "Wainscot", new Vector2(0f, -2.3f), new Vector2(44f, 2.2f), wainscot, -8);
+            AddFieldRect(root.transform, "ChairRail", new Vector2(0f, -1.2f), new Vector2(44f, 0.12f), trim, -7);
+            AddFieldRect(root.transform, "Floor", new Vector2(0f, -4.5f), new Vector2(44f, 2.2f),
+                new Color(0.25f, 0.19f, 0.15f), -8);
+            AddFieldRect(root.transform, "FloorEdge", new Vector2(0f, -3.42f), new Vector2(44f, 0.16f), woodDark, -7);
+            AddFieldRect(root.transform, "Rug", new Vector2(0.5f, -4.05f), new Vector2(7.4f, 0.5f),
+                new Color(0.36f, 0.22f, 0.22f), -7);
+
+            // --- 왼쪽: 잠자리 ---
+            // 창 너머는 한밤의 도시다. 멀리 켜진 창 몇 개만 보인다.
+            var window = new GameObject("Window");
+            window.transform.SetParent(root.transform, false);
+            window.transform.localPosition = new Vector3(-9.2f, 1.5f, 0f);
+            AddFieldRect(window.transform, "Frame", Vector2.zero, new Vector2(4.4f, 2.9f), trim, -7);
+            AddFieldRect(window.transform, "Glass", Vector2.zero, new Vector2(4.0f, 2.5f),
+                new Color(0.09f, 0.11f, 0.19f), -6);
+            var cityLight = new Color(0.62f, 0.54f, 0.32f);
+            AddFieldRect(window.transform, "City_0", new Vector2(-1.3f, -0.8f), new Vector2(0.18f, 0.22f), cityLight, -5);
+            AddFieldRect(window.transform, "City_1", new Vector2(-0.6f, -0.5f), new Vector2(0.18f, 0.22f), cityLight, -5);
+            AddFieldRect(window.transform, "City_2", new Vector2(0.9f, -0.9f), new Vector2(0.18f, 0.22f), cityLight, -5);
+            AddFieldRect(window.transform, "City_3", new Vector2(1.5f, -0.4f), new Vector2(0.18f, 0.22f), cityLight, -5);
+            AddFieldRect(window.transform, "Mullion_V", Vector2.zero, new Vector2(0.14f, 2.5f), trim, -4);
+            AddFieldRect(window.transform, "Mullion_H", Vector2.zero, new Vector2(4.0f, 0.14f), trim, -4);
+            var curtain = new Color(0.38f, 0.25f, 0.27f);
+            AddFieldRect(window.transform, "Curtain_L", new Vector2(-2.35f, -0.15f), new Vector2(0.8f, 3.3f), curtain, -3);
+            AddFieldRect(window.transform, "Curtain_R", new Vector2(2.35f, -0.15f), new Vector2(0.8f, 3.3f), curtain, -3);
+            AddFieldRect(window.transform, "CurtainRod", new Vector2(0f, 1.65f), new Vector2(5.6f, 0.12f), woodDark, -3);
+
+            // 침대. 머리판이 왼쪽 벽에 붙고 발치는 가운데를 향한다.
+            var bed = new GameObject("Bed");
+            bed.transform.SetParent(root.transform, false);
+            bed.transform.localPosition = new Vector3(-9.2f, 0f, 0f);
+            AddFieldRect(bed.transform, "Headboard", new Vector2(-3.05f, -1.95f), new Vector2(0.45f, 2.9f), wood, -6);
+            AddFieldRect(bed.transform, "Footboard", new Vector2(3.05f, -2.45f), new Vector2(0.4f, 1.9f), wood, -4);
+            AddFieldRect(bed.transform, "Frame", new Vector2(0f, -2.95f), new Vector2(6.0f, 0.8f), woodDark, -6);
+            AddFieldRect(bed.transform, "Mattress", new Vector2(0f, -2.3f), new Vector2(5.8f, 0.55f),
+                new Color(0.80f, 0.78f, 0.74f), -5);
+            AddFieldRect(bed.transform, "Blanket", new Vector2(0.6f, -2.2f), new Vector2(4.6f, 0.7f),
+                new Color(0.29f, 0.36f, 0.52f), -4);
+            AddFieldRect(bed.transform, "BlanketFold", new Vector2(-1.6f, -1.92f), new Vector2(0.5f, 0.18f),
+                new Color(0.36f, 0.43f, 0.60f), -3);
+            AddFieldRect(bed.transform, "Pillow", new Vector2(-2.25f, -1.86f), new Vector2(1.2f, 0.42f),
+                new Color(0.90f, 0.88f, 0.84f), -4);
+
+            // 협탁과 스탠드. 방에 켜진 불은 이것과 모니터뿐이다.
+            AddFieldRect(root.transform, "Nightstand", new Vector2(-5.1f, -2.75f), new Vector2(1.2f, 1.3f), wood, -6);
+            AddFieldRect(root.transform, "NightstandDrawer", new Vector2(-5.1f, -2.6f), new Vector2(0.9f, 0.08f), woodDark, -5);
+            AddFieldRect(root.transform, "LampStem", new Vector2(-5.1f, -1.85f), new Vector2(0.1f, 0.5f), woodDark, -5);
+            AddFieldRect(root.transform, "LampShade", new Vector2(-5.1f, -1.42f), new Vector2(0.85f, 0.5f),
+                new Color(0.86f, 0.74f, 0.46f), -5);
+
+            // --- 가운데: 일하는 자리 ---
+            // 책상 위 벽의 게시판. 사건 메모가 꽂혀 있다. 검열국 사람의 방이라는 것이 여기서 보인다.
+            AddFieldRect(root.transform, "Corkboard", new Vector2(0.5f, 2.05f), new Vector2(3.6f, 1.5f),
+                new Color(0.46f, 0.34f, 0.24f), -7);
+            AddFieldRect(root.transform, "Note_0", new Vector2(-0.6f, 2.2f), new Vector2(0.7f, 0.6f),
+                new Color(0.84f, 0.80f, 0.60f), -6);
+            AddFieldRect(root.transform, "Note_1", new Vector2(0.4f, 1.9f), new Vector2(0.8f, 0.55f),
+                new Color(0.78f, 0.80f, 0.84f), -6);
+            AddFieldRect(root.transform, "Note_2", new Vector2(1.5f, 2.25f), new Vector2(0.6f, 0.65f),
+                new Color(0.80f, 0.62f, 0.60f), -6);
+
+            // 책상. 오른쪽 아래에 서랍장이 붙는다.
+            AddFieldRect(root.transform, "DeskTop", new Vector2(0.5f, -1.5f), new Vector2(4.6f, 0.22f), wood, -5);
+            AddFieldRect(root.transform, "DeskLeg_L", new Vector2(-1.6f, -2.5f), new Vector2(0.2f, 1.8f), woodDark, -6);
+            AddFieldRect(root.transform, "DeskDrawers", new Vector2(2.1f, -2.45f), new Vector2(1.4f, 1.7f), woodDark, -6);
+            AddFieldRect(root.transform, "DeskDrawerLine", new Vector2(2.1f, -2.1f), new Vector2(1.2f, 0.06f), wood, -5);
+
+            // 컴퓨터. 화면이 켜져 있다. 이 방에서 할 일이 여기 있다는 것을 멀리서도 알게 한다.
+            AddFieldRect(root.transform, "MonitorStand", new Vector2(0.5f, -1.18f), new Vector2(0.2f, 0.45f),
+                new Color(0.16f, 0.16f, 0.19f), -5);
+            AddFieldRect(root.transform, "MonitorFrame", new Vector2(0.5f, -0.25f), new Vector2(2.3f, 1.5f),
+                new Color(0.12f, 0.12f, 0.15f), -5);
+            AddFieldRect(root.transform, "MonitorScreen", new Vector2(0.5f, -0.25f), new Vector2(2.08f, 1.28f),
+                new Color(0.26f, 0.40f, 0.58f), -4);
+            AddFieldRect(root.transform, "MonitorTaskbar", new Vector2(0.5f, -0.82f), new Vector2(2.08f, 0.14f),
+                new Color(0.14f, 0.18f, 0.26f), -3);
+            AddFieldRect(root.transform, "Keyboard", new Vector2(0.3f, -1.34f), new Vector2(1.6f, 0.1f),
+                new Color(0.20f, 0.20f, 0.24f), -4);
+            AddFieldRect(root.transform, "Mug", new Vector2(2.3f, -1.2f), new Vector2(0.3f, 0.38f),
+                new Color(0.78f, 0.76f, 0.72f), -4);
+
+            // 의자. 옆에서 보면 등받이와 앉는 자리와 다리 하나다. 책상 앞으로 빼 둔 채다.
+            var chairColor = new Color(0.22f, 0.24f, 0.30f);
+            AddFieldRect(root.transform, "ChairBack", new Vector2(-1.25f, -1.55f), new Vector2(0.24f, 1.6f), chairColor, -3);
+            AddFieldRect(root.transform, "ChairSeat", new Vector2(-0.7f, -2.35f), new Vector2(1.3f, 0.22f), chairColor, -3);
+            AddFieldRect(root.transform, "ChairStem", new Vector2(-0.7f, -2.85f), new Vector2(0.14f, 0.8f),
+                new Color(0.16f, 0.16f, 0.19f), -3);
+            AddFieldRect(root.transform, "ChairBase", new Vector2(-0.7f, -3.28f), new Vector2(1.1f, 0.12f),
+                new Color(0.16f, 0.16f, 0.19f), -3);
+
+            // --- 오른쪽: 살림 ---
+            // 책장. 선반 넷에 크기가 제각각인 책과 파일철이 꽂혀 있다.
+            var shelf = new GameObject("Bookshelf");
+            shelf.transform.SetParent(root.transform, false);
+            shelf.transform.localPosition = new Vector3(6.8f, 0f, 0f);
+            AddFieldRect(shelf.transform, "Frame", new Vector2(0f, -0.7f), new Vector2(3.2f, 5.4f), woodDark, -7);
+            AddFieldRect(shelf.transform, "Back", new Vector2(0f, -0.7f), new Vector2(2.9f, 5.1f),
+                new Color(0.17f, 0.13f, 0.11f), -6);
+
+            var bookColors = new[]
+            {
+                new Color(0.52f, 0.26f, 0.24f), new Color(0.28f, 0.36f, 0.48f), new Color(0.62f, 0.56f, 0.40f),
+                new Color(0.30f, 0.42f, 0.32f), new Color(0.46f, 0.40f, 0.52f), new Color(0.70f, 0.66f, 0.60f),
+            };
+            for (int row = 0; row < 4; row++)
+            {
+                float bottom = -3.2f + row * 1.25f;
+                AddFieldRect(shelf.transform, "Board_" + row, new Vector2(0f, bottom - 0.05f), new Vector2(2.9f, 0.1f), wood, -5);
+
+                // 한 칸에 책을 여러 권. 줄마다 빈 곳을 달리 둔다. 가지런하기만 하면 그림처럼 보인다.
+                float x = -1.3f;
+                for (int i = 0; x < 1.2f; i++)
+                {
+                    float w = 0.2f + ((row * 3 + i * 5) % 4) * 0.06f;
+                    float h = 0.7f + ((row * 7 + i * 3) % 4) * 0.1f;
+                    if ((row + i) % 5 == 4) { x += 0.35f; continue; }
+
+                    AddFieldRect(shelf.transform, "Book_" + row + "_" + i, new Vector2(x + w * 0.5f, bottom + h * 0.5f),
+                        new Vector2(w, h), bookColors[(row * 2 + i) % bookColors.Length], -4);
+                    x += w + 0.04f;
+                }
+            }
+            AddFieldRect(shelf.transform, "Top", new Vector2(0f, 2.02f), new Vector2(3.3f, 0.12f), wood, -5);
+
+            // 벽시계. 둥근 판에 바늘 둘.
+            var clock = new GameObject("WallClock");
+            clock.transform.SetParent(root.transform, false);
+            clock.transform.localPosition = new Vector3(9.9f, 1.8f, 0f);
+            AddFieldCircle(clock.transform, "Rim", Vector2.zero, 1.3f, woodDark, -6);
+            AddFieldCircle(clock.transform, "Face", Vector2.zero, 1.1f, new Color(0.88f, 0.86f, 0.80f), -5);
+            var hand = new Color(0.14f, 0.13f, 0.14f);
+            AddFieldRect(clock.transform, "HourHand", new Vector2(0f, 0.17f), new Vector2(0.08f, 0.34f), hand, -4);
+            var minuteHand = AddFieldRect(clock.transform, "MinuteHand", new Vector2(0.14f, 0.1f), new Vector2(0.06f, 0.46f), hand, -4);
+            minuteHand.transform.localRotation = Quaternion.Euler(0f, 0f, -60f);
+
+            // 화분 하나. 방이 사람 사는 곳으로 보이는 데는 이런 것이 한몫한다.
+            AddFieldRect(root.transform, "PlantPot", new Vector2(9.9f, -3.02f), new Vector2(0.75f, 0.75f),
+                new Color(0.46f, 0.30f, 0.24f), -5);
+            AddFieldCircle(root.transform, "PlantLeaves", new Vector2(9.9f, -2.2f), 1.2f,
+                new Color(0.26f, 0.40f, 0.28f), -6);
+
+            // 방문. 오른쪽 끝. 걸어서 닿는 자리(12)보다 조금 바깥이지만 거리 안에 든다.
+            var door = new GameObject("Door");
+            door.transform.SetParent(root.transform, false);
+            door.transform.localPosition = new Vector3(12.8f, 0f, 0f);
+            AddFieldRect(door.transform, "Frame", new Vector2(0f, -0.65f), new Vector2(2.7f, 5.5f), trim, -7);
+            AddFieldRect(door.transform, "Panel", new Vector2(0f, -0.78f), new Vector2(2.3f, 5.2f), wood, -6);
+            AddFieldRect(door.transform, "PanelInset_T", new Vector2(0f, 0.6f), new Vector2(1.6f, 1.6f), woodDark, -5);
+            AddFieldRect(door.transform, "PanelInset_B", new Vector2(0f, -1.9f), new Vector2(1.6f, 2.2f), woodDark, -5);
+            AddFieldCircle(door.transform, "Knob", new Vector2(-0.85f, -1.0f), 0.22f, new Color(0.78f, 0.66f, 0.40f), -4);
+
+            // --- 살펴볼 수 있는 것 ---
+            var computer = BuildPoint(root.transform, "InvestigationPoint_RoomComputer", new Vector2(0.5f, -0.4f),
+                new Vector2(2.6f, 2.2f), new Color(0.40f, 0.56f, 0.72f), "field.room.computer", string.Empty, null);
+            var bedPoint = BuildPoint(root.transform, "InvestigationPoint_RoomBed", new Vector2(-9.2f, -2.4f),
+                new Vector2(6.4f, 1.8f), new Color(0.46f, 0.50f, 0.62f), "field.room.bed", "field.room.bed.result", null);
+            var shelfPoint = BuildPoint(root.transform, "InvestigationPoint_RoomBookshelf", new Vector2(6.8f, -0.7f),
+                new Vector2(3.2f, 5.4f), new Color(0.52f, 0.42f, 0.32f), "field.room.bookshelf", "field.room.bookshelf.result", null);
+            var clockPoint = BuildPoint(root.transform, "InvestigationPoint_RoomClock", new Vector2(9.9f, 1.8f),
+                new Vector2(1.5f, 1.5f), new Color(0.80f, 0.76f, 0.62f), "field.room.clock", "field.room.clock.result", null);
+            var doorPoint = BuildPoint(root.transform, "InvestigationPoint_RoomDoor", new Vector2(12.8f, -0.7f),
+                new Vector2(2.7f, 5.5f), new Color(0.52f, 0.40f, 0.30f), "field.room.door", "field.room.door.result", null);
+
+            ConfigureRoomPoint(computer, "point_room_computer", "ui.field.prompt_use");
+            ConfigureRoomPoint(bedPoint, "point_room_bed", "ui.field.prompt_look");
+            ConfigureRoomPoint(shelfPoint, "point_room_bookshelf", "ui.field.prompt_look");
+            ConfigureRoomPoint(clockPoint, "point_room_clock", "ui.field.prompt_look");
+            ConfigureRoomPoint(doorPoint, "point_room_door", "ui.field.prompt_look");
+
+            // 방에 들어선 두 사람. 책상과 책장 사이에 선다. 어느 것에도 닿지 않는 자리다.
+            BuildFieldActors(root.transform, -3.86f, 4.2f, 2.4f, -12f, 12f);
+        }
+
+        /// <summary>숙소의 물건 하나. 조사 방법도 해금 조건도 없고, 말풍선 글만 제 것을 쓴다.</summary>
+        private static void ConfigureRoomPoint(GameObject pointGo, string pointId, string promptTextId)
+        {
+            var point = pointGo.GetComponent<InvestigationPoint>();
+            if (point == null) return;
+
+            var so = new SerializedObject(point);
+            so.Update();
+            so.FindProperty("_pointId").stringValue = pointId;
+            so.FindProperty("_promptTextId").stringValue = promptTextId;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>현장 배경에 까는 동그라미 하나. 시계판이나 문고리처럼 둥근 것에 쓴다.</summary>
+        private static GameObject AddFieldCircle(Transform parent, string name, Vector2 position, float diameter,
+            Color color, int order)
+        {
+            var go = new GameObject(name);
+            go.transform.SetParent(parent, false);
+            go.transform.localPosition = position;
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = RoundSprite();
+            sr.color = color;
+            sr.sortingOrder = order;
+
+            // 동그라미 그림의 원래 크기에 맞춰 늘린다. 그림 크기가 바뀌어도 지름은 그대로다.
+            var bounds = sr.sprite != null ? sr.sprite.bounds.size : Vector3.one;
+            go.transform.localScale = new Vector3(diameter / Mathf.Max(0.0001f, bounds.x),
+                diameter / Mathf.Max(0.0001f, bounds.y), 1f);
+            return go;
         }
 
         /// <summary>객실 문 한 짝. 열린 문은 안쪽이 승강장 빛으로 밝다.</summary>
@@ -2231,6 +2482,39 @@ namespace UrbanLegendBureau.EditorTools
             boardHeaderElement.preferredHeight = 90f;
             boardHeaderElement.flexibleHeight = 0f;
 
+            // 머리말 오른쪽 끝의 글쓰기 단추. 쓸 글이 있을 때만 켜진다. 켜고 끄는 것은 괴담넷 화면이 한다.
+            var writeGo = CreatePanel(boardHeader.transform, "Btn_Write", new Color(0.86f, 0.74f, 0.48f, 1f));
+            var writeRt = (RectTransform)writeGo.transform;
+            writeRt.anchorMin = new Vector2(1f, 0.5f);
+            writeRt.anchorMax = new Vector2(1f, 0.5f);
+            writeRt.pivot = new Vector2(1f, 0.5f);
+            writeRt.anchoredPosition = new Vector2(-BoardInset, 0f);
+            writeRt.sizeDelta = new Vector2(190f, 58f);
+            var writeButton = writeGo.AddComponent<Button>();
+            writeButton.targetGraphic = writeGo.GetComponent<Image>();
+            var writeLabel = AddText(writeGo.transform, "Label", 26f, UIFontWeight.Bold, new Color(0.14f, 0.12f, 0.10f),
+                Vector2.zero, new Vector2(190f, 58f), TextAlignmentOptions.Center);
+            writeLabel.raycastTarget = false;
+            var writeLabelText = writeLabel.gameObject.AddComponent<LocalizedText>();
+            var wlso = new SerializedObject(writeLabelText);
+            wlso.Update();
+            wlso.FindProperty("_textId").stringValue = "ui.post.btn_write";
+            wlso.ApplyModifiedPropertiesWithoutUndo();
+
+            // 단추 왼쪽에서 단추를 가리키는 세모. 튜토리얼에서만 켠다.
+            var writeHint = AddText(boardHeader.transform, "WriteHint", 30f, UIFontWeight.Bold, AccentColor,
+                Vector2.zero, new Vector2(44f, 44f), TextAlignmentOptions.Center);
+            writeHint.text = "▶";
+            writeHint.raycastTarget = false;
+            var writeHintRt = writeHint.rectTransform;
+            writeHintRt.anchorMin = new Vector2(1f, 0.5f);
+            writeHintRt.anchorMax = new Vector2(1f, 0.5f);
+            writeHintRt.pivot = new Vector2(1f, 0.5f);
+            writeHintRt.anchoredPosition = new Vector2(-BoardInset - 200f, 0f);
+            writeHint.gameObject.AddComponent<HintNudge>();
+            writeHint.gameObject.SetActive(false);
+            writeGo.SetActive(false);
+
             // 글 줄을 담는 칸. 위아래로 여백을 두고 그 안에서 줄이 쌓인다.
             var boardList = new GameObject("Posts", typeof(RectTransform));
             boardList.transform.SetParent(boardPage.transform, false);
@@ -2597,6 +2881,8 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_noticeText").objectReferenceValue = noticeText;
             so.FindProperty("_postControls").objectReferenceValue = postControls;
             so.FindProperty("_boardControls").objectReferenceValue = boardControls;
+            so.FindProperty("_writeButton").objectReferenceValue = writeButton;
+            so.FindProperty("_writeHint").objectReferenceValue = writeHint.gameObject;
 
             // --- 컴퓨터 창 / 휴대폰 두 모양 ---
             // 괴담넷은 하나뿐이다. 창 크기와 좌우 여백과 글자 크기만 갈아 끼운다.
@@ -3693,6 +3979,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_choiceRoot").objectReferenceValue = fieldChoiceRoot;
             so.FindProperty("_choiceTemplate").objectReferenceValue = fieldChoice;
             so.FindProperty("_blockRoot").objectReferenceValue = fieldBlock;
+            so.FindProperty("_buttonRow").objectReferenceValue = buttonRow.gameObject;
             so.FindProperty("_tickerText").objectReferenceValue = tickerText;
             so.FindProperty("_portrait").objectReferenceValue = portrait.GetComponent<Image>();
             so.FindProperty("_speakerText").objectReferenceValue = speakerText;

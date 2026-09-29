@@ -262,7 +262,7 @@ ui.report.note_footer	— 괴담 검열국 / {0}	— Bureau of Urban Legend Cens
 ui.report.btn_submit	제출	Submit	
 ui.report.btn_back	돌아가기	Back	
 tutorial.field.report_cue	자, 이제 보고서 작성하고 게시물을 직접 올려볼까?	Right. Shall we write it up and post it ourselves?	결론이 선 뒤 - 한영
-tutorial.field.report_done	잘했어. 첫 건 치고는 깔끔하네. 이건 네 메모장에 넣어 뒀으니까 나중에 꺼내 봐.	Well done. Clean work for a first case. I put it in your notepad, so pull it up later.	보고서를 다 맞혔을 때 - 한영
+tutorial.field.report_done	좋아, 빈칸 하나 없이 다 맞았어. 이건 네 메모장에 넣어 뒀으니까 나중에 꺼내 봐.	Good, every field is right. I put it in your notepad, so pull it up later.	보고서를 다 맞혔을 때 - 한영
 ui.rule.candidate_found	짚이는 것이 있다	Something clicks	새 단서로 후보가 생겼을 때 팝업 제목
 ui.rule.candidate_hint	지금까지 모은 단서로 세워 볼 수 있는 규칙이 {0}개 있다.
 규칙 추론에서 직접 골라야 한다.	You can now form {0} possible rule(s) from what you have.
@@ -736,3 +736,72 @@ ui.rule.evidence_stray	「{0}」 이건 지금 묻는 것과 상관이 없다.	"
 ui.rule.stray_for_verdict	「{0}」{1} 지금 묻는 것보다, 이 괴담이 실제로 있는 일인지 가리는 데 더 쓸모 있어 보인다.	"{0}" looks more useful for telling whether this is real than for what is being asked now.	관계없는 단서 - 1단계 쪽
 ui.rule.stray_for_rule	「{0}」{1} 지금 묻는 것보다, 이 괴담이 무엇에 반응해 움직이는지 알아내는 데 더 쓸모 있어 보인다.	"{0}" looks more useful for working out what this reacts to than for what is being asked now.	관계없는 단서 - 2단계 쪽
 ui.rule.stray_for_counter	「{0}」{1} 지금 묻는 것보다, 그 자리에서 실제로 어떻게 해야 하는지 정하는 데 더 쓸모 있어 보인다.	"{0}" looks more useful for deciding what to actually do there than for what is being asked now.	관계없는 단서 - 3단계 쪽
+ui.field.room	검열국 숙소	Bureau Quarters	숙소 위쪽 한 줄
+ui.field.prompt_look	[E] {0} 살펴보기	[E] Look at {0}	숙소 물건의 말풍선
+ui.field.prompt_use	[E] {0} 켜기	[E] Use {0}	숙소 컴퓨터의 말풍선
+field.room.computer	컴퓨터	Computer	
+field.room.bed	침대	Bed	
+field.room.bed.result	푹신해 보인다. 눕는 건 게시물부터 올리고 나서다.	Looks soft. I can lie down once the post is up.	숙소 - 차지한
+field.room.bookshelf	책장	Bookshelf	
+field.room.bookshelf.result	지난 사건 파일이 빼곡하다. 지금은 읽을 때가 아니다.	Packed with old case files. Not the time to read them.	숙소 - 차지한
+field.room.clock	벽시계	Wall clock	
+field.room.clock.result	지금 시각은 {0}. 오늘 활동도 얼마 안 남았다.	It is {0}. Not much of today's shift left.	숙소 - 차지한, {0} 지금 시각
+field.room.door	방문	Door	
+field.room.door.result	지금은 나갈 일이 없다. 컴퓨터부터 보자.	No reason to go out now. The computer first.	숙소 - 차지한
+tutorial.room.cue	처음 치고는 잘하는데? 이제 마지막으로 조사한걸 바탕으로 게시물을 올려보자.	Not bad for a first time. Last thing: let's put up a post based on what we found.	보고서를 마친 뒤 - 한영
+tutorial.room.001	우리 활동 시간은 6시에서 3시까지고.. 숙식은 여기서 해결하면 돼.	We work from six to three... You can eat and sleep here.	숙소에 들어서서 - 한영
+tutorial.room.002	방 좋네요.	Nice room.	숙소에 들어서서 - 차지한
+tutorial.room.003	그렇지? 그럼 저기 컴퓨터에서 게시물 올려보자.	Right? Then let's post it from that computer over there.	숙소에 들어서서 - 한영
+ui.net.board_meta	{0}    조회 {1}    댓글 {2}	{0}    views {1}    comments {2}	곁가지 문구를 따로 두지 않은 글의 목록 줄
+ui.post.btn_write	글쓰기	Write	괴담넷 목록의 글쓰기 단추
+ui.post.title_placeholder	(제목을 골라 주세요)	(Pick a title)	쓰고 있는 글 - 아직 고르지 않은 제목
+ui.post.placeholder_intro	(첫 문단을 골라 주세요)	(Pick the opening)	쓰고 있는 글 - 아직 고르지 않은 도입
+ui.post.placeholder_fact	(사실을 전할 문단을 골라 주세요)	(Pick what you say about the facts)	쓰고 있는 글 - 아직 고르지 않은 사실 전달
+ui.post.placeholder_action	(읽는 사람이 할 일을 골라 주세요)	(Pick what readers should do)	쓰고 있는 글 - 아직 고르지 않은 행동 지침
+ui.post.header_title	글쓰기 1/4 · 제목 고르기	Writing 1/4 · Title	
+ui.post.header_intro	글쓰기 2/4 · 도입	Writing 2/4 · Opening	
+ui.post.header_fact	글쓰기 3/4 · 사실 전달	Writing 3/4 · The facts	
+ui.post.header_action	글쓰기 4/4 · 행동 지침	Writing 4/4 · What to do	
+ui.post.header_preview	미리보기 · 아직 게시판에 올라가지 않았습니다	Preview · Not on the board yet	
+ui.post.section_title	제목	Title	
+ui.post.section_intro	도입	Opening	
+ui.post.section_fact	사실 전달	Facts	
+ui.post.section_action	행동 지침	What to do	
+ui.post.feedback_down	{0} — 괴담에 대한 믿음 ▼	{0} — belief in the legend ▼	후보를 골랐을 때, {0} 칸 이름
+ui.post.feedback_up	{0} — 괴담에 대한 믿음 ▲	{0} — belief in the legend ▲	후보를 골랐을 때, {0} 칸 이름
+ui.post.feedback_flat	{0} — 괴담에 대한 믿음 변화 없음	{0} — no change in belief	후보를 골랐을 때, {0} 칸 이름
+ui.post.btn_publish	게시하기	Post it	
+ui.post.btn_rewrite	다시 작성	Start over	
+ui.post.result_down	이 괴담의 믿음도 {0}% → {1}% ▼	Belief in this legend {0}% → {1}% ▼	게시 뒤
+ui.post.result_up	이 괴담의 믿음도 {0}% → {1}% ▲	Belief in this legend {0}% → {1}% ▲	게시 뒤
+ui.post.result_flat	이 괴담의 믿음도 {0}% → {1}% (변화 없음)	Belief in this legend {0}% → {1}% (no change)	게시 뒤
+ui.post.taken_down	실패한 글을 내렸다. 이 괴담의 믿음도 {0}% → {1}%	The failed post is down. Belief in this legend {0}% → {1}%	다시 쓰기 전
+post.subway.author	막차단골	LastTrainRegular	차지한의 부계정
+post.subway.title.fear	[주의] 막차에서 이상한 사람을 보면 절대 돌아보지 마세요	[Warning] If you see someone strange on the last train, never look back	제목 - 공포 조장
+post.subway.title.refute	막차 괴담, 확인되지 않은 이야기가 퍼지고 있습니다	The last-train story: unverified details are spreading	제목 - 반박
+post.subway.title.calm	막차 이용할 때 이것만 기억하세요	Taking the last train? Just remember this	제목 - 안심
+post.subway.intro.rumor	최근 막차에서 이상한 사람이 보인다는 이야기가 퍼지고 있습니다.	A story about a strange person on the last train has been going around.	도입 - 중립
+post.subway.intro.witness	최근 막차를 이용한 승객들 사이에서 이상한 목격담이 돌고 있습니다.	Riders of the last train have been trading strange sightings lately.	도입 - 확인 쪽
+post.subway.intro.hook	막차를 타면 옆자리에 누군가 앉는다는 이야기를 들어본 적 있나요?	Have you heard that someone sits beside you on the last train?	도입 - 괴담을 되풀이
+post.subway.fact.refute	확인된 기록에서는 '얼굴을 보면 따라온다'는 내용은 확인되지 않았습니다.	Nothing in the records confirms that "it follows you if you see its face."	사실 - 반박
+post.subway.fact.reports	실제로 막차에서 이상한 현상을 목격했다는 신고가 여러 차례 있었습니다.	There really have been several reports of something strange on the last train.	사실 - 확인
+post.subway.fact.real	실제로 존재하는 현상이니 막차를 탈 때는 각별히 주의해야 합니다.	It is a real phenomenon, so be very careful on the last train.	사실 - 확인 + 공포
+post.subway.action.calm	막차에서는 주변을 일부러 확인하기보다 평소처럼 이동하세요.	On the last train, just ride as usual instead of checking around you.	행동 - 안심
+post.subway.action.counter	이상한 기척이 느껴져도 소리가 나는 쪽으로 고개를 돌리지 마세요.	Even if you sense something odd, do not turn toward the sound.	행동 - 파훼법 그대로
+post.subway.action.fear	절대 뒤를 돌아보지 마세요. 돌아보는 순간 그것이 따라옵니다.	Never look back. The moment you do, it follows you.	행동 - 공포 조장
+post.subway.line_intro	보고서를 그대로 올리면 안 돼.\n사람들이 읽고 괜찮다고 생각하게 써야 해.	Don't just post the report.\nWrite it so people come away thinking they're fine.	글쓰기 시작 - 한영
+post.subway.line_success	그래. 이 정도면 사람들이 괜히 겁먹지는 않겠네.	Good. With this, nobody will get scared for nothing.	게시 성공 - 한영
+post.subway.line_fail	잠깐. 이건 오히려 괴담을 더 퍼뜨리는 글이야.	Wait. This spreads the legend even further.	믿음이 올랐을 때 - 한영
+post.subway.line_weak	나쁘진 않은데, 아직 믿는 사람이 많아. 덧붙은 거짓은 확실히 걷어내 줘야 해.	Not bad, but a lot of people still believe it. You need to clear out the parts that were made up.	내려갔지만 모자랄 때 - 한영
+post.subway.line_takedown	이 글은 내가 내려 둘게. 다시 써 보자.	I'll take this one down. Let's write it again.	다시 쓰기 전 - 한영
+post.subway.react.ok_1	기록을 근거로 적어 주셔서 좋네요. '얼굴을 보면 따라온다'는 대목은 원래 출처가 없었습니다.	Good to see records cited. The "follows you if you see its face" part never had a source.	성공 반응 - 회의주의자
+post.subway.react.ok_2	ㅇㅇ 걍 폰 보면서 가면 되는 거네	yeah so just look at your phone and ride	성공 반응 - ㅇㅇ
+post.subway.react.ok_3	헐 다행이다ㅠㅠ 저 이번 주에 막차 타야 되는데 이제 좀 덜 무서워요	phew thank god ㅠㅠ I have to take the last train this week, less scared now	성공 반응 - 겁많은고3
+post.subway.react.ok_4	막차 맨날 타는데 이런 글 개야르네 ㅋㅋ 저장함	I ride it every night, this post is fire lol saved	성공 반응 - 퇴근길전사
+post.subway.react.bad_1	역시 진짜였어ㅠㅠㅠ 저 이제 막차 못 타요	so it was real ㅠㅠㅠ I can never ride the last train again	실패 반응 - 겁많은고3
+post.subway.react.bad_2	이거 9-4칸 얘기랑 같은 거임. 벌써 세 번째 글	same as the car 9-4 story. third post already	실패 반응 - 소문수집
+post.subway.react.bad_3	ㄷㄷ 돌아보면 끝이라니 ㄹㅇ 소름	yikes look back and it's over?? chills fr	실패 반응 - ㅇㅇ
+post.subway.react.bad_4	경고만 있고 근거는 없네요. 이런 글이 소문을 키웁니다.	All warning, no source. Posts like this are how rumors grow.	실패 반응 - 회의주의자
+post.subway.react.weak_1	행동 요령은 좋은데, 퍼진 이야기 중 뭐가 사실이 아닌지는 안 적으셨네요.	The advice is fine, but you never said which parts of the story are false.	모자람 반응 - 회의주의자
+post.subway.react.weak_2	그래서 진짜라는 거예요 아니라는 거예요ㅠㅠ	so is it real or not ㅠㅠ	모자람 반응 - 겁많은고3
+post.subway.react.weak_3	애매하네 ㅇㅇ	kinda vague yeah	모자람 반응 - ㅇㅇ

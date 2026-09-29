@@ -37,6 +37,10 @@ namespace UrbanLegendBureau.Data
         [Tooltip("끄면 사건 목록에 나오지만 선택할 수 없다. 제작 중인 사건을 감추는 데 쓴다.")]
         [SerializeField] private bool _isPlayable = true;
 
+        [Header("게시물 작성")]
+        [Tooltip("조사를 마친 뒤 괴담넷에 올릴 글의 데이터. 비워 두면 이 사건에는 글쓰기가 없다.")]
+        [SerializeField] private PostWritingSO _postWriting;
+
         public string Id => _caseId;
         public string CaseId => _caseId;
         public string CaseNameTextId => _caseNameTextId;
@@ -44,6 +48,9 @@ namespace UrbanLegendBureau.Data
         public string LegendId => _legendId;
         public CaseStep StartingStep => _startingStep;
         public bool IsPlayable => _isPlayable;
+
+        /// <summary>이 사건의 게시물 작성 데이터. 없으면 null.</summary>
+        public PostWritingSO PostWriting => _postWriting;
 
         private void OnValidate()
         {

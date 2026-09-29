@@ -17,6 +17,10 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private string _nameTextId;
         [SerializeField] private string _resultTextId;
 
+        [Tooltip("곁에 섰을 때 말풍선에 적을 글. {0} 자리에 이름이 들어간다. 비워 두면 \"조사\"로 적는다.\n" +
+                 "숙소의 침대나 컴퓨터처럼 조사할 것이 아닌 물건에 쓴다.")]
+        [SerializeField] private string _promptTextId;
+
         [Header("식별")]
         [Tooltip("지점 고유 ID. 로그와 디버그용. 비워 두면 오브젝트 이름을 쓴다.")]
         [SerializeField] private string _pointId;
@@ -46,6 +50,7 @@ namespace UrbanLegendBureau.Systems
 
         public string NameTextId => _nameTextId;
         public string ResultTextId => _resultTextId;
+        public string PromptTextId => _promptTextId;
         public string ClueId => _clueId;
         public bool HasClue => !string.IsNullOrEmpty(_clueId);
 

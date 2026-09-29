@@ -18,3 +18,4 @@ MonoBehaviour:
   _legendId: legend_subway_last_train
   _startingStep: 1
   _isPlayable: 1
+  _postWriting: {fileID: 11400000, guid: 66d93594c733a604ca3b7af61bc2b2dd, type: 2}

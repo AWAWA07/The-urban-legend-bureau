@@ -242,6 +242,10 @@ namespace UrbanLegendBureau.Systems
             if (_loc == null && !ServiceRegistry.TryGet(out _loc)) return string.Empty;
 
             string what = string.IsNullOrEmpty(point.NameTextId) ? point.PointId : _loc.Get(point.NameTextId);
+
+            // 조사할 것이 아닌 물건은 제 말을 쓴다. 침대를 "조사"하지는 않는다.
+            if (!string.IsNullOrEmpty(point.PromptTextId)) return _loc.Get(point.PromptTextId, what);
+
             return _loc.Get(point.IsInvestigated ? PromptDoneTextId : PromptTextId, what);
         }
     }

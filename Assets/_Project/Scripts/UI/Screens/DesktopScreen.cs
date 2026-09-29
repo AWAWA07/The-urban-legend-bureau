@@ -187,7 +187,18 @@ namespace UrbanLegendBureau.UI
         protected override void OnClose()
         {
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
+
+            // 한 번 알리고 비운다. 다음에 여는 쪽이 다시 건다.
+            var closed = Closed;
+            Closed = null;
+            closed?.Invoke();
         }
+
+        /// <summary>
+        /// 컴퓨터 화면이 닫혔을 때 한 번 부른다. ESC 로 닫아도 불린다.
+        /// 숙소에서 켠 컴퓨터를 끄고 방으로 돌아올 때 쓴다.
+        /// </summary>
+        public Action Closed { get; set; }
 
         private void OnLanguageChanged(LanguageChangedEvent evt)
         {

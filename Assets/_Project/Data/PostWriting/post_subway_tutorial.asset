@@ -1,0 +1,114 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0dbd73e73be1c409294794e2046c17, type: 3}
+  m_Name: post_subway_tutorial
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.PostWritingSO
+  _postWritingId: post_subway_tutorial
+  _caseId: case_001_subway
+  _legendId: legend_subway_last_train
+  _isTutorial: 1
+  _titleCandidates:
+  - candidateId: title_fear
+    textId: post.subway.title.fear
+    tag: 4
+    beliefDelta: 3
+  - candidateId: title_refute
+    textId: post.subway.title.refute
+    tag: 1
+    beliefDelta: -3
+  - candidateId: title_calm
+    textId: post.subway.title.calm
+    tag: 2
+    beliefDelta: -2
+  _introCandidates:
+  - candidateId: intro_rumor
+    textId: post.subway.intro.rumor
+    tag: 0
+    beliefDelta: 0
+  - candidateId: intro_witness
+    textId: post.subway.intro.witness
+    tag: 3
+    beliefDelta: 1
+  - candidateId: intro_hook
+    textId: post.subway.intro.hook
+    tag: 3
+    beliefDelta: 2
+  _factCandidates:
+  - candidateId: fact_refute
+    textId: post.subway.fact.refute
+    tag: 1
+    beliefDelta: -4
+  - candidateId: fact_reports
+    textId: post.subway.fact.reports
+    tag: 3
+    beliefDelta: 5
+  - candidateId: fact_real
+    textId: post.subway.fact.real
+    tag: 4
+    beliefDelta: 6
+  _actionCandidates:
+  - candidateId: action_calm
+    textId: post.subway.action.calm
+    tag: 2
+    beliefDelta: -3
+  - candidateId: action_counter
+    textId: post.subway.action.counter
+    tag: 0
+    beliefDelta: -1
+  - candidateId: action_fear
+    textId: post.subway.action.fear
+    tag: 4
+    beliefDelta: 4
+  _postModifier: -1
+  _tutorialTargetBelief: 20
+  _allowRewrite: 1
+  _maxAttempts: 0
+  _takeDownFailedPost: 1
+  _authorTextId: post.subway.author
+  _boardTextId: ui.net.board_free
+  _views: 37
+  _successLikes: 14
+  _successDislikes: 2
+  _successReactions:
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: post.subway.react.ok_1
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: post.subway.react.ok_2
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: post.subway.react.ok_3
+  - authorTextId: ui.net.author_nick_1
+    bodyTextId: post.subway.react.ok_4
+  _failLikes: 9
+  _failDislikes: 3
+  _failReactions:
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: post.subway.react.bad_1
+  - authorTextId: ui.net.author_nick_12
+    bodyTextId: post.subway.react.bad_2
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: post.subway.react.bad_3
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: post.subway.react.bad_4
+  _weakLikes: 5
+  _weakDislikes: 4
+  _weakReactions:
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: post.subway.react.weak_1
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: post.subway.react.weak_2
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: post.subway.react.weak_3
+  _introLineTextId: post.subway.line_intro
+  _successLineTextId: post.subway.line_success
+  _failLineTextId: post.subway.line_fail
+  _weakLineTextId: post.subway.line_weak
+  _takeDownLineTextId: post.subway.line_takedown

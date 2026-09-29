@@ -53,6 +53,9 @@ namespace UrbanLegendBureau.UI
         [Tooltip("선택지가 떠 있는 동안 장면을 못 누르게 덮는 판. 대사 띠보다 뒤에 깔린다.")]
         [SerializeField] private GameObject _blockRoot;
 
+        [Tooltip("띠 오른쪽 아래의 추론 / 조사 마침 단추 줄. 조사하는 현장이 아닌 곳에서는 거둔다.")]
+        [SerializeField] private GameObject _buttonRow;
+
         [Header("휴대폰")]
         [Tooltip("장면 오른쪽에 늘 떠 있는 작은 단추.")]
         [SerializeField] private Button _phoneButton;
@@ -204,6 +207,15 @@ namespace UrbanLegendBureau.UI
                 if (_spawnedChoices[i] != null) Destroy(_spawnedChoices[i]);
             }
             _spawnedChoices.Clear();
+        }
+
+        /// <summary>
+        /// 추론 / 조사 마침 단추를 세우거나 거둔다.
+        /// 숙소처럼 조사할 것이 없는 곳에서는 거둔다. 거기서 추론을 열 일은 없다.
+        /// </summary>
+        public void SetButtonsVisible(bool on)
+        {
+            if (_buttonRow != null) _buttonRow.SetActive(on);
         }
 
         /// <summary>말하는 사람을 치운다. 띠에는 버튼만 남는다.</summary>
