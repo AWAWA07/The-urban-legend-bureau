@@ -4,6 +4,7 @@
 #       arms_crossed(팔짱·담담) documents(서류 듦) reading(서류 읽음) think(턱 괴고 생각)
 #       think_away(생각·시선 돌림) calm(두 손 모음·차분) worried(팔 잡고 걱정) surprised(놀람) wave(손 흔듦·미소)
 #       thinksmail(턱 괴고 미소) standingsmail(허리 파우치에 손·미소)
+#       think_away2(턱 괴고 옆을 봄) arms_crossed2(팔짱·입 벌림) standing2(파우치에 손·무표정) surprised2(당황·식은땀)
 
 # 처음 만남
 tutorial.line.001	default	...
@@ -17,32 +18,31 @@ tutorial.pc.001	point	자, 저기 괴담넷을 눌러봐.
 tutorial.pc.002	point	인기글 보이지? 첫번째 게시물을 눌러봐.
 tutorial.pc.003	arms_crossed	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰기 부터 해보자.
 tutorial.pc.like_warn	think	사람들 믿음도를 떨어트려야 하는데 굳이 좋아요를 안 누르는게 낫지 않을까?
-tutorial.pc.dislike_good	explain	싫어요를 눌러서 사람들 동조 시키는 것도 좋은 방법이야
+tutorial.pc.dislike_good	thinksmail	싫어요를 눌러서 사람들 동조 시키는 것도 좋은 방법이야
 tutorial.comment.hint	standing자, 이 셋 중에 뭘 선택해야 할까?
 tutorial.comment.wrong	serious	이런 애가 무슨 엘리트라고.. 다시 한번 해봐
 tutorial.comment.need_field_hanyoung	think	좋은 선택지긴 하지만 이건 직접 현장 조사를 해야돼
-tutorial.comment.correct	wave	그래 잘했어 너, 쓸만한데?
+tutorial.comment.correct	standingsmail	그래 잘했어 너, 쓸만한데?
 
 # 부서 설명
 tutorial.brief.001	default	간단하게 일이 끝났으니 우리 부서를 얘기해 줄게.
 tutorial.brief.002	arms_crossed	우리는 괴담 검열국이라는 정부의 비밀 국가정보원이야.
 tutorial.brief.003	arms_crossed	우리의 가장 큰 목표는 사람들의 믿음도를 관리하고 괴담을 퇴치하는 일을 하고 있어.
-tutorial.brief.q1.a.1	serious	왜냐면 괴담은 위험하기 때문이지.
+tutorial.brief.q1.a.1	default	왜냐면 괴담은 위험하기 때문이지.
 tutorial.brief.q1.a.2	serious	사람들이 괴담을 믿을수록 그 힘이 강해지거든. 그렇게 되면 괴담이 실체로 드러나.
 tutorial.brief.q1.b.1	serious	그래. 정말 위험해.
 tutorial.brief.q1.b.2	explain	사람들이 괴담을 믿을수록 그 힘이 강해져, 실체가 나오기 때문이야.
-tutorial.brief.004	explain	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… 노선에 없는 지하철이 나오면 내리면 안 된다던가.
-tutorial.brief.004b	explain	그런 것들 말이야.
+tutorial.brief.004	explain	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… 노선에 없는 지하철이 나오면 내리면 안 된다던가... 그런 것들 말이야
 tutorial.brief.006	think	예를 들어 학교에서 석상이 밤에 돌아다닌다는 말을 사람들이 믿기 시작하면 진짜로 그렇게 되는 거지.
-tutorial.brief.007	think_away	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을 거야.
-tutorial.brief.008	explain	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 실체가 되어 진짜로 돌아다니는 거야.
+tutorial.brief.007	think	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을 거야.
+tutorial.brief.008	think_away	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 실체가 되어 진짜로 돌아다니는 거야.
 tutorial.brief.009	serious	근데 만약, 그 석상이 밤에 학교에 들어온 사람을 죽인다는 소문이 퍼지게 되면 어떻게 될까?
-tutorial.brief.q2.1	calm	응, 맞아.
+tutorial.brief.q2.1	standingsmail	응, 맞아.
 tutorial.brief.q2.2	serious	실체가 드러난다는 것은 그것이 곧 진실이 된다는 뜻이야. 돌아다니는 것뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있다는 뜻이고.
 tutorial.brief.010	think_away	사실 원래도 괴담이 실체가 되는 건 아니었어.
-tutorial.brief.011	calm	귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었거든.
+tutorial.brief.011	think_away2	귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었거든.
 tutorial.brief.013	arms_crossed	너 정보보안부에서 넘어왔지?
-tutorial.brief.015	standing	난 괴이처리부에서 넘어왔거든.
+tutorial.brief.015	arms_crossed	난 괴이처리부에서 넘어왔거든.
 tutorial.brief.017	arms_crossed	뭐… 직접 보기 전엔 안 믿겠지. 곧 보게 될 거니 걱정하지 말고.
 tutorial.brief.018	explain	본론으로 돌아가자면, 내가 가짜인 괴담이 실체가 되는 경우는 없다고 했었지?
 tutorial.brief.018b	documents	근데 이번에 새로 창설된 사이트인 '괴담넷'에서 작성된 글은 가짜가 실체가 되고 있어.

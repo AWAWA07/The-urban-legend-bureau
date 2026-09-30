@@ -57,10 +57,13 @@ namespace UrbanLegendBureau.EditorTools
                 string outDir = OutputRoot + "/" + character;
                 Directory.CreateDirectory(outDir + "/Face");
 
+                var adjust = LoadAdjust(Path.Combine(sourceDir, AdjustFile));
+
                 foreach (var file in Directory.GetFiles(sourceDir, "*.png"))
                 {
                     string pose = Path.GetFileNameWithoutExtension(file);
-                    string result = Process(file, outDir + "/" + pose + ".png", outDir + "/Face/" + pose + ".png");
+                    float factor = adjust.TryGetValue(pose, out var f) ? f : 1f;
+                    string result = Process(file, outDir + "/" + pose + ".png", outDir + "/Face/" + pose + ".png", factor);
                     lines.Add(character + "/" + pose + " : " + result);
                     done++;
                 }
@@ -72,7 +75,35 @@ namespace UrbanLegendBureau.EditorTools
                 : "인물 그림 " + done + "장을 정리했다.\n" + string.Join("\n", lines);
         }
 
-        private static string Process(string sourcePath, string bodyPath, string facePath)
+        /// <summary>
+        /// 포즈별 크기 보정. Source/adjust.txt 에 "포즈<탭>배율" 로 적는다. 예: explain	0.93
+        /// 아래에서 올려다본 그림처럼 다리가 짧게 그려진 포즈는 키를 맞추면 머리가 커 보인다. 그럴 때 줄인다.
+        /// 머리 꼭대기 자리는 그대로 두고 크기만 바뀐다.
+        /// </summary>
+        private const string AdjustFile = "adjust.txt";
+
+        private static Dictionary<string, float> LoadAdjust(string path)
+        {
+            var map = new Dictionary<string, float>();
+            if (!File.Exists(path)) return map;
+
+            foreach (var raw in File.ReadAllLines(path))
+            {
+                var line = raw.Trim();
+                if (line.Length == 0 || line.StartsWith("#")) continue;
+
+                var cells = line.Split('\t', ' ');
+                if (cells.Length < 2) continue;
+                if (float.TryParse(cells[cells.Length - 1], System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var factor) && factor > 0f)
+                {
+                    map[cells[0].Trim()] = factor;
+                }
+            }
+            return map;
+        }
+
+        private static string Process(string sourcePath, string bodyPath, string facePath, float factor = 1f)
         {
             var src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             if (!src.LoadImage(File.ReadAllBytes(sourcePath))) return "읽지 못함";
@@ -107,7 +138,7 @@ namespace UrbanLegendBureau.EditorTools
             }
             float headX = n > 0 ? (float)(sum / n) : w / 2f;
 
-            float s = CharH / (float)(bottom - top + 1);
+            float s = CharH / (float)(bottom - top + 1) * factor;
             float dx = CanvasW / 2f - headX * s;
             float dy = TopMargin - top * s;
 
@@ -156,7 +187,8 @@ namespace UrbanLegendBureau.EditorTools
             Object.DestroyImmediate(body);
             Object.DestroyImmediate(face);
 
-            return string.Format("원본 {0}x{1}{2}, {3:0.000}배", w, h, whiteBackground ? " (흰 배경 지움)" : "", s);
+            return string.Format("원본 {0}x{1}{2}, {3:0.000}배{4}", w, h, whiteBackground ? " (흰 배경 지움)" : "", s,
+                Mathf.Approximately(factor, 1f) ? "" : string.Format(" (보정 {0:0.00})", factor));
         }
 
         private static bool RowHasInk(Color32[] px, int w, int y)
