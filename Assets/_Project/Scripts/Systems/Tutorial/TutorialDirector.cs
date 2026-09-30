@@ -338,6 +338,7 @@ namespace UrbanLegendBureau.Systems
             _communityScreen.SetKeepsUnderlyingUsable(false);
 
             _communityScreen.BindWindow(null);        // 튜토리얼 중에는 창을 닫을 수 없다
+            _communityScreen.SetEntryMarks(true);       // 인기글을 가리킨다
             _communityScreen.BindBoard(_boardEntries, OnBoardEntryClicked);
             _communityScreen.ShowBoard(true);
             _communityScreen.ShowNotice(null);
@@ -1305,7 +1306,6 @@ namespace UrbanLegendBureau.Systems
             },
 
             new BriefingStep { TextId = "tutorial.brief.004" },
-            new BriefingStep { TextId = "tutorial.brief.004b" },
             new BriefingStep { TextId = "tutorial.brief.005", Hanyoung = false },
             new BriefingStep { TextId = "tutorial.brief.006" },
             new BriefingStep { TextId = "tutorial.brief.007" },
@@ -1539,15 +1539,33 @@ namespace UrbanLegendBureau.Systems
             MarkTutorialSeen();
             _sandbox = null;
 
-            // 튜토리얼에서 여는 사건이므로 진행을 처음으로 되돌리고 시작한다.
-            // 예전에 한 번 해 본 사건이어도 그때 쌓인 시간과 확산을 이어받지 않는다.
-            if (_caseDirector == null || !_caseDirector.BeginCaseField(TutorialCaseId, fromScratch: true))
+            if (_caseDirector == null)
             {
-                Debug.LogError("[TutorialDirector] 현장으로 넘어가지 못했다. 사건 데이터를 확인할 것.");
+                Debug.LogError("[TutorialDirector] 현장으로 넘어가지 못했다. 사건 담당이 연결되지 않았다.");
                 FinishTutorial();
                 return;
             }
 
+            // 사무실에서 현장까지 옮겨 가는 화면을 띄운다. 덮고 있는 동안 현장을 열고, 걷힌 뒤에 말을 시작한다.
+            // 튜토리얼에서 여는 사건이므로 진행을 처음으로 되돌리고 시작한다.
+            // 예전에 한 번 해 본 사건이어도 그때 쌓인 시간과 확산을 이어받지 않는다.
+            bool opened = false;
+            _caseDirector.TravelToCaseField(TutorialCaseId, true,
+                ok =>
+                {
+                    opened = ok;
+                    if (!ok) Debug.LogError("[TutorialDirector] 현장으로 넘어가지 못했다. 사건 데이터를 확인할 것.");
+                },
+                () =>
+                {
+                    if (opened) BeginFieldTalk();
+                    else FinishTutorial();
+                });
+        }
+
+        /// <summary>현장에 도착했다. 한영과 차지한이 승강장에서 말을 나누기 시작한다.</summary>
+        private void BeginFieldTalk()
+        {
             _fieldHud = _caseDirector.FieldHud;
             if (_fieldHud == null)
             {
@@ -1705,34 +1723,22 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 숙소에 들어선 직후의 말. 말이 끝나면 띠를 비우고 onDone 을 부른다.
+        /// 숙소에 들어선 직후의 말. 말이 끝나면 대화 화면을 닫고 onDone 을 부른다.
         /// 그 뒤로는 플레이어가 직접 걸어가 컴퓨터를 켠다. 여기서 컴퓨터를 대신 열지 않는다.
         /// </summary>
         public bool ShowRoomIntro(System.Action onDone)
         {
-            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
-            if (hud == null || _loc == null) return false;
+            if (_talkScreen == null || _loc == null) return false;
 
-            _fieldHud = hud;
-            ShowRoomLine(hud, 0, onDone);
+            _roomTalkOpened = false;
+            RoomLines(RoomLineTextIds, RoomLineIsHanyoung, true, 0, () =>
+            {
+                Debug.Log("[TutorialDirector] 숙소 대사 끝 | 이제 직접 돌아다닌다");
+                onDone?.Invoke();
+            });
 
             Debug.Log("[TutorialDirector] 숙소 대사 시작 | " + RoomLineTextIds.Length + "마디");
             return true;
-        }
-
-        private void ShowRoomLine(UrbanLegendBureau.UI.FieldHudScreen hud, int index, System.Action onDone)
-        {
-            if (index >= RoomLineTextIds.Length)
-            {
-                hud.ClearSpeech();
-                onDone?.Invoke();
-                Debug.Log("[TutorialDirector] 숙소 대사 끝 | 이제 직접 돌아다닌다");
-                return;
-            }
-
-            string id = RoomLineTextIds[index];
-            string name = RoomLineIsHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
-            hud.ShowLine(name, () => _loc.Get(id), () => ShowRoomLine(hud, index + 1, onDone), id);
         }
 
         // ------------------------------------------------------------- 첫날 밤
@@ -1761,42 +1767,120 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         public bool ShowNightTalk(System.Action onDone)
         {
-            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
-            if (hud == null || _loc == null) return false;
+            if (_talkScreen == null || _loc == null) return false;
 
-            _fieldHud = hud;
-            ShowLines(hud, NightLineTextIds, NightLineIsHanyoung, 0, onDone);
+            _roomTalkOpened = false;
+            RoomLines(NightLineTextIds, NightLineIsHanyoung, true, 0, onDone);
             return true;
         }
 
-        /// <summary>한영이 나간 뒤 차지한의 혼잣말. 말이 끝나면 띠를 비우고 onDone 을 부른다.</summary>
+        /// <summary>한영이 나간 뒤 차지한의 혼잣말. 한영은 나가고 없으니 차지한만 선다.</summary>
         public bool ShowNightMonologue(System.Action onDone)
         {
-            var hud = _caseDirector != null ? _caseDirector.FieldHud : _fieldHud;
-            if (hud == null || _loc == null) return false;
+            if (_talkScreen == null || _loc == null) return false;
 
-            _fieldHud = hud;
-            ShowLines(hud, MonologueTextIds, null, 0, onDone);
+            _roomTalkOpened = false;
+            RoomLines(MonologueTextIds, null, false, 0, onDone);
+            return true;
+        }
+
+        // ------------------------------------------------------------- 숙소 대화
+
+        /// <summary>
+        /// 이번 숙소 대화에서 한영 그림을 한 번이라도 골랐는가.
+        /// 차지한이 먼저 말해도 한영은 제 모습으로 서 있어야 한다. 처음 한 번은 꼭 고른다.
+        /// </summary>
+        private bool _roomTalkOpened;
+
+        /// <summary>
+        /// 숙소에서 차지한이 혼자 한마디 한다. 물건을 살펴볼 때의 말이다. 말이 끝나면 대화 화면을 닫고 onDone 을 부른다.
+        /// 숙소의 말은 모두 현장의 띠가 아니라 첫 대화처럼 인물을 세워 보여 준다.
+        /// </summary>
+        public bool RoomSay(System.Func<string> line, System.Action onDone)
+        {
+            if (_talkScreen == null || _loc == null || line == null) return false;
+
+            _roomTalkOpened = false;
+            ShowRoomTalkLine(line, false, false, null, () =>
+            {
+                CloseRoomTalk();
+                onDone?.Invoke();
+            });
+            return true;
+        }
+
+        /// <summary>
+        /// 차지한이 스스로에게 묻고 고른다. 침대 앞에서 "잘까?" 처럼. 물음과 고를 것이 함께 뜬다.
+        /// 고르면 대화 화면을 닫고 고른 번호로 onPick 을 부른다.
+        /// </summary>
+        public bool RoomAsk(System.Func<string> line, IReadOnlyList<System.Func<string>> labels, System.Action<int> onPick)
+        {
+            if (_talkScreen == null || _loc == null || line == null) return false;
+
+            _roomTalkOpened = false;
+            ShowRoomTalkLine(line, false, false, null, null);
+            _talkScreen.ShowChoices(labels, picked =>
+            {
+                CloseRoomTalk();
+                onPick?.Invoke(picked);
+            });
             return true;
         }
 
         /// <summary>
         /// 대사 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.
         /// 문장에는 지금 시각(12시간제 시와 분, "2:12" 꼴)을 넘겨 준다. 쓰지 않는 문장은 무시한다.
+        /// 마디 사이에 화면을 닫지 않는다. 닫았다 열면 인물이 깜박인다.
         /// </summary>
-        private void ShowLines(UrbanLegendBureau.UI.FieldHudScreen hud, string[] ids, bool[] isHanyoung,
-            int index, System.Action onDone)
+        private void RoomLines(string[] ids, bool[] isHanyoung, bool hanyoungPresent, int index, System.Action onDone)
         {
             if (index >= ids.Length)
             {
-                hud.ClearSpeech();
+                CloseRoomTalk();
                 onDone?.Invoke();
                 return;
             }
 
             string id = ids[index];
-            string name = isHanyoung != null && isHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
-            hud.ShowLine(name, () => FormatWithClock(id), () => ShowLines(hud, ids, isHanyoung, index + 1, onDone), id);
+            bool hanyoung = isHanyoung != null && isHanyoung[index];
+            ShowRoomTalkLine(() => FormatWithClock(id), hanyoung, hanyoungPresent, id,
+                () => RoomLines(ids, isHanyoung, hanyoungPresent, index + 1, onDone));
+        }
+
+        /// <summary>
+        /// 숙소 대화 한 마디. 한영이 있으면 왼쪽에, 차지한은 오른쪽에 선다. 말하는 쪽이 밝다.
+        /// 대화 화면은 아래를 가리지 않아서 숙소가 뒤에 그대로 보인다. 떠 있는 동안에는 걷지 않는다.
+        /// </summary>
+        private void ShowRoomTalkLine(System.Func<string> line, bool hanyoungSpeaks, bool hanyoungPresent,
+            string artId, System.Action next)
+        {
+            _talkScreen.ClearChoices();
+            _talkScreen.SetAdvanceHandler(() => next?.Invoke());
+
+            // 화면을 먼저 올린다. 꺼져 있는 화면에 대사를 넣으면 강조 움직임이 시작되지 못한다.
+            if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
+
+            // 둘이 함께 서면 제자리에, 한영이 없으면 차지한 혼자다.
+            _talkScreen.SetSoloLayout(false);
+            if (hanyoungPresent && (hanyoungSpeaks || !_roomTalkOpened))
+            {
+                _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(artId));
+                _roomTalkOpened = true;
+            }
+
+            string nameId = hanyoungSpeaks ? HanyoungNameTextId : ChajihanNameTextId;
+            _talkScreen.ShowLine(hanyoungSpeaks,
+                () => _loc.Get(nameId),
+                line,
+                1f,
+                leftVisible: hanyoungPresent,
+                rightVisible: true);
+        }
+
+        private void CloseRoomTalk()
+        {
+            _talkScreen.ClearChoices();
+            if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
         }
 
         /// <summary>문장에 지금 시각을 넣는다. {0} 시, {1} 분, {2} "2:12" 꼴.</summary>

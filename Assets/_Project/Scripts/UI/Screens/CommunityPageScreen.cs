@@ -186,6 +186,18 @@ namespace UrbanLegendBureau.UI
         private Action _onWrite;
         private bool _writeHinted;
 
+        /// <summary>
+        /// 들어가야 할 글 왼쪽에 세모를 세울 것인가. 튜토리얼에서 인기글을 가리킬 때만 켠다.
+        /// 숙소 컴퓨터나 휴대폰으로 볼 때는 가리킬 까닭이 없다.
+        /// </summary>
+        private bool _showEntryMarks = true;
+
+        /// <summary>목록의 가리키는 세모를 켜고 끈다.</summary>
+        public void SetEntryMarks(bool on)
+        {
+            _showEntryMarks = on;   // 뒤따르는 BindBoard 가 목록을 다시 그린다
+        }
+
         private readonly List<GameObject> _spawnedComments = new List<GameObject>();
         private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
         private readonly List<GameObject> _spawnedEntries = new List<GameObject>();
@@ -1266,7 +1278,7 @@ namespace UrbanLegendBureau.UI
                     // 왼쪽의 세모는 들어가야 하는 글에만 켠다.
                     if (text.name == BoardMarkName)
                     {
-                        text.gameObject.SetActive(entry.Openable);
+                        text.gameObject.SetActive(entry.Openable && _showEntryMarks);
                         continue;
                     }
 

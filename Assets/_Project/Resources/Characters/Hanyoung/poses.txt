@@ -35,46 +35,46 @@ tutorial.brief.q1.b.2	explain	사람들이 괴담을 믿을수록 그 힘이 강
 tutorial.brief.004	explain	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… 노선에 없는 지하철이 나오면 내리면 안 된다던가... 그런 것들 말이야
 tutorial.brief.006	think	예를 들어 학교에서 석상이 밤에 돌아다닌다는 말을 사람들이 믿기 시작하면 진짜로 그렇게 되는 거지.
 tutorial.brief.007	think	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을 거야.
-tutorial.brief.008	think_away	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 실체가 되어 진짜로 돌아다니는 거야.
-tutorial.brief.009	serious	근데 만약, 그 석상이 밤에 학교에 들어온 사람을 죽인다는 소문이 퍼지게 되면 어떻게 될까?
+tutorial.brief.008	arms_crossed	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 실체가 되어 진짜로 돌아다니는 거야.
+tutorial.brief.009	arms_crossed2	근데 만약, 그 석상이 밤에 학교에 들어온 사람을 죽인다는 소문이 퍼지게 되면 어떻게 될까?
 tutorial.brief.q2.1	standingsmail	응, 맞아.
 tutorial.brief.q2.2	serious	실체가 드러난다는 것은 그것이 곧 진실이 된다는 뜻이야. 돌아다니는 것뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있다는 뜻이고.
 tutorial.brief.010	think_away	사실 원래도 괴담이 실체가 되는 건 아니었어.
 tutorial.brief.011	think_away2	귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었거든.
 tutorial.brief.013	arms_crossed	너 정보보안부에서 넘어왔지?
-tutorial.brief.015	arms_crossed	난 괴이처리부에서 넘어왔거든.
-tutorial.brief.017	arms_crossed	뭐… 직접 보기 전엔 안 믿겠지. 곧 보게 될 거니 걱정하지 말고.
-tutorial.brief.018	explain	본론으로 돌아가자면, 내가 가짜인 괴담이 실체가 되는 경우는 없다고 했었지?
+tutorial.brief.015	arms_crossed2	난 괴이처리부에서 넘어왔거든.
+tutorial.brief.017	standingsmail	뭐… 직접 보기 전엔 안 믿겠지. 곧 보게 될 거니 걱정하지 말고.
+tutorial.brief.018	documents	본론으로 돌아가자면, 내가 가짜인 괴담이 실체가 되는 경우는 없다고 했었지?
 tutorial.brief.018b	documents	근데 이번에 새로 창설된 사이트인 '괴담넷'에서 작성된 글은 가짜가 실체가 되고 있어.
-tutorial.brief.019	serious	근데 이 사이트는 이상하게도 차단도 불가능하고 게시물을 지우는 것도 불가능해. 운영자도 절대 찾을 수 없었고.
-tutorial.brief.019b	explain	그래서 우리가 직접 관여해서 사람들의 믿음도를 관리하는 거야.
-tutorial.brief.020	worried	내가 귀신만 잡아봤지 컴퓨터는 잘 몰라서… 너가 배정된 거야.
-tutorial.brief.022	explain	아, 이거는 우리가 따로 수치를 계산해서 표시해 놓은 거야.
-tutorial.brief.023	documents	시뮬레이터를 돌려봤을 때 믿음도에 따른 괴담들의 규칙이 있었거든. 우리만 볼 수 있게 자체적으로 넣어 놓은 기능이야.
-tutorial.brief.024	reading	이걸 보면서 설명해 줄게.
+tutorial.brief.019	think	근데 이 사이트는 이상하게도 차단도 불가능하고 게시물을 지우는 것도 불가능해. 운영자도 절대 찾을 수 없었고.
+tutorial.brief.019b		serious	그래서 우리가 직접 관여해서 사람들의 믿음도를 관리하는 거야.
+tutorial.brief.020	arms_crossed	내가 귀신만 잡아봤지 컴퓨터는 잘 몰라서… 너가 배정된 거야.
+tutorial.brief.022	arms_crossed	아, 이거는 우리가 따로 수치를 계산해서 표시해 놓은 거야.
+tutorial.brief.023	arms_crossed2	시뮬레이터를 돌려봤을 때 믿음도에 따른 괴담들의 규칙이 있었거든. 우리만 볼 수 있게 자체적으로 넣어 놓은 기능이야.
+tutorial.brief.024	documents	이걸 보면서 설명해 줄게.
 tutorial.brief.025	reading	먼저 관측급. 1%~10%.
-tutorial.brief.026	reading	괴담의 제일 약한 단계. 소수의 목격자가 존재하고 이상 현상은 매우 약해서 실체가 나오지 않아. 직접적인 피해는 없어.
-tutorial.brief.027	calm	우리는 크게 신경 쓰지 말고 수치가 더 늘어나는지 감시만 하면 돼.
+tutorial.brief.026	reading2	괴담의 제일 약한 단계. 소수의 목격자가 존재하고 이상 현상은 매우 약해서 실체가 나오지 않아. 직접적인 피해는 없어.
+tutorial.brief.027	reading2	우리는 크게 신경 쓰지 말고 수치가 더 늘어나는지 감시만 하면 돼.
 tutorial.brief.028	reading	다음은 전파급. 11%~30%.
 tutorial.brief.029	reading	괴담이 인터넷과 SNS를 통해 빠르게 퍼지는 단계. 관련 게시물과 목격담이 증가하고 실제로 해당 이상 현상을 겪는 사람이 몇몇 생겨. 그 정도가 약해서 직접적인 피해는 거의 없는 편이야.
-tutorial.brief.030	explain	우리는 이를 주의 깊게 보고, 위험한 괴담이면 미리 인터넷으로 검열해 놓는 게 좋아.
+tutorial.brief.030	documents	우리는 이를 주의 깊게 보고, 위험한 괴담이면 미리 인터넷으로 검열해 놓는 게 좋아.
 tutorial.brief.031	reading	다음은 침식급. 31%~50%.
-tutorial.brief.032	serious	괴담이 현실에 직접적인 영향을 미치기 시작하는 단계야. 이때부터는 무조건 검열이 필요해.
+tutorial.brief.032	reading2	괴담이 현실에 직접적인 영향을 미치기 시작하는 단계야. 이때부터는 무조건 검열이 필요해.
 tutorial.brief.032b	serious	실제 피해자가 발생하기 시작하는 단계이기도 하고, 본격적으로 괴담의 규칙이 현실에 적용되기 시작하는 단계야.
 tutorial.brief.033	think	가짜가 실체가 된 경우에는 인터넷 검열만으로 괜찮지만, 원래부터 존재했던 귀신으로부터 나온 괴담이라면 현장 조사 및 괴담 규칙 파악이 꼭 필요해.
 tutorial.brief.034	reading	다음은 현현급. 51%~85%.
 tutorial.brief.035	serious	가짜인 괴담도 현실에 직접 모습을 드러내고 영향을 끼치는 단계야.
-tutorial.brief.035b	serious	이 단계에서는 %에 따른 강도에 따라서 사람들이 괴담을 직접적으로 경험하게 되고, 급속도로 괴담이 퍼지게 되는 단계야.
-tutorial.brief.036	serious	이 정도에서는 무조건 현장 조사가 필요하고, 필요한 경우에는 '퇴마'를 통해 실체가 드러난 귀신 또는 괴담을 없애야 돼.
+tutorial.brief.035b	think_away	이 단계에서는 %에 따른 강도에 따라서 사람들이 괴담을 직접적으로 경험하게 되고, 급속도로 괴담이 퍼지게 되는 단계야.
+tutorial.brief.036	think_away2	이 정도에서는 무조건 현장 조사가 필요하고, 필요한 경우에는 '퇴마'를 통해 실체가 드러난 귀신 또는 괴담을 없애야 돼.
 tutorial.brief.037	reading	다음은 멸망급. 85%~99%.
-tutorial.brief.038	worried	괴담의 영향이 국가 또는 세계 단위로 확대된 단계야.
-tutorial.brief.038b	worried	확산 통제가 어렵고 현실의 법칙이 괴담에 의해 변형돼.
-tutorial.brief.038c	worried	인류 전체가 멸망할 가능성이 있는 아주 위험한 단계야.
-tutorial.brief.039	serious	그때가 되면 수단과 방법을 가리지 않고 괴담을 막아 내야 돼.
-tutorial.brief.040	reading	그리고… ???급. 100%.
-tutorial.brief.041	think_away	뭐, 이건 이미 멸망한 수치를 말하는 거라… 알아만 둬.
-tutorial.brief.043	wave	괜찮아. 퇴마는 거의 내가 다 할 거니까. 컴퓨터 작업이랑 서류 작업만 좀 부탁해.
-tutorial.brief.044	point	설명은 이 정도만 됐고, 이제 너가 안 믿던 괴담 조사하러 가자.
+tutorial.brief.038	reading2	괴담의 영향이 국가 또는 세계 단위로 확대된 단계야.
+tutorial.brief.038b	standing	확산 통제가 어렵고 현실의 법칙이 괴담에 의해 변형돼.
+tutorial.brief.038c	standing2	인류 전체가 멸망할 가능성이 있는 아주 위험한 단계야.
+tutorial.brief.039	standing2	그때가 되면 수단과 방법을 가리지 않고 괴담을 막아 내야 돼.
+tutorial.brief.040	documents	그리고… ???급. 100%.
+tutorial.brief.041	reading	뭐, 이건 이미 멸망한 수치를 말하는 거라… 알아만 둬.
+tutorial.brief.043	arms_crossed	괜찮아. 퇴마는 거의 내가 다 할 거니까. 컴퓨터 작업이랑 서류 작업만 좀 부탁해.
+tutorial.brief.044	arms_crossed2	설명은 이 정도만 됐고, 이제 너가 안 믿던 괴담 조사하러 가자.
 
 # 현장 (승강장 / 열차 / 종점)
 tutorial.field.001	explain	우리는 여기서 발생한 게 진짜인지 가짜인지 구별하고 해결법을 찾아볼 거야.
@@ -98,10 +98,10 @@ tutorial.field.report_done	wave	좋아, 빈칸 하나 없이 다 맞았어. 이�
 tutorial.room.cue	wave	처음 치고는 잘하는데? 이제 마지막으로 조사한걸 바탕으로 게시물을 올려보자.
 tutorial.room.001	explain	우리 활동 시간은 6시에서 3시까지고.. 숙식은 여기서 해결하면 돼.
 tutorial.room.003	point	그렇지? 그럼 저기 컴퓨터에서 게시물 올려보자.
-post.subway.line_intro	explain	보고서를 그대로 올리면 안 돼.\n사람들이 읽고 괜찮다고 생각하게 써야 해.
-post.subway.line_success	wave	그래. 이 정도면 사람들이 괜히 겁먹지는 않겠네.
+post.subway.line_intro	think_away2	보고서를 그대로 올리면 안 돼.\n사람들이 읽고 괜찮다고 생각하게 써야 해.
+post.subway.line_success	thinksmail	그래. 이 정도면 사람들이 괜히 겁먹지는 않겠네.
 post.subway.line_fail	surprised	잠깐. 이건 오히려 괴담을 더 퍼뜨리는 글이야.
 post.subway.line_weak	think	나쁘진 않은데, 아직 믿는 사람이 많아. 덧붙은 거짓은 확실히 걷어내 줘야 해.
-post.subway.line_takedown	calm	이 글은 내가 내려 둘게. 다시 써 보자.
-tutorial.night.001	calm	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.
-tutorial.night.003	wave	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.
+post.subway.line_takedown	arms_crossed	이 글은 내가 내려 둘게. 다시 써 보자.
+tutorial.night.001	standingsmail	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.
+tutorial.night.003	standing	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.

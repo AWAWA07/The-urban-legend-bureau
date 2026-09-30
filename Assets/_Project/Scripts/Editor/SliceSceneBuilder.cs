@@ -2742,7 +2742,8 @@ namespace UrbanLegendBureau.EditorTools
             StretchFull(go);
 
             var screen = go.AddComponent<TravelScreen>();
-            ConfigureScreen(screen, name, UILayer.Screen, true, false);
+            // 화면 쌓기 밖에 맨 위 층으로 띄운다(ShowDetached). 덮고 있는 동안 아래 화면이 바뀌어도 밀려나지 않는다.
+            ConfigureScreen(screen, name, UILayer.System, false, false);
             var group = go.AddComponent<CanvasGroup>();
 
             var title = AddText(go.transform, "Title", 50f, UIFontWeight.Bold, TextColor,

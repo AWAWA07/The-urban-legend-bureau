@@ -530,6 +530,7 @@ namespace UrbanLegendBureau.Systems
 
             _communityScreen.SetShape(true, frame);
             _communityScreen.SetControlsEnabled(true);
+            _communityScreen.SetEntryMarks(false);      // 튜토리얼이 아니면 가리킬 글이 없다
             _communityScreen.BindWindow(OnPhoneBackPressed);
             _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
             _communityScreen.ShowNotice(null);
@@ -644,6 +645,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현장에 닿는 시각. 막차 시간에 맞춰 정해져 있다.</summary>
         private const int FieldHour = 23;
         private const int FieldMinute = 30;
+
+        /// <summary>사무실에서 현장까지 걸리는 시간(분).</summary>
+        private const int FieldTravelMinutes = 30;
 
         private const string InsideTrainTextId = "ui.field.inside_train";
         private const string PlatformTextId = "ui.field.platform";
@@ -2172,21 +2176,69 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void TravelToRoom()
         {
+            // 화면이 덮고 있을 때 방으로 바꾸고, 화면이 걷힌 뒤에 한영이 말을 건다.
+            PlayTravel(TravelToRoomTextId, TravelRoomDurationTextId, RoomTravelMinutes, RoomTravelSeconds,
+                () => EnterRoom(withIntro: false), StartRoomIntro);
+
+            Debug.Log($"[CaseDirector] 숙소로 이동 | {RoomTravelMinutes}분");
+        }
+
+        private const string TravelRoomDurationTextId = "ui.travel.duration";
+        private const string TravelToFieldTextId = "ui.travel.to_field";
+        private const string TravelFieldDurationTextId = "ui.travel.duration_field";
+
+        /// <summary>사무실에서 현장으로 가는 모습을 보여 주는 시간(초).</summary>
+        private const float FieldTravelSeconds = 4.2f;
+
+        /// <summary>
+        /// 장소를 옮겨 가는 화면을 띄운다. 그동안 시계가 minutes 만큼 흐른다.
+        ///
+        /// 이 화면은 화면 쌓기 밖에 띄운다(ShowDetached). 그래서 덮여 있는 동안 아래에서 화면을 몇 번 바꿔 끼워도
+        /// 덮개가 밀려나지 않는다. onArrive 는 완전히 덮고 있을 때, onDone 은 다 걷힌 뒤에 부른다.
+        /// </summary>
+        private void PlayTravel(string titleTextId, string durationTextId, int minutes, float seconds,
+            System.Action onArrive, System.Action onDone)
+        {
             if (_travelScreen == null)
             {
-                AdvanceTime(RoomTravelMinutes);
-                EnterRoom();
+                AdvanceTime(minutes);
+                onArrive?.Invoke();
+                onDone?.Invoke();
                 return;
             }
 
-            if (!_ui.Contains(_travelScreen)) _ui.Push(_travelScreen);
-            _travelScreen.Play(TravelToRoomTextId, RoomTravelMinutes, RoomTravelSeconds, AdvanceTime, () =>
+            _ui.ShowDetached(_travelScreen);
+            _travelScreen.Play(titleTextId, durationTextId, minutes, seconds, AdvanceTime, onArrive, () =>
             {
-                if (_ui.Contains(_travelScreen)) _ui.Close(_travelScreen);
-                EnterRoom();
+                _ui.HideDetached(_travelScreen);
+                onDone?.Invoke();
             });
+        }
 
-            Debug.Log($"[CaseDirector] 숙소로 이동 | {RoomTravelMinutes}분");
+        /// <summary>
+        /// 사무실에서 사건 현장으로 간다. 옮겨 가는 화면이 덮고 있는 동안 현장을 열고, 걷힌 뒤에 onDone 을 부른다.
+        /// 현장에 닿는 시각은 정해져 있다(23:30). 가는 길은 30분이다. 그 전까지는 사무실에서 기다린 것으로 치고 시계를 곧장 23:00 으로 넘긴다.
+        /// 그러지 않으면 낮에 튜토리얼을 마쳤을 때 "승강장까지 400분" 처럼 나온다. 마지막 1분은 현장이 맞춘다.
+        /// 현장을 열지 못했으면 onArrived 가 false 를 받는다.
+        /// </summary>
+        public void TravelToCaseField(string caseId, bool fromScratch, System.Action<bool> onArrived, System.Action onDone)
+        {
+            int now = GameClock.MinutesOfDay;
+            int until = ((FieldHour * 60 + FieldMinute) - now + 1440) % 1440;
+            // 1분 더 앞으로 맞춘다. 마지막 1분을 현장이 맞추므로 가는 길이 꼭 30분이 된다.
+            if (until > FieldTravelMinutes + 1)
+            {
+                GameClock.SetTo(FieldHour, FieldMinute - FieldTravelMinutes - 1);
+                PushStatus();
+                until = FieldTravelMinutes + 1;
+            }
+            int minutes = Mathf.Max(0, until - 1);
+
+            PlayTravel(TravelToFieldTextId, TravelFieldDurationTextId, minutes, FieldTravelSeconds,
+                () => onArrived?.Invoke(BeginCaseField(caseId, fromScratch)),
+                onDone);
+
+            Debug.Log($"[CaseDirector] 현장으로 이동 | {caseId} | {minutes}분");
         }
 
         /// <summary>조사가 아닌 이동으로 시간이 흐른다. 시계와 게시판만 움직이고 조사 행동으로 세지 않는다.</summary>
@@ -2200,7 +2252,7 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>숙소로 옮긴다. 첫 사건이면 한영이 방을 소개한다.</summary>
-        private void EnterRoom()
+        private void EnterRoom(bool withIntro = true)
         {
             _inRoom = true;
             ShowRoom();
@@ -2218,6 +2270,12 @@ namespace UrbanLegendBureau.Systems
 
             Debug.Log("[CaseDirector] 숙소로 옮겼다");
 
+            if (withIntro) StartRoomIntro();
+        }
+
+        /// <summary>첫 사건이면 한영이 방을 소개한다.</summary>
+        private void StartRoomIntro()
+        {
             if (_caseId == TutorialDirector.TutorialCaseId && _tutorial != null) _tutorial.ShowRoomIntro(null);
         }
 
@@ -2348,14 +2406,15 @@ namespace UrbanLegendBureau.Systems
         /// <summary>침대 앞. 바로 자지 않고 한 번 묻는다.</summary>
         private void AskSleep()
         {
-            _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(SleepAskTextId), () =>
+            var labels = new List<System.Func<string>>
             {
-                _fieldHudScreen.ShowChoices(FieldSpeakerTextId, new List<System.Func<string>>
-                {
-                    () => _loc.Get(SleepYesTextId),
-                    () => _loc.Get(SleepNoTextId),
-                }, OnSleepChoice);
-            });
+                () => _loc.Get(SleepYesTextId),
+                () => _loc.Get(SleepNoTextId),
+            };
+            if (_tutorial != null && _tutorial.RoomAsk(() => _loc.Get(SleepAskTextId), labels, OnSleepChoice)) return;
+
+            _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(SleepAskTextId), () =>
+                _fieldHudScreen.ShowChoices(FieldSpeakerTextId, labels, OnSleepChoice));
         }
 
         private void OnSleepChoice(int index)
@@ -2371,8 +2430,7 @@ namespace UrbanLegendBureau.Systems
             var room = GetRoomNight();
             if (room != null && room.IsLightOn)
             {
-                _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(LightStillOnTextId),
-                    () => _fieldHudScreen.ClearSpeech());
+                RoomRemark(() => _loc.Get(LightStillOnTextId));
                 Debug.Log("[CaseDirector] 잘 시간 | 불이 켜져 있어 자지 않는다");
                 return;
             }
@@ -2455,9 +2513,7 @@ namespace UrbanLegendBureau.Systems
                 }
 
                 string nightId = point.ResultTextId + NightLineSuffix;
-                _fieldHudScreen.ShowLine(FieldSpeakerTextId,
-                    () => _tutorial != null ? _tutorial.FormatWithClock(nightId) : _loc.Get(nightId),
-                    () => _fieldHudScreen.ClearSpeech());
+                RoomRemark(() => _tutorial != null ? _tutorial.FormatWithClock(nightId) : _loc.Get(nightId));
                 Debug.Log($"[CaseDirector] 숙소(잘 시간) | {point.PointId} 살펴봄");
                 return;
             }
@@ -2476,8 +2532,18 @@ namespace UrbanLegendBureau.Systems
                 ? (System.Func<string>)(() => _loc.Get(lineId, GameClock.Format(_loc)))
                 : () => _loc.Get(lineId);
 
-            _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
+            RoomRemark(line);
             Debug.Log($"[CaseDirector] 숙소 | {point.PointId} 살펴봄 (기능 없음)");
+        }
+
+        /// <summary>
+        /// 숙소에서 차지한이 한마디 한다. 숙소의 말은 현장의 띠가 아니라 인물을 세워 보여 준다.
+        /// 대화 화면이 없을 때만 띠에 적는다.
+        /// </summary>
+        private void RoomRemark(System.Func<string> line)
+        {
+            if (_tutorial != null && _tutorial.RoomSay(line, null)) return;
+            _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
         }
 
         /// <summary>
@@ -2539,6 +2605,7 @@ namespace UrbanLegendBureau.Systems
             if (!_ui.Contains(_communityScreen)) _ui.Push(_communityScreen);
 
             _communityScreen.SetControlsEnabled(true);
+            _communityScreen.SetEntryMarks(false);      // 튜토리얼이 아니면 가리킬 글이 없다
             _communityScreen.BindWindow(OnPhoneBackPressed);
             _communityScreen.BindBoard(GetNetBoard(), OnPhoneBoardEntry);
             _communityScreen.ShowNotice(null);
