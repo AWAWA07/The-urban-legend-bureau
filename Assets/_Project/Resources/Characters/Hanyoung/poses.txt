@@ -4,12 +4,12 @@
 #       arms_crossed(팔짱·담담) documents(서류 듦) reading(서류 읽음) think(턱 괴고 생각)
 #       think_away(생각·시선 돌림) calm(두 손 모음·차분) worried(팔 잡고 걱정) surprised(놀람) wave(손 흔듦·미소)
 #       thinksmail(턱 괴고 미소) standingsmail(허리 파우치에 손·미소)
-#       think_away2(턱 괴고 옆을 봄) arms_crossed2(팔짱·입 벌림) standing2(파우치에 손·무표정) surprised2(당황·식은땀)
+#       think_away2(턱 괴고 옆을 봄) arms_crossed2(팔짱·입 벌림) standing2(파우치에 손·무표정) surprised2(당황·식은땀) reading2(서류 읽음·입 살짝 벌림)
 
 # 처음 만남
 tutorial.line.001	default	...
 tutorial.line.002	reading	....차지한?
-tutorial.line.003	reading	이번에 부서 옮긴 차지한 맞지?
+tutorial.line.003	reading2	이번에 부서 옮긴 차지한 맞지?
 tutorial.line.006	documents	미안한데 바로 일 좀 시켜도 될까?
 tutorial.line.005	serious	.......시간 없으니까 빨리 설명할게
 
