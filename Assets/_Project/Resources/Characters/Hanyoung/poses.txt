@@ -1,0 +1,105 @@
+# 한영의 대사별 포즈. "대사ID<탭>포즈" 한 줄씩. 적지 않은 대사는 default.
+# 포즈: default(정면) standing(허리에 손) explain(설명) point(가리킴) serious(팔짱·굳은 얼굴)
+#       arms_crossed(팔짱·담담) documents(서류 듦) reading(서류 읽음) think(턱 괴고 생각)
+#       think_away(생각·시선 돌림) calm(두 손 모음·차분) worried(팔 잡고 걱정) surprised(놀람) wave(손 흔듦·미소)
+
+# 처음 만남
+tutorial.line.001	default
+tutorial.line.002	reading
+tutorial.line.003	documents
+tutorial.line.006	explain
+tutorial.line.005	serious
+
+# 괴담넷 / 댓글 연습
+tutorial.pc.001	point
+tutorial.pc.002	point
+tutorial.pc.003	explain
+tutorial.pc.like_warn	think
+tutorial.pc.dislike_good	explain
+tutorial.comment.hint	explain
+tutorial.comment.wrong	serious
+tutorial.comment.need_field_hanyoung	think
+tutorial.comment.correct	wave
+
+# 부서 설명
+tutorial.brief.001	explain
+tutorial.brief.002	arms_crossed
+tutorial.brief.003	standing
+tutorial.brief.q1.a.1	serious
+tutorial.brief.q1.a.2	explain
+tutorial.brief.q1.b.1	serious
+tutorial.brief.q1.b.2	explain
+tutorial.brief.004	explain
+tutorial.brief.004b	explain
+tutorial.brief.006	think
+tutorial.brief.007	think_away
+tutorial.brief.008	explain
+tutorial.brief.009	serious
+tutorial.brief.q2.1	calm
+tutorial.brief.q2.2	serious
+tutorial.brief.010	think_away
+tutorial.brief.011	calm
+tutorial.brief.013	arms_crossed
+tutorial.brief.015	standing
+tutorial.brief.017	arms_crossed
+tutorial.brief.018	explain
+tutorial.brief.018b	documents
+tutorial.brief.019	serious
+tutorial.brief.019b	explain
+tutorial.brief.020	worried
+tutorial.brief.022	explain
+tutorial.brief.023	documents
+tutorial.brief.024	reading
+tutorial.brief.025	reading
+tutorial.brief.026	reading
+tutorial.brief.027	calm
+tutorial.brief.028	reading
+tutorial.brief.029	reading
+tutorial.brief.030	explain
+tutorial.brief.031	reading
+tutorial.brief.032	serious
+tutorial.brief.032b	serious
+tutorial.brief.033	think
+tutorial.brief.034	reading
+tutorial.brief.035	serious
+tutorial.brief.035b	serious
+tutorial.brief.036	serious
+tutorial.brief.037	reading
+tutorial.brief.038	worried
+tutorial.brief.038b	worried
+tutorial.brief.038c	worried
+tutorial.brief.039	serious
+tutorial.brief.040	reading
+tutorial.brief.041	think_away
+tutorial.brief.043	wave
+tutorial.brief.044	point
+
+# 현장 (승강장 / 열차 / 종점)
+tutorial.field.001	explain
+tutorial.field.002	wave
+tutorial.field.004	standing
+tutorial.field.005	point
+tutorial.board.001	documents
+tutorial.board.002	reading
+tutorial.board.003	point
+tutorial.board.reply_1	serious
+tutorial.board.reply_2	wave
+tutorial.board.reply_3	serious
+tutorial.board.004	explain
+tutorial.board.006	standing
+tutorial.field.terminus	standing
+tutorial.field.terminus_help	calm
+
+# 보고서 / 숙소 / 게시물 / 밤
+tutorial.field.report_cue	explain
+tutorial.field.report_done	wave
+tutorial.room.cue	wave
+tutorial.room.001	explain
+tutorial.room.003	point
+post.subway.line_intro	explain
+post.subway.line_success	wave
+post.subway.line_fail	surprised
+post.subway.line_weak	think
+post.subway.line_takedown	calm
+tutorial.night.001	calm
+tutorial.night.003	wave

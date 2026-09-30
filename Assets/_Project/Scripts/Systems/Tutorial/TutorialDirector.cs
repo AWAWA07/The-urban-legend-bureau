@@ -224,6 +224,9 @@ namespace UrbanLegendBureau.Systems
             // 자리를 먼저 잡아야 강조 움직임이 옳은 위치에서 시작한다.
             _dialogueScreen.SetSoloLayout(!chajihanVisible);
 
+            // 한영이 말할 때마다 그 대사에 맞는 표정과 포즈로 바꾼다. 차지한이 말할 때는 한영이 하던 모습 그대로다.
+            if (hanyoung || _lineIndex == 0) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineId));
+
             _dialogueScreen.ShowLine(hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(lineId),
@@ -915,6 +918,7 @@ namespace UrbanLegendBureau.Systems
 
             // 겹침 대화에는 한영 혼자 나온다. 처음 대화에서처럼 화면 가운데에 세운다.
             _talkScreen.SetSoloLayout(showCharacter);
+            _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineTextId));
             _talkScreen.ShowLine(true,
                 () => _loc.Get(HanyoungNameTextId),
                 () => _loc.Get(lineTextId),
@@ -1445,6 +1449,8 @@ namespace UrbanLegendBureau.Systems
                 _dialogueScreen.HideNote();
             }
 
+            if (step.Hanyoung) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(step.TextId));
+
             _dialogueScreen.ShowLine(step.Hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(step.TextId),
@@ -1584,7 +1590,7 @@ namespace UrbanLegendBureau.Systems
                 _fieldHud.SetTicker(() => _loc.Get(PlatformTextId) + "    " + _loc.Get(TrainArrivingTextId));
             }
 
-            _fieldHud.ShowLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced);
+            _fieldHud.ShowLine(nameId, () => _loc.Get(lineId), OnFieldLineAdvanced, lineId);
         }
 
         private void OnFieldLineAdvanced()
@@ -1652,8 +1658,8 @@ namespace UrbanLegendBureau.Systems
 
                 if (!helped) { go(); return; }
 
-                hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusHelpTextId), go);
-            });
+                hud.ShowLine(HanyoungNameTextId, () => _loc.Get(TerminusHelpTextId), go, TerminusHelpTextId);
+            }, TerminusTextId);
 
             Debug.Log("[TutorialDirector] 막차 종점 | 조사를 닫고 취합으로 넘어간다"
                       + (helped ? " | 놓친 것을 짚어 준다" : string.Empty));
@@ -1692,7 +1698,7 @@ namespace UrbanLegendBureau.Systems
             {
                 hud.ClearSpeech();
                 onDone?.Invoke();
-            });
+            }, PostCueTextId);
 
             Debug.Log("[TutorialDirector] 보고서 끝 | 게시물을 올리러 숙소로 간다");
             return true;
@@ -1726,7 +1732,7 @@ namespace UrbanLegendBureau.Systems
 
             string id = RoomLineTextIds[index];
             string name = RoomLineIsHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
-            hud.ShowLine(name, () => _loc.Get(id), () => ShowRoomLine(hud, index + 1, onDone));
+            hud.ShowLine(name, () => _loc.Get(id), () => ShowRoomLine(hud, index + 1, onDone), id);
         }
 
         // ------------------------------------------------------------- 첫날 밤
@@ -1790,7 +1796,7 @@ namespace UrbanLegendBureau.Systems
 
             string id = ids[index];
             string name = isHanyoung != null && isHanyoung[index] ? HanyoungNameTextId : ChajihanNameTextId;
-            hud.ShowLine(name, () => FormatWithClock(id), () => ShowLines(hud, ids, isHanyoung, index + 1, onDone));
+            hud.ShowLine(name, () => FormatWithClock(id), () => ShowLines(hud, ids, isHanyoung, index + 1, onDone), id);
         }
 
         /// <summary>문장에 지금 시각을 넣는다. {0} 시, {1} 분, {2} "2:12" 꼴.</summary>
@@ -1914,7 +1920,7 @@ namespace UrbanLegendBureau.Systems
             if (_boardLineIndex < BoardLineTextIds.Length)
             {
                 string id = BoardLineTextIds[_boardLineIndex];
-                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(id), OnBoardLineAdvanced);
+                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(id), OnBoardLineAdvanced, id);
                 return;
             }
 
@@ -1945,7 +1951,7 @@ namespace UrbanLegendBureau.Systems
             if (after < 0)
             {
                 string reply = BoardReplyTextIds[_boardPick];
-                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(reply), OnBoardLineAdvanced);
+                _fieldHud.ShowLine(HanyoungNameTextId, () => _loc.Get(reply), OnBoardLineAdvanced, reply);
                 return;
             }
 
@@ -1953,7 +1959,7 @@ namespace UrbanLegendBureau.Systems
             {
                 string id = BoardAfterTextIds[after];
                 string name = BoardAfterIsHanyoung[after] ? HanyoungNameTextId : ChajihanNameTextId;
-                _fieldHud.ShowLine(name, () => _loc.Get(id), OnBoardLineAdvanced);
+                _fieldHud.ShowLine(name, () => _loc.Get(id), OnBoardLineAdvanced, id);
                 return;
             }
 

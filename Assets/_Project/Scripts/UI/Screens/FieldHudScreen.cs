@@ -132,9 +132,10 @@ namespace UrbanLegendBureau.UI
         /// 그 동안에는 조사 지점도 버튼도 눌리지 않는다.
         /// 현장 입력은 "UI 위를 눌렀는가"를 보고 걸러지므로 이 버튼 하나로 둘 다 막힌다.
         /// </summary>
-        public void ShowLine(string speakerTextId, Func<string> line, Action onAdvance = null)
+        public void ShowLine(string speakerTextId, Func<string> line, Action onAdvance = null, string lineTextId = null)
         {
             _speakerTextId = speakerTextId;
+            ApplyPortrait(speakerTextId, lineTextId);
             _lineProvider = line;
             IsSpeaking = true;
 
@@ -165,6 +166,7 @@ namespace UrbanLegendBureau.UI
         public void ShowChoices(string speakerTextId, IReadOnlyList<Func<string>> labels, Action<int> onPick)
         {
             _speakerTextId = speakerTextId;
+            ApplyPortrait(speakerTextId, null);
             _lineProvider = null;
             IsSpeaking = true;
 
@@ -199,6 +201,38 @@ namespace UrbanLegendBureau.UI
         }
 
         private readonly List<GameObject> _spawnedChoices = new List<GameObject>();
+
+        private Color _portraitColor;
+        private Sprite _portraitSprite;
+        private bool _portraitCaptured;
+
+        /// <summary>
+        /// 초상 칸. 한영이 말하면 그 대사에 맞는 얼굴 그림을 넣는다(CharacterArt).
+        /// 그림이 없는 사람은 원래의 빈 칸 그대로 둔다.
+        /// </summary>
+        private void ApplyPortrait(string speakerTextId, string lineTextId)
+        {
+            if (_portrait == null) return;
+
+            if (!_portraitCaptured)
+            {
+                _portraitColor = _portrait.color;
+                _portraitSprite = _portrait.sprite;
+                _portraitCaptured = true;
+            }
+
+            var face = speakerTextId == CharacterArt.HanyoungNameTextId ? CharacterArt.HanyoungFace(lineTextId) : null;
+            if (face != null)
+            {
+                _portrait.sprite = face;
+                _portrait.color = Color.white;
+                _portrait.preserveAspect = true;
+                return;
+            }
+
+            _portrait.sprite = _portraitSprite;
+            _portrait.color = _portraitColor;
+        }
 
         private void ClearSpawnedChoices()
         {

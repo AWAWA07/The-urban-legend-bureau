@@ -2169,6 +2169,14 @@ namespace UrbanLegendBureau.EditorTools
             // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
             // 배경만 투명할 뿐 대화 자체는 같은 모습이어야 한다.
             var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
+
+            // 한영은 실제 그림이다. 허리 위가 크게 보이도록 키우고 아래로 내려 세운다. 에디터에서 직접 맞춘 값이다.
+            // 혼자 설 때는 가운데로, 차지한이 나오면 왼쪽으로 가는데 높이는 이 값을 그대로 쓴다.
+            var leftRt = left.rectTransform;
+            leftRt.anchoredPosition = new Vector2(-520f, HanyoungArtY);
+            leftRt.sizeDelta = HanyoungArtSize;
+            var hanyoungArt = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Resources/Characters/Hanyoung/default.png");
+            if (hanyoungArt != null) left.sprite = hanyoungArt;
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
             var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
@@ -2304,6 +2312,12 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>임시 캐릭터 이미지. 스프라이트 참조만 갈아 끼우면 실제 아트로 바뀐다.</summary>
+        /// <summary>대화 화면의 한영 그림 크기. 에디터에서 보며 맞춘 값이다.</summary>
+        private static readonly Vector2 HanyoungArtSize = new Vector2(1646.5f, 2052.78f);
+
+        /// <summary>대화 화면의 한영 그림 높이(가운데 기준). 아래로 내려 허리 위만 보이게 한다.</summary>
+        private const float HanyoungArtY = -602f;
+
         private static Image CreateCharacterImage(Transform parent, string name, float x, string spriteName)
         {
             var go = new GameObject(name, typeof(RectTransform));

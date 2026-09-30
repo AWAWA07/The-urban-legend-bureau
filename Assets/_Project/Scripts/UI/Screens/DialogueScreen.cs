@@ -121,6 +121,21 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
+        /// 서 있는 인물의 그림을 바꾼다. 대사마다 표정과 포즈가 달라진다.
+        /// 그림이 없으면(null) 지금 그림을 그대로 둔다. 밝기와 등장 연출은 건드리지 않는다.
+        /// </summary>
+        public void SetCharacterSprite(bool left, Sprite sprite)
+        {
+            if (sprite == null) return;
+
+            var character = left ? _left : _right;
+            if (character == null || character.image == null) return;
+
+            character.image.sprite = sprite;
+            character.image.preserveAspect = true;
+        }
+
+        /// <summary>
         /// 한 줄을 보여준다.
         ///
         /// speakerIsLeft 로 어느 쪽이 말하는지 정한다.
