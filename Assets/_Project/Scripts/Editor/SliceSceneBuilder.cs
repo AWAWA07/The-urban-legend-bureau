@@ -2275,18 +2275,20 @@ namespace UrbanLegendBureau.EditorTools
 
             // 단독 대화 화면은 뒤가 비어 있다. 밤의 사무실 그림을 깐다. 인물보다 먼저 만들어 맨 뒤에 둔다.
             // 화면 비율이 달라도 빈틈이 생기지 않게 화면을 덮는 쪽으로 맞춘다(넘치는 가장자리는 잘린다).
+            Image backdropForScreen = null;
             if (fullScreen)
             {
                 var backdropSprite = LoadBackdropSprite(DialogueBackdropPath);
                 if (backdropSprite != null)
                 {
-                    var backdrop = CreatePanel(go.transform, "Backdrop", Color.white);
+                    var backdrop = CreatePanel(go.transform, "Backdrop", Color.black);   // 처음에는 까맣다. 대화가 밝힌다(DialogueScreen.SetBackdropLevel)
                     var backdropImage = backdrop.GetComponent<Image>();
                     backdropImage.sprite = backdropSprite;
                     backdropImage.raycastTarget = false;
                     var fitter = backdrop.AddComponent<AspectRatioFitter>();
                     fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
                     fitter.aspectRatio = backdropSprite.rect.width / backdropSprite.rect.height;
+                    backdropForScreen = backdropImage;
                 }
             }
 
@@ -2470,6 +2472,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_lineText").objectReferenceValue = lineText;
             so.FindProperty("_hintText").objectReferenceValue = hintText;
             so.FindProperty("_box").objectReferenceValue = boxRt;
+            so.FindProperty("_backdrop").objectReferenceValue = backdropForScreen;
             so.FindProperty("_boxEdge").objectReferenceValue = boxEdge;
             so.FindProperty("_advanceRect").objectReferenceValue = (RectTransform)advanceGo.transform;
             so.FindProperty("_advanceCoversScreen").boolValue = fullScreen;

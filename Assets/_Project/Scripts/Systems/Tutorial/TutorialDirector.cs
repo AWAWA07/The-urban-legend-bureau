@@ -74,6 +74,9 @@ namespace UrbanLegendBureau.Systems
         private static readonly bool[] LineIsHanyoung = { true, true, true, true, false, true };
         private static readonly float[] LineBrightness = { 1f, 0.55f, 1f, 1f, 1f, 1f };
 
+        /// <summary>대화 화면 배경이 밝아지거나 어두워지는 데 드는 시간.</summary>
+        private const float BackdropFadeSeconds = 0.8f;
+
         /// <summary>
         /// 한영이 화면에 있는가.
         /// 첫 대사("...")는 어둠 속에서 목소리만 들린다. 모습은 다음 대사부터 드러난다.
@@ -226,6 +229,10 @@ namespace UrbanLegendBureau.Systems
 
             // 한영이 말할 때마다 그 대사에 맞는 표정과 포즈로 바꾼다. 차지한이 말할 때는 한영이 하던 모습 그대로다.
             if (hanyoung || _lineIndex == 0) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineId));
+
+            // 배경도 한영처럼 어둠 속에서 드러난다. 첫 마디는 까맣고, 모습이 보이면 그 밝기를 따라간다.
+            float backdrop = LineHanyoungVisible[_lineIndex] ? brightness : 0f;
+            _dialogueScreen.SetBackdropLevel(backdrop, _lineIndex == 0 ? 0f : BackdropFadeSeconds);
 
             _dialogueScreen.ShowLine(hanyoung,
                 () => _loc.Get(nameId),
@@ -1454,6 +1461,7 @@ namespace UrbanLegendBureau.Systems
 
             if (step.Hanyoung) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(step.TextId));
 
+            _dialogueScreen.SetBackdropLevel(1f, BackdropFadeSeconds);   // 브리핑은 다 밝힌 채로
             _dialogueScreen.ShowLine(step.Hanyoung,
                 () => _loc.Get(nameId),
                 () => _loc.Get(step.TextId),

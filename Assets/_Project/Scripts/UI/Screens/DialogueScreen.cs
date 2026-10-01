@@ -49,6 +49,14 @@ namespace UrbanLegendBureau.UI
         [Tooltip("화면 전체를 덮는 진행 버튼.")]
         [SerializeField] private Button _advanceButton;
 
+        [Header("배경")]
+        [Tooltip("뒤가 빈 대화 화면에 까는 그림. 겹침 대화에는 없다.")]
+        [SerializeField] private Image _backdrop;
+
+        [Tooltip("배경을 다 밝혔을 때의 밝기. 1 이면 그림 그대로다. 대사가 묻히지 않게 조금 어둡게 둔다.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float _backdropFull = 0.78f;
+
         [Header("타입 3 (띠에 맞춘 상자)")]
         [Tooltip("대사 상자. 타입 3 이면 현장 대사 띠 자리로 옮긴다.")]
         [SerializeField] private RectTransform _box;
@@ -136,6 +144,48 @@ namespace UrbanLegendBureau.UI
             rt.anchoredPosition = solo
                 ? new Vector2(0f, _leftDesignPosition.y)
                 : _leftDesignPosition;
+        }
+
+        // ------------------------------------------------------------- 배경
+
+        private Coroutine _backdropFade;
+        private float _backdropLevel;
+
+        /// <summary>
+        /// 배경의 밝기를 level(0 은 까맘, 1 은 다 밝힘)로 seconds 동안 옮긴다.
+        /// 첫 대화에서 한영이 어둠 속에서 드러나는 것처럼 배경도 함께 밝아진다.
+        /// </summary>
+        public void SetBackdropLevel(float level, float seconds)
+        {
+            if (_backdrop == null) return;
+            level = Mathf.Clamp01(level);
+
+            if (_backdropFade != null) { StopCoroutine(_backdropFade); _backdropFade = null; }
+            if (seconds <= 0f || !isActiveAndEnabled)
+            {
+                ApplyBackdrop(level);
+                return;
+            }
+            _backdropFade = StartCoroutine(FadeBackdrop(level, seconds));
+        }
+
+        private IEnumerator FadeBackdrop(float target, float seconds)
+        {
+            float from = _backdropLevel;
+            for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+            {
+                ApplyBackdrop(Mathf.Lerp(from, target, Mathf.SmoothStep(0f, 1f, t / seconds)));
+                yield return null;
+            }
+            ApplyBackdrop(target);
+            _backdropFade = null;
+        }
+
+        private void ApplyBackdrop(float level)
+        {
+            _backdropLevel = level;
+            float v = _backdropFull * level;
+            _backdrop.color = new Color(v, v, v, 1f);
         }
 
         // ------------------------------------------------------------- 타입 3
