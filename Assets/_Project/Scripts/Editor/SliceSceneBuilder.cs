@@ -2662,22 +2662,42 @@ namespace UrbanLegendBureau.EditorTools
             searchRt.sizeDelta = new Vector2(320f, 38f);
             search.GetComponent<Image>().raycastTarget = false;
             AddTaskbarImage(search.transform, "Icon", "search.png", 20f, 20f, 0.6f);
-            var searchText = AddText(search.transform, "Placeholder", 18f, UIFontWeight.Regular, DimTextColor,
+            // 실제로 적을 수 있는 검색 칸. 적으면 위에 맞는 앱이 뜬다(DesktopScreen).
+            search.GetComponent<Image>().raycastTarget = true;
+            var searchInput = search.AddComponent<TMP_InputField>();
+            searchInput.targetGraphic = search.GetComponent<Image>();
+            var searchArea = new GameObject("TextArea", typeof(RectTransform));
+            searchArea.transform.SetParent(search.transform, false);
+            var searchAreaRt = (RectTransform)searchArea.transform;
+            StretchInside(searchAreaRt, 42f, 10f, 4f, 4f);
+            searchArea.AddComponent<RectMask2D>();
+
+            var searchText = AddText(searchArea.transform, "Placeholder", 18f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(searchText.rectTransform, 42f, 10f, 4f, 4f);
+            StretchInside(searchText.rectTransform, 0f, 0f, 0f, 0f);
             searchText.raycastTarget = false;
+            var searchTyped = AddText(searchArea.transform, "Text", 18f, UIFontWeight.Regular, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(searchTyped.rectTransform, 0f, 0f, 0f, 0f);
+            searchTyped.raycastTarget = false;
+
+            searchInput.textViewport = searchAreaRt;
+            searchInput.textComponent = searchTyped;
+            searchInput.placeholder = searchText;
+            searchInput.lineType = TMP_InputField.LineType.SingleLine;
+            searchInput.richText = false;
+            searchInput.restoreOriginalTextOnEscape = false;
+            searchInput.customCaretColor = true;
+            searchInput.caretColor = TextColor;
+            searchInput.caretWidth = 2;
+            searchInput.selectionColor = new Color(0.36f, 0.52f, 0.78f, 0.45f);
+            searchInput.text = string.Empty;
+
             var searchLoc = searchText.gameObject.AddComponent<LocalizedText>();
             var searchSo = new SerializedObject(searchLoc);
             searchSo.Update();
             searchSo.FindProperty("_textId").stringValue = "ui.desktop.search";
             searchSo.ApplyModifiedPropertiesWithoutUndo();
-
-            float pinX = 408f;
-            foreach (var pinned in new[] { "app_gwedamnet.png", "app_memo.png", "app_kikitalk.png", "app_archive.png" })
-            {
-                AddTaskbarImage(taskbar.transform, "Pin_" + pinned.Replace(".png", ""), pinned, pinX, 34f);
-                pinX += 48f;
-            }
 
             // 오른쪽 알림 칸. 와이파이, 소리, 배터리 그림이 시계 왼쪽에 선다.
             AddTaskbarImage(taskbar.transform, "Tray_Battery", "tray_battery.png", -190f, 24f, 0.85f);
@@ -2691,7 +2711,7 @@ namespace UrbanLegendBureau.EditorTools
             // 왼쪽에는 지금 이 괴담을 얼마나 믿고 있는지를 띄운다. 게임의 핵심 숫자다.
             var belief = AddText(taskbar.transform, "Belief", 24f, UIFontWeight.Medium, new Color(0.92f, 0.44f, 0.42f),
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(belief.rectTransform, 620f, 40f, 8f, 8f);
+            StretchInside(belief.rectTransform, 404f, 40f, 8f, 8f);
 
             // 아이콘은 왼쪽 위에서부터 한 줄로 늘어놓는다.
             var apps = new[]
@@ -2725,6 +2745,68 @@ namespace UrbanLegendBureau.EditorTools
                 element.FindPropertyRelative("badge").objectReferenceValue = iconBadge;
                 element.FindPropertyRelative("badgeCount").objectReferenceValue = iconBadgeCount;
             }
+
+            // --- 검색 결과 ---
+            // 검색 칸 바로 위에 뜬다. 맞는 앱을 한 줄씩 늘어놓는다. 줄은 DesktopScreen 이 채운다.
+            var results = CreatePanel(go.transform, "SearchResults", new Color(0.09f, 0.10f, 0.14f, 0.97f));
+            var resultsRt = (RectTransform)results.transform;
+            resultsRt.anchorMin = new Vector2(0f, 0f);
+            resultsRt.anchorMax = new Vector2(0f, 0f);
+            resultsRt.pivot = new Vector2(0f, 0f);
+            resultsRt.anchoredPosition = new Vector2(64f, DesktopTaskbarHeight + 8f);
+            resultsRt.sizeDelta = new Vector2(420f, 80f);
+            results.GetComponent<Image>().raycastTarget = true;
+            var resultsLayout = results.AddComponent<VerticalLayoutGroup>();
+            resultsLayout.padding = new RectOffset(10, 10, 10, 10);
+            resultsLayout.spacing = 4f;
+            resultsLayout.childControlWidth = true;
+            resultsLayout.childControlHeight = true;
+            resultsLayout.childForceExpandWidth = true;
+            resultsLayout.childForceExpandHeight = false;
+            var resultsFit = results.AddComponent<ContentSizeFitter>();
+            resultsFit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            var resultItem = CreatePanel(results.transform, "ItemTemplate", Color.white);
+            resultItem.GetComponent<Image>().raycastTarget = true;
+            var resultItemSize = resultItem.AddComponent<LayoutElement>();
+            resultItemSize.preferredHeight = 56f;
+            var resultButton = resultItem.AddComponent<Button>();
+            resultButton.targetGraphic = resultItem.GetComponent<Image>();
+            var resultColors = resultButton.colors;
+            resultColors.normalColor = new Color(1f, 1f, 1f, 0f);
+            resultColors.highlightedColor = new Color(1f, 1f, 1f, 0.10f);
+            resultColors.pressedColor = new Color(1f, 1f, 1f, 0.18f);
+            resultColors.selectedColor = new Color(1f, 1f, 1f, 0.10f);
+            resultColors.disabledColor = new Color(1f, 1f, 1f, 0f);
+            resultButton.colors = resultColors;
+
+            var resultIcon = CreatePanel(resultItem.transform, "Icon", Color.white);
+            var resultIconRt = (RectTransform)resultIcon.transform;
+            resultIconRt.anchorMin = new Vector2(0f, 0.5f);
+            resultIconRt.anchorMax = new Vector2(0f, 0.5f);
+            resultIconRt.pivot = new Vector2(0f, 0.5f);
+            resultIconRt.anchoredPosition = new Vector2(10f, 0f);
+            resultIconRt.sizeDelta = new Vector2(38f, 38f);
+            resultIcon.GetComponent<Image>().preserveAspect = true;
+            resultIcon.GetComponent<Image>().raycastTarget = false;
+
+            var resultLabel = AddText(resultItem.transform, "Label", 22f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(resultLabel.rectTransform, 62f, 10f, 4f, 4f);
+            resultLabel.raycastTarget = false;
+            resultItem.SetActive(false);
+
+            var resultEmpty = AddText(results.transform, "Empty", 20f, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            resultEmpty.raycastTarget = false;
+            var resultEmptySize = resultEmpty.gameObject.AddComponent<LayoutElement>();
+            resultEmptySize.preferredHeight = 44f;
+            results.SetActive(false);
+
+            so.FindProperty("_searchInput").objectReferenceValue = searchInput;
+            so.FindProperty("_searchResults").objectReferenceValue = resultsRt;
+            so.FindProperty("_searchItemTemplate").objectReferenceValue = resultButton;
+            so.FindProperty("_searchEmpty").objectReferenceValue = resultEmpty;
 
             so.ApplyModifiedPropertiesWithoutUndo();
 
@@ -4908,7 +4990,7 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 실제 휴대폰처럼 전화와 메시지는 맨 아래 줄에 따로 둔다.
-            var dock = CreatePanel(phoneScreen.transform, "Dock", new Color(1f, 1f, 1f, 0.12f));
+            var dock = CreatePanel(phoneScreen.transform, "Dock", new Color(1f, 1f, 1f, 0f));   // 판은 보이지 않는다. 자리만 잡는다
             var dockRt = (RectTransform)dock.transform;
             dockRt.anchorMin = new Vector2(0f, 0f);
             dockRt.anchorMax = new Vector2(1f, 0f);

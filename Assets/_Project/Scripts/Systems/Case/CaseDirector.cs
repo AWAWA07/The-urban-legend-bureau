@@ -1923,6 +1923,9 @@ namespace UrbanLegendBureau.Systems
             OnOpenReportClicked();
 
             if (_reportScreen == null) return;
+
+            // 한영의 말은 인물을 세운 대화 화면(타입 1)으로 한다. 대화 화면이 없을 때만 결과 줄에 적는다.
+            if (_tutorial != null && _tutorial.ShowComputerTalk(ReportCueTextId, null)) return;
             _reportScreen.ShowResult(() => _loc.Get(HanyoungNameTextId) + "  " + _loc.Get(ReportCueTextId));
         }
 
@@ -2108,7 +2111,9 @@ namespace UrbanLegendBureau.Systems
             bool saved = MemoScreen.AddNote(BuildReportNote());
 
             // 한영이 먼저 한마디 하고, 그 다음 메모장에 들어갔다고 알린다.
-            _reportScreen.ShowResult(() => _loc.Get(HanyoungNameTextId) + "  " + _loc.Get(ReportPraiseTextId));
+            // 칭찬은 인물을 세운 대화 화면(타입 1)으로 한다. 말을 넘기면 숙소로 간다.
+            bool talked = _tutorial != null && _tutorial.ShowComputerTalk(ReportPraiseTextId, OnReportPraiseDone);
+            if (!talked) _reportScreen.ShowResult(() => _loc.Get(HanyoungNameTextId) + "  " + _loc.Get(ReportPraiseTextId));
             if (_toastScreen != null) ShowToast(saved ? ReportSavedTextId : ReportAlreadySavedTextId);
 
             Debug.Log($"[CaseDirector] 보고서 | 다 맞았다. 메모장에 적음={saved}");
@@ -2118,8 +2123,14 @@ namespace UrbanLegendBureau.Systems
             if (_caseId == TutorialDirector.TutorialCaseId)
             {
                 _postCuePending = true;
-                StartCoroutine(PostCueAfterPraise());
+                if (!talked) StartCoroutine(PostCueAfterPraise());
             }
+        }
+
+        /// <summary>한영의 칭찬을 넘겼다. 첫 사건이면 숙소로 간다.</summary>
+        private void OnReportPraiseDone()
+        {
+            if (_postCuePending) GoPostCue();
         }
 
         // ------------------------------------------------------------- 숙소

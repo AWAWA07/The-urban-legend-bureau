@@ -863,3 +863,4 @@ board.filler.023.c2	ㅇㅇ 그거 원래 없던 말임	yeah that bit was never i
 ui.travel.to_field	현장으로 가는 중	Heading to the scene	사무실에서 현장으로 옮기는 화면
 ui.travel.duration_field	사무실에서 9-4 승강장까지 {0}분	{0} minutes from the office to platform 9-4	옮기는 화면 - {0} 걸리는 분
 ui.desktop.search	검색하려면 여기에 입력하세요	Type here to search	
+ui.desktop.search_none	"{0}" 에 맞는 앱이 없어요	No apps match "{0}"	

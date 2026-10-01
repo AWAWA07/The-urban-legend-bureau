@@ -52,6 +52,28 @@ namespace UrbanLegendBureau.UI
         [Header("아이콘")]
         [SerializeField] private List<DesktopIcon> _icons = new List<DesktopIcon>();
 
+        [Header("검색")]
+        [Tooltip("작업 표시줄의 검색 칸. 적으면 이름이 맞는 앱이 위에 뜬다.")]
+        [SerializeField] private TMP_InputField _searchInput;
+
+        [Tooltip("검색 칸 위에 뜨는 결과 창. 적은 것이 없으면 숨는다.")]
+        [SerializeField] private RectTransform _searchResults;
+
+        [Tooltip("결과 한 줄. 복제해서 쓴다. 안에 Icon(Image)과 Label(TMP)이 있다.")]
+        [SerializeField] private Button _searchItemTemplate;
+
+        [Tooltip("맞는 것이 없을 때 띄우는 글.")]
+        [SerializeField] private TMP_Text _searchEmpty;
+
+        private readonly List<GameObject> _searchItems = new List<GameObject>();
+        private const string SearchNoneTextId = "ui.desktop.search_none";
+
+        [Header("켜지는 모습")]
+        [Tooltip("컴퓨터를 켤 때 화면이 가운데의 가는 선에서 펴지며 커지는 시간(초).")]
+        [SerializeField] private float _powerOnSeconds = 0.45f;
+
+        private Coroutine _powerOn;
+
         private Action<string> _onOpen;
         private readonly HashSet<string> _allowed = new HashSet<string>();
         private bool _allowAll = true;
@@ -182,11 +204,17 @@ namespace UrbanLegendBureau.UI
         {
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
             Refresh();
+            BindSearch();
+            ClearSearch();
+            PlayPowerOn();
         }
 
         protected override void OnClose()
         {
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
+            ClearSearch();
+            if (_powerOn != null) { StopCoroutine(_powerOn); _powerOn = null; }
+            transform.localScale = Vector3.one;
 
             // 한 번 알리고 비운다. 다음에 여는 쪽이 다시 건다.
             var closed = Closed;
@@ -219,6 +247,149 @@ namespace UrbanLegendBureau.UI
             }
 
             ApplyInteractable();
+        }
+
+        // ------------------------------------------------------------- 켜지는 모습
+
+        /// <summary>
+        /// 모니터가 켜지는 모습. 가운데에 가는 빛줄기가 옆으로 퍼진 뒤 위아래로 펴지며 화면이 된다.
+        /// 옛 모니터가 켜질 때처럼 짧게 지나간다.
+        /// </summary>
+        private void PlayPowerOn()
+        {
+            if (_powerOn != null) StopCoroutine(_powerOn);
+            if (!isActiveAndEnabled || _powerOnSeconds <= 0f) { transform.localScale = Vector3.one; return; }
+            _powerOn = StartCoroutine(PowerOn());
+        }
+
+        private System.Collections.IEnumerator PowerOn()
+        {
+            float wide = _powerOnSeconds * 0.35f;
+            float tall = _powerOnSeconds - wide;
+            const float Line = 0.006f;
+
+            for (float t = 0f; t < wide; t += Time.unscaledDeltaTime)
+            {
+                float k = Mathf.SmoothStep(0f, 1f, t / wide);
+                transform.localScale = new Vector3(Mathf.Lerp(0.04f, 1f, k), Line, 1f);
+                yield return null;
+            }
+            for (float t = 0f; t < tall; t += Time.unscaledDeltaTime)
+            {
+                float k = 1f - Mathf.Pow(1f - t / tall, 3f);   // 빠르게 펴지다 끝에서 멈춘다
+                transform.localScale = new Vector3(1f, Mathf.Lerp(Line, 1f, k), 1f);
+                yield return null;
+            }
+            transform.localScale = Vector3.one;
+            _powerOn = null;
+        }
+
+        // ------------------------------------------------------------- 검색
+
+        private bool _searchBound;
+
+        private void BindSearch()
+        {
+            if (_searchBound || _searchInput == null) return;
+            _searchBound = true;
+            _searchInput.onValueChanged.AddListener(OnSearchChanged);
+            _searchInput.onSubmit.AddListener(OnSearchSubmit);
+        }
+
+        private void ClearSearch()
+        {
+            if (_searchInput != null) _searchInput.SetTextWithoutNotify(string.Empty);
+            ShowSearchResults(string.Empty);
+        }
+
+        private void OnSearchChanged(string query)
+        {
+            ShowSearchResults(query);
+        }
+
+        /// <summary>엔터를 치면 맨 위에 뜬 앱을 연다.</summary>
+        private void OnSearchSubmit(string query)
+        {
+            var hits = FindApps(query);
+            if (hits.Count > 0) OpenFromSearch(hits[0]);
+        }
+
+        /// <summary>이름이나 앱 ID 에 적은 글자가 들어간 아이콘. 대소문자와 띄어쓰기는 가리지 않는다.</summary>
+        private List<DesktopIcon> FindApps(string query)
+        {
+            var hits = new List<DesktopIcon>();
+            string q = Normalize(query);
+            if (q.Length == 0) return hits;
+
+            foreach (var icon in _icons)
+            {
+                if (icon == null) continue;
+                string label = icon.label != null ? Normalize(icon.label.text) : string.Empty;
+                if (label.Contains(q) || Normalize(icon.appId).Contains(q)) hits.Add(icon);
+            }
+            return hits;
+        }
+
+        private static string Normalize(string s)
+        {
+            return string.IsNullOrEmpty(s) ? string.Empty : s.Replace(" ", string.Empty).ToLowerInvariant();
+        }
+
+        private void ShowSearchResults(string query)
+        {
+            foreach (var item in _searchItems)
+            {
+                if (item == null) continue;
+                item.transform.SetParent(null, false);
+                Destroy(item);
+            }
+            _searchItems.Clear();
+
+            if (_searchResults == null) return;
+
+            bool empty = string.IsNullOrWhiteSpace(query);
+            _searchResults.gameObject.SetActive(!empty);
+            if (empty) return;
+
+            var hits = FindApps(query);
+            foreach (var icon in hits)
+            {
+                var item = Instantiate(_searchItemTemplate, _searchResults);
+                item.gameObject.name = "Result_" + icon.appId;
+                item.gameObject.SetActive(true);
+
+                var label = item.GetComponentInChildren<TMP_Text>(true);
+                if (label != null) label.text = icon.label != null ? icon.label.text : icon.appId;
+
+                // 결과 줄의 그림은 바탕화면 아이콘의 그림을 그대로 쓴다.
+                var iconImage = item.transform.Find("Icon")?.GetComponent<Image>();
+                var source = icon.button != null ? icon.button.transform.Find("Box")?.GetComponent<Image>() : null;
+                if (iconImage != null && source != null) iconImage.sprite = source.sprite;
+
+                // 지금 열 수 없는 앱은 보이기만 한다. 아이콘을 누를 수 없을 때와 같다.
+                item.interactable = icon.button == null || icon.button.interactable;
+                var captured = icon;
+                item.onClick.AddListener(() => OpenFromSearch(captured));
+
+                _searchItems.Add(item.gameObject);
+            }
+
+            if (_searchEmpty != null)
+            {
+                _searchEmpty.gameObject.SetActive(hits.Count == 0);
+                _searchEmpty.transform.SetAsLastSibling();
+                if (hits.Count == 0 && ServiceRegistry.TryGet<LocalizationService>(out var loc))
+                    _searchEmpty.text = loc.Get(SearchNoneTextId, query.Trim());
+            }
+        }
+
+        private void OpenFromSearch(DesktopIcon icon)
+        {
+            if (icon == null) return;
+            if (icon.button != null && !icon.button.interactable) return;
+
+            ClearSearch();
+            _onOpen?.Invoke(icon.appId);
         }
 
         /// <summary>
