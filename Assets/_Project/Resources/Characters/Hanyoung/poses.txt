@@ -5,6 +5,9 @@
 #       think_away(생각·시선 돌림) calm(두 손 모음·차분) worried(팔 잡고 걱정) surprised(놀람) wave(손 흔듦·미소)
 #       thinksmail(턱 괴고 미소) standingsmail(허리 파우치에 손·미소)
 #       think_away2(턱 괴고 옆을 봄) arms_crossed2(팔짱·입 벌림) standing2(파우치에 손·무표정) surprised2(당황·식은땀) reading2(서류 읽음·입 살짝 벌림)
+#       point_up(검지 들기·차분) point_up2(검지 들기·걷는 중) tie_adjust(넥타이 매만짐·언짢음) tie_serious(넥타이 쥠·굳은 얼굴)
+#       cigarette(담배 듦) smoke(담배 연기·팔짱) smoke_stance(담배 물고 버팀) smile_closed(눈 감고 미소·뒷짐)
+#       gentle(가슴에 손·옅은 미소) arms_hold(팔꿈치 잡고 뾰로통) awkward(목 만지며 시선 피함·식은땀)
 
 # 처음 만남
 tutorial.line.001	default	...
@@ -19,7 +22,7 @@ tutorial.pc.002	point	인기글 보이지? 첫번째 게시물을 눌러봐.
 tutorial.pc.003	arms_crossed	우리는 이런 괴담을 억제 해야 돼. 우선 댓글쓰기 부터 해보자.
 tutorial.pc.like_warn	think	사람들 믿음도를 떨어트려야 하는데 굳이 좋아요를 안 누르는게 낫지 않을까?
 tutorial.pc.dislike_good	thinksmail	싫어요를 눌러서 사람들 동조 시키는 것도 좋은 방법이야
-tutorial.comment.hint	standing자, 이 셋 중에 뭘 선택해야 할까?
+tutorial.comment.hint	standing	자, 이 셋 중에 뭘 선택해야 할까?
 tutorial.comment.wrong	serious	이런 애가 무슨 엘리트라고.. 다시 한번 해봐
 tutorial.comment.need_field_hanyoung	think	좋은 선택지긴 하지만 이건 직접 현장 조사를 해야돼
 tutorial.comment.correct	standingsmail	그래 잘했어 너, 쓸만한데?
@@ -31,8 +34,8 @@ tutorial.brief.003	arms_crossed	우리의 가장 큰 목표는 사람들의 믿�
 tutorial.brief.q1.a.1	default	왜냐면 괴담은 위험하기 때문이지.
 tutorial.brief.q1.a.2	serious	사람들이 괴담을 믿을수록 그 힘이 강해지거든. 그렇게 되면 괴담이 실체로 드러나.
 tutorial.brief.q1.b.1	serious	그래. 정말 위험해.
-tutorial.brief.q1.b.2	explain	사람들이 괴담을 믿을수록 그 힘이 강해져, 실체가 나오기 때문이야.
-tutorial.brief.004	explain	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… 노선에 없는 지하철이 나오면 내리면 안 된다던가... 그런 것들 말이야
+tutorial.brief.q1.b.2	explain	사람들이 괴담을 믿을수록 그 힘이 강해져서 실체가 나오고 피해를 주기 때문이야.
+tutorial.brief.004	explain	너 미신은 알지? 뭐, 학교에서 석상이 밤에 돌아다닌다거나… /n 노선에 없는 지하철이 나오면 내리면 안 된다던가... 그런 것들 말이야
 tutorial.brief.006	think	예를 들어 학교에서 석상이 밤에 돌아다닌다는 말을 사람들이 믿기 시작하면 진짜로 그렇게 되는 거지.
 tutorial.brief.007	think	하지만 이건 '학교'라는 주체가 너무 넓기 때문에 실현되지 않을 거야.
 tutorial.brief.008	arms_crossed	하지만 만약 특정 학교에서 석상이 밤에 돌아다닌다는 게 소문이 되어 퍼지고, 그 범위가 넓어지면 그게 실체가 되어 진짜로 돌아다니는 거야.
