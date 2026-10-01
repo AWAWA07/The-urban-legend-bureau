@@ -1793,41 +1793,6 @@ namespace UrbanLegendBureau.Systems
         private bool _roomTalkOpened;
 
         /// <summary>
-        /// 숙소에서 차지한이 혼자 한마디 한다. 물건을 살펴볼 때의 말이다. 말이 끝나면 대화 화면을 닫고 onDone 을 부른다.
-        /// 숙소의 말은 모두 현장의 띠가 아니라 첫 대화처럼 인물을 세워 보여 준다.
-        /// </summary>
-        public bool RoomSay(System.Func<string> line, System.Action onDone)
-        {
-            if (_talkScreen == null || _loc == null || line == null) return false;
-
-            _roomTalkOpened = false;
-            ShowRoomTalkLine(line, false, false, null, () =>
-            {
-                CloseRoomTalk();
-                onDone?.Invoke();
-            });
-            return true;
-        }
-
-        /// <summary>
-        /// 차지한이 스스로에게 묻고 고른다. 침대 앞에서 "잘까?" 처럼. 물음과 고를 것이 함께 뜬다.
-        /// 고르면 대화 화면을 닫고 고른 번호로 onPick 을 부른다.
-        /// </summary>
-        public bool RoomAsk(System.Func<string> line, IReadOnlyList<System.Func<string>> labels, System.Action<int> onPick)
-        {
-            if (_talkScreen == null || _loc == null || line == null) return false;
-
-            _roomTalkOpened = false;
-            ShowRoomTalkLine(line, false, false, null, null);
-            _talkScreen.ShowChoices(labels, picked =>
-            {
-                CloseRoomTalk();
-                onPick?.Invoke(picked);
-            });
-            return true;
-        }
-
-        /// <summary>
         /// 대사 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.
         /// 문장에는 지금 시각(12시간제 시와 분, "2:12" 꼴)을 넘겨 준다. 쓰지 않는 문장은 무시한다.
         /// 마디 사이에 화면을 닫지 않는다. 닫았다 열면 인물이 깜박인다.

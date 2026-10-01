@@ -22,6 +22,7 @@ namespace UrbanLegendBureau.Systems
             if (_body != null) _body.localScale = _startScale;
             _autoX = null;
             _onArrived = null;
+            Following = true;
         }
 
         [Tooltip("따라갈 인물.")]
@@ -61,6 +62,12 @@ namespace UrbanLegendBureau.Systems
             _onArrived = onArrived;
         }
 
+        /// <summary>
+        /// 앞선 인물을 따라가는가. 끄면 혼자 걷기가 끝난 뒤에도 그 자리에 선다.
+        /// 방을 나가는 한영처럼 혼자 걸은 뒤 다른 움직임이 이어질 때 끈다. 켜 두면 차지한 쪽으로 되돌아오려 한다.
+        /// </summary>
+        public bool Following { get; set; } = true;
+
         /// <summary>혼자 걷는 중인가.</summary>
         public bool IsWalkingAlone => _autoX.HasValue;
 
@@ -85,7 +92,7 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            if (_target == null) return;
+            if (_target == null || !Following) return;
 
             float dx = _target.localPosition.x - transform.localPosition.x;
             float distance = Mathf.Abs(dx);

@@ -9,7 +9,7 @@ using UrbanLegendBureau.Localization;
 namespace UrbanLegendBureau.UI
 {
     /// <summary>
-    /// 현장 조사 화면.
+    /// 현장 조사 화면. 아래 띠의 말(작은 초상 + 이름 + 대사)이 대화 "타입 2" 다. 타입 1 은 DialogueScreen 에 적어 두었다.
     ///
     /// 화면을 둘로 나눈다.
     ///   위 - 장소를 옆에서 본 장면. 조사 지점이 그 안에 놓인다.
@@ -250,6 +250,15 @@ namespace UrbanLegendBureau.UI
         public void SetButtonsVisible(bool on)
         {
             if (_buttonRow != null) _buttonRow.SetActive(on);
+        }
+
+        /// <summary>
+        /// 장면 오른쪽의 휴대폰 단추를 거두거나 다시 세운다.
+        /// 숙소에서는 이 단추가 방문 앞에 걸린다. 한영이 문으로 나가는 동안에는 거둬 가리지 않게 한다.
+        /// </summary>
+        public void SetPhoneButtonVisible(bool on)
+        {
+            if (_phoneButton != null) _phoneButton.gameObject.SetActive(on);
         }
 
         /// <summary>말하는 사람을 치운다. 띠에는 버튼만 남는다.</summary>

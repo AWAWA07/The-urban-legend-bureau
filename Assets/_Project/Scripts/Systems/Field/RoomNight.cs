@@ -28,11 +28,14 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private GameObject _doorClosed;
         [SerializeField] private GameObject _doorOpen;
 
-        [Tooltip("한영이 문 앞에 서는 자리(방 기준 좌우). 걸을 수 있는 오른쪽 끝이다.")]
-        [SerializeField] private float _doorInsideX = 12f;
+        [Tooltip("한영이 문 앞에 서는 자리(방 기준 좌우). 문 한가운데다.")]
+        [SerializeField] private float _doorInsideX = 12.8f;
 
-        [Tooltip("문을 지나 사라지는 자리. 문 한가운데쯤이다.")]
-        [SerializeField] private float _doorOutsideX = 13.3f;
+        [Tooltip("문간으로 들어설 때 위로 오르는 만큼. 뒤쪽 벽의 문으로 들어가니 멀어지며 조금 올라간다.")]
+        [SerializeField] private float _doorStepUp = 0.35f;
+
+        [Tooltip("문간에 들어선 뒤의 크기 배율. 멀어지는 만큼 작아진다.")]
+        [SerializeField] private float _doorStepScale = 0.86f;
 
         [SerializeField] private float _exitWalkSpeed = 2.6f;
 
@@ -103,6 +106,7 @@ namespace UrbanLegendBureau.Systems
             if (_hanyoung != null)
             {
                 _hanyoung.gameObject.SetActive(true);
+                _hanyoung.Following = true;
                 SetHanyoungAlpha(1f);
             }
 
@@ -194,6 +198,7 @@ namespace UrbanLegendBureau.Systems
             if (_hanyoung == null) { onDone?.Invoke(); return; }
 
             if (_chajihan != null) _chajihan.Locked = true;
+            _hanyoung.Following = false;   // 문 앞에서 서 있는 동안 차지한 쪽으로 되돌아오지 않게
             _hanyoung.WalkTo(_doorInsideX, _exitWalkSpeed, () => StartCoroutine(ExitThroughDoor(onDone)));
             Debug.Log("[RoomNight] 한영이 문으로 간다");
         }
@@ -204,21 +209,25 @@ namespace UrbanLegendBureau.Systems
             SetDoorOpen(true);
             yield return new WaitForSeconds(0.3f);
 
-            // 문간을 지나며 옅어진다. 문 너머 어둠으로 들어가는 것처럼 보인다.
+            // 문은 뒤쪽 벽에 있다. 옆으로 미끄러지지 않고 안쪽으로 들어선다.
+            // 조금 올라가고 작아지며 옅어진다. 문 너머 어둠 속으로 멀어지는 것처럼 보인다.
             var t = _hanyoung.transform;
-            float startX = t.localPosition.x;
-            const float Duration = 0.9f;
+            Vector3 fromPos = t.localPosition;
+            Vector3 toPos = fromPos + new Vector3(0f, _doorStepUp, 0f);
+            Vector3 fromScale = t.localScale;
+            const float Duration = 0.7f;
             for (float e = 0f; e < Duration; e += Time.deltaTime)
             {
-                float k = e / Duration;
-                var p = t.localPosition;
-                p.x = Mathf.Lerp(startX, _doorOutsideX, k);
-                t.localPosition = p;
+                float k = Mathf.SmoothStep(0f, 1f, e / Duration);
+                t.localPosition = Vector3.Lerp(fromPos, toPos, k);
+                t.localScale = fromScale * Mathf.Lerp(1f, _doorStepScale, k);
                 SetHanyoungAlpha(1f - k);
                 yield return null;
             }
 
             SetHanyoungAlpha(0f);
+            t.localPosition = fromPos;     // 다음에 다시 켤 때를 위해 자리와 크기를 되돌려 둔다
+            t.localScale = fromScale;
             _hanyoung.gameObject.SetActive(false);
 
             yield return new WaitForSeconds(0.35f);

@@ -2387,7 +2387,12 @@ namespace UrbanLegendBureau.Systems
         {
             var room = GetRoomNight();
             if (room == null) { OnHanyoungLeft(); return; }
-            room.PlayHanyoungExit(OnHanyoungLeft);
+            _fieldHudScreen.SetPhoneButtonVisible(false);   // 휴대폰 단추가 방문을 가린다
+            room.PlayHanyoungExit(() =>
+            {
+                _fieldHudScreen.SetPhoneButtonVisible(true);
+                OnHanyoungLeft();
+            });
         }
 
         private void OnHanyoungLeft()
@@ -2411,8 +2416,6 @@ namespace UrbanLegendBureau.Systems
                 () => _loc.Get(SleepYesTextId),
                 () => _loc.Get(SleepNoTextId),
             };
-            if (_tutorial != null && _tutorial.RoomAsk(() => _loc.Get(SleepAskTextId), labels, OnSleepChoice)) return;
-
             _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get(SleepAskTextId), () =>
                 _fieldHudScreen.ShowChoices(FieldSpeakerTextId, labels, OnSleepChoice));
         }
@@ -2473,6 +2476,7 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.Bind(() => _loc.Get(RoomPlaceTextId));
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
             _fieldHudScreen.SetButtonsVisible(false);
+            _fieldHudScreen.SetPhoneButtonVisible(true);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else if (_ui.Current != _fieldHudScreen) _ui.Replace(_fieldHudScreen);
@@ -2537,12 +2541,11 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 숙소에서 차지한이 한마디 한다. 숙소의 말은 현장의 띠가 아니라 인물을 세워 보여 준다.
-        /// 대화 화면이 없을 때만 띠에 적는다.
+        /// 숙소에서 물건을 만졌을 때 차지한이 한마디 한다. 대화가 아니라 혼잣말이라 현장의 띠에 적는다.
+        /// 인물을 세우는 대화 화면은 숙소에 들어설 때와 첫날 밤의 대화에만 쓴다.
         /// </summary>
         private void RoomRemark(System.Func<string> line)
         {
-            if (_tutorial != null && _tutorial.RoomSay(line, null)) return;
             _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
         }
 
