@@ -8,9 +8,10 @@ namespace UrbanLegendBureau.UI
     ///
     /// 그림은 Resources/Characters/Hanyoung 아래에 포즈 이름으로 있다.
     ///   전신   - Characters/Hanyoung/{포즈}       대화 화면에 세운다
-    ///   얼굴   - Characters/Hanyoung/Face/{포즈}  현장 대사 띠의 초상 칸에 넣는다
+    ///   초상   - Characters/Hanyoung/Portrait/{표정}  현장 대사 띠(타입 2)의 초상 칸에 넣는다
     ///
     /// 어느 대사에 어느 포즈를 쓰는지는 같은 폴더의 poses.txt 에 "대사ID[탭]포즈" 로 적는다.
+    /// 초상은 따로 그린 얼굴 그림이라 표정 이름으로 고른다. portraits.txt 에 "대사ID[탭]표정" 으로 적는다.
     /// 적혀 있지 않은 대사는 default 포즈다. 포즈를 바꾸려면 그 파일만 고치면 된다. 코드는 그대로다.
     /// </summary>
     public static class CharacterArt
@@ -23,7 +24,11 @@ namespace UrbanLegendBureau.UI
         private const string Root = "Characters/Hanyoung/";
         private const string PoseTable = Root + "poses";
 
+        private const string PortraitTable = Root + "portraits";
+        public const string DefaultPortrait = "neutral";
+
         private static Dictionary<string, string> _poses;
+        private static Dictionary<string, string> _portraits;
         private static readonly Dictionary<string, Sprite> _cache = new Dictionary<string, Sprite>();
 
         /// <summary>그 대사에 쓸 한영의 포즈 이름. 적혀 있지 않으면 default.</summary>
@@ -40,18 +45,32 @@ namespace UrbanLegendBureau.UI
             return Load(Root + PoseFor(lineTextId)) ?? Load(Root + DefaultPose);
         }
 
-        /// <summary>그 대사에 맞는 한영의 얼굴 그림. 현장 대사 띠의 초상 칸에 쓴다.</summary>
+        /// <summary>그 대사에 쓸 한영의 표정 이름. 적혀 있지 않으면 neutral.</summary>
+        public static string PortraitFor(string lineTextId)
+        {
+            if (_portraits == null) _portraits = LoadTable(PortraitTable);
+            if (!string.IsNullOrEmpty(lineTextId) && _portraits.TryGetValue(lineTextId, out var face)) return face;
+            return DefaultPortrait;
+        }
+
+        /// <summary>그 대사에 맞는 한영의 초상. 현장 대사 띠의 초상 칸에 쓴다.</summary>
         public static Sprite HanyoungFace(string lineTextId)
         {
-            return Load(Root + "Face/" + PoseFor(lineTextId)) ?? Load(Root + "Face/" + DefaultPose);
+            return Load(Root + "Portrait/" + PortraitFor(lineTextId)) ?? Load(Root + "Portrait/" + DefaultPortrait);
         }
 
         private static void LoadPoses()
         {
-            _poses = new Dictionary<string, string>();
+            _poses = LoadTable(PoseTable);
+        }
 
-            var table = Resources.Load<TextAsset>(PoseTable);
-            if (table == null) return;
+        /// <summary>"대사ID[탭]이름" 꼴의 표를 읽는다. # 으로 시작하는 줄과 빈 줄은 건너뛴다.</summary>
+        private static Dictionary<string, string> LoadTable(string path)
+        {
+            var result = new Dictionary<string, string>();
+
+            var table = Resources.Load<TextAsset>(path);
+            if (table == null) return result;
 
             foreach (var raw in table.text.Split('\n'))
             {
@@ -62,8 +81,9 @@ namespace UrbanLegendBureau.UI
                 if (cells.Length < 2) continue;
 
                 string id = cells[0].Trim(), pose = cells[1].Trim();
-                if (id.Length > 0 && pose.Length > 0) _poses[id] = pose;
+                if (id.Length > 0 && pose.Length > 0) result[id] = pose;
             }
+            return result;
         }
 
         /// <summary>

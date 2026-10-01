@@ -4483,6 +4483,17 @@ namespace UrbanLegendBureau.EditorTools
 
             // 초상 자리. 지금은 빈 네모다. 실제 그림이 생기면 이 Image만 갈아 끼운다.
             const float PortraitSize = 240f;
+
+            // 테두리는 초상 뒤에 따로 깐다. 초상의 자식으로 두면 자식이 위에 그려져 그림을 통째로 덮는다.
+            var portraitEdge = CreatePanel(speech.transform, "PortraitEdge", new Color(0.42f, 0.44f, 0.52f, 1f));
+            var edgeRt2 = (RectTransform)portraitEdge.transform;
+            edgeRt2.anchorMin = new Vector2(0f, 0.5f);
+            edgeRt2.anchorMax = new Vector2(0f, 0.5f);
+            edgeRt2.pivot = new Vector2(0f, 0.5f);
+            edgeRt2.anchoredPosition = new Vector2(58f, 0f);
+            edgeRt2.sizeDelta = new Vector2(PortraitSize + 4f, PortraitSize + 4f);
+            portraitEdge.GetComponent<Image>().raycastTarget = false;
+
             var portrait = CreatePanel(speech.transform, "Portrait", new Color(0.16f, 0.17f, 0.22f, 1f));
             var portraitRt = (RectTransform)portrait.transform;
             portraitRt.anchorMin = new Vector2(0f, 0.5f);
@@ -4490,11 +4501,6 @@ namespace UrbanLegendBureau.EditorTools
             portraitRt.pivot = new Vector2(0f, 0.5f);
             portraitRt.anchoredPosition = new Vector2(60f, 0f);
             portraitRt.sizeDelta = new Vector2(PortraitSize, PortraitSize);
-
-            var portraitEdge = CreatePanel(portrait.transform, "Edge", new Color(0.42f, 0.44f, 0.52f, 1f));
-            StretchInside((RectTransform)portraitEdge.transform, -2f, -2f, -2f, -2f);
-            portraitEdge.transform.SetAsFirstSibling();   // 테두리처럼 뒤에 깔린다
-            portraitEdge.GetComponent<Image>().raycastTarget = false;
 
             // 초상 오른쪽에 이름과 대사.
             const float TextLeft = 60f + PortraitSize + 40f;   // 초상 오른쪽 끝에서 띄운다
