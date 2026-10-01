@@ -2235,27 +2235,16 @@ namespace UrbanLegendBureau.EditorTools
             return slider;
         }
 
+        /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
+        private const float BandHeight = 1080f / 3f;
+        private static readonly Color BandEdgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);
+
         /// <summary>
         /// 튜토리얼 대화 화면.
         ///
         /// fullScreen이면 검은 배경 위에 두 인물을 세우는 단독 화면이다.
         /// 아니면 아래 화면(커뮤니티)을 가리지 않는 겹침 대화가 된다. 구성은 같다.
         /// </summary>
-        /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
-        private const float BandHeight = 1080f / 3f;
-        private static readonly Color BandColor = new Color(0.03f, 0.03f, 0.05f, 1f);
-        private static readonly Color BandEdgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);
-
-        /// <summary>화면 아래 1/3, 현장 대사 띠와 꼭 같은 자리에 놓는다.</summary>
-        private static void PlaceOnBand(RectTransform rt)
-        {
-            rt.anchorMin = new Vector2(0f, 0f);
-            rt.anchorMax = new Vector2(1f, 0f);
-            rt.pivot = new Vector2(0.5f, 0f);
-            rt.anchoredPosition = Vector2.zero;
-            rt.sizeDelta = new Vector2(0f, BandHeight);
-        }
-
         private static DialogueScreen BuildDialogueScreen(string name, bool fullScreen)
         {
             var go = CreatePanel(null, name,
@@ -2281,7 +2270,11 @@ namespace UrbanLegendBureau.EditorTools
             }
             else
             {
-                PlaceOnBand((RectTransform)advanceGo.transform);   // 대사 상자와 같은 자리
+                var advanceRt = (RectTransform)advanceGo.transform;
+                advanceRt.anchorMin = new Vector2(0.5f, 0.5f);
+                advanceRt.anchorMax = new Vector2(0.5f, 0.5f);
+                advanceRt.anchoredPosition = new Vector2(0f, -340f);   // 대사 상자와 같은 자리
+                advanceRt.sizeDelta = new Vector2(1600f, 300f);
             }
             var advance = advanceGo.AddComponent<Button>();
             var advanceImage = advanceGo.GetComponent<Image>();
@@ -2303,42 +2296,32 @@ namespace UrbanLegendBureau.EditorTools
             if (hanyoungArt != null) left.sprite = hanyoungArt;
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
-            // 겹침 대화는 현장과 숙소 위에도 뜬다. 거기에는 아래 1/3 에 대사 띠(타입 2)가 깔려 있다.
-            // 상자를 띠와 꼭 같은 자리, 같은 색으로 두어 띠가 상자 둘레로 비치지 않게 한다.
-            var box = CreatePanel(go.transform, "Box",
-                fullScreen ? new Color(0.09f, 0.09f, 0.12f, 0.96f) : BandColor);
+            var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
             var boxRt = (RectTransform)box.transform;
-            if (fullScreen)
-            {
-                boxRt.anchorMin = new Vector2(0.5f, 0.5f);
-                boxRt.anchorMax = new Vector2(0.5f, 0.5f);
-                boxRt.anchoredPosition = new Vector2(0f, -340f);
-                boxRt.sizeDelta = new Vector2(1600f, 300f);
-            }
-            else
-            {
-                PlaceOnBand(boxRt);
+            boxRt.anchorMin = new Vector2(0.5f, 0.5f);
+            boxRt.anchorMax = new Vector2(0.5f, 0.5f);
+            boxRt.anchoredPosition = new Vector2(0f, -340f);
+            boxRt.sizeDelta = new Vector2(1600f, 300f);
 
-                var boxEdge = CreatePanel(box.transform, "Edge", BandEdgeColor);
-                var boxEdgeRt = (RectTransform)boxEdge.transform;
-                boxEdgeRt.anchorMin = new Vector2(0f, 1f);
-                boxEdgeRt.anchorMax = new Vector2(1f, 1f);
-                boxEdgeRt.pivot = new Vector2(0.5f, 1f);
-                boxEdgeRt.anchoredPosition = Vector2.zero;
-                boxEdgeRt.sizeDelta = new Vector2(0f, 2f);
-                boxEdge.GetComponent<Image>().raycastTarget = false;
-                AddCrisp(boxEdge, 2f);
-            }
+            // 타입 3(숙소에서 띠에 맞춘 상자)일 때만 켜는 위쪽 가는 선. 현장 대사 띠의 그것과 같다.
+            var boxEdge = CreatePanel(box.transform, "Edge", BandEdgeColor);
+            var boxEdgeRt = (RectTransform)boxEdge.transform;
+            boxEdgeRt.anchorMin = new Vector2(0f, 1f);
+            boxEdgeRt.anchorMax = new Vector2(1f, 1f);
+            boxEdgeRt.pivot = new Vector2(0.5f, 1f);
+            boxEdgeRt.anchoredPosition = Vector2.zero;
+            boxEdgeRt.sizeDelta = new Vector2(0f, 2f);
+            boxEdge.GetComponent<Image>().raycastTarget = false;
+            AddCrisp(boxEdge, 2f);
+            boxEdge.SetActive(false);
 
             // 상자 안쪽 여백을 기준으로 붙인다. 좌표를 손으로 계산하면 상자 밖으로 나간다.
             // 상자 높이가 달라져도 세 줄이 겹치지 않도록 높이에서 되짚어 계산한다.
-            // 띠 위의 상자는 띠의 글자 자리(위에서 48)에 이름을 맞춘다. 글자는 예전 상자 자리에서 시작한다.
-            float boxH = fullScreen ? boxRt.sizeDelta.y : BandHeight;
-            const float nameH = 50f, hintH = 28f;
-            float pad = fullScreen ? 20f : 40f;
+            float boxH = boxRt.sizeDelta.y;
+            const float nameH = 50f, hintH = 28f, pad = 20f;
 
-            float textLeft = fullScreen ? 48f : 208f;
-            float textRight = fullScreen ? 48f : 208f;
+            const float textLeft = 48f;
+            const float textRight = 48f;
 
             var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
@@ -2447,6 +2430,10 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_nameText").objectReferenceValue = nameText;
             so.FindProperty("_lineText").objectReferenceValue = lineText;
             so.FindProperty("_hintText").objectReferenceValue = hintText;
+            so.FindProperty("_box").objectReferenceValue = boxRt;
+            so.FindProperty("_boxEdge").objectReferenceValue = boxEdge;
+            so.FindProperty("_advanceRect").objectReferenceValue = (RectTransform)advanceGo.transform;
+            so.FindProperty("_advanceCoversScreen").boolValue = fullScreen;
             so.FindProperty("_advanceButton").objectReferenceValue = advance;
             so.FindProperty("_choiceRoot").objectReferenceValue = choiceRoot;
             so.FindProperty("_choiceTemplate").objectReferenceValue = dialogueChoice;

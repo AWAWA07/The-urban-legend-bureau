@@ -918,6 +918,7 @@ namespace UrbanLegendBureau.Systems
             if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
 
             // 겹침 대화에는 한영 혼자 나온다. 처음 대화에서처럼 화면 가운데에 세운다.
+            _talkScreen.SetBandLayout(false);   // 컴퓨터 화면 위에서는 원래 상자(타입 1)
             _talkScreen.SetSoloLayout(showCharacter);
             _talkScreen.SetRightSoloLayout(false);
             _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineTextId));
@@ -947,6 +948,7 @@ namespace UrbanLegendBureau.Systems
             // 나레이션 동안에도 아무것도 고를 수 없다.
             if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
 
+            _talkScreen.SetBandLayout(false);
             // 나레이션에는 인물을 세우지 않는다. 대사 상자만 남는다.
             _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: false, rightVisible: false);
 
@@ -1825,6 +1827,9 @@ namespace UrbanLegendBureau.Systems
 
             // 화면을 먼저 올린다. 꺼져 있는 화면에 대사를 넣으면 강조 움직임이 시작되지 못한다.
             if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
+
+            // 숙소에는 아래에 대사 띠가 깔려 있다. 상자를 띠에 맞춘다(타입 3).
+            _talkScreen.SetBandLayout(true);
 
             // 둘이 함께 서면 제자리에. 한영이 없으면 차지한 혼자 가운데에 선다.
             _talkScreen.SetSoloLayout(false);

@@ -25,8 +25,9 @@ namespace UrbanLegendBureau.UI
     ///
     /// 대화 방식은 둘이다.
     ///   타입 1 - 이 화면. 인물을 전신으로 세우고 아래 큰 상자에 이름과 대사를 쓴다. 장면이 되는 대화에 쓴다.
-    ///            (처음 대화, 컴퓨터 앞의 한영, 숙소에 들어설 때와 첫날 밤의 대화)
+    ///            (처음 대화, 컴퓨터 앞의 한영)
     ///   타입 2 - FieldHudScreen 의 아래 띠. 작은 초상과 이름과 대사. 현장과 숙소에서 물건을 살펴볼 때의 말에 쓴다.
+    ///   타입 3 - 타입 1 과 같되 상자를 타입 2 띠 자리에 맞춘 것(SetBandLayout). 숙소의 대화에만 쓴다.
     ///
     /// 두 인물을 좌우에 세우고, 말하는 쪽을 밝게, 듣는 쪽을 어둡게 둔다.
     /// 말하는 인물은 아주 조금 움직인다. 코루틴으로 처리한다. 외부 트윈 패키지는 쓰지 않는다.
@@ -47,6 +48,17 @@ namespace UrbanLegendBureau.UI
 
         [Tooltip("화면 전체를 덮는 진행 버튼.")]
         [SerializeField] private Button _advanceButton;
+
+        [Header("타입 3 (띠에 맞춘 상자)")]
+        [Tooltip("대사 상자. 타입 3 이면 현장 대사 띠 자리로 옮긴다.")]
+        [SerializeField] private RectTransform _box;
+
+        [Tooltip("타입 3 일 때만 켜는 상자 위쪽 가는 선.")]
+        [SerializeField] private GameObject _boxEdge;
+
+        [Tooltip("진행 버튼의 자리. 화면 전체를 덮는 버튼이 아니면 상자를 따라 옮긴다.")]
+        [SerializeField] private RectTransform _advanceRect;
+        [SerializeField] private bool _advanceCoversScreen;
 
         [Header("쪽지")]
         [Tooltip("설명할 때 오른쪽에 펴 두는 쪽지. 필요할 때만 켜진다.")]
@@ -103,6 +115,7 @@ namespace UrbanLegendBureau.UI
             if (_right != null && _right.image != null) _rightDesignPosition = _right.image.rectTransform.anchoredPosition;
             if (_lineText != null) _lineDefaultColor = _lineText.color;
             _homesCaptured = true;
+            CaptureBoxDesign();
         }
 
         private Color _lineDefaultColor = Color.white;
@@ -123,6 +136,100 @@ namespace UrbanLegendBureau.UI
             rt.anchoredPosition = solo
                 ? new Vector2(0f, _leftDesignPosition.y)
                 : _leftDesignPosition;
+        }
+
+        // ------------------------------------------------------------- 타입 3
+
+        /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
+        private const float BandHeight = 1080f / 3f;
+        private static readonly Color BandColor = new Color(0.03f, 0.03f, 0.05f, 1f);
+
+        private struct RectState
+        {
+            public Vector2 anchorMin, anchorMax, pivot, offsetMin, offsetMax;
+
+            public static RectState Of(RectTransform rt) => new RectState
+            {
+                anchorMin = rt.anchorMin, anchorMax = rt.anchorMax, pivot = rt.pivot,
+                offsetMin = rt.offsetMin, offsetMax = rt.offsetMax,
+            };
+
+            public void ApplyTo(RectTransform rt)
+            {
+                rt.anchorMin = anchorMin; rt.anchorMax = anchorMax; rt.pivot = pivot;
+                rt.offsetMin = offsetMin; rt.offsetMax = offsetMax;
+            }
+        }
+
+        private bool _boxCaptured;
+        private bool _bandLayout;
+        private RectState _boxDesign, _advanceDesign, _nameDesign, _lineDesign, _hintDesign;
+        private Color _boxColor;
+
+        private void CaptureBoxDesign()
+        {
+            if (_box == null) return;
+            _boxDesign = RectState.Of(_box);
+            if (_advanceRect != null) _advanceDesign = RectState.Of(_advanceRect);
+            if (_nameText != null) _nameDesign = RectState.Of(_nameText.rectTransform);
+            if (_lineText != null) _lineDesign = RectState.Of(_lineText.rectTransform);
+            if (_hintText != null) _hintDesign = RectState.Of(_hintText.rectTransform);
+            var image = _box.GetComponent<Image>();
+            if (image != null) _boxColor = image.color;
+            _boxCaptured = true;
+        }
+
+        /// <summary>
+        /// 대화 "타입 3". 상자를 현장 대사 띠(타입 2)와 같은 자리, 같은 색으로 둔다.
+        /// 숙소처럼 아래에 띠가 깔린 곳에서 띠가 상자 둘레로 비치지 않게 한다.
+        /// 끄면 원래 타입 1 상자로 돌아간다. 컴퓨터 화면 위에서는 끈다.
+        /// </summary>
+        public void SetBandLayout(bool band)
+        {
+            if (!_boxCaptured || _bandLayout == band) return;
+            _bandLayout = band;
+
+            var image = _box.GetComponent<Image>();
+            if (_boxEdge != null) _boxEdge.SetActive(band);
+
+            if (!band)
+            {
+                _boxDesign.ApplyTo(_box);
+                if (_advanceRect != null) _advanceDesign.ApplyTo(_advanceRect);
+                if (_nameText != null) _nameDesign.ApplyTo(_nameText.rectTransform);
+                if (_lineText != null) _lineDesign.ApplyTo(_lineText.rectTransform);
+                if (_hintText != null) _hintDesign.ApplyTo(_hintText.rectTransform);
+                if (image != null) image.color = _boxColor;
+                return;
+            }
+
+            PlaceOnBand(_box);
+            if (_advanceRect != null && !_advanceCoversScreen) PlaceOnBand(_advanceRect);
+            if (image != null) image.color = BandColor;
+
+            // 이름은 띠의 글자 자리(위에서 40)에 맞춘다. 글자는 예전 상자 자리(왼쪽 208)에서 시작한다.
+            const float side = 208f, pad = 40f, nameH = 50f, hintH = 28f;
+            if (_nameText != null) Inset(_nameText.rectTransform, side, pad, BandHeight - pad - nameH);
+            if (_lineText != null) Inset(_lineText.rectTransform, side, pad + nameH + 10f, pad + hintH + 8f);
+            if (_hintText != null) Inset(_hintText.rectTransform, side, BandHeight - pad - hintH, pad - 6f);
+        }
+
+        private static void PlaceOnBand(RectTransform rt)
+        {
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(0f, BandHeight);
+        }
+
+        /// <summary>상자 안쪽에 양옆 side, 위 top, 아래 bottom 만큼 띄워 채운다.</summary>
+        private static void Inset(RectTransform rt, float side, float top, float bottom)
+        {
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(side, bottom);
+            rt.offsetMax = new Vector2(-side, -top);
         }
 
         /// <summary>
