@@ -48,6 +48,16 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private Color _pressedColor = new Color(1f, 0.85f, 0.4f);
         [SerializeField] private Color _investigatedColor = new Color(0.45f, 0.45f, 0.5f);
 
+        [Tooltip("곁에 섰을 때 밝힐 그림들. 채워 두면 네모 칸 대신 이 그림들만 밝아져 물건 모양에 꼭 맞는다.")]
+        [SerializeField] private SpriteRenderer[] _highlightTargets;
+
+        [Tooltip("밝힐 때 흰색으로 다가가는 정도.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float _highlightAmount = 0.32f;
+
+        /// <summary>밝히기 전 그림들의 색. 처음 한 번만 받아 둔다.</summary>
+        private Color[] _targetColors;
+
         public string NameTextId => _nameTextId;
         public string ResultTextId => _resultTextId;
         public string PromptTextId => _promptTextId;
@@ -75,6 +85,12 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_renderer == null) _renderer = GetComponent<SpriteRenderer>();
+            if (HasTargets)
+            {
+                _targetColors = new Color[_highlightTargets.Length];
+                for (int i = 0; i < _highlightTargets.Length; i++)
+                    if (_highlightTargets[i] != null) _targetColors[i] = _highlightTargets[i].color;
+            }
             ApplyColor();
         }
 
@@ -112,8 +128,27 @@ namespace UrbanLegendBureau.Systems
         /// 지금 상태에 맞는 색을 입힌다.
         /// 이미 조사한 곳은 곁에 서도 옅게만 밝아진다. 한 일과 안 한 일이 구분돼야 한다.
         /// </summary>
+        private bool HasTargets => _highlightTargets != null && _highlightTargets.Length > 0;
+
         private void ApplyColor()
         {
+            // 물건 그림을 밝히는 지점. 네모 칸은 늘 숨겨 둔다.
+            if (HasTargets && _targetColors != null)
+            {
+                if (_renderer != null) _renderer.color = _normalColor;
+
+                float amount = !_highlighted ? 0f : (IsInvestigated ? _highlightAmount * 0.5f : _highlightAmount);
+                for (int i = 0; i < _highlightTargets.Length; i++)
+                {
+                    var target = _highlightTargets[i];
+                    if (target == null) continue;
+                    var c = Color.Lerp(_targetColors[i], Color.white, amount);
+                    c.a = _targetColors[i].a;
+                    target.color = c;
+                }
+                return;
+            }
+
             if (_renderer == null) return;
 
             if (!_highlighted)

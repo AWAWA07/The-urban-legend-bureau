@@ -126,6 +126,22 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
+        /// 오른쪽 인물만 나와 있을 때 화면 가운데에 세운다. 숙소에서 차지한 혼자 말할 때다.
+        /// 끄면 원래 자리로 돌아간다. 대사를 보이기 전에 불러야 한다.
+        /// </summary>
+        public void SetRightSoloLayout(bool solo)
+        {
+            if (!_homesCaptured || _right == null || _right.image == null) return;
+
+            StopMotion();
+
+            var rt = _right.image.rectTransform;
+            rt.anchoredPosition = solo
+                ? new Vector2(0f, _rightDesignPosition.y)
+                : _rightDesignPosition;
+        }
+
+        /// <summary>
         /// 서 있는 인물의 그림을 바꾼다. 대사마다 표정과 포즈가 달라진다.
         /// 그림이 없으면(null) 지금 그림을 그대로 둔다. 밝기와 등장 연출은 건드리지 않는다.
         /// </summary>

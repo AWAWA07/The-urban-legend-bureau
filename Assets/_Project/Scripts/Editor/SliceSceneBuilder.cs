@@ -135,6 +135,12 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(3.1f, 4.8f), new Color(0.38f, 0.32f, 0.36f),
                 "field.subway.platform", "field.subway.platform", null);
 
+            // 곁에 서면 네모 칸이 아니라 그 자리의 그림이 밝아진다.
+            // 빈자리는 긴 의자의 한 칸이라 따로 떨어진 그림이 없다. 그 칸 크기의 네모를 그대로 쓴다.
+            FitHighlightToArt(window, trainInside.transform);
+            SetHighlightTargets(cctv, trainInside.transform, "CctvArm", "CctvShade");   // 칸보다 큰 몸통이라 직접 댄다
+            FitHighlightToArt(platform, trainInside.transform);
+
             // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
             ConfigurePoint(seat, "point_subway_seat",
                 new[] { "action_subway_seat_search", "action_subway_photo" }, null, false, CaseStep.Started);
@@ -606,6 +612,7 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(DoorGap - 0.4f, 4.6f), new Color(0.40f, 0.44f, 0.36f),
                 "field.subway.board", "field.subway.board", null);
             ConfigurePoint(boarding, CaseDirector.BoardingPointId, null, null, false, CaseStep.Started);
+            FitHighlightToArt(boarding, root.transform);
             boarding.SetActive(false);
 
             // 승강장에 선 두 사람. 발은 안전선 안쪽, 바닥 위에 놓는다.
@@ -1073,6 +1080,14 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(0.9f, 1.1f), new Color(0.86f, 0.84f, 0.80f), "field.room.switch", string.Empty, null);
             ConfigureRoomPoint(switchPoint, "point_room_switch", "ui.field.prompt_press");
 
+            // 곁에 서면 물건 그림 그대로 밝아진다. 네모 칸이 물건 옆으로 삐져나오지 않는다.
+            SetHighlightTargets(computer, root.transform, "MonitorStand", "MonitorFrame", "MonitorScreen", "MonitorTaskbar", "Keyboard");
+            SetHighlightTargets(bedPoint, root.transform, "Bed");
+            SetHighlightTargets(shelfPoint, root.transform, "Bookshelf");
+            SetHighlightTargets(clockPoint, root.transform, "WallClock");
+            SetHighlightTargets(doorPoint, root.transform, "Door");
+            SetHighlightTargets(switchPoint, root.transform, "SwitchPlate", "SwitchSlot", "SwitchToggle");
+
             // 방의 밤. 조명과 문과 두 사람의 움직임을 한데 쥔다.
             var lead = root.transform.Find("Actor_Chajihan");
             var mate = root.transform.Find("Actor_Hanyoung");
@@ -1091,7 +1106,105 @@ namespace UrbanLegendBureau.EditorTools
             nso.FindProperty("_moonLight").objectReferenceValue = moon;
             nso.FindProperty("_blanketOver").objectReferenceValue = blanketOver;
             nso.FindProperty("_switchToggle").objectReferenceValue = switchToggle.transform;
+
+            // 잠들 때 화면 위아래에서 닫혀 오는 눈꺼풀. 화면 맨 위에 덮이도록 따로 캔버스를 둔다.
+            var lids = new GameObject("SleepLids", typeof(RectTransform));
+            lids.transform.SetParent(root.transform, false);
+            var lidCanvas = lids.AddComponent<Canvas>();
+            lidCanvas.renderMode = RenderMode.ScreenSpaceOverlay;
+            lidCanvas.sortingOrder = 900;   // 대사 띠와 휴대폰까지 덮는다
+
+            // 눈 모양으로 뚫린 판. 그림은 RoomNight 가 처음에 그린다. 위아래로 납작해지며 감긴다.
+            var eyeMask = CreatePanel(lids.transform, "EyeMask", Color.white);
+            var eyeMaskRt = (RectTransform)eyeMask.transform;
+            eyeMaskRt.anchorMin = new Vector2(0.5f, 0.5f);
+            eyeMaskRt.anchorMax = new Vector2(0.5f, 0.5f);
+            eyeMaskRt.pivot = new Vector2(0.5f, 0.5f);
+            eyeMaskRt.anchoredPosition = Vector2.zero;
+            eyeMask.GetComponent<Image>().raycastTarget = false;
+
+            // 판이 납작해지면 그 위아래가 비므로 검은 판을 붙여 덮는다.
+            foreach (bool top in new[] { true, false })
+            {
+                var fill = CreatePanel(eyeMask.transform, top ? "FillTop" : "FillBottom", Color.black);
+                var fillRt = (RectTransform)fill.transform;
+                fillRt.anchorMin = new Vector2(0f, top ? 1f : 0f);
+                fillRt.anchorMax = new Vector2(1f, top ? 1f : 0f);
+                fillRt.pivot = new Vector2(0.5f, top ? 0f : 1f);
+                fillRt.anchoredPosition = Vector2.zero;
+                fillRt.sizeDelta = new Vector2(0f, 4000f);
+                fill.GetComponent<Image>().raycastTarget = false;
+            }
+            eyeMask.SetActive(false);
+
+            var lidFade = CreatePanel(lids.transform, "LidFade", Color.black);
+            StretchFull(lidFade);
+            lidFade.GetComponent<Image>().raycastTarget = false;
+            var lidFadeGroup = lidFade.AddComponent<CanvasGroup>();
+            lidFadeGroup.alpha = 0f;
+            lidFadeGroup.blocksRaycasts = false;
+
+            nso.FindProperty("_eyeMask").objectReferenceValue = eyeMaskRt;
+            nso.FindProperty("_lidFade").objectReferenceValue = lidFadeGroup;
             nso.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 곁에 섰을 때 네모 칸 대신 이 물건 그림들을 밝힌다. 밝아지는 범위가 물건 모양에 꼭 맞는다.
+        /// names 는 root 아래 자식 이름이다. 묶음이면 그 안의 그림을 모두 넣는다(꺼진 것까지. 문은 열리고 닫힌다).
+        /// </summary>
+        private static void SetHighlightTargets(GameObject pointGo, Transform root, params string[] names)
+        {
+            var list = new List<SpriteRenderer>();
+            foreach (var n in names)
+            {
+                var t = root.Find(n);
+                if (t == null) { Debug.LogWarning("[SliceSceneBuilder] 밝힐 그림이 없다: " + n); continue; }
+                list.AddRange(t.GetComponentsInChildren<SpriteRenderer>(true));
+            }
+            AssignHighlightTargets(pointGo, list);
+        }
+
+        /// <summary>
+        /// 이름을 하나하나 대지 않고, 지점의 네모 칸 안에 들어앉은 그림을 밝힐 그림으로 삼는다.
+        /// 칸보다 조금 삐져나온 것까지는 넣고, 벽이나 바닥처럼 칸보다 훨씬 큰 것은 뺀다.
+        /// 걷는 두 사람과 다른 조사 지점의 칸은 넣지 않는다. 하나도 못 찾으면 네모 칸을 그대로 쓴다.
+        /// </summary>
+        private static void FitHighlightToArt(GameObject pointGo, Transform searchRoot)
+        {
+            var box = pointGo.GetComponent<SpriteRenderer>();
+            if (box == null) return;
+
+            var area = box.bounds;
+            var loose = new Bounds(area.center, area.size * 1.3f);
+
+            var list = new List<SpriteRenderer>();
+            foreach (var sr in searchRoot.GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (sr == box || sr.sprite == null) continue;
+                if (sr.GetComponent<InvestigationPoint>() != null) continue;
+                if (sr.GetComponentInParent<FieldWalker>(true) != null || sr.GetComponentInParent<FieldFollower>(true) != null) continue;
+                if (sr.color.a < 0.5f) continue;   // 번지는 빛과 그늘은 밝히지 않는다
+
+                var b = sr.bounds;
+                if (!area.Contains(new Vector3(b.center.x, b.center.y, area.center.z))) continue;
+                if (!loose.Contains(new Vector3(b.min.x, b.min.y, area.center.z)) || !loose.Contains(new Vector3(b.max.x, b.max.y, area.center.z))) continue;
+                list.Add(sr);
+            }
+            AssignHighlightTargets(pointGo, list);
+        }
+
+        private static void AssignHighlightTargets(GameObject pointGo, List<SpriteRenderer> list)
+        {
+            var point = pointGo.GetComponent<InvestigationPoint>();
+            if (point == null || list.Count == 0) return;
+
+            var so = new SerializedObject(point);
+            so.Update();
+            var prop = so.FindProperty("_highlightTargets");
+            prop.arraySize = list.Count;
+            for (int i = 0; i < list.Count; i++) prop.GetArrayElementAtIndex(i).objectReferenceValue = list[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>숙소의 물건 하나. 조사 방법도 해금 조건도 없고, 말풍선 글만 제 것을 쓴다.</summary>
@@ -2128,6 +2241,21 @@ namespace UrbanLegendBureau.EditorTools
         /// fullScreen이면 검은 배경 위에 두 인물을 세우는 단독 화면이다.
         /// 아니면 아래 화면(커뮤니티)을 가리지 않는 겹침 대화가 된다. 구성은 같다.
         /// </summary>
+        /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
+        private const float BandHeight = 1080f / 3f;
+        private static readonly Color BandColor = new Color(0.03f, 0.03f, 0.05f, 1f);
+        private static readonly Color BandEdgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);
+
+        /// <summary>화면 아래 1/3, 현장 대사 띠와 꼭 같은 자리에 놓는다.</summary>
+        private static void PlaceOnBand(RectTransform rt)
+        {
+            rt.anchorMin = new Vector2(0f, 0f);
+            rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = Vector2.zero;
+            rt.sizeDelta = new Vector2(0f, BandHeight);
+        }
+
         private static DialogueScreen BuildDialogueScreen(string name, bool fullScreen)
         {
             var go = CreatePanel(null, name,
@@ -2153,11 +2281,7 @@ namespace UrbanLegendBureau.EditorTools
             }
             else
             {
-                var advanceRt = (RectTransform)advanceGo.transform;
-                advanceRt.anchorMin = new Vector2(0.5f, 0.5f);
-                advanceRt.anchorMax = new Vector2(0.5f, 0.5f);
-                advanceRt.anchoredPosition = new Vector2(0f, -340f);   // 대사 상자와 같은 자리
-                advanceRt.sizeDelta = new Vector2(1600f, 300f);
+                PlaceOnBand((RectTransform)advanceGo.transform);   // 대사 상자와 같은 자리
             }
             var advance = advanceGo.AddComponent<Button>();
             var advanceImage = advanceGo.GetComponent<Image>();
@@ -2179,34 +2303,57 @@ namespace UrbanLegendBureau.EditorTools
             if (hanyoungArt != null) left.sprite = hanyoungArt;
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
-            var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
+            // 겹침 대화는 현장과 숙소 위에도 뜬다. 거기에는 아래 1/3 에 대사 띠(타입 2)가 깔려 있다.
+            // 상자를 띠와 꼭 같은 자리, 같은 색으로 두어 띠가 상자 둘레로 비치지 않게 한다.
+            var box = CreatePanel(go.transform, "Box",
+                fullScreen ? new Color(0.09f, 0.09f, 0.12f, 0.96f) : BandColor);
             var boxRt = (RectTransform)box.transform;
-            boxRt.anchorMin = new Vector2(0.5f, 0.5f);
-            boxRt.anchorMax = new Vector2(0.5f, 0.5f);
-            boxRt.anchoredPosition = new Vector2(0f, -340f);
-            boxRt.sizeDelta = new Vector2(1600f, 300f);
+            if (fullScreen)
+            {
+                boxRt.anchorMin = new Vector2(0.5f, 0.5f);
+                boxRt.anchorMax = new Vector2(0.5f, 0.5f);
+                boxRt.anchoredPosition = new Vector2(0f, -340f);
+                boxRt.sizeDelta = new Vector2(1600f, 300f);
+            }
+            else
+            {
+                PlaceOnBand(boxRt);
+
+                var boxEdge = CreatePanel(box.transform, "Edge", BandEdgeColor);
+                var boxEdgeRt = (RectTransform)boxEdge.transform;
+                boxEdgeRt.anchorMin = new Vector2(0f, 1f);
+                boxEdgeRt.anchorMax = new Vector2(1f, 1f);
+                boxEdgeRt.pivot = new Vector2(0.5f, 1f);
+                boxEdgeRt.anchoredPosition = Vector2.zero;
+                boxEdgeRt.sizeDelta = new Vector2(0f, 2f);
+                boxEdge.GetComponent<Image>().raycastTarget = false;
+                AddCrisp(boxEdge, 2f);
+            }
 
             // 상자 안쪽 여백을 기준으로 붙인다. 좌표를 손으로 계산하면 상자 밖으로 나간다.
             // 상자 높이가 달라져도 세 줄이 겹치지 않도록 높이에서 되짚어 계산한다.
-            float boxH = boxRt.sizeDelta.y;
-            const float nameH = 50f, hintH = 28f, pad = 20f;
+            // 띠 위의 상자는 띠의 글자 자리(위에서 48)에 이름을 맞춘다. 글자는 예전 상자 자리에서 시작한다.
+            float boxH = fullScreen ? boxRt.sizeDelta.y : BandHeight;
+            const float nameH = 50f, hintH = 28f;
+            float pad = fullScreen ? 20f : 40f;
 
-            const float textLeft = 48f;
+            float textLeft = fullScreen ? 48f : 208f;
+            float textRight = fullScreen ? 48f : 208f;
 
             var nameText = AddText(box.transform, "Name", 36f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(nameText.rectTransform, textLeft, 48f, pad, boxH - pad - nameH);
+            StretchInside(nameText.rectTransform, textLeft, textRight, pad, boxH - pad - nameH);
 
             var lineText = AddText(box.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
-            StretchInside(lineText.rectTransform, textLeft, 48f, pad + nameH + 10f, pad + hintH + 8f);
+            StretchInside(lineText.rectTransform, textLeft, textRight, pad + nameH + 10f, pad + hintH + 8f);
 
             // 현장의 대사 띠와 같은 규칙을 쓴다. 두 곳의 대사가 같은 모습으로 보여야 한다.
             ConfigureBodyText(lineText, 34f);
 
             var hintText = AddText(box.transform, "Hint", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.BottomRight);
-            StretchInside(hintText.rectTransform, textLeft, 48f, boxH - pad - hintH, pad - 6f);
+            StretchInside(hintText.rectTransform, textLeft, textRight, boxH - pad - hintH, pad - 6f);
 
             // 대사 상자를 눌러도 넘어가야 하므로 진행 버튼을 맨 위로 올린다.
             // 상자가 클릭을 가로채면 플레이어가 가장 자연스럽게 누르는 자리가 먹통이 된다.
@@ -4252,7 +4399,7 @@ namespace UrbanLegendBureau.EditorTools
             safe.AddComponent<SafeAreaFitter>();
 
             // 아래 1/3 은 대사 띠가 쓴다. 위 2/3 은 카메라가 장면을 그리는 자리라 비워 둔다.
-            const float BandHeight = 1080f / 3f;     // = 360
+            // 띠 높이(BandHeight)는 겹침 대화 상자와 같이 쓴다. 위에 따로 적어 두었다.
 
             // --- 장면 맨 위 가운데의 한 줄 ---
             // 장면 위에 얹히므로 글자가 묻히지 않게 어두운 판을 깔아 준다.

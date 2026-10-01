@@ -61,6 +61,16 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("누운 몸 위로 덮는 이불. 누울 때 켜진다.")]
         [SerializeField] private GameObject _blanketOver;
 
+        [Header("눈꺼풀")]
+        [Tooltip("눈 모양으로 뚫린 검은 판. 위아래로 납작해지며 감긴다. 위아래 바깥은 자식 판이 덮는다.")]
+        [SerializeField] private RectTransform _eyeMask;
+
+        [Tooltip("눈꺼풀이 거의 닫힐 즈음 화면 전체를 덮는 검은 판. 틈 없이 까맣게 끝난다.")]
+        [SerializeField] private CanvasGroup _lidFade;
+
+        /// <summary>졸음이 온 뒤로는 화면도 차지한의 눈을 따라 감긴다.</summary>
+        private bool _lidsFollowEyes;
+
         public bool IsLightOn { get; private set; } = true;
 
         private Vector3[] _eyeScales;
@@ -70,6 +80,7 @@ namespace UrbanLegendBureau.Systems
 
         private void Awake()
         {
+            BuildEyeSprite();
             if (_eyes != null)
             {
                 _eyeScales = new Vector3[_eyes.Length];
@@ -88,6 +99,7 @@ namespace UrbanLegendBureau.Systems
             ApplyLight();
             PlaceSwitch();
             SetDoorOpen(false);
+            SetLids(0f);
         }
 
         /// <summary>
@@ -118,6 +130,8 @@ namespace UrbanLegendBureau.Systems
 
             SetEyes(1f);
             if (_blanketOver != null) _blanketOver.SetActive(false);
+            _lidsFollowEyes = false;
+            SetLids(0f);
             SetShadow(true);
         }
 
@@ -299,6 +313,7 @@ namespace UrbanLegendBureau.Systems
             yield return Blink(0.1f, 0.14f);
             yield return new WaitForSeconds(0.9f);
             yield return Blink(0.18f, 0.3f);           // 한 번 느리게. 졸음이 오기 시작한다
+            _lidsFollowEyes = true;                    // 여기서부터 화면도 함께 감긴다
             yield return EyesTo(0.5f, 0.6f);           // 반쯤 감긴다
             yield return new WaitForSeconds(0.9f);
             yield return EyesTo(0.85f, 0.35f);          // 억지로 한 번 뜬다
@@ -328,6 +343,67 @@ namespace UrbanLegendBureau.Systems
             SetEyes(target);
         }
 
+        /// <summary>
+        /// 화면의 눈꺼풀을 그만큼 닫는다. 0 이면 다 뜬 것, 1 이면 다 감은 것이다.
+        /// 위아래 판이 가운데로 다가오고, 거의 닫힐 즈음 화면 전체가 까매진다.
+        /// </summary>
+        private void SetLids(float closed)
+        {
+            closed = Mathf.Clamp01(closed);
+
+            // 눈 모양 구멍이 위아래로 납작해진다. 처음에는 눈꼬리 쪽 가장자리만 어두워지고,
+            // 다 감기면 가는 선 하나만 남았다가 사라진다.
+            if (_eyeMask != null)
+            {
+                _eyeMask.gameObject.SetActive(closed > 0f);
+                var screen = _eyeMask.parent as RectTransform;
+                float h = screen != null ? screen.rect.height : Screen.height;
+                float w = screen != null ? screen.rect.width : Screen.width;
+                float lid = Mathf.SmoothStep(0f, 1f, closed);
+                _eyeMask.sizeDelta = new Vector2(w * EyeWidth, h * Mathf.Lerp(EyeOpenHeight, 0f, lid));
+            }
+
+            if (_lidFade != null) _lidFade.alpha = Mathf.InverseLerp(0.75f, 1f, closed);
+        }
+
+        /// <summary>눈 구멍의 폭(화면 폭에 대한 배율). 눈꼬리가 화면 양 끝 조금 안쪽에 온다.</summary>
+        private const float EyeWidth = 1.12f;
+
+        /// <summary>다 떴을 때 구멍의 높이(화면 높이에 대한 배율). 눈꼬리 쪽까지 화면이 다 보일 만큼 크다.</summary>
+        private const float EyeOpenHeight = 5f;
+
+        /// <summary>
+        /// 눈 모양 구멍을 그린다. 가운데가 넓고 양 끝이 뾰족한 아몬드 꼴이다. 구멍 밖은 검다.
+        /// 그림 파일을 따로 두지 않고 처음 한 번 만든다.
+        /// </summary>
+        private void BuildEyeSprite()
+        {
+            if (_eyeMask == null) return;
+            var image = _eyeMask.GetComponent<UnityEngine.UI.Image>();
+            if (image == null) return;
+
+            const int W = 512, H = 256;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp };
+            var pixels = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H * 2f - 1f;
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W * 2f - 1f;
+                    float half = 1f - u * u;                          // 눈꺼풀의 곡선. 가운데가 가장 높다
+                    float edge = Mathf.Abs(v) - half;                 // 0 보다 작으면 구멍 안
+                    float a = Mathf.Clamp01(edge / 0.06f + 0.5f);     // 가장자리를 살짝 흐린다
+                    pixels[y * W + x] = new Color32(0, 0, 0, (byte)(a * 255));
+                }
+            }
+            tex.SetPixels32(pixels);
+            tex.Apply();
+            image.sprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f));
+            image.type = UnityEngine.UI.Image.Type.Simple;
+            image.preserveAspect = false;
+        }
+
         private void SetShadow(bool on)
         {
             var shadow = _chajihan != null ? _chajihan.transform.Find("Shadow") : null;
@@ -339,6 +415,7 @@ namespace UrbanLegendBureau.Systems
         private void SetEyes(float open)
         {
             _eyeOpen = open;
+            if (_lidsFollowEyes) SetLids(Mathf.InverseLerp(1f, 0.08f, open));
             if (_eyes == null || _eyeScales == null) return;
 
             for (int i = 0; i < _eyes.Length; i++)

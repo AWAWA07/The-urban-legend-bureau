@@ -919,6 +919,7 @@ namespace UrbanLegendBureau.Systems
 
             // 겹침 대화에는 한영 혼자 나온다. 처음 대화에서처럼 화면 가운데에 세운다.
             _talkScreen.SetSoloLayout(showCharacter);
+            _talkScreen.SetRightSoloLayout(false);
             _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineTextId));
             _talkScreen.ShowLine(true,
                 () => _loc.Get(HanyoungNameTextId),
@@ -1825,8 +1826,9 @@ namespace UrbanLegendBureau.Systems
             // 화면을 먼저 올린다. 꺼져 있는 화면에 대사를 넣으면 강조 움직임이 시작되지 못한다.
             if (!_ui.Contains(_talkScreen)) _ui.Push(_talkScreen);
 
-            // 둘이 함께 서면 제자리에, 한영이 없으면 차지한 혼자다.
+            // 둘이 함께 서면 제자리에. 한영이 없으면 차지한 혼자 가운데에 선다.
             _talkScreen.SetSoloLayout(false);
+            _talkScreen.SetRightSoloLayout(!hanyoungPresent);
             if (hanyoungPresent && (hanyoungSpeaks || !_roomTalkOpened))
             {
                 _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(artId));
