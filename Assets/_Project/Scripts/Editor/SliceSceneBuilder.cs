@@ -1587,14 +1587,23 @@ namespace UrbanLegendBureau.EditorTools
 
             var button = go.AddComponent<Button>();
 
-            var box = CreatePanel(go.transform, "Box", new Color(0.24f, 0.26f, 0.34f, 1f));
+            var box = CreatePanel(go.transform, "Box", Color.white);
+            var boxSprite = LoadBackdropSprite(UIIconPath + "app_" + id + ".png");
+            if (boxSprite != null)
+            {
+                box.GetComponent<Image>().sprite = boxSprite;
+                box.GetComponent<Image>().preserveAspect = true;
+            }
+            else box.GetComponent<Image>().color = new Color(0.24f, 0.26f, 0.34f, 1f);
             var boxRt = (RectTransform)box.transform;
             boxRt.anchorMin = new Vector2(0.5f, 1f);
             boxRt.anchorMax = new Vector2(0.5f, 1f);
             boxRt.pivot = new Vector2(0.5f, 1f);
             boxRt.anchoredPosition = Vector2.zero;
             boxRt.sizeDelta = new Vector2(size, size);
-            button.targetGraphic = box.GetComponent<Image>();
+            box.GetComponent<Image>().raycastTarget = true;   // 누르는 자리는 아이콘 그림이다
+            if (boxSprite != null) AddIconHighlight(box.transform, button);
+            else button.targetGraphic = box.GetComponent<Image>();
 
             // 아이콘이 작으므로 이름표도 같이 줄인다. 이름이 길어도 한 줄에 들어가게 넉넉히 넓힌다.
             label = AddText(go.transform, "Label", 16f, UIFontWeight.Medium, TextColor,
@@ -2524,22 +2533,156 @@ namespace UrbanLegendBureau.EditorTools
         /// <summary>어두운 상태 줄 위에 얹히는 믿음도. 흰 종이 위보다 밝은 붉은색이어야 읽힌다.</summary>
         private static readonly Color PhoneBeliefColor = new Color(0.92f, 0.34f, 0.32f);
 
+        /// <summary>앱 아이콘, 배경화면, 작업 표시줄 그림이 있는 곳.</summary>
+        private const string UIIconPath = "Assets/_Project/Art/UI/Icons/";
+
+        /// <summary>부모를 빈틈없이 덮는 그림. 비율이 달라 넘치는 가장자리는 잘린다. 그림이 없으면 null.</summary>
+        private static GameObject AddCoverImage(Transform parent, string name, string path)
+        {
+            var sprite = LoadBackdropSprite(path);
+            if (sprite == null) return null;
+
+            var go = CreatePanel(parent, name, Color.white);
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.raycastTarget = false;
+            var fitter = go.AddComponent<AspectRatioFitter>();
+            fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+            fitter.aspectRatio = sprite.rect.width / sprite.rect.height;
+            go.transform.SetAsFirstSibling();
+            return go;
+        }
+
+        /// <summary>
+        /// 작업 표시줄 위의 그림 하나. x 가 0 이상이면 왼쪽 끝에서, 음수면 오른쪽 끝에서 잰 가운데 자리다.
+        /// 눌리지 않는 장식이다.
+        /// </summary>
+        private static void AddTaskbarImage(Transform parent, string name, string file, float x, float size, float alpha = 1f)
+        {
+            var sprite = LoadBackdropSprite(UIIconPath + file);
+            if (sprite == null) return;
+
+            var go = CreatePanel(parent, name, new Color(1f, 1f, 1f, alpha));
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            var rt = (RectTransform)go.transform;
+            float side = x < 0f ? 1f : 0f;
+            rt.anchorMin = new Vector2(side, 0.5f);
+            rt.anchorMax = new Vector2(side, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = new Vector2(x, 0f);
+            rt.sizeDelta = new Vector2(size, size);
+        }
+
+        /// <summary>
+        /// 아이콘 위에 겹치는 흰 판. 아이콘과 같은 둥근 네모 모양이라 밝아지는 범위가 아이콘에 꼭 맞는다.
+        /// 평소에는 투명하고, 마우스를 올리면 옅게, 누르면 조금 더 밝아진다.
+        /// </summary>
+        private static void AddIconHighlight(Transform icon, Button button)
+        {
+            var mask = LoadBackdropSprite(UIIconPath + "app_mask.png");
+            var go = CreatePanel(icon, "Highlight", Color.white);
+            StretchFull(go);
+            var image = go.GetComponent<Image>();
+            image.sprite = mask;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+
+            button.targetGraphic = image;
+            button.transition = Selectable.Transition.ColorTint;
+            var colors = button.colors;
+            colors.normalColor = new Color(1f, 1f, 1f, 0f);
+            colors.highlightedColor = new Color(1f, 1f, 1f, 0.22f);
+            colors.pressedColor = new Color(1f, 1f, 1f, 0.36f);
+            colors.selectedColor = new Color(1f, 1f, 1f, 0f);
+            colors.disabledColor = new Color(1f, 1f, 1f, 0f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+        }
+
+        /// <summary>휴대폰 상태 줄의 작은 그림. 왼쪽 끝에서 x 만큼 떨어진 곳에 왼쪽을 맞춘다.</summary>
+        private static void AddStatusIcon(Transform parent, string name, string file, float x, float size)
+        {
+            var sprite = LoadBackdropSprite(UIIconPath + file);
+            if (sprite == null) return;
+
+            var go = CreatePanel(parent, name, new Color(1f, 1f, 1f, 0.85f));
+            var image = go.GetComponent<Image>();
+            image.sprite = sprite;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(0f, 0.5f);
+            rt.anchorMax = new Vector2(0f, 0.5f);
+            rt.pivot = new Vector2(0f, 0.5f);
+            rt.anchoredPosition = new Vector2(x, 0f);
+            rt.sizeDelta = new Vector2(size, size);
+        }
+
         private static DesktopScreen BuildDesktopScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.10f, 0.13f, 0.20f, 1f));
             StretchFull(go);
 
+            // 배경화면. 검열국 문장이 옅게 깔린 밤빛 그림이다. 화면 비율이 달라도 빈틈이 없게 덮는다.
+            AddCoverImage(go.transform, "Wallpaper", UIIconPath + "wallpaper_desktop.png");
+
             var screen = go.AddComponent<DesktopScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
             // 작업 표시줄. 괴담넷 창은 이 자리를 비워 두므로 창을 열어도 계속 보인다.
-            var taskbar = CreatePanel(go.transform, "Taskbar", new Color(0.07f, 0.09f, 0.14f, 1f));
+            var taskbar = CreatePanel(go.transform, "Taskbar", new Color(0.05f, 0.06f, 0.09f, 0.90f));
             var tbRt = (RectTransform)taskbar.transform;
             tbRt.anchorMin = new Vector2(0f, 0f);
             tbRt.anchorMax = new Vector2(1f, 0f);
             tbRt.pivot = new Vector2(0.5f, 0f);
             tbRt.anchoredPosition = Vector2.zero;
             tbRt.sizeDelta = new Vector2(0f, DesktopTaskbarHeight);
+
+            // 작업 표시줄 위 가는 선. 배경화면과 갈라 보이게 한다.
+            var tbEdge = CreatePanel(taskbar.transform, "Edge", new Color(1f, 1f, 1f, 0.08f));
+            var tbEdgeRt = (RectTransform)tbEdge.transform;
+            tbEdgeRt.anchorMin = new Vector2(0f, 1f);
+            tbEdgeRt.anchorMax = new Vector2(1f, 1f);
+            tbEdgeRt.pivot = new Vector2(0.5f, 1f);
+            tbEdgeRt.sizeDelta = new Vector2(0f, 1f);
+            tbEdge.GetComponent<Image>().raycastTarget = false;
+
+            // 왼쪽부터 시작 단추, 검색 칸, 고정해 둔 앱. 모두 그림일 뿐 눌리지 않는다.
+            AddTaskbarImage(taskbar.transform, "Start", "start.png", 30f, 38f);
+
+            var search = CreatePanel(taskbar.transform, "Search", new Color(1f, 1f, 1f, 0.07f));
+            var searchRt = (RectTransform)search.transform;
+            searchRt.anchorMin = new Vector2(0f, 0.5f);
+            searchRt.anchorMax = new Vector2(0f, 0.5f);
+            searchRt.pivot = new Vector2(0f, 0.5f);
+            searchRt.anchoredPosition = new Vector2(64f, 0f);
+            searchRt.sizeDelta = new Vector2(320f, 38f);
+            search.GetComponent<Image>().raycastTarget = false;
+            AddTaskbarImage(search.transform, "Icon", "search.png", 20f, 20f, 0.6f);
+            var searchText = AddText(search.transform, "Placeholder", 18f, UIFontWeight.Regular, DimTextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
+            StretchInside(searchText.rectTransform, 42f, 10f, 4f, 4f);
+            searchText.raycastTarget = false;
+            var searchLoc = searchText.gameObject.AddComponent<LocalizedText>();
+            var searchSo = new SerializedObject(searchLoc);
+            searchSo.Update();
+            searchSo.FindProperty("_textId").stringValue = "ui.desktop.search";
+            searchSo.ApplyModifiedPropertiesWithoutUndo();
+
+            float pinX = 408f;
+            foreach (var pinned in new[] { "app_gwedamnet.png", "app_memo.png", "app_kikitalk.png", "app_archive.png" })
+            {
+                AddTaskbarImage(taskbar.transform, "Pin_" + pinned.Replace(".png", ""), pinned, pinX, 34f);
+                pinX += 48f;
+            }
+
+            // 오른쪽 알림 칸. 와이파이, 소리, 배터리 그림이 시계 왼쪽에 선다.
+            AddTaskbarImage(taskbar.transform, "Tray_Battery", "tray_battery.png", -190f, 24f, 0.85f);
+            AddTaskbarImage(taskbar.transform, "Tray_Volume", "tray_volume.png", -224f, 22f, 0.85f);
+            AddTaskbarImage(taskbar.transform, "Tray_Wifi", "tray_wifi.png", -258f, 22f, 0.85f);
 
             var clock = AddText(taskbar.transform, "Clock", 24f, UIFontWeight.Regular, DimTextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Right);
@@ -2548,7 +2691,7 @@ namespace UrbanLegendBureau.EditorTools
             // 왼쪽에는 지금 이 괴담을 얼마나 믿고 있는지를 띄운다. 게임의 핵심 숫자다.
             var belief = AddText(taskbar.transform, "Belief", 24f, UIFontWeight.Medium, new Color(0.92f, 0.44f, 0.42f),
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Left);
-            StretchInside(belief.rectTransform, 40f, 40f, 8f, 8f);
+            StretchInside(belief.rectTransform, 620f, 40f, 8f, 8f);
 
             // 아이콘은 왼쪽 위에서부터 한 줄로 늘어놓는다.
             var apps = new[]
@@ -2570,7 +2713,7 @@ namespace UrbanLegendBureau.EditorTools
 
             for (int i = 0; i < apps.Length; i++)
             {
-                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-780f, 380f - i * 150f),
+                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-840f, 400f - i * 150f),
                     out var iconLabel, out var iconHint, out var iconBadge, out var iconBadgeCount);
 
                 var element = iconList.GetArrayElementAtIndex(i);
@@ -2625,11 +2768,22 @@ namespace UrbanLegendBureau.EditorTools
 
             var button = go.AddComponent<Button>();
 
-            var box = CreatePanel(go.transform, "Box", new Color(0.24f, 0.30f, 0.42f, 1f));
+            // 누르는 자리. 그림과 이름표를 함께 덮는 투명한 판이다.
+            var hit = CreatePanel(go.transform, "HitArea", new Color(1f, 1f, 1f, 0f));
+            StretchInside((RectTransform)hit.transform, 36f, 36f, -6f, -6f);
+            hit.GetComponent<Image>().raycastTarget = true;
+
+            var box = CreatePanel(go.transform, "Box", Color.white);
             var boxRt = (RectTransform)box.transform;
             boxRt.anchoredPosition = new Vector2(0f, 24f);
-            boxRt.sizeDelta = new Vector2(84f, 68f);
-            button.targetGraphic = box.GetComponent<Image>();
+            boxRt.sizeDelta = new Vector2(80f, 80f);
+            var boxImage = box.GetComponent<Image>();
+            boxImage.sprite = LoadBackdropSprite(UIIconPath + "app_" + id + ".png");
+            boxImage.preserveAspect = true;
+            boxImage.raycastTarget = false;
+
+            // 마우스를 올리면 아이콘 모양 그대로 옅게 밝아진다. 현장 물건을 밝히는 것과 같은 느낌이다.
+            AddIconHighlight(box.transform, button);
 
             label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
                 new Vector2(0f, -44f), new Vector2(200f, 40f), TextAlignmentOptions.Center);
@@ -4658,7 +4812,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 위 상태 줄. 시계와 닫기. 노치 아래에 깔린다.
             const float StatusHeight = 44f;
-            var phoneBar = CreatePanel(phoneScreen.transform, "StatusBar", new Color(0.12f, 0.13f, 0.18f, 1f));
+            var phoneBar = CreatePanel(phoneScreen.transform, "StatusBar", new Color(0f, 0f, 0f, 0.35f));
             var phoneBarRt = (RectTransform)phoneBar.transform;
             phoneBarRt.anchorMin = new Vector2(0f, 1f);
             phoneBarRt.anchorMax = new Vector2(1f, 1f);
@@ -4666,6 +4820,15 @@ namespace UrbanLegendBureau.EditorTools
             phoneBarRt.anchoredPosition = Vector2.zero;
             phoneBarRt.sizeDelta = new Vector2(0f, StatusHeight);
             phoneBar.transform.SetAsFirstSibling();   // 노치가 위에 오게
+
+            // 휴대폰 배경화면. 상태 줄보다 뒤, 화면 맨 뒤에 깐다.
+            var phoneWall = AddCoverImage(phoneScreen.transform, "Wallpaper", UIIconPath + "wallpaper_phone.png");
+            if (phoneWall != null) phoneWall.transform.SetAsFirstSibling();
+
+            // 닫기 단추 오른쪽에 신호, 와이파이, 배터리.
+            AddStatusIcon(phoneBar.transform, "Signal", "tray_signal.png", 42f, 14f);
+            AddStatusIcon(phoneBar.transform, "Wifi", "tray_wifi.png", 60f, 14f);
+            AddStatusIcon(phoneBar.transform, "Battery", "tray_battery.png", 78f, 18f);
 
             // 휴대폰 시계도 컴퓨터와 같은 시각이다. 흘러가는 것도 같다.
             // 시각과 믿음도는 나란히 왼쪽에 붙인다. 떨어뜨려 놓으면 서로 딴 것으로 보인다.
@@ -4745,7 +4908,7 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 실제 휴대폰처럼 전화와 메시지는 맨 아래 줄에 따로 둔다.
-            var dock = CreatePanel(phoneScreen.transform, "Dock", new Color(0.14f, 0.15f, 0.20f, 1f));
+            var dock = CreatePanel(phoneScreen.transform, "Dock", new Color(1f, 1f, 1f, 0.12f));
             var dockRt = (RectTransform)dock.transform;
             dockRt.anchorMin = new Vector2(0f, 0f);
             dockRt.anchorMax = new Vector2(1f, 0f);
