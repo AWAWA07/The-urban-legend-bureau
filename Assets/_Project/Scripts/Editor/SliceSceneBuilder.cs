@@ -2235,6 +2235,28 @@ namespace UrbanLegendBureau.EditorTools
             return slider;
         }
 
+        /// <summary>뒤에 아무것도 없는 대화 화면에 까는 그림. 밤의 사무실.</summary>
+        private const string DialogueBackdropPath = "Assets/_Project/Art/Environments/office_night.png";
+
+        /// <summary>배경 그림을 한 장짜리 스프라이트로 들여온다. 화면을 다 덮으니 크기를 줄이지 않는다.</summary>
+        private static Sprite LoadBackdropSprite(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) { Debug.LogWarning("[SliceSceneBuilder] 배경 그림이 없다: " + path); return null; }
+
+            if (importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Single
+                || importer.mipmapEnabled || importer.maxTextureSize < 2048)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.mipmapEnabled = false;
+                importer.maxTextureSize = 2048;
+                importer.textureCompression = TextureImporterCompression.CompressedHQ;
+                importer.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
         /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
         private const float BandHeight = 1080f / 3f;
         private static readonly Color BandEdgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);
@@ -2250,6 +2272,23 @@ namespace UrbanLegendBureau.EditorTools
             var go = CreatePanel(null, name,
                 fullScreen ? new Color(0.02f, 0.02f, 0.03f, 1f) : new Color(0f, 0f, 0f, 0f));
             StretchFull(go);
+
+            // 단독 대화 화면은 뒤가 비어 있다. 밤의 사무실 그림을 깐다. 인물보다 먼저 만들어 맨 뒤에 둔다.
+            // 화면 비율이 달라도 빈틈이 생기지 않게 화면을 덮는 쪽으로 맞춘다(넘치는 가장자리는 잘린다).
+            if (fullScreen)
+            {
+                var backdropSprite = LoadBackdropSprite(DialogueBackdropPath);
+                if (backdropSprite != null)
+                {
+                    var backdrop = CreatePanel(go.transform, "Backdrop", Color.white);
+                    var backdropImage = backdrop.GetComponent<Image>();
+                    backdropImage.sprite = backdropSprite;
+                    backdropImage.raycastTarget = false;
+                    var fitter = backdrop.AddComponent<AspectRatioFitter>();
+                    fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+                    fitter.aspectRatio = backdropSprite.rect.width / backdropSprite.rect.height;
+                }
+            }
 
             var screen = go.AddComponent<DialogueScreen>();
             ConfigureScreen(screen, name,
