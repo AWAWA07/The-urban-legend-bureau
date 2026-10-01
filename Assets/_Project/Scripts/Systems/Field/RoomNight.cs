@@ -37,7 +37,7 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("문간에 들어선 뒤의 크기 배율. 멀어지는 만큼 작아진다.")]
         [SerializeField] private float _doorStepScale = 0.86f;
 
-        [SerializeField] private float _exitWalkSpeed = 2.6f;
+        [SerializeField] private float _exitWalkSpeed = 3.6f;
 
         [Header("조명")]
         [SerializeField] private Light2D _roomLight;
@@ -219,9 +219,9 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator ExitThroughDoor(Action onDone)
         {
-            yield return new WaitForSeconds(0.35f);   // 문고리를 잡는 틈
+            yield return new WaitForSeconds(0.2f);   // 문고리를 잡는 틈
             SetDoorOpen(true);
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.15f);
 
             // 문은 뒤쪽 벽에 있다. 옆으로 미끄러지지 않고 안쪽으로 들어선다.
             // 조금 올라가고 작아지며 옅어진다. 문 너머 어둠 속으로 멀어지는 것처럼 보인다.
@@ -229,7 +229,7 @@ namespace UrbanLegendBureau.Systems
             Vector3 fromPos = t.localPosition;
             Vector3 toPos = fromPos + new Vector3(0f, _doorStepUp, 0f);
             Vector3 fromScale = t.localScale;
-            const float Duration = 0.7f;
+            const float Duration = 0.5f;
             for (float e = 0f; e < Duration; e += Time.deltaTime)
             {
                 float k = Mathf.SmoothStep(0f, 1f, e / Duration);
@@ -244,9 +244,9 @@ namespace UrbanLegendBureau.Systems
             t.localScale = fromScale;
             _hanyoung.gameObject.SetActive(false);
 
-            yield return new WaitForSeconds(0.35f);
+            yield return new WaitForSeconds(0.25f);
             SetDoorOpen(false);
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(0.25f);
 
             if (_chajihan != null) _chajihan.Locked = false;
             Debug.Log("[RoomNight] 한영이 방을 나갔다");

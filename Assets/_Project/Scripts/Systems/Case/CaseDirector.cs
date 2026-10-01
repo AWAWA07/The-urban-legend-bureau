@@ -2406,8 +2406,17 @@ namespace UrbanLegendBureau.Systems
             });
         }
 
+        /// <summary>한영이 나간 뒤 혼잣말이 나오기까지의 틈(초). 빈 방에 잠깐 혼자 남은 느낌을 준다.</summary>
+        private const float MonologueDelay = 1.8f;
+
         private void OnHanyoungLeft()
         {
+            StartCoroutine(MonologueAfterPause());
+        }
+
+        private System.Collections.IEnumerator MonologueAfterPause()
+        {
+            yield return new WaitForSecondsRealtime(MonologueDelay);
             if (_tutorial == null || !_tutorial.ShowNightMonologue(EnterBedtime)) EnterBedtime();
         }
 
