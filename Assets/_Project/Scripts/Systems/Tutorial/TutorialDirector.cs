@@ -229,6 +229,8 @@ namespace UrbanLegendBureau.Systems
 
             // 한영이 말할 때마다 그 대사에 맞는 표정과 포즈로 바꾼다. 차지한이 말할 때는 한영이 하던 모습 그대로다.
             if (hanyoung || _lineIndex == 0) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineId));
+            if (_lineIndex == 0) _dialogueScreen.SetCharacterSprite(false, CharacterArt.ChajihanDefault());
+            ApplyChajihan(_dialogueScreen, lineId);
 
             // 배경도 한영처럼 어둠 속에서 드러난다. 첫 마디는 까맣고, 모습이 보이면 그 밝기를 따라간다.
             float backdrop = LineHanyoungVisible[_lineIndex] ? brightness : 0f;
@@ -1460,6 +1462,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             if (step.Hanyoung) _dialogueScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(step.TextId));
+            ApplyChajihan(_dialogueScreen, step.TextId);
 
             _dialogueScreen.SetBackdropLevel(1f, BackdropFadeSeconds);   // 브리핑은 다 밝힌 채로
             _dialogueScreen.ShowLine(step.Hanyoung,
@@ -1842,6 +1845,7 @@ namespace UrbanLegendBureau.Systems
             // 둘이 함께 서면 제자리에. 한영이 없으면 차지한 혼자 가운데에 선다.
             _talkScreen.SetSoloLayout(false);
             _talkScreen.SetRightSoloLayout(!hanyoungPresent);
+            ApplyChajihan(_talkScreen, artId);
             if (hanyoungPresent && (hanyoungSpeaks || !_roomTalkOpened))
             {
                 _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(artId));
@@ -1855,6 +1859,16 @@ namespace UrbanLegendBureau.Systems
                 1f,
                 leftVisible: hanyoungPresent,
                 rightVisible: true);
+        }
+
+        /// <summary>
+        /// 그 대사에 차지한의 모습이 정해져 있으면 바꾼다. 없으면 하던 모습 그대로 둔다.
+        /// 같은 포즈에 표정만 다른 그림이 여럿이라, 이어지는 대사에서는 표정만 바뀌어 자연스럽다.
+        /// </summary>
+        private static void ApplyChajihan(DialogueScreen screen, string lineTextId)
+        {
+            var sprite = CharacterArt.ChajihanBody(lineTextId);
+            if (sprite != null) screen.SetCharacterSprite(false, sprite);
         }
 
         private void CloseRoomTalk()

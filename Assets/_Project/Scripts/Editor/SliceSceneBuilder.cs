@@ -2346,6 +2346,13 @@ namespace UrbanLegendBureau.EditorTools
             if (hanyoungArt != null) left.sprite = hanyoungArt;
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
+            // 차지한도 실제 그림이다. 한영과 같은 캔버스로 정리했으니 크기와 높이도 같게 둔다.
+            var rightRt = right.rectTransform;
+            rightRt.anchoredPosition = new Vector2(520f, HanyoungArtY);
+            rightRt.sizeDelta = HanyoungArtSize;
+            var chajihanArt = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Resources/Characters/Chajihan/" + CharacterArt.ChajihanDefaultPose + ".png");
+            if (chajihanArt != null) right.sprite = chajihanArt;
+
             var box = CreatePanel(go.transform, "Box", new Color(0.09f, 0.09f, 0.12f, 0.96f));
             var boxRt = (RectTransform)box.transform;
             boxRt.anchorMin = new Vector2(0.5f, 0.5f);

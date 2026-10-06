@@ -25,6 +25,13 @@ namespace UrbanLegendBureau.UI
         private const string PoseTable = Root + "poses";
 
         private const string PortraitTable = Root + "portraits";
+
+        // 차지한. 대사 화면 오른쪽에 선다. 그림은 Characters/Chajihan/{포즈}, 표는 같은 폴더의 poses.txt.
+        // 한영과 달리 표에 적힌 대사에서만 모습을 바꾼다. 적지 않은 대사에서는 하던 모습 그대로다.
+        // 한영이 말하는 대사도 적을 수 있다. 듣는 동안의 표정이다.
+        private const string ChajihanRoot = "Characters/Chajihan/";
+        public const string ChajihanDefaultPose = "stand_b";
+        private static Dictionary<string, string> _chajihanPoses;
         public const string DefaultPortrait = "neutral";
 
         private static Dictionary<string, string> _poses;
@@ -43,6 +50,20 @@ namespace UrbanLegendBureau.UI
         public static Sprite HanyoungBody(string lineTextId)
         {
             return Load(Root + PoseFor(lineTextId)) ?? Load(Root + DefaultPose);
+        }
+
+        /// <summary>그 대사에서 차지한이 바꿀 모습. 표에 없으면 null 이다. 그때는 하던 모습을 그대로 둔다.</summary>
+        public static Sprite ChajihanBody(string lineTextId)
+        {
+            if (_chajihanPoses == null) _chajihanPoses = LoadTable(ChajihanRoot + "poses");
+            if (string.IsNullOrEmpty(lineTextId) || !_chajihanPoses.TryGetValue(lineTextId, out var pose)) return null;
+            return Load(ChajihanRoot + pose);
+        }
+
+        /// <summary>차지한의 처음 모습.</summary>
+        public static Sprite ChajihanDefault()
+        {
+            return Load(ChajihanRoot + ChajihanDefaultPose);
         }
 
         /// <summary>그 대사에 쓸 한영의 표정 이름. 적혀 있지 않으면 neutral.</summary>
