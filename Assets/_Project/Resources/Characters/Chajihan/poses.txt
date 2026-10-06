@@ -1,5 +1,5 @@
 # 차지한의 대사별 그림. 한 줄 = 대사ID <탭> 포즈 <탭> 대사 내용(참고용, 게임은 안 읽음)
-# 차지한이 말하는 대사뿐 아니라 한영이 말하는 대사도 적을 수 있다. 듣는 동안의 모습이다.
+# 차지한이 말하는 대사에서만 바뀐다. 한영이 말하는 동안에는 하던 모습 그대로다.
 # 적지 않은 대사에서는 하던 모습 그대로 둔다. 이어지는 대사는 같은 포즈에 표정만 바꿔 자연스럽게 한다.
 # 포즈(숫자가 붙은 것은 같은 포즈에 표정만 다른 것):
 #   stand_a(기본·입 살짝) stand_a2(찡그림) stand_a3(미소)   stand_b(기본·담담) stand_b2 stand_b3
@@ -11,58 +11,24 @@
 
 # 처음 만남
 tutorial.line.004	bow	...제가 급하게 부서 이동이 되서 그런데 설명 해주실 수 있나요?
-tutorial.line.005	bow2	(한영) .......시간 없으니까 빨리 설명할게
 
 # 부서 설명
-tutorial.brief.001	stand_b	(한영) 간단하게 일이 끝났으니 우리 부서를 얘기해 줄게.
-tutorial.brief.002	stand_b2	(한영) 우리는 괴담 검열국이라는 정부의 비밀 국가정보원이야.
-tutorial.brief.003	stand_b3	(한영) 우리의 가장 큰 목표는 사람들의 믿음도를 관리하고...
 tutorial.brief.q1.a	stand_a	괴담을 검열한다고요? 왜 그런 일을 하는 거죠?
 tutorial.brief.q1.b	stand_a	괴담을 검열한다니… 괴담이 국가에서 관리할 만큼 위험한 건가요?
-tutorial.brief.q1.a.1	stand_a2	(한영) 왜냐면 괴담은 위험하기 때문이지.
-tutorial.brief.q1.a.2	stand_a2	(한영) 사람들이 괴담을 믿을수록 그 힘이 강해지거든...
-tutorial.brief.q1.b.1	stand_a2	(한영) 그래. 정말 위험해.
-tutorial.brief.q1.b.2	stand_a2	(한영) 사람들이 괴담을 믿을수록 그 힘이 강해져서...
-tutorial.brief.004	pocket	(한영) 너 미신은 알지? ...
 tutorial.brief.005	pocket2	네, 알죠…
-tutorial.brief.006	pocket3	(한영) 예를 들어 학교에서 석상이...
-tutorial.brief.007	pocket	(한영) 하지만 이건 '학교'라는 주체가 너무 넓기 때문에...
-tutorial.brief.008	pocket2	(한영) 하지만 만약 특정 학교에서...
-tutorial.brief.009	tie	(한영) 근데 만약, 그 석상이 밤에 학교에 들어온 사람을 죽인다는...
 tutorial.brief.q2.a	tie2	돌아다니는 것뿐만 아니라 실제로 괴담에 따라 사람이 죽을 수도 있겠네요.
 tutorial.brief.q2.b	tie3	석상이 사람을 죽이진 못하지 않을까요?
-tutorial.brief.q2.1	tie4	(한영) 응, 맞아.
-tutorial.brief.q2.2	tie3	(한영) 아니. ...
-tutorial.brief.010	head	(한영) 사실 원래도 괴담이 실체가 되는 건 아니었어.
-tutorial.brief.011	head2	(한영) 귀신은 존재하지만 가짜가 진짜가 되는 경우는 없었어.
 tutorial.brief.012	head3	네? 세상에 귀신이 어디 있어요?
-tutorial.brief.013	hips	(한영) 너 정보보안부에서 넘어왔지?
 tutorial.brief.014	hips2	네.
-tutorial.brief.015	hips3	(한영) 난 괴이처리부에서 넘어왔거든.
 tutorial.brief.016	headache	…?
-tutorial.brief.017	headache2	(한영) 뭐… 직접 보기 전엔 안 믿겠지.
-tutorial.brief.018	docs	(한영) 본론으로 돌아가자면...
-tutorial.brief.018b	docs2	(한영) 근데 이번에 새로 창설된 사이트인 '괴담넷'에서...
-tutorial.brief.019	docs3	(한영) 근데 이 사이트는 이상하게도 차단도 불가능하고...
-tutorial.brief.019b	docs	(한영) 그래서 우리가 직접 관여해서...
-tutorial.brief.020	rhead	(한영) 내가 귀신만 잡아봤지 컴퓨터는 잘 몰라서…
 tutorial.brief.021	rhead3	그러면 사이트에 적혀 있던 믿음도도 원래 있는 거예요?
-tutorial.brief.022	glove	(한영) 아, 이거는 우리가 따로 수치를 계산해서...
-tutorial.brief.023	glove2	(한영) 시뮬레이터를 돌려봤을 때...
-tutorial.brief.024	glove3	(한영) 이걸 보면서 설명해 줄게.
 tutorial.brief.042	hair	근데 저는 퇴마를 할 줄 모르는데…
-tutorial.brief.043	hair2	(한영) 괜찮아. 퇴마는 거의 내가 다 할 거니까.
-tutorial.brief.044	ready	(한영) 설명은 이 정도만 됐고, 이제 너가 안 믿던 괴담 조사하러 가자.
 
 # 숙소 도착
-tutorial.room.001	hips	(한영) 우리 활동 시간은 6시에서 3시까지고..
 tutorial.room.002	chest2	방 좋네요.
-tutorial.room.003	stand_a3	(한영) 그렇지? 그럼 저기 컴퓨터에서 게시물 올려보자.
 
 # 첫날 밤
-tutorial.night.001	arms	(한영) 어느새 벌써 새벽 2시 12분이네, 오늘은 여기까지 하자.
 tutorial.night.002	chest2	감사합니다. 안녕히 주무세요.
-tutorial.night.003	chest	(한영) 그래, 내일 6시에 보자.
 tutorial.night.mono_1	headache	...다사다난한 하루였다..
 tutorial.night.mono_2	headache2	내일부터 진짜 시작이구나.
 tutorial.night.mono_3	rhead2	..잠이나 자자

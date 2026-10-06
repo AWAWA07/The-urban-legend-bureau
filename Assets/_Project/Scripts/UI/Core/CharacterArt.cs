@@ -27,8 +27,7 @@ namespace UrbanLegendBureau.UI
         private const string PortraitTable = Root + "portraits";
 
         // 차지한. 대사 화면 오른쪽에 선다. 그림은 Characters/Chajihan/{포즈}, 표는 같은 폴더의 poses.txt.
-        // 한영과 달리 표에 적힌 대사에서만 모습을 바꾼다. 적지 않은 대사에서는 하던 모습 그대로다.
-        // 한영이 말하는 대사도 적을 수 있다. 듣는 동안의 표정이다.
+        // 차지한이 말하는 대사에서만 모습을 바꾼다. 한영이 말하는 동안에는 하던 모습 그대로다.
         private const string ChajihanRoot = "Characters/Chajihan/";
         public const string ChajihanDefaultPose = "stand_b";
         private static Dictionary<string, string> _chajihanPoses;

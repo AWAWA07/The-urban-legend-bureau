@@ -58,12 +58,14 @@ namespace UrbanLegendBureau.EditorTools
                 Directory.CreateDirectory(outDir + "/Face");
 
                 var adjust = LoadAdjust(Path.Combine(sourceDir, AdjustFile));
+                var shift = LoadAdjust(Path.Combine(sourceDir, ShiftFile));
 
                 foreach (var file in Directory.GetFiles(sourceDir, "*.png"))
                 {
                     string pose = Path.GetFileNameWithoutExtension(file);
                     float factor = adjust.TryGetValue(pose, out var f) ? f : 1f;
-                    string result = Process(file, outDir + "/" + pose + ".png", outDir + "/Face/" + pose + ".png", factor);
+                    float dxShift = shift.TryGetValue(pose, out var sh) ? sh : 0f;
+                    string result = Process(file, outDir + "/" + pose + ".png", outDir + "/Face/" + pose + ".png", factor, dxShift);
                     lines.Add(character + "/" + pose + " : " + result);
                     done++;
                 }
@@ -82,6 +84,12 @@ namespace UrbanLegendBureau.EditorTools
         /// </summary>
         private const string AdjustFile = "adjust.txt";
 
+        /// <summary>
+        /// 포즈별 좌우 자리 보정. Source/shift.txt 에 "포즈<탭>픽셀" 로 적는다. 양수면 오른쪽으로 옮긴다.
+        /// 손을 머리 위로 올린 포즈는 머리 꼭대기가 손이라 가운데가 어긋난다. 그럴 때 얼굴을 가운데로 되돌린다.
+        /// </summary>
+        private const string ShiftFile = "shift.txt";
+
         private static Dictionary<string, float> LoadAdjust(string path)
         {
             var map = new Dictionary<string, float>();
@@ -94,8 +102,8 @@ namespace UrbanLegendBureau.EditorTools
 
                 var cells = line.Split('\t', ' ');
                 if (cells.Length < 2) continue;
-                if (float.TryParse(cells[cells.Length - 1], System.Globalization.NumberStyles.Float,
-                        System.Globalization.CultureInfo.InvariantCulture, out var factor) && factor > 0f)
+                if (float.TryParse(cells[cells.Length - 1].Trim(), System.Globalization.NumberStyles.Float,
+                        System.Globalization.CultureInfo.InvariantCulture, out var factor) && (factor > 0f || path.EndsWith(ShiftFile)))
                 {
                     map[cells[0].Trim()] = factor;
                 }
@@ -103,7 +111,7 @@ namespace UrbanLegendBureau.EditorTools
             return map;
         }
 
-        private static string Process(string sourcePath, string bodyPath, string facePath, float factor = 1f)
+        private static string Process(string sourcePath, string bodyPath, string facePath, float factor = 1f, float dxShift = 0f)
         {
             var src = new Texture2D(2, 2, TextureFormat.RGBA32, false);
             if (!src.LoadImage(File.ReadAllBytes(sourcePath))) return "읽지 못함";
@@ -139,7 +147,7 @@ namespace UrbanLegendBureau.EditorTools
             float headX = n > 0 ? (float)(sum / n) : w / 2f;
 
             float s = CharH / (float)(bottom - top + 1) * factor;
-            float dx = CanvasW / 2f - headX * s;
+            float dx = CanvasW / 2f - headX * s + dxShift;
             float dy = TopMargin - top * s;
 
             // 캔버스에 옮긴다. 캔버스의 한 칸마다 원본의 어디를 읽을지 거꾸로 따진다.
