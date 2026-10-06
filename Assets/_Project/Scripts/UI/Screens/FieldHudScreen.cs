@@ -166,7 +166,7 @@ namespace UrbanLegendBureau.UI
         public void ShowChoices(string speakerTextId, IReadOnlyList<Func<string>> labels, Action<int> onPick)
         {
             _speakerTextId = speakerTextId;
-            ApplyPortrait(speakerTextId, null);
+            ApplyPortrait(speakerTextId, ChoicePortraitKey);
             _lineProvider = null;
             IsSpeaking = true;
 
@@ -210,6 +210,9 @@ namespace UrbanLegendBureau.UI
         /// 초상 칸. 한영이 말하면 그 대사에 맞는 얼굴 그림을 넣는다(CharacterArt).
         /// 그림이 없는 사람은 원래의 빈 칸 그대로 둔다.
         /// </summary>
+        /// <summary>고를 것을 내놓을 때 초상을 고르는 열쇠. 표(portraits.txt)에 "choice" 로 적는다.</summary>
+        private const string ChoicePortraitKey = "choice";
+
         private void ApplyPortrait(string speakerTextId, string lineTextId)
         {
             if (_portrait == null) return;
@@ -221,7 +224,9 @@ namespace UrbanLegendBureau.UI
                 _portraitCaptured = true;
             }
 
-            var face = speakerTextId == CharacterArt.HanyoungNameTextId ? CharacterArt.HanyoungFace(lineTextId) : null;
+            Sprite face = null;
+            if (speakerTextId == CharacterArt.HanyoungNameTextId) face = CharacterArt.HanyoungFace(lineTextId);
+            else if (speakerTextId == CharacterArt.ChajihanNameTextId) face = CharacterArt.ChajihanFace(lineTextId);
             if (face != null)
             {
                 _portrait.sprite = face;

@@ -60,6 +60,21 @@ namespace UrbanLegendBureau.UI
             return Load(ChajihanRoot + pose);
         }
 
+        /// <summary>차지한의 이름 ID. 현장 대사 띠가 말하는 사람을 이것으로 알아본다.</summary>
+        public const string ChajihanNameTextId = "tutorial.char.chajihan";
+
+        public const string ChajihanDefaultPortrait = "neutral";
+        private static Dictionary<string, string> _chajihanPortraits;
+
+        /// <summary>그 대사에 맞는 차지한의 초상. 표(Chajihan/portraits.txt)에 없으면 neutral.</summary>
+        public static Sprite ChajihanFace(string lineTextId)
+        {
+            if (_chajihanPortraits == null) _chajihanPortraits = LoadTable(ChajihanRoot + "portraits");
+            string face = !string.IsNullOrEmpty(lineTextId) && _chajihanPortraits.TryGetValue(lineTextId, out var f)
+                ? f : ChajihanDefaultPortrait;
+            return Load(ChajihanRoot + "Portrait/" + face) ?? Load(ChajihanRoot + "Portrait/" + ChajihanDefaultPortrait);
+        }
+
         /// <summary>차지한의 처음 모습.</summary>
         public static Sprite ChajihanDefault()
         {

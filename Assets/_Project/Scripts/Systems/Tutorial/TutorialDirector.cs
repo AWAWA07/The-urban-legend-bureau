@@ -2020,7 +2020,7 @@ namespace UrbanLegendBureau.Systems
             if (!_boardPickSpoken)
             {
                 string picked = BoardChoiceTextIds[_boardPick];
-                _fieldHud.ShowLine(ChajihanNameTextId, () => _loc.Get(picked), OnBoardPickSpoken);
+                _fieldHud.ShowLine(ChajihanNameTextId, () => _loc.Get(picked), OnBoardPickSpoken, picked);
                 return;
             }
 

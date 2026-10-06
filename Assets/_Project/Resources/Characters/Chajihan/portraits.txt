@@ -1,0 +1,18 @@
+# 차지한의 대사별 초상(현장 대사 띠, 타입 2 의 왼쪽 네모). 한 줄 = 대사ID <탭> 표정 <탭> 대사 내용(참고용, 게임은 안 읽음)
+# 바꾸는 법: 두 번째 칸의 표정 이름만 고친다. 적지 않은 대사(물건을 살펴볼 때의 혼잣말 등)는 neutral.
+# 표정: neutral(담담) serious(넥타이 쥐고 굳음) annoyed(언짢아 입 벌림) displeased(찌푸림) tired(지쳐 내리깐 눈)
+#       smile(옅은 미소) smirk(얼굴에 손·씩 웃음) think(턱에 손·옅은 미소) ponder(턱에 손·골똘)
+#       glove(장갑 당기며 못마땅) wary(손을 입에·경계) blush(목에 손·얼굴 붉힘)
+# choice: 고를 것을 내놓을 때(대사 없이 선택지만 뜰 때)의 표정
+
+choice	ponder	(선택지를 고를 때)
+
+# 현장 도착
+tutorial.field.003	displeased	... 그런 거 없거든요.
+tutorial.field.006	neutral	넵, 알겠습니다.
+
+# 게시판 취합
+tutorial.board.choice_1	think	'막차 시간표 스샷 찍어왔습니다.' 이거 맞죠?
+tutorial.board.choice_2	smirk	'지하철 9-4 칸은 타지 마세요' 이거에요.
+tutorial.board.choice_3	think	'거울 앞에서 사진 찍었는데 하나 더 있음' 게시물이요.
+tutorial.board.005	serious	넵, 알겠습니다.
