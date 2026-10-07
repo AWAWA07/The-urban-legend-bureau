@@ -58,6 +58,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("누운 자리(방 기준). 발이 이 자리에 놓이고 머리는 베개 쪽으로 간다.")]
         [SerializeField] private Vector2 _lyingPosition = new Vector2(-8.2f, -1.4f);
 
+        [Tooltip("눕는 그림을 쓸 때 누운 몸의 아래 가운데 자리(방 기준). 매트리스 위, 침대 가운데다.")]
+        [SerializeField] private Vector2 _lyingArtPosition = new Vector2(-9.5f, -2.1f);
+
         [Tooltip("누운 몸 위로 덮는 이불. 누울 때 켜진다.")]
         [SerializeField] private GameObject _blanketOver;
 
@@ -342,6 +345,8 @@ namespace UrbanLegendBureau.Systems
                 Vector3 from = t.localPosition;
                 Vector3 to = from + new Vector3(0f, _bedSitLift, 0f);
                 SetShadow(false);
+                // 침대 쪽으로 돌아앉는다. 앉기와 눕기 그림은 오른쪽을 보고 그려져 있어 뒤집지 않는다.
+                t.localScale = new Vector3(Mathf.Abs(_chajihanScale.x), _chajihanScale.y, _chajihanScale.z);
                 for (int i = 0; i < sitCount; i++)
                 {
                     look.Hold("sit", i);
@@ -358,7 +363,32 @@ namespace UrbanLegendBureau.Systems
                 yield return new WaitForSeconds(0.9f);
             }
 
-            // 누운 그림이 아직 없다. 코트를 벗은 서 있는 그림(넥타이를 푼 마지막 칸)을 눕힌다.
+            // 눕는 그림이 있으면 그것으로 침대에 몸을 뉘인다. 엉덩이 자리에서 누운 자리로 조금씩 옮긴다.
+            int lieCount = look.FrameCount("lie");
+            if (lieCount > 0)
+            {
+                var t = _chajihan.transform;
+                t.localScale = new Vector3(Mathf.Abs(_chajihanScale.x), _chajihanScale.y, _chajihanScale.z);
+                Vector3 from = t.localPosition;
+                Vector3 to = new Vector3(_lyingArtPosition.x, _lyingArtPosition.y, from.z);
+                for (int i = 0; i < lieCount; i++)
+                {
+                    look.Hold("lie", i);
+                    Vector3 a = Vector3.Lerp(from, to, (float)i / lieCount);
+                    Vector3 b = Vector3.Lerp(from, to, (float)(i + 1) / lieCount);
+                    float seconds = _undressFrameSeconds * 1.6f;
+                    for (float e = 0f; e < seconds; e += Time.deltaTime)
+                    {
+                        t.localPosition = Vector3.Lerp(a, b, Mathf.SmoothStep(0f, 1f, e / seconds));
+                        yield return null;
+                    }
+                    t.localPosition = b;
+                }
+                yield return LieDown(onDone, false);
+                yield break;
+            }
+
+            // 눕는 그림이 없다. 코트를 벗은 서 있는 그림(넥타이를 푼 마지막 칸)을 눕힌다.
             look.Hold("tie", look.FrameCount("tie") - 1);
             yield return LieDown(onDone);
         }
@@ -375,10 +405,12 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
-        private IEnumerator LieDown(Action onDone)
+        private IEnumerator LieDown(Action onDone, bool rotate = true)
         {
             var t = _chajihan.transform;
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(rotate ? 0.4f : 0f);
+            if (rotate)
+            {
 
             // 눕는다. 머리가 베개 쪽(왼쪽)으로 가도록 반 바퀴의 절반만 돈다. 얼굴은 천장을 본다.
             Vector3 fromPos = t.localPosition;
@@ -396,6 +428,7 @@ namespace UrbanLegendBureau.Systems
             }
             t.localPosition = toPos;
             t.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            }
 
             if (_blanketOver != null) _blanketOver.SetActive(true);
             SetShadow(false);   // 누우면 발밑 그림자가 허공에 뜬다
