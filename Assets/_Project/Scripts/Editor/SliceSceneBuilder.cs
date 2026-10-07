@@ -1758,13 +1758,7 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0f, 0f, 0f, 0.45f), Order - 1);
 
             // 걷는 그림. 발밑이 기준점이라 자식을 원점에 두면 바닥에 선다.
-            var frames = new List<Sprite>();
-            for (int i = 0; ; i++)
-            {
-                var frame = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/" + art + "/Field/walk_" + i + ".png");
-                if (frame == null) break;
-                frames.Add(frame);
-            }
+            var frames = LoadFieldFrames(art, "walk");
             if (frames.Count == 0) Debug.LogWarning("[SliceSceneBuilder] " + art + " 의 현장 걷기 그림이 없다.");
 
             var sprite = new GameObject("Sprite");
@@ -1780,9 +1774,30 @@ namespace UrbanLegendBureau.EditorTools
             var walk = aso.FindProperty("_walk");
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+            // 서 있는 그림과 뒷모습은 있는 인물만 넣는다. 없으면 걷기 칸으로 대신한다.
+            foreach (var kind in new[] { "idle", "back" })
+            {
+                var list = LoadFieldFrames(art, kind);
+                var prop = aso.FindProperty("_" + kind);
+                prop.arraySize = list.Count;
+                for (int i = 0; i < list.Count; i++) prop.GetArrayElementAtIndex(i).objectReferenceValue = list[i];
+            }
             aso.ApplyModifiedPropertiesWithoutUndo();
 
             return go;
+        }
+
+        /// <summary>현장 그림 한 벌(kind_0, kind_1 ...)을 차례대로 읽는다. 번호가 끊기면 멈춘다.</summary>
+        private static List<Sprite> LoadFieldFrames(string art, string kind)
+        {
+            var frames = new List<Sprite>();
+            for (int i = 0; ; i++)
+            {
+                var frame = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/" + art + "/Field/" + kind + "_" + i + ".png");
+                if (frame == null) break;
+                frames.Add(frame);
+            }
+            return frames;
         }
 
         private static GameObject BuildPoint(Transform parent, string name, Vector2 position, Vector2 size,

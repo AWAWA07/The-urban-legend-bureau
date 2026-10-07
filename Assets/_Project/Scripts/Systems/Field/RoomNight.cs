@@ -225,6 +225,10 @@ namespace UrbanLegendBureau.Systems
 
             // 문은 뒤쪽 벽에 있다. 옆으로 미끄러지지 않고 안쪽으로 들어선다.
             // 조금 올라가고 작아지며 옅어진다. 문 너머 어둠 속으로 멀어지는 것처럼 보인다.
+            // 문을 향해 돌아선다. 뒷모습 그림이 있으면 그것으로 걸어 들어간다.
+            var look = _hanyoung.GetComponent<FieldSpriteAnimator>();
+            if (look != null) look.ShowBack(true);
+
             var t = _hanyoung.transform;
             Vector3 fromPos = t.localPosition;
             Vector3 toPos = fromPos + new Vector3(0f, _doorStepUp, 0f);
@@ -242,6 +246,7 @@ namespace UrbanLegendBureau.Systems
             SetHanyoungAlpha(0f);
             t.localPosition = fromPos;     // 다음에 다시 켤 때를 위해 자리와 크기를 되돌려 둔다
             t.localScale = fromScale;
+            if (look != null) look.ShowBack(false);
             _hanyoung.gameObject.SetActive(false);
 
             yield return new WaitForSeconds(0.25f);

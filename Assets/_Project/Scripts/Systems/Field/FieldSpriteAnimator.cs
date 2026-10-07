@@ -17,6 +17,18 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("걷는 그림. 한 걸음씩 두 발을 내딛는 한 바퀴를 차례대로 넣는다.")]
         [SerializeField] private Sprite[] _walk = new Sprite[0];
 
+        [Tooltip("서 있는 그림. 비워 두면 걷기 칸 하나(_idleFrame)에 멈춘다.")]
+        [SerializeField] private Sprite[] _idle = new Sprite[0];
+
+        [Tooltip("서 있는 그림 한 칸을 보여 주는 시간(초).")]
+        [SerializeField] private float _idleFrameSeconds = 0.4f;
+
+        [Tooltip("뒷모습으로 걷는 그림. 문 안으로 들어설 때처럼 화면 안쪽으로 걸을 때 쓴다.")]
+        [SerializeField] private Sprite[] _back = new Sprite[0];
+
+        [Tooltip("뒷모습 한 칸을 보여 주는 시간(초).")]
+        [SerializeField] private float _backFrameSeconds = 0.14f;
+
         [Tooltip("서 있을 때 보여 줄 걷기 칸. 두 발이 가장 모인 칸이 자연스럽다.")]
         [SerializeField] private int _idleFrame;
 
@@ -42,6 +54,19 @@ namespace UrbanLegendBureau.Systems
         private float _travelled;
         private float _still;
         private float _breathTime;
+        private bool _showBack;
+        private float _backTime;
+
+        /// <summary>
+        /// 뒷모습으로 걷게 한다. 켜 두는 동안에는 좌우 움직임과 상관없이 뒷모습 칸을 차례로 넘긴다.
+        /// 뒷모습 그림이 없으면 아무 일도 하지 않는다.
+        /// </summary>
+        public void ShowBack(bool on)
+        {
+            _showBack = on && _back != null && _back.Length > 0;
+            _backTime = 0f;
+            if (_showBack) { Pose(0f, 0f, 1f); SetSprite(_back[0]); }
+        }
         private Transform _art;
         private Vector3 _artPosition;
         private Vector3 _artScale = Vector3.one;
@@ -57,11 +82,20 @@ namespace UrbanLegendBureau.Systems
             _lastX = transform.position.x;
             _travelled = 0f;
             _still = _stopDelay;
-            Show(_idleFrame);
+            _showBack = false;
+            if (_idle != null && _idle.Length > 0) SetSprite(_idle[0]); else Show(_idleFrame);
         }
 
         private void LateUpdate()
         {
+            if (_showBack)
+            {
+                _backTime += Time.deltaTime;
+                SetSprite(_back[(int)(_backTime / Mathf.Max(0.02f, _backFrameSeconds)) % _back.Length]);
+                _lastX = transform.position.x;
+                return;
+            }
+
             if (_renderer == null || _walk == null || _walk.Length == 0) return;
 
             float x = transform.position.x;
@@ -86,8 +120,16 @@ namespace UrbanLegendBureau.Systems
             if (_still >= _stopDelay)
             {
                 _travelled = 0f;
-                Show(_idleFrame);
                 _breathTime += Time.deltaTime;
+                if (_idle != null && _idle.Length > 0)
+                {
+                    // 서 있는 그림이 숨 쉬는 모습까지 담고 있다. 누워 있으면 첫 칸에 멈춘다.
+                    int frame = lying ? 0 : (int)(_breathTime / Mathf.Max(0.05f, _idleFrameSeconds)) % _idle.Length;
+                    SetSprite(_idle[frame]);
+                    Pose(0f, 0f, 1f);
+                    return;
+                }
+                Show(_idleFrame);
                 float breath = lying ? 0f : (1f - Mathf.Cos(_breathTime / Mathf.Max(0.1f, _breathSeconds) * Mathf.PI * 2f)) * 0.5f;
                 Pose(0f, 0f, 1f + _breath * breath);
             }
@@ -106,7 +148,12 @@ namespace UrbanLegendBureau.Systems
         {
             if (_renderer == null || _walk == null || _walk.Length == 0) return;
             var sprite = _walk[Mathf.Clamp(frame, 0, _walk.Length - 1)];
-            if (sprite != null && _renderer.sprite != sprite) _renderer.sprite = sprite;
+            SetSprite(sprite);
+        }
+
+        private void SetSprite(Sprite sprite)
+        {
+            if (_renderer != null && sprite != null && _renderer.sprite != sprite) _renderer.sprite = sprite;
         }
     }
 }
