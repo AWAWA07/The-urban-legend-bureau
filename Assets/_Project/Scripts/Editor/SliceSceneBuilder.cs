@@ -1795,6 +1795,8 @@ namespace UrbanLegendBureau.EditorTools
             var aso = new SerializedObject(animator);
             aso.Update();
             aso.FindProperty("_renderer").objectReferenceValue = sr;
+            // 차지한 걷기 그림에는 몸의 오르내림이 들어 있어 살짝만 더한다. 한영 그림은 높이가 고르게 그려져 있어 코드로 크게 튀게 한다.
+            aso.FindProperty("_stepBob").floatValue = art == "Hanyoung" ? 0.07f : 0.02f;
             var walk = aso.FindProperty("_walk");
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
