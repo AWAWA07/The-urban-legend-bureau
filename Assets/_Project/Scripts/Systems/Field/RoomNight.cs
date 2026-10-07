@@ -56,10 +56,23 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _bedFootX = -6.4f;
 
         [Tooltip("누운 자리(방 기준). 발이 이 자리에 놓이고 머리는 베개 쪽으로 간다.")]
-        [SerializeField] private Vector2 _lyingPosition = new Vector2(-9.2f, -1.6f);
+        [SerializeField] private Vector2 _lyingPosition = new Vector2(-8.2f, -1.4f);
 
         [Tooltip("누운 몸 위로 덮는 이불. 누울 때 켜진다.")]
         [SerializeField] private GameObject _blanketOver;
+
+        [Header("옷걸이")]
+        [Tooltip("옷걸이에 걸린 코트. 평소에는 꺼 두고, 차지한이 코트를 거는 순간 켠다.")]
+        [SerializeField] private GameObject _coatHung;
+
+        [Tooltip("코트를 걸 때 차지한이 서는 자리(방 기준 좌우). 옷걸이 오른쪽, 팔을 뻗으면 고리에 닿는 곳이다.")]
+        [SerializeField] private float _coatStandX = -11.5f;
+
+        [Tooltip("침대 끝에 걸터앉을 때 몸이 올라가는 높이. 침대가 바닥보다 높아 앉으면 발이 살짝 뜬다.")]
+        [SerializeField] private float _bedSitLift = 1.0f;
+
+        [Tooltip("코트 벗기, 걸기, 넥타이, 앉기 그림 한 칸을 보여 주는 시간(초).")]
+        [SerializeField] private float _undressFrameSeconds = 0.24f;
 
         [Header("눈꺼풀")]
         [Tooltip("눈 모양으로 뚫린 검은 판. 위아래로 납작해지며 감긴다. 위아래 바깥은 자식 판이 덮는다.")]
@@ -130,6 +143,9 @@ namespace UrbanLegendBureau.Systems
 
             SetEyes(1f);
             if (_blanketOver != null) _blanketOver.SetActive(false);
+            if (_coatHung != null) _coatHung.SetActive(false);
+            var look = _chajihan != null ? _chajihan.GetComponent<FieldSpriteAnimator>() : null;
+            if (look != null) look.Release();
             _lidsFollowEyes = false;
             SetLids(0f);
             SetShadow(true);
@@ -281,8 +297,82 @@ namespace UrbanLegendBureau.Systems
             if (_chajihan == null) { onDone?.Invoke(); return; }
 
             _chajihan.Locked = true;
+
+            // 코트를 벗는 그림이 있으면 옷걸이 앞으로 가서 벗어 걸고, 넥타이를 풀고, 침대 끝에 앉았다가 눕는다.
+            // 그림이 없으면 예전처럼 침대 발치로 가서 곧바로 눕는다.
+            var look = _chajihan.GetComponent<FieldSpriteAnimator>();
+            if (look != null && look.FrameCount("coatoff") > 0)
+            {
+                _chajihan.WalkTo(_coatStandX, () => StartCoroutine(Undress(look, onDone)), 0.6f);
+                Debug.Log("[RoomNight] 차지한이 옷걸이로 간다");
+                return;
+            }
+
             _chajihan.WalkTo(_bedFootX, () => StartCoroutine(LieDown(onDone)), 0.6f);
             Debug.Log("[RoomNight] 차지한이 침대로 간다");
+        }
+
+        /// <summary>
+        /// 자기 전 차림을 푼다. 코트를 벗어 옷걸이에 걸고, 넥타이를 풀고, 침대 끝에 걸터앉는다. 그다음 눕는다.
+        /// 옷걸이는 차지한의 왼쪽에 있다. 걸어오며 왼쪽을 보고 섰으니 그대로 돌아서지 않고 건다.
+        /// </summary>
+        private IEnumerator Undress(FieldSpriteAnimator look, Action onDone)
+        {
+            yield return new WaitForSeconds(0.3f);
+
+            yield return PlayClip(look, "coatoff", _undressFrameSeconds, null);
+
+            // 마지막 칸에서 손을 뗀다. 그 순간 코트가 옷걸이에 걸린다.
+            int hangLast = look.FrameCount("coathang") - 1;
+            yield return PlayClip(look, "coathang", _undressFrameSeconds * 1.2f, i =>
+            {
+                if (i == hangLast && _coatHung != null) _coatHung.SetActive(true);
+            });
+            if (_coatHung != null) _coatHung.SetActive(true);
+
+            yield return new WaitForSeconds(0.2f);
+            yield return PlayClip(look, "tie", _undressFrameSeconds * 1.4f, null);
+            yield return new WaitForSeconds(0.3f);
+
+            // 침대 끝에 걸터앉는다. 침대가 높아서 앉으며 몸이 올라간다. 발밑 그림자는 바닥에 남지 않게 끈다.
+            int sitCount = look.FrameCount("sit");
+            if (sitCount > 0)
+            {
+                var t = _chajihan.transform;
+                Vector3 from = t.localPosition;
+                Vector3 to = from + new Vector3(0f, _bedSitLift, 0f);
+                SetShadow(false);
+                for (int i = 0; i < sitCount; i++)
+                {
+                    look.Hold("sit", i);
+                    Vector3 a = Vector3.Lerp(from, to, (float)i / sitCount);
+                    Vector3 b = Vector3.Lerp(from, to, (float)(i + 1) / sitCount);
+                    float seconds = _undressFrameSeconds * 1.3f;
+                    for (float e = 0f; e < seconds; e += Time.deltaTime)
+                    {
+                        t.localPosition = Vector3.Lerp(a, b, Mathf.SmoothStep(0f, 1f, e / seconds));
+                        yield return null;
+                    }
+                    t.localPosition = b;
+                }
+                yield return new WaitForSeconds(0.9f);
+            }
+
+            // 누운 그림이 아직 없다. 코트를 벗은 서 있는 그림(넥타이를 푼 마지막 칸)을 눕힌다.
+            look.Hold("tie", look.FrameCount("tie") - 1);
+            yield return LieDown(onDone);
+        }
+
+        /// <summary>그림 묶음을 처음부터 끝까지 한 칸씩 보여 준다. 칸이 바뀔 때마다 onFrame 에 칸 번호를 넘긴다.</summary>
+        private IEnumerator PlayClip(FieldSpriteAnimator look, string clip, float seconds, Action<int> onFrame)
+        {
+            int count = look.FrameCount(clip);
+            for (int i = 0; i < count; i++)
+            {
+                look.Hold(clip, i);
+                onFrame?.Invoke(i);
+                yield return new WaitForSeconds(seconds);
+            }
         }
 
         private IEnumerator LieDown(Action onDone)

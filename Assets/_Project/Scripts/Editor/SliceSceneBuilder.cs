@@ -1051,9 +1051,9 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.97f, 0.96f, 0.93f), -3);
 
             // 누운 몸 위로 덮는 이불. 잠자리에 들 때만 켜진다. 사람보다 앞에 그린다.
-            var blanketOver = AddFieldRect(root.transform, "BlanketOver", new Vector2(-9.85f, -1.72f), new Vector2(1.9f, 0.86f),
+            var blanketOver = AddFieldRect(root.transform, "BlanketOver", new Vector2(-8.9f, -1.42f), new Vector2(2.1f, 1.15f),
                 new Color(0.29f, 0.36f, 0.52f), 7);
-            AddFieldRect(blanketOver.transform, "Fold", new Vector2(-0.8f, 0.3f), new Vector2(0.3f, 0.26f),
+            AddFieldRect(blanketOver.transform, "Fold", new Vector2(-0.92f, 0.42f), new Vector2(0.3f, 0.3f),
                 new Color(0.36f, 0.43f, 0.60f), 8);
             blanketOver.SetActive(false);
 
@@ -1125,6 +1125,7 @@ namespace UrbanLegendBureau.EditorTools
             nso.FindProperty("_roomLight").objectReferenceValue = roomLight;
             nso.FindProperty("_moonLight").objectReferenceValue = moon;
             nso.FindProperty("_blanketOver").objectReferenceValue = blanketOver;
+            nso.FindProperty("_coatHung").objectReferenceValue = root.transform.Find("CoatStand/CoatHung")?.gameObject;
             nso.FindProperty("_switchToggle").objectReferenceValue = switchToggle.transform;
 
             // 잠들 때 화면 위아래에서 닫혀 오는 눈꺼풀. 화면 맨 위에 덮이도록 따로 캔버스를 둔다.
@@ -1795,11 +1796,25 @@ namespace UrbanLegendBureau.EditorTools
             var aso = new SerializedObject(animator);
             aso.Update();
             aso.FindProperty("_renderer").objectReferenceValue = sr;
-            // 한영 걷기 그림에는 몸의 오르내림이 들어 있어 살짝만 더한다. 차지한 그림은 높이가 고르게 그려져 있어 코드로 크게 튀게 한다.
-            aso.FindProperty("_stepBob").floatValue = art == "Chajihan" ? 0.07f : 0.02f;
             var walk = aso.FindProperty("_walk");
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+            // 연출용 그림 묶음. 잠자리에 들며 코트를 벗고 거는 동작 같은 것이다. 있는 것만 넣는다.
+            var clipNames = new[] { "coatoff", "coathang", "tie", "sit" };
+            var clips = aso.FindProperty("_clips");
+            clips.arraySize = 0;
+            foreach (var clipName in clipNames)
+            {
+                var list = LoadFieldFrames(art, clipName);
+                if (list.Count == 0) continue;
+                clips.arraySize++;
+                var clip = clips.GetArrayElementAtIndex(clips.arraySize - 1);
+                clip.FindPropertyRelative("name").stringValue = clipName;
+                var clipFrames = clip.FindPropertyRelative("frames");
+                clipFrames.arraySize = list.Count;
+                for (int i = 0; i < list.Count; i++) clipFrames.GetArrayElementAtIndex(i).objectReferenceValue = list[i];
+            }
+
             // 서 있는 그림과 뒷모습은 있는 인물만 넣는다. 없으면 걷기 칸으로 대신한다.
             foreach (var kind in new[] { "idle", "back" })
             {

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UrbanLegendBureau.Systems
@@ -28,6 +29,51 @@ namespace UrbanLegendBureau.Systems
 
         [Tooltip("뒷모습 한 칸을 보여 주는 시간(초).")]
         [SerializeField] private float _backFrameSeconds = 0.14f;
+
+        /// <summary>연출에서 한 칸씩 골라 보여 주는 그림 한 벌. 코트 벗기, 앉기처럼 걷기와 상관없는 동작이다.</summary>
+        [System.Serializable]
+        public class Clip
+        {
+            public string name;
+            public Sprite[] frames = new Sprite[0];
+        }
+
+        [Tooltip("연출용 그림 묶음. 이름으로 찾는다(coatoff, coathang, tie, sit ...).")]
+        [SerializeField] private List<Clip> _clips = new List<Clip>();
+
+        /// <summary>연출이 붙잡아 둔 그림. 있으면 걷기와 서 있기 대신 이것만 보인다.</summary>
+        private Sprite _hold;
+
+        /// <summary>그 묶음의 칸 수. 없으면 0.</summary>
+        public int FrameCount(string clip)
+        {
+            var c = Find(clip);
+            return c != null && c.frames != null ? c.frames.Length : 0;
+        }
+
+        /// <summary>그 묶음의 한 칸을 붙잡아 보여 준다. 놓아줄 때까지 걷기 그림으로 돌아가지 않는다.</summary>
+        public bool Hold(string clip, int frame)
+        {
+            var c = Find(clip);
+            if (c == null || c.frames == null || c.frames.Length == 0) return false;
+            _hold = c.frames[Mathf.Clamp(frame, 0, c.frames.Length - 1)];
+            Pose(0f, 0f, 1f);
+            SetSprite(_hold);
+            return true;
+        }
+
+        /// <summary>붙잡은 그림을 놓는다. 다음 프레임부터 걷기와 서 있기 그림으로 돌아간다.</summary>
+        public void Release()
+        {
+            _hold = null;
+        }
+
+        private Clip Find(string clip)
+        {
+            if (_clips == null) return null;
+            foreach (var c in _clips) if (c != null && c.name == clip) return c;
+            return null;
+        }
 
         [Tooltip("서 있을 때 보여 줄 걷기 칸. 두 발이 가장 모인 칸이 자연스럽다.")]
         [SerializeField] private int _idleFrame;
@@ -82,12 +128,20 @@ namespace UrbanLegendBureau.Systems
             _lastX = transform.position.x;
             _travelled = 0f;
             _still = _stopDelay;
+            _hold = null;
             _showBack = false;
             if (_idle != null && _idle.Length > 0) SetSprite(_idle[0]); else Show(_idleFrame);
         }
 
         private void LateUpdate()
         {
+            if (_hold != null)
+            {
+                SetSprite(_hold);
+                _lastX = transform.position.x;
+                return;
+            }
+
             if (_showBack)
             {
                 _backTime += Time.deltaTime;
