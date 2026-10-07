@@ -900,26 +900,27 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(1f, 0.85f, 0.5f, 0.2f), -3);
 
             // 옷걸이. 자기 전에 코트를 벗어 거는 곳이다. 지금은 도형으로 세운 임시 모습이다.
+            // 침대 머리맡 왼쪽, 침대보다 앞에 선다. 그래서 침대 그림보다 위에 그린다.
             // 걸린 코트(CoatHung)는 꺼 두었다가 코트를 거는 그림이 들어오면 그 순간에 켠다.
             var coatStand = new GameObject("CoatStand");
             coatStand.transform.SetParent(root.transform, false);
-            coatStand.transform.localPosition = new Vector2(-3.4f, 0f);
-            AddFieldSoft(coatStand.transform, "Shadow", new Vector2(0f, -3.42f), new Vector2(1.2f, 0.26f), floorShadow, -7);
-            AddFieldRect(coatStand.transform, "Base", new Vector2(0f, -3.3f), new Vector2(0.9f, 0.12f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "Foot_L", new Vector2(-0.32f, -3.36f), new Vector2(0.2f, 0.1f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "Foot_R", new Vector2(0.32f, -3.36f), new Vector2(0.2f, 0.1f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "Pole", new Vector2(0f, -1.2f), new Vector2(0.12f, 4.1f), wood, -6);
-            AddFieldRect(coatStand.transform, "Knob", new Vector2(0f, 0.92f), new Vector2(0.22f, 0.18f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "Hook_L", new Vector2(-0.22f, 0.62f), new Vector2(0.34f, 0.07f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "Hook_R", new Vector2(0.22f, 0.62f), new Vector2(0.34f, 0.07f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "HookTip_L", new Vector2(-0.37f, 0.69f), new Vector2(0.06f, 0.16f), woodDark, -6);
-            AddFieldRect(coatStand.transform, "HookTip_R", new Vector2(0.37f, 0.69f), new Vector2(0.06f, 0.16f), woodDark, -6);
+            coatStand.transform.localPosition = new Vector2(-12.7f, -0.35f);   // 벽보다 바닥 앞쪽에 선다
+            AddFieldSoft(coatStand.transform, "Shadow", new Vector2(0f, -3.42f), new Vector2(1.2f, 0.26f), floorShadow, -3);
+            AddFieldRect(coatStand.transform, "Base", new Vector2(0f, -3.3f), new Vector2(0.9f, 0.12f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "Foot_L", new Vector2(-0.32f, -3.36f), new Vector2(0.2f, 0.1f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "Foot_R", new Vector2(0.32f, -3.36f), new Vector2(0.2f, 0.1f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "Pole", new Vector2(0f, -1.2f), new Vector2(0.12f, 4.1f), wood, -2);
+            AddFieldRect(coatStand.transform, "Knob", new Vector2(0f, 0.92f), new Vector2(0.22f, 0.18f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "Hook_L", new Vector2(-0.22f, 0.62f), new Vector2(0.34f, 0.07f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "Hook_R", new Vector2(0.22f, 0.62f), new Vector2(0.34f, 0.07f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "HookTip_L", new Vector2(-0.37f, 0.69f), new Vector2(0.06f, 0.16f), woodDark, -2);
+            AddFieldRect(coatStand.transform, "HookTip_R", new Vector2(0.37f, 0.69f), new Vector2(0.06f, 0.16f), woodDark, -2);
 
             var coatHung = new GameObject("CoatHung");
             coatHung.transform.SetParent(coatStand.transform, false);
-            AddFieldRect(coatHung.transform, "Coat", new Vector2(0.05f, -0.55f), new Vector2(0.95f, 2.3f), new Color(0.07f, 0.07f, 0.09f), -5);
-            AddFieldRect(coatHung.transform, "Lining", new Vector2(0.05f, -0.9f), new Vector2(0.18f, 1.5f), new Color(0.13f, 0.24f, 0.62f), -4);
-            AddFieldRect(coatHung.transform, "Collar", new Vector2(0.05f, 0.5f), new Vector2(0.7f, 0.22f), new Color(0.07f, 0.07f, 0.09f), -4);
+            AddFieldRect(coatHung.transform, "Coat", new Vector2(0.05f, -0.55f), new Vector2(0.95f, 2.3f), new Color(0.07f, 0.07f, 0.09f), -1);
+            AddFieldRect(coatHung.transform, "Lining", new Vector2(0.05f, -0.9f), new Vector2(0.18f, 1.5f), new Color(0.13f, 0.24f, 0.62f), 0);
+            AddFieldRect(coatHung.transform, "Collar", new Vector2(0.05f, 0.5f), new Vector2(0.7f, 0.22f), new Color(0.07f, 0.07f, 0.09f), 0);
             coatHung.SetActive(false);
 
             // --- 가운데: 일하는 자리 ---
