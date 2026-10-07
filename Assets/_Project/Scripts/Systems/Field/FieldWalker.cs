@@ -129,7 +129,8 @@ namespace UrbanLegendBureau.Systems
             //   다른 화면이 위에 떠 있는 동안 - 규칙 추론이나 조사 방법을 고르는 중이다.
             //     그때도 걸으면 화면 뒤에서 사람이 움직여, 돌아왔을 때 엉뚱한 자리에 서 있다.
             if (UrbanLegendBureau.UI.FieldHudScreen.IsSpeaking || !UrbanLegendBureau.UI.FieldHudScreen.IsFront
-                || UrbanLegendBureau.UI.TravelScreen.IsPlaying)
+                || UrbanLegendBureau.UI.TravelScreen.IsPlaying
+                || UrbanLegendBureau.UI.FieldHudScreen.IsCutscene)
             {
                 IsWalking = false;
                 return;

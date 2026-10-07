@@ -97,6 +97,18 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         public static bool IsFront { get; private set; }
 
+        /// <summary>
+        /// 연출이 이어지는 중인가. 대사 창이 잠깐 닫혀도 플레이어가 움직이면 안 되는 때에 켠다.
+        /// 한영이 방을 나가고 혼잣말이 나오기까지처럼 말과 말 사이의 틈이 그렇다. 걷는 쪽(FieldWalker)이 여기를 본다.
+        /// </summary>
+        public static bool IsCutscene { get; set; }
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStatics()
+        {
+            IsCutscene = false;
+        }
+
         private Camera _camera;
         private Rect _cameraRectBefore;
         private bool _cameraChanged;

@@ -135,7 +135,8 @@ namespace UrbanLegendBureau.Systems
             // 누가 말하는 동안, 그리고 다른 화면이 위에 떠 있는 동안에는 조사도 멈춘다.
             // 걷는 쪽(FieldWalker)과 같은 곳을 본다.
             if (UrbanLegendBureau.UI.FieldHudScreen.IsSpeaking || !UrbanLegendBureau.UI.FieldHudScreen.IsFront
-                || UrbanLegendBureau.UI.TravelScreen.IsPlaying)
+                || UrbanLegendBureau.UI.TravelScreen.IsPlaying
+                || UrbanLegendBureau.UI.FieldHudScreen.IsCutscene)
             {
                 ClearNear();
                 return;

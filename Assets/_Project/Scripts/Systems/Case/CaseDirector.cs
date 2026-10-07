@@ -2397,6 +2397,8 @@ namespace UrbanLegendBureau.Systems
         private void OnNightTalkDone()
         {
             var room = GetRoomNight();
+            // 한영이 나가고 혼잣말이 끝날 때까지는 연출이다. 대사 창이 닫혀 있어도 걷지 않는다.
+            FieldHudScreen.IsCutscene = true;
             if (room == null) { OnHanyoungLeft(); return; }
             _fieldHudScreen.SetPhoneButtonVisible(false);   // 휴대폰 단추가 방문을 가린다
             room.PlayHanyoungExit(() =>
@@ -2423,6 +2425,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>혼잣말까지 끝났다. 여기서부터는 직접 돌아다니며 잘 준비를 한다.</summary>
         private void EnterBedtime()
         {
+            FieldHudScreen.IsCutscene = false;
             _night = NightState.Bedtime;
             if (_field != null) _field.InvestigationAllowed = true;
             Debug.Log("[CaseDirector] 잘 시간 | 침대와 조명 스위치만 제 구실을 한다");

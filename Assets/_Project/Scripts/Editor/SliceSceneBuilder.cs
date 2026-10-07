@@ -2347,9 +2347,10 @@ namespace UrbanLegendBureau.EditorTools
             var right = CreateCharacterImage(go.transform, "Char_Right", 520f, "placeholder_chajihan");
 
             // 차지한도 실제 그림이다. 한영과 같은 캔버스로 정리했지만 코트 끝까지 한 키라 머리가 조금 크게 보인다.
-            // 조금 줄이고, 화면 오른쪽 끝에 팔이 잘리지 않게 안쪽으로 들인다. 머리는 한영보다 살짝 높게 선다.
+            // 조금 줄이고, 대사 상자 위로 보이는 몸이 상자 오른쪽 끝(x 800)을 넘지 않게 안쪽으로 들인다.
+            // 팔을 가장 멀리 뻗는 포즈(docs)를 기준으로 잰 자리다. 머리는 한영보다 살짝 높게 선다.
             var rightRt = right.rectTransform;
-            rightRt.anchoredPosition = new Vector2(470f, HanyoungArtY + 70f);
+            rightRt.anchoredPosition = new Vector2(330f, HanyoungArtY + 70f);
             rightRt.sizeDelta = HanyoungArtSize * 0.95f;
             var chajihanArt = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Resources/Characters/Chajihan/" + CharacterArt.ChajihanDefaultPose + ".png");
             if (chajihanArt != null) right.sprite = chajihanArt;
