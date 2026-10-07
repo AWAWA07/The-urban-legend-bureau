@@ -1096,10 +1096,6 @@ namespace UrbanLegendBureau.EditorTools
             nso.Update();
             nso.FindProperty("_chajihan").objectReferenceValue = lead != null ? lead.GetComponent<FieldWalker>() : null;
             nso.FindProperty("_hanyoung").objectReferenceValue = mate != null ? mate.GetComponent<FieldFollower>() : null;
-            var eyes = nso.FindProperty("_eyes");
-            eyes.arraySize = 2;
-            eyes.GetArrayElementAtIndex(0).objectReferenceValue = lead != null ? lead.Find("Eye_A") : null;
-            eyes.GetArrayElementAtIndex(1).objectReferenceValue = lead != null ? lead.Find("Eye_B") : null;
             nso.FindProperty("_doorClosed").objectReferenceValue = doorClosed;
             nso.FindProperty("_doorOpen").objectReferenceValue = doorOpen;
             nso.FindProperty("_roomLight").objectReferenceValue = roomLight;
@@ -1718,8 +1714,7 @@ namespace UrbanLegendBureau.EditorTools
         private static void BuildFieldActors(Transform parent, float groundY, float leadX, float gap,
             float minX, float maxX, bool faceLeft = false)
         {
-            var lead = BuildFieldActor(parent, "Actor_Chajihan", new Vector2(leadX, groundY),
-                new Color(0.42f, 0.52f, 0.72f), new Color(0.86f, 0.78f, 0.68f));
+            var lead = BuildFieldActor(parent, "Actor_Chajihan", new Vector2(leadX, groundY), "Chajihan");
             // 왼쪽을 보고 서야 하면 처음부터 뒤집어 세운다. 걷는 쪽이 이 방향을 처음 방향으로 기억한다.
             float side = faceLeft ? -1f : 1f;
             lead.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
@@ -1731,8 +1726,7 @@ namespace UrbanLegendBureau.EditorTools
             wso.FindProperty("_maxX").floatValue = maxX;
             wso.ApplyModifiedPropertiesWithoutUndo();
 
-            var mate = BuildFieldActor(parent, "Actor_Hanyoung", new Vector2(leadX - gap, groundY),
-                new Color(0.62f, 0.44f, 0.40f), new Color(0.88f, 0.80f, 0.70f));
+            var mate = BuildFieldActor(parent, "Actor_Hanyoung", new Vector2(leadX - gap, groundY), "Hanyoung");
             mate.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
 
             var follower = mate.AddComponent<FieldFollower>();
@@ -1746,54 +1740,47 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>
-        /// 임시 인물 하나. 발이 닿는 자리를 기준으로 위로 쌓는다.
+        /// 현장 인물 하나. 발이 닿는 자리를 기준으로 선다.
         ///
-        /// 2등신이다. 키 1.8 중 위의 0.9 가 머리고 아래 0.9 에 몸과 다리가 들어간다.
-        /// 눈 둘을 보는 쪽으로 몰아 찍는다. 좌우를 뒤집었을 때 어디를 보는지 그것으로 안다.
+        /// 그림은 Art/Characters/{art}/Field 의 걷기 칸(walk_0 ...)이다. 오른쪽을 보고 그려져 있고, 왼쪽은 뒤집어 보인다.
+        /// 키는 그림을 들여올 때 정한다(CharacterArtImporter). 칸 넘기기는 FieldSpriteAnimator 가 한다.
         /// </summary>
-        private static GameObject BuildFieldActor(Transform parent, string name, Vector2 footPosition,
-            Color cloth, Color skin)
+        private static GameObject BuildFieldActor(Transform parent, string name, Vector2 footPosition, string art)
         {
             const int Order = 3;   // 승강장 문짝과 안전선보다 앞이다
-
-            // 2등신의 기준. 키의 절반이 머리다.
-            const float Height = 1.8f;
-            const float HeadSize = Height * 0.5f;      // = 0.9
-            const float BodyTop = Height - HeadSize;   // = 0.9
 
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.localPosition = footPosition;
 
-            var leg = new Color(0.17f, 0.18f, 0.23f);
-
             // 발밑의 흐린 그림자. 바닥에 서 있는 것처럼 보이게 한다. 누우면 끈다(RoomNight).
             AddFieldSoft(go.transform, "Shadow", new Vector2(0f, 0.02f), new Vector2(1.0f, 0.24f),
                 new Color(0f, 0f, 0f, 0.45f), Order - 1);
 
-            // 다리 둘. 짧고 굵다. 발끝이 바닥에 닿는다.
-            AddFieldRect(go.transform, "Leg_L", new Vector2(-0.13f, 0.16f), new Vector2(0.20f, 0.32f), leg, Order);
-            AddFieldRect(go.transform, "Leg_R", new Vector2(0.13f, 0.16f), new Vector2(0.20f, 0.32f), leg, Order);
+            // 걷는 그림. 발밑이 기준점이라 자식을 원점에 두면 바닥에 선다.
+            var frames = new List<Sprite>();
+            for (int i = 0; ; i++)
+            {
+                var frame = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/Art/Characters/" + art + "/Field/walk_" + i + ".png");
+                if (frame == null) break;
+                frames.Add(frame);
+            }
+            if (frames.Count == 0) Debug.LogWarning("[SliceSceneBuilder] " + art + " 의 현장 걷기 그림이 없다.");
 
-            // 몸통. 머리를 받치는 자리라 작다.
-            AddFieldRect(go.transform, "Body", new Vector2(0f, 0.61f), new Vector2(0.58f, 0.58f), cloth, Order);
+            var sprite = new GameObject("Sprite");
+            sprite.transform.SetParent(go.transform, false);
+            var sr = sprite.AddComponent<SpriteRenderer>();
+            sr.sprite = frames.Count > 0 ? frames[0] : null;
+            sr.sortingOrder = Order;
 
-            // 팔 둘. 몸통 옆으로 살짝 나온다.
-            AddFieldRect(go.transform, "Arm_L", new Vector2(-0.36f, 0.62f), new Vector2(0.14f, 0.42f), cloth, Order);
-            AddFieldRect(go.transform, "Arm_R", new Vector2(0.36f, 0.62f), new Vector2(0.14f, 0.42f), cloth, Order);
-
-            // 머리. 키의 절반을 차지한다.
-            AddFieldRect(go.transform, "Head", new Vector2(0f, BodyTop + HeadSize * 0.5f),
-                new Vector2(HeadSize * 0.94f, HeadSize), skin, Order);
-
-            // 앞머리. 머리 위쪽을 덮는다.
-            AddFieldRect(go.transform, "Hair", new Vector2(0f, Height - 0.16f), new Vector2(HeadSize, 0.32f),
-                new Color(0.13f, 0.12f, 0.14f), Order + 1);
-
-            // 눈 둘. 보는 쪽으로 몰아 찍는다.
-            var pupil = new Color(0.12f, 0.11f, 0.13f);
-            AddFieldRect(go.transform, "Eye_A", new Vector2(-0.02f, 1.28f), new Vector2(0.11f, 0.15f), pupil, Order + 1);
-            AddFieldRect(go.transform, "Eye_B", new Vector2(0.24f, 1.28f), new Vector2(0.11f, 0.15f), pupil, Order + 1);
+            var animator = go.AddComponent<FieldSpriteAnimator>();
+            var aso = new SerializedObject(animator);
+            aso.Update();
+            aso.FindProperty("_renderer").objectReferenceValue = sr;
+            var walk = aso.FindProperty("_walk");
+            walk.arraySize = frames.Count;
+            for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
+            aso.ApplyModifiedPropertiesWithoutUndo();
 
             return go;
         }
