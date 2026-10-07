@@ -6,23 +6,23 @@
 
 # 현장 도착
 tutorial.field.001	neutral	우리는 여기서 발생한 게 진짜인지 가짜인지 구별하고 해결법을 찾아볼 거야.
-tutorial.field.002	smirk	귀신 만나고 너무 무서워 하지 말고 ㅋㅋ
-tutorial.field.004	smile	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷 검열 해 놓은 막차 관련된 괴담이야.
-tutorial.field.005	calm	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.
+tutorial.field.002	gentle	귀신 만나고 너무 무서워 하지 말고
+tutorial.field.004	displeased	그래~ 우리가 찾을 괴담은 아까 우리가 인터넷 검열 해 놓은 막차 관련된 괴담이야.
+tutorial.field.005	neutral	휴대폰으로도 메모하고 내용 살펴봐야 하니까 잘 챙기고 조심히 따라와.
 
 # 종점
 tutorial.field.terminus	neutral	이제 막차의 종점이야 내려야 돼.
-tutorial.field.terminus_help	tired	아, 너 이건 못 봤지? 내가 본 단서도 같이 적어둘게. 첫 건이니까 이번만이야.
+tutorial.field.terminus_help	displeased	아, 너 이건 못 봤지? 내가 본 단서도 같이 적어둘게. 첫 건이니까 이번만이야.
 
 # 게시판 취합
-tutorial.board.001	think	이 글을 살펴보니 이 막차 시간 괴담에 묶여있던 글이 총 3개가 있었어.
-tutorial.board.002	calm	우리가 인터넷으로 조사했던 '어제 막차에서 있었던 일' 말고, 이 '이 노선 막차 시간 아시는 분'이 같은 내용인 게 확인됐어.
-tutorial.board.003	smirk	여기서 문제. 그럼 관련되어 있는 다른 하나의 게시물 제목은 무엇일까?
-tutorial.board.reply_1	displeased	아니. 막차 시간표 스샷은 이 사건과 관련된 이야기는 맞지만, 괴담을 말하는 글이 아니야.
-tutorial.board.reply_2	smile	오... 예리한데? 맞아. 그래서 우린 9-4 칸에 타서 진실을 찾으러 온 거지.
-tutorial.board.reply_3	displeased	아니. 그 사건은 우리가 관리해야 하는 괴담은 맞지만, 이 사건과 관련된 이야기는 아니야.
+tutorial.board.001	calm	이 글을 살펴보니 이 막차 시간 괴담에 묶여있던 글이 총 3개가 있었어.
+tutorial.board.002	think	우리가 인터넷으로 조사했던 '어제 막차에서 있었던 일' 말고, 이 '이 노선 막차 시간 아시는 분'이 같은 내용인 게 확인됐어.
+tutorial.board.003	think	여기서 문제. 그럼 관련되어 있는 다른 하나의 게시물 제목은 무엇일까?
+tutorial.board.reply_1	angry	아니. 막차 시간표 스샷은 이 사건과 관련된 이야기는 맞지만, 괴담을 말하는 글이 아니야.
+tutorial.board.reply_2	smirk	오... 예리한데? 맞아. 그래서 우린 9-4 칸에 타서 진실을 찾으러 온 거지.
+tutorial.board.reply_3	angry	아니. 그 사건은 우리가 관리해야 하는 괴담은 맞지만, 이 사건과 관련된 이야기는 아니야.
 tutorial.board.004	neutral	'지하철 9-4 칸은 타지 마세요' 게시물을 보면, 우리가 인터넷으로 조사한 '어제 막차에서 있었던 일'과 같다는 걸 알 수 있어.
-tutorial.board.006	calm	내려야 되는 시간은 12시 30분이니, 그때까지 조사 하면 돼.
+tutorial.board.006	gentle	내려야 되는 시간은 12시 30분이니, 그때까지 조사 하면 돼.
 
 # 게시물 올리러
-tutorial.room.cue	gentle	처음 치고는 잘하는데? 이제 마지막으로 조사한걸 바탕으로 게시물을 올려보자.
+tutorial.room.cue	smile	처음 치고는 잘하는데? 이제 마지막으로 조사한걸 바탕으로 게시물을 올려보자.

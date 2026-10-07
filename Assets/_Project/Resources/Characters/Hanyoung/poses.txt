@@ -111,4 +111,4 @@ tutorial.night.003	standing	그래, 내일 6시에 보자. 그때부터는 진�
 
 # 규칙 추론 · 보고서
 tutorial.field.report_cue	point_up	자, 이제 보고서 작성하고 게시물을 직접 올려볼까?
-tutorial.field.report_done	smile_closed	좋아, 빈칸 하나 없이 다 맞았어. 이건 네 메모장에 넣어 뒀으니까 나중에 꺼내 봐.
+tutorial.field.report_done	gentle	좋아, 빈칸 하나 없이 다 맞았어. 이건 네 메모장에 넣어 뒀으니까 나중에 꺼내 봐.
