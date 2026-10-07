@@ -72,7 +72,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _coatStandX = -11.5f;
 
         [Tooltip("침대 끝에 걸터앉을 때 몸이 올라가는 높이. 침대가 바닥보다 높아 앉으면 발이 살짝 뜬다.")]
-        [SerializeField] private float _bedSitLift = 1.0f;
+        [SerializeField] private float _bedSitLift = 0.8f;
 
         [Tooltip("코트 벗기, 걸기, 넥타이, 앉기 그림 한 칸을 보여 주는 시간(초).")]
         [SerializeField] private float _undressFrameSeconds = 0.24f;
@@ -344,23 +344,31 @@ namespace UrbanLegendBureau.Systems
             {
                 var t = _chajihan.transform;
                 Vector3 from = t.localPosition;
-                Vector3 to = from + new Vector3(0f, _bedSitLift, 0f);
-                SetShadow(false);
+                Vector3 to = from + new Vector3(0.25f, _bedSitLift, 0f);
                 // 침대 쪽으로 돌아앉는다. 앉기와 눕기 그림은 오른쪽을 보고 그려져 있어 뒤집지 않는다.
                 t.localScale = new Vector3(Mathf.Abs(_chajihanScale.x), _chajihanScale.y, _chajihanScale.z);
-                for (int i = 0; i < sitCount; i++)
+                // 첫 칸은 제자리에서 무릎을 굽힌다. 다음 칸에서 엉덩이를 침대 끝에 걸치며 몸이 올라가고,
+                // 마지막 칸에서 털썩 내려앉는다. 오르는 동안 둥글게 솟았다가 살짝 가라앉아 앉는 무게가 느껴지게 한다.
+                float seconds = _undressFrameSeconds * 1.3f;
+                look.Hold("sit", 0);
+                yield return new WaitForSeconds(seconds);
+
+                if (sitCount > 1) look.Hold("sit", 1);
+                SetShadow(false);
+                const float RiseSeconds = 0.32f;
+                for (float e = 0f; e < RiseSeconds; e += Time.deltaTime)
                 {
-                    look.Hold("sit", i);
-                    Vector3 a = Vector3.Lerp(from, to, (float)i / sitCount);
-                    Vector3 b = Vector3.Lerp(from, to, (float)(i + 1) / sitCount);
-                    float seconds = _undressFrameSeconds * 1.3f;
-                    for (float e = 0f; e < seconds; e += Time.deltaTime)
-                    {
-                        t.localPosition = Vector3.Lerp(a, b, Mathf.SmoothStep(0f, 1f, e / seconds));
-                        yield return null;
-                    }
-                    t.localPosition = b;
+                    float k = e / RiseSeconds;
+                    float ease = 1f - (1f - k) * (1f - k);                       // 빨리 올라가다 느려진다
+                    float over = Mathf.Sin(k * Mathf.PI) * 0.12f;                // 살짝 더 솟는다
+                    t.localPosition = Vector3.Lerp(from, to, ease) + new Vector3(0f, over, 0f);
+                    if (k > 0.5f && sitCount > 2) look.Hold("sit", 2);
+                    yield return null;
                 }
+                t.localPosition = to + new Vector3(0f, 0.04f, 0f);
+                look.Hold("sit", sitCount - 1);
+                yield return new WaitForSeconds(0.08f);
+                t.localPosition = to;                                             // 털썩
                 yield return new WaitForSeconds(0.9f);
             }
 

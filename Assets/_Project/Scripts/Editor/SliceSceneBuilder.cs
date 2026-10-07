@@ -1664,7 +1664,7 @@ namespace UrbanLegendBureau.EditorTools
         /// 씬에서 직접 늘려 보고 정한 값이라 여기 한 곳에만 둔다. 크기를 바꾸려면 이 숫자만 고친다.
         /// 좌우를 뒤집을 때 절댓값을 쓰므로 키운 크기는 뒤집어도 그대로 남는다.
         /// </remarks>
-        private const float ActorScale = 1.5f;
+        private const float ActorScale = 1.9f;
 
         /// <summary>
         /// 조사할 것 위에 뜨는 말풍선 하나.
@@ -1793,6 +1793,8 @@ namespace UrbanLegendBureau.EditorTools
             // 걸을 때 몸이 오르내리는 폭. 한영 걷기 그림에는 오르내림이 들어 있어 더하지 않는다.
             // 차지한 그림은 칸마다 키가 같게 그려져 있어 코드로 오르내리게 한다.
             aso.FindProperty("_stepBob").floatValue = art == "Chajihan" ? 0.05f : 0f;
+            // 인물을 키운 만큼 한 걸음도 길다. 걷기 한 바퀴에 걷는 거리를 크기에 맞춰 늘려 발이 미끄러지지 않게 한다.
+            aso.FindProperty("_cycleDistance").floatValue = 3.6f * ActorScale / 1.5f;
             var walk = aso.FindProperty("_walk");
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
