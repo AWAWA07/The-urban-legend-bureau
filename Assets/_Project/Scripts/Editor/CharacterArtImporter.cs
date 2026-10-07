@@ -19,10 +19,10 @@ namespace UrbanLegendBureau.EditorTools
 
         /// <summary>
         /// 현장 그림의 한 단위당 픽셀. 칸 높이가 약 480px 이다.
-        /// 한영은 키 1.8, 차지한은 그보다 조금 큰 1.95 가 되게 한다. 전신 일러스트의 키 차이와 같다.
+        /// 한영은 키 2.35, 차지한은 그보다 조금 큰 2.55 가 되게 한다. 예전 도형 인물(1.8)보다 크게 보이게 키웠다. 전신 일러스트의 키 차이와 같다.
         /// </summary>
-        private const float HanyoungFieldPpu = 260f;
-        private const float ChajihanFieldPpu = 245f;
+        private const float HanyoungFieldPpu = 200f;
+        private const float ChajihanFieldPpu = 188f;
 
         private void OnPreprocessTexture()
         {
