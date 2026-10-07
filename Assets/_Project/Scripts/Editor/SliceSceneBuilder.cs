@@ -1050,12 +1050,7 @@ namespace UrbanLegendBureau.EditorTools
             var switchToggle = AddFieldRect(root.transform, "SwitchToggle", new Vector2(11.1f, -0.27f), new Vector2(0.12f, 0.18f),
                 new Color(0.97f, 0.96f, 0.93f), -3);
 
-            // 누운 몸 위로 덮는 이불. 잠자리에 들 때만 켜진다. 사람보다 앞에 그린다.
-            var blanketOver = AddFieldRect(root.transform, "BlanketOver", new Vector2(-8.9f, -1.42f), new Vector2(2.1f, 1.15f),
-                new Color(0.29f, 0.36f, 0.52f), 7);
-            AddFieldRect(blanketOver.transform, "Fold", new Vector2(-0.92f, 0.42f), new Vector2(0.3f, 0.3f),
-                new Color(0.36f, 0.43f, 0.60f), 8);
-            blanketOver.SetActive(false);
+            // 누운 몸 위로 덮던 이불은 뺐다. 누운 그림이 몸을 다 보여 주는 편이 낫다.
 
             // 조명. 방 전체를 비추는 전역 조명 하나와, 불을 끄면 창으로 들어오는 달빛.
             // 방 뿌리 아래에 두므로 숙소가 보일 때만 켜진다. 다른 현장의 밝기는 그대로다.
@@ -1124,7 +1119,6 @@ namespace UrbanLegendBureau.EditorTools
             nso.FindProperty("_doorOpen").objectReferenceValue = doorOpen;
             nso.FindProperty("_roomLight").objectReferenceValue = roomLight;
             nso.FindProperty("_moonLight").objectReferenceValue = moon;
-            nso.FindProperty("_blanketOver").objectReferenceValue = blanketOver;
             nso.FindProperty("_coatHung").objectReferenceValue = root.transform.Find("CoatStand/CoatHung")?.gameObject;
             nso.FindProperty("_switchToggle").objectReferenceValue = switchToggle.transform;
 
@@ -1800,7 +1794,7 @@ namespace UrbanLegendBureau.EditorTools
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
             // 연출용 그림 묶음. 잠자리에 들며 코트를 벗고 거는 동작 같은 것이다. 있는 것만 넣는다.
-            var clipNames = new[] { "coatoff", "coathang", "tie", "sit", "lie" };
+            var clipNames = new[] { "coatoff", "coathang", "tie", "sit", "lie", "sleep" };
             var clips = aso.FindProperty("_clips");
             clips.arraySize = 0;
             foreach (var clipName in clipNames)

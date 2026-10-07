@@ -146,6 +146,7 @@ namespace UrbanLegendBureau.Systems
 
             SetEyes(1f);
             if (_blanketOver != null) _blanketOver.SetActive(false);
+            _sleepLook = null;
             if (_coatHung != null) _coatHung.SetActive(false);
             var look = _chajihan != null ? _chajihan.GetComponent<FieldSpriteAnimator>() : null;
             if (look != null) look.Release();
@@ -384,6 +385,7 @@ namespace UrbanLegendBureau.Systems
                     }
                     t.localPosition = b;
                 }
+                if (look.FrameCount("sleep") > 0) { _sleepLook = look; SetEyes(1f); }
                 yield return LieDown(onDone, false);
                 yield break;
             }
@@ -540,10 +542,24 @@ namespace UrbanLegendBureau.Systems
 
         private float _eyeOpen = 1f;
 
+        /// <summary>잠들기 그림으로 눈을 감기는 차지한. 누운 그림으로 누웠을 때만 있다.</summary>
+        private FieldSpriteAnimator _sleepLook;
+
         private void SetEyes(float open)
         {
             _eyeOpen = open;
             if (_lidsFollowEyes) SetLids(Mathf.InverseLerp(1f, 0.08f, open));
+
+            // 누운 그림이 있으면 눈 뜬 정도에 맞는 잠들기 칸을 고른다. 0 이 뜬 눈, 마지막이 감은 눈이다.
+            if (_sleepLook != null)
+            {
+                int count = _sleepLook.FrameCount("sleep");
+                if (count > 0)
+                {
+                    float closed = Mathf.InverseLerp(1f, 0.08f, open);
+                    _sleepLook.Hold("sleep", Mathf.Min(count - 1, Mathf.FloorToInt(closed * count)));
+                }
+            }
             if (_eyes == null || _eyeScales == null) return;
 
             for (int i = 0; i < _eyes.Length; i++)
