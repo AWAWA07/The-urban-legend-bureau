@@ -228,9 +228,8 @@ namespace UrbanLegendBureau.EditorTools
             var btnHelpTutorial = CreateButton(helpButtons, "Btn_HelpTutorial", "ui.title.tutorial_replay");
             var btnHelpBack = CreateButton(helpButtons, "Btn_HelpBack", "ui.common.back");
             var btnSettingsBack = CreateButton(settingsButtons, "Btn_SettingsBack", "ui.common.back");
-            // 타이틀은 버튼이 네 개라 기본 버튼 폭(400)으로는 줄을 넘는다.
-            // 폭을 줄이고 줄 자체를 넓혀 1920 기준 가운데에 모두 들어오게 한다.
-            StyleTitleScreen(title, new[] { btnStart, btnHelp, btnSettings, btnQuit }, titleButtons);
+            // 타이틀은 최종 시안대로 꾸민다. 예전 가로 버튼 줄은 숨기고 왼쪽 세로 메뉴 여섯 줄을 쓴다.
+            var titleMenu = StyleTitleScreen(title, titleButtons);
             var btnActions = CreateButton(bureauButtons, "Btn_Actions", "ui.action.btn_actions");
             var btnActionsBack = CreateButton(actionButtons, "Btn_ActionsBack", "ui.action.btn_back");
             var btnInternet = CreateButton(bureauButtons, "Btn_Internet", "ui.slice.btn_internet");
@@ -296,6 +295,15 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnHelp.GetComponent<Button>().onClick, director.OnOpenHelpClicked);
             UnityEventTools.AddPersistentListener(btnSettings.GetComponent<Button>().onClick, director.OnOpenSettingsClicked);
             UnityEventTools.AddPersistentListener(btnQuit.GetComponent<Button>().onClick, director.OnQuitClicked);
+
+            // 타이틀 세로 메뉴. 이어하기는 예전 시작과 같고(처음이면 이야기부터), 새 게임은 이야기를 처음부터 돌린다.
+            // 불러오기는 아직 저장 칸이 하나라 사건 목록을 연다. 크레딧은 아직 따로 없어 설명 화면을 연다.
+            UnityEventTools.AddPersistentListener(titleMenu[0].onClick, director.OnStartClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[1].onClick, director.OnReplayTutorialClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[2].onClick, director.OnOpenCaseListClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[3].onClick, director.OnOpenSettingsClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[4].onClick, director.OnOpenHelpClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[5].onClick, director.OnQuitClicked);
             UnityEventTools.AddPersistentListener(btnHelpTutorial.GetComponent<Button>().onClick, director.OnReplayTutorialClicked);
             UnityEventTools.AddPersistentListener(btnHelpBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
             UnityEventTools.AddPersistentListener(btnSettingsBack.GetComponent<Button>().onClick, director.OnBackToTitleFromMenuClicked);
@@ -2116,65 +2124,143 @@ namespace UrbanLegendBureau.EditorTools
         ///     그래서 버튼을 좁히고 줄을 넓혀 실제로 들어가게 만든다.
         ///  2. 타이틀 아래 문구 제거와 어두운 배경. 본문/꼬리말은 CaseDirector가 비워서 넘긴다.
         /// </summary>
-        private static void StyleTitleScreen(TextPanelScreen title, GameObject[] buttons, Transform buttonRow)
+        /// <summary>타이틀 그림이 있는 곳. 최종 시안에서 뽑은 배경, 로고, 메뉴 글자, 붉은 띠다.</summary>
+        private const string TitleArtPath = "Assets/_Project/UI/Sprites/Title/";
+
+        /// <summary>
+        /// 타이틀 화면을 최종 시안대로 꾸민다.
+        ///
+        /// 시안 그림(1672x941)의 자리를 1920x1080 기준으로 옮겨 놓는다. 왼쪽 위 모서리에서 잰 자리다.
+        /// 로고 아래에 영문 한 줄, 그 아래에 메뉴 여섯 줄이 서고 줄 사이에 가는 선이 있다.
+        /// 메뉴 줄에 마우스를 올리면 그 줄 뒤에 붉은 띠가 깔린다(TitleMenuItem).
+        ///
+        /// 예전의 글자 제목과 가로 버튼 줄은 숨긴다. 진행 담당이 그 글자에 제목을 넣어도 보이지 않는다.
+        /// 돌려주는 것은 메뉴 단추 여섯 개다. 순서는 이어하기, 새 게임, 불러오기, 설정, 크레딧, 종료.
+        /// </summary>
+        private static Button[] StyleTitleScreen(TextPanelScreen title, Transform buttonRow)
         {
+            const float K = 1920f / 1672f;   // 시안 그림 한 점이 화면에서 차지하는 크기
+
             // --- 배경 ---
             var image = title.GetComponent<Image>();
             if (image != null)
             {
-                var bg = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/_Project/UI/Sprites/title_background.png");
-                if (bg != null)
+                var bg = LoadBackdropSprite(TitleArtPath + "title_bg.png");
+                image.sprite = bg;
+                image.color = bg != null ? Color.white : new Color(0.03f, 0.035f, 0.06f, 1f);
+                image.type = Image.Type.Simple;
+                image.preserveAspect = false;
+            }
+
+            // 예전 제목, 본문, 안내 글과 가로 버튼 줄은 쓰지 않는다.
+            foreach (var oldName in new[] { "Text_Title", "Text_Body", "Text_Footer" })
+            {
+                var old = title.transform.Find(oldName);
+                if (old != null) old.gameObject.SetActive(false);
+            }
+            buttonRow.gameObject.SetActive(false);
+
+            // 왼쪽을 어둡게 눌러 로고와 메뉴가 잘 읽히게 한다. 시안에서도 왼쪽이 더 어둡다.
+            var shade = CreatePanel(title.transform, "Shade", new Color(1f, 1f, 1f, 0.78f));
+            var shadeImage = shade.GetComponent<Image>();
+            shadeImage.sprite = LoadBackdropSprite(TitleArtPath + "title_shade.png");
+            shadeImage.raycastTarget = false;
+            var shadeRt = (RectTransform)shade.transform;
+            shadeRt.anchorMin = new Vector2(0f, 0f);
+            shadeRt.anchorMax = new Vector2(0.62f, 1f);
+            shadeRt.offsetMin = Vector2.zero;
+            shadeRt.offsetMax = Vector2.zero;
+
+            // --- 로고 ---
+            var logo = AddTitleImage(title.transform, "Logo", "title_logo.png",
+                new Vector2(34f, 82f) * K, new Vector2(1642f, 855f) * (0.44f * K));
+            logo.color = new Color(0.92f, 0.9f, 0.9f, 1f);   // 시안처럼 배경에 조금 묻히게
+
+            // 로고 아래 영문 한 줄. Censorship 만 붉다.
+            var sub = AddText(title.transform, "Subtitle", 19f, UIFontWeight.Regular, new Color(0.9f, 0.9f, 0.92f),
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            PlaceTopLeft(sub.rectTransform, new Vector2(175f, 366f) * K, new Vector2(530f, 28f) * K);
+            sub.characterSpacing = 42f;
+            sub.richText = true;
+            sub.raycastTarget = false;
+            sub.text = "Urban Legend <color=#D8312C>Censorship</color> Bureau";
+
+            // --- 메뉴 ---
+            // 줄 가운데 높이(시안 기준). 줄 사이는 59.
+            float[] rowY = { 471f, 530f, 588f, 647f, 706f, 765f };
+            var buttons = new Button[rowY.Length];
+            for (int i = 0; i < rowY.Length; i++)
+            {
+                var row = new GameObject("Menu_" + i, typeof(RectTransform));
+                row.transform.SetParent(title.transform, false);
+                var rowRt = (RectTransform)row.transform;
+                PlaceTopLeft(rowRt, new Vector2(220f, rowY[i] - 29f) * K, new Vector2(290f, 58f) * K);
+
+                // 누르는 자리. 투명하지만 줄 전체가 눌린다.
+                var hit = row.AddComponent<Image>();
+                hit.color = new Color(1f, 1f, 1f, 0f);
+                hit.raycastTarget = true;
+                var button = row.AddComponent<Button>();
+                button.targetGraphic = hit;
+                button.transition = Selectable.Transition.None;
+                buttons[i] = button;
+
+                // 마우스를 올리면 깔리는 붉은 띠. 시안보다 조금 어둡게 둔다.
+                var bar = AddTitleImage(row.transform, "Highlight", "title_bar.png", Vector2.zero, Vector2.zero);
+                var barRt = bar.rectTransform;
+                barRt.anchorMin = new Vector2(0f, 0f);
+                barRt.anchorMax = new Vector2(1f, 1f);
+                barRt.offsetMin = new Vector2(-6f, -4f);
+                barRt.offsetMax = new Vector2(10f, 4f);
+                bar.color = new Color(0.62f, 0.5f, 0.5f, 0.9f);
+
+                // 메뉴 글자. 시안에서 뽑은 그림이다.
+                var label = AddTitleImage(row.transform, "Label", "title_menu_" + i + ".png", Vector2.zero, Vector2.zero);
+                var labelRt = label.rectTransform;
+                labelRt.anchorMin = new Vector2(0f, 0.5f);
+                labelRt.anchorMax = new Vector2(0f, 0.5f);
+                labelRt.pivot = new Vector2(0f, 0.5f);
+                labelRt.anchoredPosition = new Vector2(16f * K, 0f);
+                labelRt.sizeDelta = new Vector2(150f, 56f) * K;
+
+                var item = row.AddComponent<TitleMenuItem>();
+                var iso = new SerializedObject(item);
+                iso.Update();
+                iso.FindProperty("_highlight").objectReferenceValue = bar;
+                iso.ApplyModifiedPropertiesWithoutUndo();
+
+                // 줄 사이의 가는 선. 마지막 줄 아래에는 없다.
+                if (i < rowY.Length - 1)
                 {
-                    image.sprite = bg;
-                    image.color = Color.white;
-                    image.type = Image.Type.Simple;
-                    image.preserveAspect = false;
-                }
-                else
-                {
-                    image.color = new Color(0.03f, 0.035f, 0.06f, 1f);
+                    var line = CreatePanel(title.transform, "MenuLine_" + i, new Color(1f, 1f, 1f, 0.16f));
+                    line.GetComponent<Image>().raycastTarget = false;
+                    PlaceTopLeft((RectTransform)line.transform, new Vector2(222f, rowY[i] + 29.5f) * K, new Vector2(280f * K, 1.5f));
                 }
             }
 
-            // --- 제목 ---
-            var titleText = title.transform.Find("Text_Title") as RectTransform;
-            if (titleText != null)
-            {
-                titleText.anchoredPosition = new Vector2(0f, 200f);
-                titleText.sizeDelta = new Vector2(1600f, 200f);
+            return buttons;
+        }
 
-                var tmp = titleText.GetComponent<TMP_Text>();
-                tmp.fontSize = 132f;
-                tmp.font = LoadFont(UIFontWeight.Bold);
-                tmp.characterSpacing = 6f;
+        /// <summary>타이틀 그림 한 장을 놓는다. 자리와 크기는 화면 왼쪽 위에서 잰다.</summary>
+        private static Image AddTitleImage(Transform parent, string name, string file, Vector2 topLeft, Vector2 size)
+        {
+            var go = CreatePanel(parent, name, Color.white);
+            var image = go.GetComponent<Image>();
+            image.sprite = LoadBackdropSprite(TitleArtPath + file);
+            image.preserveAspect = false;
+            image.raycastTarget = false;
+            PlaceTopLeft((RectTransform)go.transform, topLeft, size);
+            return image;
+        }
 
-                // 색 번짐(글리치) 흉내. 같은 글자를 청록/붉은색으로 살짝 어긋나게 깔아 둔다.
-                CreateTitleGhost(title.transform, "Text_TitleGhostCyan", titleText,
-                    new Vector2(-7f, 3f), new Color(0.35f, 0.85f, 1f, 0.34f), -2);
-                CreateTitleGhost(title.transform, "Text_TitleGhostRed", titleText,
-                    new Vector2(7f, -3f), new Color(1f, 0.28f, 0.34f, 0.30f), -1);
-                titleText.SetAsLastSibling();
-            }
-
-            // --- 버튼 ---
-            var row = (RectTransform)buttonRow;
-            row.anchoredPosition = new Vector2(0f, -330f);
-            row.sizeDelta = new Vector2(1400f, 110f);
-
-            var layout = row.GetComponent<HorizontalLayoutGroup>();
-            if (layout != null)
-            {
-                layout.spacing = 28f;
-                layout.childAlignment = TextAnchor.MiddleCenter;
-            }
-
-            foreach (var button in buttons)
-            {
-                ((RectTransform)button.transform).sizeDelta = new Vector2(300f, 96f);
-            }
-
-            // 버튼 줄을 마지막으로 올려 배경/유령 글자가 덮지 않게 한다.
-            row.SetAsLastSibling();
+        /// <summary>왼쪽 위 모서리를 기준으로 자리를 잡는다. 시안 그림의 좌표를 그대로 옮기기 좋다.</summary>
+        private static void PlaceTopLeft(RectTransform rt, Vector2 topLeft, Vector2 size)
+        {
+            rt.anchorMin = new Vector2(0f, 1f);
+            rt.anchorMax = new Vector2(0f, 1f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(topLeft.x, -topLeft.y);
+            rt.sizeDelta = size;
         }
 
         /// <summary>제목 뒤에 깔리는 색 번짐 글자. 같은 String ID를 쓰므로 언어가 바뀌어도 따라간다.</summary>
