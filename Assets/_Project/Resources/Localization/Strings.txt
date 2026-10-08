@@ -343,6 +343,14 @@ ui.field.closeup_tab	조사	Investigate	가까이 보기 화면의 글자 띠 �
 field.subway.cctv_close.hint	어디를 살펴볼까.	Where to look?	CCTV 가까이 보기 화면의 첫 안내
 field.subway.cctv_close.scratch	그냥 세월에 생긴 평범한 흠집이다..	Just ordinary scratches from years of use..	CCTV 몸통의 흠집을 눌렀을 때
 field.subway.cctv_close.battery	배터리가 장착되어 있지 않다.	There's no battery in it.	CCTV 배터리 칸을 눌렀을 때
+field.subway.window_close.hint	어디를 살펴볼까.	Where to look?	창문 가까이 보기 화면의 첫 안내
+field.subway.window_close.crack	유리에 금이 가 있다. 바깥쪽에서 무언가 세게 부딪힌 것처럼.	The glass is cracked. As if something hit it hard from outside.	창문의 금 간 자국
+field.subway.window_close.scratch	가늘게 긁힌 자국이 여러 줄 나 있다. 손톱으로 긁은 것 같은….	Thin scratches, several of them. Almost like fingernails….	창문의 흠집
+field.subway.window_close.sticker	'창문에 기대지 마세요' 스티커. 한쪽 귀퉁이가 들떠 있다.	A 'Do not lean on the window' sticker. One corner is peeling.	창문의 스티커
+field.subway.window_close.sticker_label	창문에\n기대지 마세요	Do not lean\non the window	스티커에 적힌 글
+field.subway.window_ghost.001	……방금, 창밖에.	……Just now. Outside the window.	창밖의 그것이 사라진 직후. 차지한
+field.subway.window_ghost.002	너도 봤지? 웃고 있었어.	You saw it too? It was smiling.	한영
+field.subway.window_ghost.003	달리는 열차 밖에서요.	Outside a moving train.	차지한
 field.subway.platform	승강장	The platform	
 action.subway.photo.name	사진 촬영	Take photos	
 action.subway.photo.desc	눈에 보이는 상태를 그대로 남긴다. 빠르지만 깊이 들어가지는 못한다.	Record what is visible. Quick, but it does not go deep.	

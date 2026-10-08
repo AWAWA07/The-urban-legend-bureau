@@ -24,7 +24,13 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private TextPanelScreen _titleScreen;
 
         [Tooltip("열차 안 CCTV 를 가까이서 보는 화면.")]
-        [SerializeField] private CctvCloseupScreen _cctvCloseupScreen;
+        [SerializeField] private CloseupScreen _cctvCloseupScreen;
+
+        [Tooltip("열차 창문을 가까이서 보는 화면.")]
+        [SerializeField] private CloseupScreen _windowCloseupScreen;
+
+        [Tooltip("창밖의 그것. 창문에서 두 군데를 살피면 나왔다 사라진다.")]
+        [SerializeField] private WindowGhost _windowGhost;
         [SerializeField] private TextPanelScreen _helpScreen;
         [SerializeField] private SettingsScreen _settingsScreen;
         [SerializeField] private CaseListScreen _caseListScreen;
@@ -268,6 +274,9 @@ namespace UrbanLegendBureau.Systems
             _boarded = false;
             _fieldTimeAdded = false;
             _cctvTurned = false;
+            _windowGhostShown = false;
+            if (_cctvCloseupScreen != null) _cctvCloseupScreen.ResetChecked();
+            if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
@@ -1900,6 +1909,46 @@ namespace UrbanLegendBureau.Systems
             Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
         }
 
+        // ------------------------------------------------------------- 열차 창문
+
+        /// <summary>열차 창문 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
+        private const string WindowPointId = "point_subway_window";
+
+        /// <summary>창밖의 그것이 이번 사건에서 이미 나왔는가. 한 번만 나온다.</summary>
+        private bool _windowGhostShown;
+
+        /// <summary>창밖의 그것을 본 뒤 두 사람이 주고받는 말.</summary>
+        private static readonly string[] WindowGhostTextIds = { "field.subway.window_ghost.001", "field.subway.window_ghost.002", "field.subway.window_ghost.003" };
+        private static readonly bool[] WindowGhostIsHanyoung = { false, true, false };
+
+        /// <summary>
+        /// 창문을 화면 가득 크게 띄운다. 달리는 열차 밖 터널이 지나간다.
+        /// 금 간 자국, 흠집, 스티커 가운데 두 군데를 살피면 창밖에서 그것이 슬며시 나왔다가 사라지고, 두 사람이 반응한다.
+        /// </summary>
+        private void OpenWindowCloseup()
+        {
+            var screen = _windowCloseupScreen;
+            screen.Closed = () =>
+            {
+                if (_ui.Contains(screen)) _ui.Close(screen);
+            };
+            screen.SpotChecked = count =>
+            {
+                if (count < 2 || _windowGhostShown || _windowGhost == null) return;
+                _windowGhostShown = true;
+                screen.SetInteractable(false);
+                Debug.Log("[CaseDirector] 창밖에 그것이 나온다");
+                _windowGhost.Play(() =>
+                {
+                    var speakers = new string[WindowGhostTextIds.Length];
+                    for (int i = 0; i < speakers.Length; i++) speakers[i] = WindowGhostIsHanyoung[i] ? HanyoungNameTextId : FieldSpeakerTextId;
+                    screen.Talk(speakers, WindowGhostTextIds, null);
+                });
+            };
+            _ui.Push(screen);
+            Debug.Log("[CaseDirector] 창문을 가까이 들여다본다");
+        }
+
         /// <summary>현장 대사 띠에 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.</summary>
         private void CctvLines(string[] ids, bool[] isHanyoung, int index, System.Action onDone)
         {
@@ -1928,6 +1977,13 @@ namespace UrbanLegendBureau.Systems
             }
 
             // 열차 안 CCTV 는 다른 조사를 하지 않았어도 바로 들여다본다. 처음 누르면 먼저 고개를 돌린다.
+            // 열차 창문도 바로 들여다본다. 다른 조사를 하지 않았어도 된다.
+            if (point.PointId == WindowPointId && _windowCloseupScreen != null)
+            {
+                OpenWindowCloseup();
+                return;
+            }
+
             if (point.PointId == CctvPointId && _cctvCloseupScreen != null)
             {
                 if (!_cctvTurned) PlayCctvTurn();

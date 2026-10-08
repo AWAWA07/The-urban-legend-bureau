@@ -31,3 +31,4 @@ tutorial.room.cue	smile	처음 치고는 잘하는데? 이제 마지막으로 �
 field.subway.cctv_look.002	think	그러게? 누군가 못 찍게 하려한거 처럼..
 # 열차 안 CCTV 가 고개를 돌렸을 때
 field.subway.cctv_react.002	surprised	방금… 저거, 우리 쪽으로 돌아갔지?
+field.subway.window_ghost.002	surprised	너도 봤지? 웃고 있었어.

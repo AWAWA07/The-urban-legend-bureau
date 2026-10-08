@@ -1,0 +1,80 @@
+using System;
+using System.Collections;
+using UnityEngine;
+using UnityEngine.UI;
+
+namespace UrbanLegendBureau.UI
+{
+    /// <summary>
+    /// 창밖의 그것. 창의 오른쪽 가장자리에서 슬며시 얼굴을 내밀었다가, 눈 깜짝할 새 사라진다.
+    /// 그림은 창 유리 안쪽에 잘려 보인다(유리에 RectMask2D). 평소에는 숨어 있다.
+    /// </summary>
+    public class WindowGhost : MonoBehaviour
+    {
+        [SerializeField] private Image _image;
+
+        [Tooltip("숨어 있는 자리. 창 오른쪽 바깥이다.")]
+        [SerializeField] private Vector2 _hiddenPosition;
+
+        [Tooltip("얼굴을 내민 자리.")]
+        [SerializeField] private Vector2 _peekPosition;
+
+        [Tooltip("살핀 뒤 나타나기까지 기다리는 시간(초). 방금 본 글을 읽을 틈이다.")]
+        [SerializeField] private float _delay = 1.1f;
+
+        [Tooltip("슬며시 나오는 데 걸리는 시간(초).")]
+        [SerializeField] private float _slideSeconds = 2.2f;
+
+        [Tooltip("내민 채 멈춰 있는 시간(초).")]
+        [SerializeField] private float _holdSeconds = 0.9f;
+
+        private void Awake()
+        {
+            Hide();
+        }
+
+        private void Hide()
+        {
+            if (_image == null) return;
+            _image.rectTransform.anchoredPosition = _hiddenPosition;
+            _image.enabled = false;
+        }
+
+        /// <summary>나왔다 사라지는 것을 한 번 보여 준다. 끝나면 onDone 을 부른다.</summary>
+        public void Play(Action onDone)
+        {
+            StopAllCoroutines();
+            StartCoroutine(Run(onDone));
+        }
+
+        private IEnumerator Run(Action onDone)
+        {
+            yield return new WaitForSecondsRealtime(_delay);
+            if (_image == null) { onDone?.Invoke(); yield break; }
+
+            var rt = _image.rectTransform;
+            rt.anchoredPosition = _hiddenPosition;
+            _image.enabled = true;
+
+            // 슬며시. 처음에는 거의 움직이지 않다가 천천히 다가온다.
+            for (float e = 0f; e < _slideSeconds; e += Time.unscaledDeltaTime)
+            {
+                float k = Mathf.SmoothStep(0f, 1f, e / _slideSeconds);
+                rt.anchoredPosition = Vector2.Lerp(_hiddenPosition, _peekPosition, k);
+                yield return null;
+            }
+            rt.anchoredPosition = _peekPosition;
+            yield return new WaitForSecondsRealtime(_holdSeconds);
+
+            // 갑자기. 한 번 끊겼다가 사라진다.
+            _image.enabled = false;
+            yield return new WaitForSecondsRealtime(0.05f);
+            _image.enabled = true;
+            yield return new WaitForSecondsRealtime(0.04f);
+            Hide();
+
+            yield return new WaitForSecondsRealtime(0.6f);
+            onDone?.Invoke();
+        }
+    }
+}

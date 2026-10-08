@@ -20,3 +20,7 @@ tutorial.board.005	serious	넵, 알겠습니다.
 # 열차 안 CCTV
 field.subway.cctv_look.001	ponder	CCTV가 부자연스럽게 돌아가있네요.
 field.subway.cctv_react.001	wary	……!
+
+# 열차 창문 밖의 그것
+field.subway.window_ghost.001	wary	……방금, 창밖에.
+field.subway.window_ghost.003	serious	달리는 열차 밖에서요.
