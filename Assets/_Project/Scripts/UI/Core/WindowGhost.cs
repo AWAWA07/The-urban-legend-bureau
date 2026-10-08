@@ -31,6 +31,12 @@ namespace UrbanLegendBureau.UI
         [Tooltip("다 드러났을 때의 진하기. 낮을수록 어둠에 묻혀 보일 듯 말 듯하다.")]
         [SerializeField] private float _maxAlpha = 0.38f;
 
+        [Tooltip("정전 뒤 어둠 앞에 옅게 따라 그리는 같은 모양. 어둠 속에서도 아주 희미하게 비친다. 비워 두면 쓰지 않는다.")]
+        [SerializeField] private Image _echo;
+
+        [Tooltip("어둠 속 모양의 진하기. 본래 진하기에 곱한다. 조금만 보인다.")]
+        [SerializeField] private float _echoStrength = 0.18f;
+
         [Tooltip("그것의 빛깔. 창밖 어둠과 터널 불빛에 섞인 푸르스름한 회색이다.")]
         [SerializeField] private Color _tint = new Color(0.72f, 0.76f, 0.86f, 1f);
 
@@ -52,6 +58,24 @@ namespace UrbanLegendBureau.UI
             var c = _tint;
             c.a = a;
             _image.color = c;
+        }
+
+        /// <summary>
+        /// 어둠 앞의 모양을 본래 그림에 맞춘다. 자리, 켜짐, 진하기를 따라 하고, 자르는 틀은 흔들리는 유리를 따라간다.
+        /// 어둠이 꺼져 있으면(정전 전) 본래 그림만으로 충분하므로 그리지 않는다.
+        /// </summary>
+        private void LateUpdate()
+        {
+            if (_echo == null || _image == null) return;
+            var mask = _echo.rectTransform.parent as RectTransform;
+            var glass = _image.rectTransform.parent as RectTransform;
+            if (mask != null && glass != null) mask.position = glass.position;
+
+            _echo.rectTransform.anchoredPosition = _image.rectTransform.anchoredPosition;
+            var c = _image.color;
+            c.a *= _echoStrength;
+            _echo.color = c;
+            _echo.enabled = _image.enabled && _image.color.a > 0f;
         }
 
         /// <summary>나왔다 사라지는 것을 한 번 보여 준다. 끝나면 onDone 을 부른다.</summary>

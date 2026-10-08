@@ -7,7 +7,7 @@ namespace UrbanLegendBureau.Systems
     /// 열차 안을 살필수록 객실이 조금씩 이상해진다. 무엇이 바뀌었는지 말해 주지 않는다. "아까랑 뭔가 다른데?" 하고 느끼게 한다.
     ///
     /// 살핀 곳 1곳: 형광등 하나가 이따금 깜빡인다.
-    /// 2곳: 창밖 터널이 잠깐 멈췄다가 다시 흐른다. 객실은 그대로 흔들리는데 바깥만 멈춘다.
+    /// 2곳: (아직 비어 있다.)
     /// 3곳: 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
     ///      손잡이 하나도 흔들림과 상관없이 혼자 크게 흔들린다.
     /// 4곳: 가운데 문 유리 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
@@ -21,9 +21,6 @@ namespace UrbanLegendBureau.Systems
         [Header("1. 깜빡이는 형광등")]
         [SerializeField] private SpriteRenderer _lamp;
         [SerializeField] private SpriteRenderer _lampGlow;
-
-        [Header("2. 멈추는 창밖")]
-        [SerializeField] private TrainRunning _running;
 
         [Header("3. 혼자 흔들리는 손잡이")]
         [Tooltip("손잡이 끈. 위 끝을 축으로 돈다.")]
@@ -93,7 +90,6 @@ namespace UrbanLegendBureau.Systems
 
         private float _nextFlicker;
         private float _flickerEnd;
-        private float _nextHold;
         private float _swingStarted = -1f;
         private float _figureFade;          // 0 이면 없고 1 이면 다 드러났다
         private bool _figureGone;
@@ -134,7 +130,6 @@ namespace UrbanLegendBureau.Systems
         {
             // 가까이 보기에서 돌아온 직후 곧바로 무언가 일어나지 않게 조금 숨을 돌린다.
             _nextFlicker = Time.time + Random.Range(2f, 5f);
-            if (_nextHold > 0f) _nextHold = Mathf.Max(_nextHold, Time.time + 3f);
         }
 
         /// <summary>처음으로 되돌린다. 새 사건을 시작할 때 부른다.</summary>
@@ -142,7 +137,6 @@ namespace UrbanLegendBureau.Systems
         {
             Capture();
             _looked.Clear();
-            _nextHold = 0f;
             _swingStarted = -1f;
             _figureFade = 0f;
             _figureGone = false;
@@ -166,8 +160,6 @@ namespace UrbanLegendBureau.Systems
         {
             if (string.IsNullOrEmpty(pointId) || !_looked.Add(pointId)) return;
 
-            // 창밖이 처음 멈추는 것은 살피고 돌아와 걷기 시작할 즈음이다.
-            if (Stage == 2) _nextHold = Time.time + 4f;
             if (Stage == 3) _swingStarted = Time.time;
         }
 
@@ -204,13 +196,6 @@ namespace UrbanLegendBureau.Systems
                     _blackoutAsked = true;
                     BlackoutReady(this);
                 }
-            }
-
-            // --- 2. 창밖 ---
-            if (stage >= 2 && _running != null && _nextHold > 0f && now >= _nextHold)
-            {
-                _running.HoldOutside(Random.Range(1.4f, 2.0f));
-                _nextHold = now + Random.Range(22f, 34f);
             }
         }
 

@@ -906,7 +906,6 @@ namespace UrbanLegendBureau.EditorTools
             uso.Update();
             uso.FindProperty("_lamp").objectReferenceValue = root.transform.Find("CeilingLamp_2").GetComponent<SpriteRenderer>();
             uso.FindProperty("_lampGlow").objectReferenceValue = root.transform.Find("CeilingLampGlow_2").GetComponent<SpriteRenderer>();
-            uso.FindProperty("_running").objectReferenceValue = running;
             uso.FindProperty("_strap").objectReferenceValue = root.transform.Find("Strap_6");
             uso.FindProperty("_ring").objectReferenceValue = root.transform.Find("StrapRing_6");
             uso.FindProperty("_figure").objectReferenceValue = figureSr;
@@ -2782,6 +2781,24 @@ namespace UrbanLegendBureau.EditorTools
             FinishCloseup(go, screen, "field.subway.window_close.hint",
                 new[] { crackButton, scratchButton, stickerButton },
                 new[] { "field.subway.window_close.crack", "field.subway.window_close.scratch", "field.subway.window_close.sticker" });
+
+            // 정전 뒤에도 그것은 어둠 속에서 아주 희미하게 비친다. 어둠보다 앞에 같은 모양을 하나 더 두고 옅게 따라 그린다.
+            // 유리 밖으로 삐져나오지 않게 유리와 같은 자리, 같은 크기로 자른다. 라이트를 비추면 어둠 아래의 본래 그림이 잘 보인다.
+            var darkCover = go.transform.Find("Dark");
+            var echoMask = new GameObject("GhostEchoMask", typeof(RectTransform), typeof(RectMask2D));
+            echoMask.transform.SetParent(go.transform, false);
+            echoMask.transform.SetSiblingIndex(darkCover.GetSiblingIndex() + 1);
+            var echoMaskRt = (RectTransform)echoMask.transform;
+            echoMaskRt.sizeDelta = glass.rectTransform.sizeDelta;
+            var echo = CloseupRect(echoMask.transform, "GhostEcho", Vector2.zero, ghostImage.rectTransform.sizeDelta, Color.white);
+            echo.sprite = ghostImage.sprite;
+            echo.type = Image.Type.Simple;
+            echo.preserveAspect = true;
+            echo.raycastTarget = false;
+            echo.enabled = false;
+            ghso.Update();
+            ghso.FindProperty("_echo").objectReferenceValue = echo;
+            ghso.ApplyModifiedPropertiesWithoutUndo();
             return screen;
         }
 
