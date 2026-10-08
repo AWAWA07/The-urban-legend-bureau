@@ -52,19 +52,15 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private SpriteRenderer[] _outsideLights = new SpriteRenderer[0];
 
         [Header("휴대폰 라이트")]
-        [Tooltip("빛이 나오는 자리(휴대폰). 차지한의 발에서 얼마나 떨어져 있는가. x 는 보는 쪽으로 잰다.")]
-        [SerializeField] private Vector2 _lightOffset = new Vector2(0.35f, 2.0f);
-        [Tooltip("앞으로 뻗는 빛줄기의 길이(월드 단위).")]
-        [SerializeField] private float _beamLength = 4.6f;
-        [Tooltip("빛줄기의 반높이. 휴대폰 쪽(x)과 끝 쪽(y). 나아갈수록 넓게 퍼진다.")]
-        [SerializeField] private Vector2 _beamHalfHeight = new Vector2(0.45f, 1.35f);
-        [Tooltip("빛줄기 안의 어둠. 휴대폰 가까이(x)와 끝(y). 0 이면 환하고 1 이면 깜깜하다.")]
-        [SerializeField] private Vector2 _beamAlpha = new Vector2(0.5f, 0.82f);
-        [Tooltip("빛이 몸에 번져 사람이 희미하게 보이는 둘레. 휴대폰 자리 기준 가운데와 반지름.")]
-        [SerializeField] private Vector2 _glowCenter = new Vector2(-0.35f, -0.35f);
-        [SerializeField] private Vector2 _glowRadius = new Vector2(1.3f, 1.9f);
-        [Tooltip("몸에 번진 빛 한가운데의 어둠. 빛줄기보다 어둡다.")]
-        [SerializeField] private float _glowAlpha = 0.8f;
+        [Tooltip("차지한 둘레에 잔잔하게 남는 빛. 발에서 빛 가운데까지와 가로, 세로 반지름(월드 단위).")]
+        [SerializeField] private Vector2 _lightOffset = new Vector2(0f, 2.2f);
+        [SerializeField] private Vector2 _lightRadius = new Vector2(2.2f, 2.0f);
+        [Tooltip("차지한 둘레 빛 한가운데의 어둠. 0 이면 환하고 1 이면 깜깜하다. 조금만 밝힌다.")]
+        [SerializeField] private float _lightInnerAlpha = 0.72f;
+        [Tooltip("마우스를 따라가는 빛의 반지름(월드 단위). 비춰 가며 객실을 살핀다.")]
+        [SerializeField] private float _pointerRadius = 1.7f;
+        [Tooltip("마우스 빛 한가운데의 어둠.")]
+        [SerializeField] private float _pointerInnerAlpha = 0.62f;
 
         /// <summary>
         /// 살핀 곳이 셋이 된 뒤, 플레이어가 현장으로 돌아와 아무것도 하지 않을 때 한 번 부른다.
@@ -321,65 +317,82 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 휴대폰 빛. 화면을 다 덮는 검은 판에 빛이 뚫려 있다.
-        /// 휴대폰에서 보는 쪽으로 빛줄기가 뻗어 나가며 넓게 퍼지고, 멀어질수록 흐려진다. 사람 몸에는 빛이 조금만 번진다.
-        /// 그림은 오른쪽을 보고 만든다. 왼쪽을 보면 뒤집는다(FollowPhone). 처음 켤 때 한 번 만든다.
+        /// 휴대폰 빛. 카메라에 보이는 자리를 다 덮는 검은 판이다. 두 군데에 빛이 뚫린다.
+        /// 차지한 둘레에는 잔잔한 둥근 빛, 마우스가 가리키는 자리에는 비춰 보는 둥근 빛.
+        /// 구멍 둘이 서로 가리지 않게 판 하나에 함께 그린다. 판은 거칠게(1 칸이 0.1 단위쯤) 그리고 부드럽게 늘여 보여, 매 프레임 다시 그려도 가볍다.
         /// </summary>
         private void EnsurePhone()
         {
             if (_phone != null) return;
-            const int W = 2048, H = 1024;
-            const float WorldW = 72f;   // 객실 끝에 서도 화면 끝까지 덮는다
-            float ppu = W / WorldW;
-            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-            var px = new Color32[W * H];
-            for (int y = 0; y < H; y++)
-            for (int x = 0; x < W; x++)
-            {
-                var p = new Vector2((x + 0.5f - W * 0.5f) / ppu, (y + 0.5f - H * 0.5f) / ppu);
-                float a = Mathf.Min(GlowDarkness(p), BeamDarkness(p));
-                px[y * W + x] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(a * 255f));
-            }
-            tex.SetPixels32(px);
-            tex.Apply();
+            const int H = 120;
+            var cam = Camera.main;
+            float aspect = cam != null ? cam.aspect : 16f / 9f;
+            int w = Mathf.Max(16, Mathf.RoundToInt(H * aspect));
+            _phoneTex = new Texture2D(w, H, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            _phonePixels = new Color32[w * H];
 
             var go = new GameObject("PhoneLight");
             go.transform.SetParent(transform, false);
             _phone = go.AddComponent<SpriteRenderer>();
-            _phone.sprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), ppu);
+            _phone.sprite = Sprite.Create(_phoneTex, new Rect(0, 0, w, H), new Vector2(0.5f, 0.5f), 1f);
             _phone.sortingOrder = _dark != null ? _dark.sortingOrder : 20;
             _phone.enabled = false;
         }
 
-        /// <summary>몸에 번진 빛. p 는 휴대폰 자리 기준(오른쪽을 볼 때).</summary>
-        private float GlowDarkness(Vector2 p)
-        {
-            var q = p - _glowCenter;
-            float d = Mathf.Sqrt(q.x * q.x / (_glowRadius.x * _glowRadius.x) + q.y * q.y / (_glowRadius.y * _glowRadius.y));
-            return Mathf.Lerp(_glowAlpha, _blackAlpha, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.2f, 1f, d)));
-        }
+        private Texture2D _phoneTex;
+        private Color32[] _phonePixels;
 
-        /// <summary>앞으로 뻗는 빛줄기. 나아갈수록 넓어지고 흐려진다. 가장자리는 부드럽게 사그라든다.</summary>
-        private float BeamDarkness(Vector2 p)
-        {
-            float t = p.x / _beamLength;
-            float half = Mathf.Lerp(_beamHalfHeight.x, _beamHalfHeight.y, Mathf.Clamp01(t));
-            float side = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.55f, 1f, Mathf.Abs(p.y) / half));
-            float start = 1f - Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(-0.15f, 0.15f, p.x));   // 휴대폰 뒤로는 빛이 없다
-            float end = Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.7f, 1.05f, t));              // 끝에서 스러진다
-            float inside = Mathf.Lerp(_beamAlpha.x, _beamAlpha.y, Mathf.Clamp01(t));
-            return Mathf.Lerp(inside, _blackAlpha, Mathf.Max(side, Mathf.Max(start, end)));
-        }
-
+        /// <summary>판을 카메라에 맞추고, 차지한 둘레와 마우스 자리에 빛을 다시 뚫는다.</summary>
         private void FollowPhone()
         {
-            if (_phone == null || _watcher == null) return;
-            // 차지한이 보는 쪽으로 빛을 비춘다. 보는 쪽은 크기의 부호로 안다(왼쪽을 보면 뒤집혀 있다).
-            float facing = _watcher.lossyScale.x < 0f ? -1f : 1f;
-            _phone.flipX = facing < 0f;
-            var p = _watcher.position + new Vector3(_lightOffset.x * facing, _lightOffset.y, 0f);
-            p.z = _phone.transform.position.z;
-            _phone.transform.position = p;
+            if (_phone == null || _phoneTex == null) return;
+            var cam = Camera.main;
+            if (cam == null) return;
+
+            // 판은 카메라에 보이는 자리보다 조금 크다. 흔들려도 가장자리가 드러나지 않는다.
+            const float Margin = 1.15f;
+            float viewH = cam.orthographicSize * 2f * Margin;
+            float viewW = viewH * cam.aspect;
+            int w = _phoneTex.width, h = _phoneTex.height;
+            var center = cam.transform.position;
+            _phone.transform.position = new Vector3(center.x, center.y, _phone.transform.position.z);
+            var parentScale = _phone.transform.parent != null ? _phone.transform.parent.lossyScale : Vector3.one;
+            _phone.transform.localScale = new Vector3(viewW / w / parentScale.x, viewH / h / parentScale.y, 1f);
+
+            Vector2 glow = _watcher != null ? (Vector2)_watcher.position + _lightOffset : new Vector2(9999f, 9999f);
+
+            // 마우스가 카메라 화면 안에 있을 때만 그 자리를 비춘다. 대사 띠 위에 있으면 빛이 없다.
+            Vector2 pointer = new Vector2(9999f, 9999f);
+            var device = UnityEngine.InputSystem.Pointer.current;
+            if (device != null)
+            {
+                Vector2 screen = device.position.ReadValue();
+                if (cam.pixelRect.Contains(screen)) pointer = cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 0f));
+            }
+
+            float left = center.x - viewW * 0.5f, bottom = center.y - viewH * 0.5f;
+            float stepX = viewW / w, stepY = viewH / h;
+            for (int y = 0; y < h; y++)
+            {
+                float wy = bottom + (y + 0.5f) * stepY;
+                for (int x = 0; x < w; x++)
+                {
+                    float wx = left + (x + 0.5f) * stepX;
+                    float gx = (wx - glow.x) / _lightRadius.x, gy = (wy - glow.y) / _lightRadius.y;
+                    float a = Hole(Mathf.Sqrt(gx * gx + gy * gy), _lightInnerAlpha);
+                    float px = (wx - pointer.x) / _pointerRadius, py = (wy - pointer.y) / _pointerRadius;
+                    a = Mathf.Min(a, Hole(Mathf.Sqrt(px * px + py * py), _pointerInnerAlpha));
+                    _phonePixels[y * w + x] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(a * 255f));
+                }
+            }
+            _phoneTex.SetPixels32(_phonePixels);
+            _phoneTex.Apply(false);
+        }
+
+        /// <summary>둥근 빛 하나의 어둠. d 는 가운데에서 잰 거리를 반지름으로 나눈 값이다.</summary>
+        private float Hole(float d, float inner)
+        {
+            return Mathf.Lerp(inner, _blackAlpha, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.25f, 1f, d)));
         }
 
         /// <summary>플레이어가 현장에서 자유로운가. 말하는 중이거나 다른 화면이 덮여 있으면 아니다.</summary>
