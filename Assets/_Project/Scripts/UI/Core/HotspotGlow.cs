@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace UrbanLegendBureau.UI
 {
     /// <summary>
-    /// 가까이 보기 화면에서 살필 곳에 마우스를 올리면 그 물건이 하얗게 밝아지고, 모양을 따라 노란 외곽선과 은은한 빛이 둘러진다.
+    /// 가까이 보기 화면에서 살필 곳에 마우스를 올리면 그 물건이 하얗게 밝아지고, 모양을 따라 고른 노란 외곽선이 둘러진다.
     /// 네모난 판을 덮지 않는다. 금, 흠집, 스티커 같은 그림 하나하나의 모양을 그대로 따른다.
     ///
     /// 그림 뒤에 같은 모양을 두 겹 깐다. 바깥은 크고 옅은 빛, 안쪽은 조금 큰 진한 외곽선이다.
@@ -19,9 +19,10 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private GameObject[] _targets = new GameObject[0];
 
         [SerializeField] private Color _outlineColor = new Color(1f, 0.86f, 0.25f, 1f);
-        [SerializeField] private float _outlineWidth = 2.5f;
+        [SerializeField] private float _outlineWidth = 3f;
 
-        [SerializeField] private Color _glowColor = new Color(1f, 0.85f, 0.35f, 0.28f);
+        [Tooltip("바깥 빛. 반투명한 것이 여러 겹 겹치면 얼룩이 져 기본은 끈다(투명도 0).")]
+        [SerializeField] private Color _glowColor = new Color(1f, 0.85f, 0.35f, 0f);
         [SerializeField] private float _glowWidth = 7f;
 
         private class Entry
@@ -70,7 +71,8 @@ namespace UrbanLegendBureau.UI
                 foreach (var image in kv.Value)
                     entries.Add(new Entry { source = image, sourceColor = image.color });
 
-                foreach (var e in entries) e.glow = MakeCopy(e.source, _glowWidth, _glowColor, index++);
+                if (_glowColor.a > 0f)
+                    foreach (var e in entries) e.glow = MakeCopy(e.source, _glowWidth, _glowColor, index++);
                 foreach (var e in entries) e.outline = MakeCopy(e.source, _outlineWidth, _outlineColor, index++);
                 _entries.AddRange(entries);
             }
