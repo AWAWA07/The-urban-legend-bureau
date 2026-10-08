@@ -717,8 +717,12 @@ namespace UrbanLegendBureau.EditorTools
             // 의자 위의 창. 바깥은 캄캄한 터널이다.
             BuildTrainWindow(root.transform, "Window_Left", -5.0f, 4.6f);
             BuildTrainWindow(root.transform, "Window_Right", 5.0f, 4.6f);
-            // 오른쪽 창 왼쪽 아래 귀퉁이의 스티커. 조사하기 전에도 보인다. 가까이 보기 화면의 스티커와 같은 자리다.
-            AddFieldRect(root.transform, "WindowSticker", new Vector2(3.35f, 0.18f), new Vector2(0.62f, 0.32f), new Color(0.93f, 0.87f, 0.55f), -4);
+            // 오른쪽 창 왼쪽 위 귀퉁이의 동그란 웃는 얼굴 스티커. 조사하기 전에도 보인다. 가까이 보기 화면의 스티커와 같은 자리다.
+            var fieldSticker = AddFieldRect(root.transform, "WindowSticker", new Vector2(3.2f, 1.62f), new Vector2(0.3f, 0.3f), new Color(1f, 0.83f, 0.3f), -3);
+            fieldSticker.GetComponent<SpriteRenderer>().sprite = RoundSprite();
+            fieldSticker.GetComponent<SpriteRenderer>().drawMode = SpriteDrawMode.Simple;
+            var knob = RoundSprite().bounds.size;
+            fieldSticker.transform.localScale = new Vector3(0.3f / knob.x, 0.3f / knob.y, 1f);
 
             // 손잡이 봉과 거기 매달린 고리들. 봉은 천장에 세운 기둥 둘이 받친다.
             AddFieldRect(root.transform, "Handrail", new Vector2(0f, 3.0f), new Vector2(17.0f, 0.16f),
@@ -809,6 +813,33 @@ namespace UrbanLegendBureau.EditorTools
 
             // 객실 안에 선 두 사람. 바닥 위에 놓는다. 의자와 봉 사이를 오간다.
             BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f, scale: TrainActorScale);
+
+            // 달리는 열차. 창밖의 터널이 지나가고 객실이 잔잔히 흔들리며 손잡이 고리가 흔들린다. 조사하지 않을 때도 늘 그렇다.
+            var passing = new List<Transform>();
+            var passSpeeds = new List<float>();
+            var passRanges = new List<Vector2>();
+            AddRunningWindow(root.transform, "Window_Left", 4.6f, passing, passSpeeds, passRanges);
+            AddRunningWindow(root.transform, "Window_Right", 4.6f, passing, passSpeeds, passRanges);
+            var rings = new List<Transform>();
+            foreach (Transform child in root.transform) if (child.name.StartsWith("StrapRing_")) rings.Add(child);
+            var running = root.AddComponent<TrainRunning>();
+            var rso = new SerializedObject(running);
+            rso.Update();
+            var passProp = rso.FindProperty("_passing");
+            var speedProp = rso.FindProperty("_speeds");
+            var rangeProp = rso.FindProperty("_ranges");
+            passProp.arraySize = speedProp.arraySize = rangeProp.arraySize = passing.Count;
+            for (int i = 0; i < passing.Count; i++)
+            {
+                passProp.GetArrayElementAtIndex(i).objectReferenceValue = passing[i];
+                speedProp.GetArrayElementAtIndex(i).floatValue = passSpeeds[i];
+                rangeProp.GetArrayElementAtIndex(i).vector2Value = passRanges[i];
+            }
+            var ringProp = rso.FindProperty("_rings");
+            ringProp.arraySize = rings.Count;
+            for (int i = 0; i < rings.Count; i++) ringProp.GetArrayElementAtIndex(i).objectReferenceValue = rings[i];
+            rso.FindProperty("_car").objectReferenceValue = root.transform;
+            rso.ApplyModifiedPropertiesWithoutUndo();
 
             root.SetActive(false);
             return root;
@@ -2545,11 +2576,19 @@ namespace UrbanLegendBureau.EditorTools
             var speeds = new List<float>();
             for (int i = 0; i < 6; i++)
             {
-                var lamp = CloseupRect(outside, "Lamp_" + i, new Vector2(-900f + i * 300f, 150f), new Vector2(150f, 10f),
-                    new Color(1f, 0.82f, 0.5f, 0.5f));
+                // 터널 벽 불빛. 어둡게 두고 둘레로 빛이 번진다. 번지는 빛은 불빛을 따라 함께 지나간다.
+                var lamp = CloseupRect(outside, "Lamp_" + i, new Vector2(-900f + i * 300f, 150f), new Vector2(130f, 8f),
+                    new Color(1f, 0.8f, 0.5f, 0.32f));
+                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.13f));
+                var glowImage = glow.GetComponent<Image>();
+                glowImage.sprite = FieldSoftSprite();
+                glowImage.raycastTarget = false;
+                var glowRt = (RectTransform)glow.transform;
+                glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
+                glowRt.sizeDelta = new Vector2(380f, 120f);
                 items.Add(lamp.rectTransform); speeds.Add(2600f);
                 var streak = CloseupRect(outside, "Streak_" + i, new Vector2(-750f + i * 300f, -150f), new Vector2(220f, 4f),
-                    new Color(0.5f, 0.55f, 0.65f, 0.14f));
+                    new Color(0.5f, 0.55f, 0.65f, 0.1f));
                 items.Add(streak.rectTransform); speeds.Add(3200f);
             }
             for (int i = 0; i < 2; i++)
@@ -2560,7 +2599,7 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 그것. 창 오른쪽 가장자리 바깥에 숨어 있다가 슬며시 고개를 내민다.
-            var ghostImage = CloseupRect(outside, "Ghost", Vector2.zero, new Vector2(420f, 720f), Color.white);
+            var ghostImage = CloseupRect(outside, "Ghost", Vector2.zero, new Vector2(320f, 550f), Color.white);
             ghostImage.sprite = LoadBackdropSprite("Assets/_Project/UI/Sprites/Closeup/ghost_window.png");
             ghostImage.type = Image.Type.Simple;
             ghostImage.preserveAspect = true;
@@ -2568,38 +2607,45 @@ namespace UrbanLegendBureau.EditorTools
             var ghso = new SerializedObject(ghost);
             ghso.Update();
             ghso.FindProperty("_image").objectReferenceValue = ghostImage;
-            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(900f, -10f);
-            ghso.FindProperty("_peekPosition").vector2Value = new Vector2(560f, -10f);
+            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(850f, -20f);
+            ghso.FindProperty("_peekPosition").vector2Value = new Vector2(590f, -20f);
             ghso.ApplyModifiedPropertiesWithoutUndo();
 
-            // 금 간 자국. 한 점에서 가는 금이 여러 갈래로 뻗는다.
-            float[][] cracks =
-            {
-                new[] { 40f, 10f, 120f, 18f }, new[] { -50f, 26f, 110f, 160f }, new[] { 10f, 60f, 130f, 76f },
-                new[] { -20f, -55f, 120f, -105f }, new[] { 55f, -40f, 110f, -32f }, new[] { -70f, -12f, 90f, 192f },
-                new[] { 30f, 95f, 70f, 60f },
-            };
-            CloseupMarks(outside, "Crack", new Vector2(330f, 90f), cracks, 3f, new Color(0.85f, 0.9f, 1f, 0.55f));
-            CloseupRect(outside, "CrackCore", new Vector2(330f, 90f), new Vector2(16f, 16f), new Color(0.9f, 0.95f, 1f, 0.6f));
-            var crackButton = CloseupHotspot(outside, "Hotspot_Crack", new Vector2(330f, 90f), new Vector2(300f, 260f));
+            // 금 간 자국. 부딪힌 점에서 금이 여러 갈래로 꺾이며 뻗고, 갈래 사이를 짧은 금이 잇는다.
+            CloseupCrack(outside, "Crack", new Vector2(330f, 90f), 7);
+            var crackButton = CloseupHotspot(outside, "Hotspot_Crack", new Vector2(330f, 90f), new Vector2(320f, 280f));
 
             // 흠집. 왼쪽 아래에 가로로 긁힌 가는 자국.
             float[][] scratches = { new[] { 0f, 20f, 200f, 4f }, new[] { 20f, 0f, 160f, 2f }, new[] { -10f, -22f, 120f, 6f }, new[] { 40f, -40f, 80f, 3f } };
-            CloseupMarks(outside, "Scratches", new Vector2(-380f, -150f), scratches, 3f, new Color(0.7f, 0.75f, 0.85f, 0.35f));
-            var scratchButton = CloseupHotspot(outside, "Hotspot_Scratch", new Vector2(-370f, -150f), new Vector2(280f, 130f));
+            CloseupMarks(outside, "Scratches", new Vector2(-380f, -170f), scratches, 3f, new Color(0.7f, 0.75f, 0.85f, 0.35f));
+            var scratchButton = CloseupHotspot(outside, "Hotspot_Scratch", new Vector2(-370f, -170f), new Vector2(280f, 130f));
 
-            // 스티커. 유리 왼쪽 아래 귀퉁이에 붙어 있다. 현장에서도 같은 자리에 작게 보인다.
-            var sticker = CloseupRect(outside, "Sticker", new Vector2(-560f, -230f), new Vector2(220f, 110f), new Color(0.93f, 0.87f, 0.55f));
-            var stickerText = AddText(sticker.transform, "Text", 24f, UIFontWeight.Bold, new Color(0.25f, 0.2f, 0.1f),
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
-            StretchInside(stickerText.rectTransform, 10f, 10f, 8f, 8f);
-            stickerText.raycastTarget = false;
-            var stickerLoc = stickerText.gameObject.AddComponent<LocalizedText>();
-            var slso = new SerializedObject(stickerLoc);
-            slso.Update();
-            slso.FindProperty("_textId").stringValue = "field.subway.window_close.sticker_label";
-            slso.ApplyModifiedPropertiesWithoutUndo();
-            var stickerButton = CloseupHotspot(outside, "Hotspot_Sticker", new Vector2(-560f, -230f), new Vector2(250f, 140f));
+            // 스티커. 왼쪽 유리 위쪽 귀퉁이에 붙은 동그란 웃는 얼굴. 현장에서도 같은 자리에 작게 보인다.
+            var sticker = CloseupRect(outside, "Sticker", new Vector2(-560f, 190f), new Vector2(110f, 110f), new Color(1f, 0.98f, 0.94f));
+            sticker.sprite = RoundSprite();
+            sticker.type = Image.Type.Simple;
+            sticker.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 12f);
+            var face = CloseupRect(sticker.transform, "Face", Vector2.zero, new Vector2(96f, 96f), new Color(1f, 0.83f, 0.3f));
+            face.sprite = RoundSprite();
+            face.type = Image.Type.Simple;
+            var eyeColor = new Color(0.32f, 0.22f, 0.12f);
+            foreach (var ex in new[] { -18f, 18f })
+            {
+                var eye = CloseupRect(face.transform, ex < 0 ? "EyeL" : "EyeR", new Vector2(ex, 12f), new Vector2(12f, 16f), eyeColor);
+                eye.sprite = RoundSprite();
+                eye.type = Image.Type.Simple;
+            }
+            // 입. 아래로 휜 웃음을 짧은 막대 셋으로 잇는다.
+            CloseupRect(face.transform, "MouthL", new Vector2(-14f, -16f), new Vector2(16f, 5f), eyeColor).rectTransform.localRotation = Quaternion.Euler(0f, 0f, -30f);
+            CloseupRect(face.transform, "MouthM", new Vector2(0f, -21f), new Vector2(16f, 5f), eyeColor);
+            CloseupRect(face.transform, "MouthR", new Vector2(14f, -16f), new Vector2(16f, 5f), eyeColor).rectTransform.localRotation = Quaternion.Euler(0f, 0f, 30f);
+            foreach (var cx in new[] { -30f, 30f })
+            {
+                var cheek = CloseupRect(face.transform, cx < 0 ? "CheekL" : "CheekR", new Vector2(cx, -6f), new Vector2(16f, 10f), new Color(1f, 0.55f, 0.45f, 0.6f));
+                cheek.sprite = RoundSprite();
+                cheek.type = Image.Type.Simple;
+            }
+            var stickerButton = CloseupHotspot(outside, "Hotspot_Sticker", new Vector2(-560f, 190f), new Vector2(150f, 150f));
 
             // 창 가운데 세로 창살.
             CloseupRect(car.transform, "Mullion", new Vector2(0f, 60f), new Vector2(24f, 620f), new Color(0.30f, 0.31f, 0.37f));
@@ -2699,6 +2745,127 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_advanceButton").objectReferenceValue = advanceButton;
             so.FindProperty("_hintTextId").stringValue = hintId;
             so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        /// <summary>
+        /// 유리의 금. 부딪힌 점에서 금이 몇 갈래로 뻗는데, 곧게 가지 않고 조금씩 꺾이며 끝으로 갈수록 가늘고 옅어진다.
+        /// 몇 갈래에서는 잔가지가 갈라지고, 이웃한 갈래 사이를 짧은 금이 이어 거미줄처럼 보인다.
+        /// 같은 seed 면 늘 같은 모양이다.
+        /// </summary>
+        private static void CloseupCrack(Transform parent, string name, Vector2 center, int seed)
+        {
+            var group = new GameObject(name, typeof(RectTransform));
+            group.transform.SetParent(parent, false);
+            var rt = (RectTransform)group.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = Vector2.zero;
+            rt.anchoredPosition = center;
+
+            var rnd = new System.Random(seed);
+            System.Func<float, float, float> range = (a, b) => a + (float)rnd.NextDouble() * (b - a);
+            int n = 0;
+            void Segment(Vector2 from, Vector2 to, float thickness, float alpha)
+            {
+                var d = to - from;
+                var seg = CloseupRect(group.transform, "Seg_" + (n++), (from + to) * 0.5f, new Vector2(d.magnitude + 1f, thickness),
+                    new Color(0.82f, 0.88f, 0.98f, alpha));
+                seg.sprite = null;   // 둥근 모서리 없이 곧은 선
+                seg.type = Image.Type.Simple;
+                seg.rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+            }
+
+            const int Arms = 8;
+            var rings = new Vector2[Arms][];
+            float start = range(0f, 360f);
+            for (int a = 0; a < Arms; a++)
+            {
+                float angle = start + a * 360f / Arms + range(-14f, 14f);
+                float length = range(70f, 160f);
+                int steps = 4;
+                rings[a] = new Vector2[steps + 1];
+                var p = Vector2.zero;
+                rings[a][0] = p;
+                for (int s = 1; s <= steps; s++)
+                {
+                    angle += range(-16f, 16f);
+                    float r = Mathf.Deg2Rad * angle;
+                    var q = p + new Vector2(Mathf.Cos(r), Mathf.Sin(r)) * (length / steps) * range(0.7f, 1.3f);
+                    float k = (s - 1f) / steps;
+                    Segment(p, q, Mathf.Lerp(3f, 1.2f, k), Mathf.Lerp(0.6f, 0.2f, k));
+                    rings[a][s] = q;
+
+                    // 잔가지. 가끔 옆으로 짧게 갈라진다.
+                    if (s >= 2 && rnd.NextDouble() < 0.35)
+                    {
+                        float br = Mathf.Deg2Rad * (angle + (rnd.NextDouble() < 0.5 ? -1f : 1f) * range(30f, 55f));
+                        Segment(q, q + new Vector2(Mathf.Cos(br), Mathf.Sin(br)) * range(14f, 32f), 1f, 0.25f);
+                    }
+                    p = q;
+                }
+            }
+
+            // 이웃한 갈래 사이를 잇는 짧은 금. 가운데 가까운 고리 하나와, 그보다 바깥의 고리 일부.
+            for (int a = 0; a < Arms; a++)
+            {
+                int b = (a + 1) % Arms;
+                Segment(rings[a][1], rings[b][1], 1.4f, 0.4f);
+                if (rnd.NextDouble() < 0.5) Segment(rings[a][2], rings[b][2], 1f, 0.25f);
+            }
+
+            // 부딪힌 점. 잘게 부서져 하얗게 보인다.
+            var core = CloseupRect(group.transform, "Core", Vector2.zero, new Vector2(14f, 14f), new Color(0.9f, 0.95f, 1f, 0.55f));
+            core.sprite = RoundSprite();
+            core.type = Image.Type.Simple;
+        }
+
+        /// <summary>
+        /// 창 하나의 바깥을 달리는 터널로 채운다. 유리 자리에 마스크를 깔아 그 안에서만 보이게 한다.
+        /// 불빛 셋(둘레로 빛이 번진다), 희미한 빛줄기 둘, 시커먼 기둥 하나가 지나간다. 움직임은 TrainRunning 이 맡는다.
+        /// </summary>
+        private static void AddRunningWindow(Transform root, string windowName, float width,
+            List<Transform> passing, List<float> speeds, List<Vector2> ranges)
+        {
+            var window = root.Find(windowName);
+            if (window == null) return;
+
+            // 창 사이 세로 창살과 유리의 반사가 지나가는 것보다 앞에 오게 한다.
+            foreach (var front in new[] { "Mullion", "Sheen" })
+            {
+                var t = window.Find(front);
+                if (t != null) t.GetComponent<SpriteRenderer>().sortingOrder = -4;
+            }
+
+            var maskGo = new GameObject("PassMask");
+            maskGo.transform.SetParent(window, false);
+            var mask = maskGo.AddComponent<SpriteMask>();
+            mask.sprite = BuiltinSprite();
+            var b = mask.sprite.bounds.size;
+            maskGo.transform.localScale = new Vector3(width / b.x, 2.3f / b.y, 1f);
+
+            var range = new Vector2(-width * 0.5f - 1.6f, width * 0.5f + 1.6f);
+            void Add(GameObject go, float speed)
+            {
+                foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>())
+                    sr.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+                passing.Add(go.transform); speeds.Add(speed); ranges.Add(range);
+            }
+
+            for (int i = 0; i < 3; i++)
+            {
+                var lamp = AddFieldRect(window, "PassLamp_" + i, new Vector2(range.x + (i + 0.5f) * (range.y - range.x) / 3f, 0.6f),
+                    new Vector2(0.8f, 0.05f), new Color(1f, 0.8f, 0.5f, 0.32f), -5);
+                AddFieldSoft(lamp.transform, "Glow", Vector2.zero, new Vector2(2.4f, 0.7f), new Color(1f, 0.75f, 0.45f, 0.12f), -5);
+                Add(lamp, 13f);
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                var streak = AddFieldRect(window, "PassStreak_" + i, new Vector2(range.x + (i + 0.3f) * (range.y - range.x) / 2f, -0.55f),
+                    new Vector2(1.4f, 0.03f), new Color(0.5f, 0.55f, 0.65f, 0.12f), -5);
+                Add(streak, 17f);
+            }
+            var pillar = AddFieldRect(window, "PassPillar", new Vector2(range.x + 0.4f * (range.y - range.x), 0f),
+                new Vector2(0.45f, 2.6f), new Color(0f, 0f, 0f, 1f), -5);
+            Add(pillar, 24f);
         }
 
         /// <summary>한 점에서 뻗는 가는 자국 여럿. 각 줄은 {x, y, 길이, 각도}다.</summary>
