@@ -2637,13 +2637,13 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(car.transform, "Frame", new Vector2(0f, 60f), new Vector2(1440f, 700f), new Color(0.30f, 0.31f, 0.37f));
 
             // 유리. 안쪽만 보이게 자른다. 창밖의 터널과 그것은 이 안에 그린다.
-            var glass = CloseupRect(car.transform, "Glass", new Vector2(0f, 60f), new Vector2(1360f, 620f), new Color(0.03f, 0.03f, 0.042f));
+            var glass = CloseupRect(car.transform, "Glass", new Vector2(0f, 60f), new Vector2(1360f, 620f), new Color(0.02f, 0.02f, 0.03f));
             glass.gameObject.AddComponent<RectMask2D>();
             var outside = glass.transform;
 
             // 터널 벽. 위아래로 어두운 띠, 가운데쯤 케이블 줄.
-            CloseupRect(outside, "TunnelUpper", new Vector2(0f, 230f), new Vector2(1360f, 160f), new Color(0.02f, 0.02f, 0.028f));
-            CloseupRect(outside, "TunnelLower", new Vector2(0f, -240f), new Vector2(1360f, 140f), new Color(0.018f, 0.018f, 0.025f));
+            CloseupRect(outside, "TunnelUpper", new Vector2(0f, 230f), new Vector2(1360f, 160f), new Color(0.013f, 0.013f, 0.019f));
+            CloseupRect(outside, "TunnelLower", new Vector2(0f, -240f), new Vector2(1360f, 140f), new Color(0.012f, 0.012f, 0.017f));
             CloseupRect(outside, "Cable", new Vector2(0f, 120f), new Vector2(1360f, 6f), new Color(0.06f, 0.06f, 0.075f));
             CloseupRect(outside, "Cable2", new Vector2(0f, 104f), new Vector2(1360f, 4f), new Color(0.045f, 0.045f, 0.06f));
 
@@ -2654,8 +2654,8 @@ namespace UrbanLegendBureau.EditorTools
             {
                 // 터널 벽 불빛. 어둡게 두고 둘레로 빛이 번진다. 번지는 빛은 불빛을 따라 함께 지나간다.
                 var lamp = CloseupRect(outside, "Lamp_" + i, new Vector2(-900f + i * 300f, 150f), new Vector2(130f, 8f),
-                    new Color(1f, 0.8f, 0.5f, 0.38f));
-                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.16f));
+                    new Color(1f, 0.8f, 0.5f, 0.34f));
+                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.14f));
                 var glowImage = glow.GetComponent<Image>();
                 glowImage.sprite = LoadCrispSprite(CloseupArtPath + "tunnel_glow.png");
                 glowImage.raycastTarget = false;
@@ -2683,7 +2683,7 @@ namespace UrbanLegendBureau.EditorTools
             var ghso = new SerializedObject(ghost);
             ghso.Update();
             ghso.FindProperty("_image").objectReferenceValue = ghostImage;
-            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(760f, -20f);
+            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(850f, -20f);
             ghso.FindProperty("_peekPosition").vector2Value = new Vector2(590f, -20f);
             ghso.ApplyModifiedPropertiesWithoutUndo();
 
