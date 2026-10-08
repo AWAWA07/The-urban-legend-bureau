@@ -35,7 +35,7 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private Image _echo;
 
         [Tooltip("어둠 속 모양의 진하기. 본래 진하기에 곱한다. 조금만 보인다.")]
-        [SerializeField] private float _echoStrength = 0.18f;
+        [SerializeField] private float _echoStrength = 0.1f;
 
         [Tooltip("그것의 빛깔. 창밖 어둠과 터널 불빛에 섞인 푸르스름한 회색이다.")]
         [SerializeField] private Color _tint = new Color(0.72f, 0.76f, 0.86f, 1f);

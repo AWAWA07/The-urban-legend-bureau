@@ -6,10 +6,8 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 열차 안을 살필수록 객실이 조금씩 이상해진다. 무엇이 바뀌었는지 말해 주지 않는다. "아까랑 뭔가 다른데?" 하고 느끼게 한다.
     ///
-    /// 살핀 곳 1곳: 형광등 하나가 이따금 깜빡인다.
-    /// 2곳: (아직 비어 있다.)
-    /// 3곳: 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
-    ///      손잡이 하나도 흔들림과 상관없이 혼자 크게 흔들린다.
+    /// 살핀 곳 1곳: 살피고 돌아오면 곧바로 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
+    /// 3곳: 손잡이 하나가 흔들림과 상관없이 혼자 크게 흔들린다.
     /// 4곳: 가운데 문 유리 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
     ///
     /// 평소에도 객실 전체가 아주 조금 어둡다(_dark).
@@ -186,8 +184,8 @@ namespace UrbanLegendBureau.Systems
             if (_darkState == DarkState.None) Apply(lampOn);
 
             // --- 3. 정전 ---
-            // 셋째 곳을 살피고 현장으로 돌아와 잠깐 숨을 돌린 뒤에 일어난다.
-            if (stage >= 3 && !_blackoutAsked && _darkState == DarkState.None)
+            // 처음 한 곳을 살피고 현장으로 돌아와 잠깐 숨을 돌린 뒤에 곧바로 일어난다.
+            if (stage >= 1 && !_blackoutAsked && _darkState == DarkState.None)
             {
                 if (!IsFieldIdle()) _idleSince = -1f;
                 else if (_idleSince < 0f) _idleSince = now;
