@@ -2516,8 +2516,9 @@ namespace UrbanLegendBureau.EditorTools
             bandEdgeRt.anchorMax = new Vector2(1f, 1f);
             bandEdgeRt.pivot = new Vector2(0.5f, 1f);
             bandEdgeRt.sizeDelta = new Vector2(0f, 2f);
-            var line = AddText(band.transform, "Line", 46f, UIFontWeight.Regular, TextColor,
+            var line = AddText(band.transform, "Line", 34f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            ConfigureBodyText(line, 34f);   // 현장 대사 띠와 같은 크기와 규칙
             StretchInside(line.rectTransform, 120f, 120f, 52f, 30f);
 
             // 띠 위에 붙은 작은 이름표. 지금 무엇을 하는 중인지 알려 준다.
@@ -2533,7 +2534,7 @@ namespace UrbanLegendBureau.EditorTools
             tabEdgeRt.anchorMax = new Vector2(1f, 1f);
             tabEdgeRt.pivot = new Vector2(0.5f, 1f);
             tabEdgeRt.sizeDelta = new Vector2(0f, 2f);
-            var tabText = AddText(tab.transform, "Label", 32f, UIFontWeight.Bold, AccentColor,
+            var tabText = AddText(tab.transform, "Label", 30f, UIFontWeight.Bold, AccentColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
             StretchInside(tabText.rectTransform, 8f, 8f, 4f, 4f);
             tabText.raycastTarget = false;
