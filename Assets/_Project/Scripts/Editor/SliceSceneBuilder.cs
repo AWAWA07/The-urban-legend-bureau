@@ -883,12 +883,13 @@ namespace UrbanLegendBureau.EditorTools
             rso.FindProperty("_car").objectReferenceValue = root.transform;
             rso.ApplyModifiedPropertiesWithoutUndo();
 
-            // 살필수록 이상해지는 객실(TrainUnease). 깜빡일 형광등, 혼자 흔들릴 손잡이, 가운데 문 유리 너머의 그것.
+            // 살필수록 이상해지는 객실(TrainUnease). 깜빡일 형광등, 혼자 흔들릴 손잡이, 맨 오른쪽 창 너머의 그것.
             // 그것은 창 가까이 보기에서 얼굴을 내밀던 그 그림이다. 유리에 비친 것처럼 옅게, 터널보다 앞에 서 있다.
-            var doorCenter = root.transform.Find("Door_Center");
+            // 맨 오른쪽 창의 오른쪽 칸(창살 오른쪽)에 선다. 창 유리 마스크 안에서만 보인다.
+            var rightWindow = root.transform.Find("Window_Right");
             var figure = new GameObject("Unease_Figure");
-            figure.transform.SetParent(doorCenter, false);
-            figure.transform.localPosition = new Vector2(1.05f, 0.75f);
+            figure.transform.SetParent(rightWindow, false);
+            figure.transform.localPosition = new Vector2(1.55f, -0.15f);
             var figureSr = figure.AddComponent<SpriteRenderer>();
             figureSr.sprite = LoadCrispSprite(CloseupArtPath + "ghost_window.png");
             figureSr.color = new Color(0.42f, 0.45f, 0.52f, 1f);   // 어둠 속에서 희끄무레하게만 보이게 어둡게

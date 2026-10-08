@@ -6,9 +6,10 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 열차 안을 살필수록 객실이 조금씩 이상해진다. 무엇이 바뀌었는지 말해 주지 않는다. "아까랑 뭔가 다른데?" 하고 느끼게 한다.
     ///
+    /// 타자마자: 형광등 하나가 이따금 깜빡인다.
     /// 살핀 곳 1곳: 살피고 돌아오면 곧바로 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
     /// 3곳: 손잡이 하나가 흔들림과 상관없이 혼자 크게 흔들린다.
-    /// 4곳: 가운데 문 유리 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
+    /// 4곳: 맨 오른쪽 창 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
     ///
     /// 평소에도 객실 전체가 아주 조금 어둡다(_dark).
     ///
@@ -29,10 +30,10 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("한 번 오가는 데 걸리는 시간(초).")]
         [SerializeField] private float _swingPeriod = 2.3f;
 
-        [Header("4. 문 유리 너머")]
+        [Header("4. 맨 오른쪽 창 너머")]
         [SerializeField] private SpriteRenderer _figure;
         [Tooltip("다 드러났을 때의 진하기. 유리에 비친 것처럼 옅다.")]
-        [SerializeField] private float _figureAlpha = 0.2f;
+        [SerializeField] private float _figureAlpha = 0.11f;
         [Tooltip("이만큼(월드 x) 다가가면 사라진다.")]
         [SerializeField] private float _vanishDistance = 3.2f;
         [Tooltip("사라진 뒤 다시 서 있기까지 기다리는 시간(초). 그동안 멀리 떨어져 있어야 한다.")]
@@ -168,7 +169,8 @@ namespace UrbanLegendBureau.Systems
 
             // --- 1. 형광등 ---
             float lampOn = 1f;
-            if (stage >= 1 && _lamp != null)
+            // 열차에 타자마자부터 깜빡인다. 아직 아무것도 살피지 않았을 때부터 어딘가 불안하다.
+            if (_lamp != null)
             {
                 if (now >= _nextFlicker)
                 {
