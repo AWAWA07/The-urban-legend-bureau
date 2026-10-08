@@ -68,6 +68,31 @@ namespace UrbanLegendBureau.Systems
             _hold = null;
         }
 
+        /// <summary>
+        /// 걷기와 서 있기 그림을 다른 묶음으로 바꿔 쓴다. 정전 뒤 휴대폰 라이트를 든 모습(phonewalk, phoneidle) 같은 것이다.
+        /// 묶음이 없으면 그대로 둔다. UseBaseSet 으로 처음 그림으로 돌아간다.
+        /// </summary>
+        public void UseSet(string walkClip, string idleClip)
+        {
+            if (_baseWalk == null) { _baseWalk = _walk; _baseIdle = _idle; }
+            var w = Find(walkClip);
+            var i = Find(idleClip);
+            if (w != null && w.frames != null && w.frames.Length > 0) _walk = w.frames;
+            if (i != null && i.frames != null && i.frames.Length > 0) _idle = i.frames;
+        }
+
+        /// <summary>처음의 걷기와 서 있기 그림으로 돌아간다.</summary>
+        public void UseBaseSet()
+        {
+            if (_baseWalk == null) return;
+            _walk = _baseWalk;
+            _idle = _baseIdle;
+            _baseWalk = null;
+            _baseIdle = null;
+        }
+
+        private Sprite[] _baseWalk, _baseIdle;
+
         private Clip Find(string clip)
         {
             if (_clips == null) return null;

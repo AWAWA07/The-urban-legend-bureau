@@ -166,6 +166,8 @@ namespace UrbanLegendBureau.Systems
             if (_phone != null) _phone.enabled = false;
             SetOutsideAboveDark(false);
             ShowHandprint(false);
+            var baseAnim = _watcher != null ? _watcher.GetComponent<FieldSpriteAnimator>() : null;
+            if (baseAnim != null) baseAnim.UseBaseSet();
         }
 
         /// <summary>열차 안의 한 곳을 살폈다. 처음 살핀 곳이면 객실이 한 단계 더 이상해진다.</summary>
@@ -291,6 +293,9 @@ namespace UrbanLegendBureau.Systems
             }
             _phone.enabled = true;
             if (_dark != null) _dark.enabled = false;
+            // 차지한이 휴대폰을 들고 걷고 선다.
+            var anim = _watcher != null ? _watcher.GetComponent<FieldSpriteAnimator>() : null;
+            if (anim != null) anim.UseSet("phonewalk", "phoneidle");
             yield return new WaitForSeconds(0.3f);
             onDone?.Invoke();
         }

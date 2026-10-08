@@ -1993,7 +1993,7 @@ namespace UrbanLegendBureau.EditorTools
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
             // 연출용 그림 묶음. 잠자리에 들며 코트를 벗고 거는 동작 같은 것이다. 있는 것만 넣는다.
-            var clipNames = new[] { "coatoff", "coathang", "tie", "sit", "lie", "sleep" };
+            var clipNames = new[] { "coatoff", "coathang", "tie", "sit", "lie", "sleep", "phonewalk", "phoneidle" };
             var clips = aso.FindProperty("_clips");
             clips.arraySize = 0;
             foreach (var clipName in clipNames)
