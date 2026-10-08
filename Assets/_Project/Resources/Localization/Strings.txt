@@ -198,8 +198,8 @@ action.test.005.result	조작판에서 이상한 자국을 찾았다.	There are 
 # --- 17단계: 현장 조사 지점 ---
 ui.field.point_locked	조사할 수 없다	Cannot investigate	지점 해금 조건 실패 제목
 ui.field.point_hint	조사할 방법을 선택하세요.	Choose how to investigate.	
-ui.field.prompt	{0} 조사	Investigate {0}	마우스를 올렸을 때 지점 위에 뜨는 말풍선
-ui.field.prompt_done	{0} — 조사함	{0} — searched	이미 조사한 곳의 말풍선
+ui.field.prompt	[E] {0} 조사	[E] Investigate {0}	가까이 가거나 마우스를 올렸을 때 지점 위에 뜨는 말풍선
+ui.field.prompt_done	[E] {0} — 조사함	[E] {0} — searched	이미 조사한 곳의 말풍선
 ui.field.point_done	이미 조사한 내용이다.	You have already searched this.	같은 곳을 다시 조사했을 때
 action.test.006.name	사진 촬영	Take photos	
 action.test.006.desc	현장을 사진으로 남긴다.	Record the site in photographs.	
@@ -757,8 +757,8 @@ ui.rule.stray_for_verdict	「{0}」{1} 지금 묻는 것보다, 이 괴담이 �
 ui.rule.stray_for_rule	「{0}」{1} 지금 묻는 것보다, 이 괴담이 무엇에 반응해 움직이는지 알아내는 데 더 쓸모 있어 보인다.	"{0}" looks more useful for working out what this reacts to than for what is being asked now.	관계없는 단서 - 2단계 쪽
 ui.rule.stray_for_counter	「{0}」{1} 지금 묻는 것보다, 그 자리에서 실제로 어떻게 해야 하는지 정하는 데 더 쓸모 있어 보인다.	"{0}" looks more useful for deciding what to actually do there than for what is being asked now.	관계없는 단서 - 3단계 쪽
 ui.field.room	검열국 숙소	Bureau Quarters	숙소 위쪽 한 줄
-ui.field.prompt_look	{0} 살펴보기	Look at {0}	숙소 물건의 말풍선
-ui.field.prompt_use	{0} 켜기	Use {0}	숙소 컴퓨터의 말풍선
+ui.field.prompt_look	[E] {0} 살펴보기	[E] Look at {0}	숙소 물건의 말풍선
+ui.field.prompt_use	[E] {0} 켜기	[E] Use {0}	숙소 컴퓨터의 말풍선
 field.room.computer	컴퓨터	Computer	
 field.room.bed	침대	Bed	
 field.room.bed.result	푹신해 보인다. 눕는 건 게시물부터 올리고 나서다.	Looks soft. I can lie down once the post is up.	숙소 - 차지한
@@ -828,7 +828,7 @@ ui.travel.to_room	숙소로 가는 중	Heading back to the quarters	종점에서
 ui.travel.duration	종점에서 숙소까지 {0}분	{0} minutes from the terminus to the quarters	옮기는 화면 - {0} 걸리는 분
 ui.field.terminus_platform	종점 승강장	Terminus platform	종점에서 내린 뒤 위쪽 한 줄
 ui.net.author_alias	괴담 분석 덕후	LegendAnalysisNerd	차지한이 괴담넷에서 쓰는 부계정 닉네임. 표시될 때 (차지한)이 붙는다
-ui.field.prompt_press	{0} 누르기	Press {0}	숙소 스위치의 말풍선
+ui.field.prompt_press	[E] {0} 누르기	[E] Press {0}	숙소 스위치의 말풍선
 field.room.switch	방 조명 스위치	Light switch	
 field.room.computer.result	책상 위의 컴퓨터다.	The computer on the desk.	
 field.room.computer.result.night	내일은 실전이니까, 오늘은 이만 쉬자.	Tomorrow is the real thing. Better call it a night.	잘 시간 - 차지한

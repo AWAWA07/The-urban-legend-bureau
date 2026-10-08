@@ -161,6 +161,21 @@ namespace UrbanLegendBureau.Systems
                 ? Color.Lerp(_pressedColor, _investigatedColor, 0.5f)
                 : _pressedColor;
         }
+        /// <summary>물건 그림이 차지한 자리. 밝힐 그림들을 모두 감싼다. 없으면 네모 칸의 자리다.</summary>
+        public Bounds GetVisualBounds()
+        {
+            bool any = false;
+            var b = new Bounds(transform.position, Vector3.zero);
+            if (HasTargets)
+                foreach (var t in _highlightTargets)
+                {
+                    if (t == null || !t.gameObject.activeInHierarchy) continue;
+                    if (!any) { b = t.bounds; any = true; } else b.Encapsulate(t.bounds);
+                }
+            if (!any && _renderer != null) b = _renderer.bounds;
+            return b;
+        }
+
         // ------------------------------------------------------- 마우스를 올렸을 때
 
         [Header("마우스를 올렸을 때")]
