@@ -138,6 +138,12 @@ namespace UrbanLegendBureau.Systems
             for (int i = 0; i < _allLamps.Length; i++) if (_allLamps[i] != null) _allLampColors[i] = _allLamps[i].color;
         }
 
+        private void OnDisable()
+        {
+            // 열차 밖(승강장, 숙소)에서는 휴대폰에 라이트 표시를 띄우지 않는다.
+            UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = false;
+        }
+
         private void OnEnable()
         {
             // 가까이 보기에서 돌아온 직후 곧바로 무언가 일어나지 않게 조금 숨을 돌린다.
@@ -237,6 +243,7 @@ namespace UrbanLegendBureau.Systems
             if (_figure != null) UpdateFigure();
 
             if (_darkState == DarkState.Phone) FollowPhone();
+            UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = _darkState == DarkState.Phone;
         }
 
         // ------------------------------------------------------------- 정전

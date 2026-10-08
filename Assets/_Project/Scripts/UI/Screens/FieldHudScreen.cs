@@ -72,6 +72,12 @@ namespace UrbanLegendBureau.UI
         [Tooltip("휴대폰 단추의 이름표.")]
         [SerializeField] private TMP_Text _phoneButtonLabel;
 
+        [Tooltip("휴대폰 라이트가 켜져 있음을 알리는 표시. 접힌 휴대폰 화면에 손전등 그림과 불빛이 든다.")]
+        [SerializeField] private GameObject _flashlight;
+
+        /// <summary>휴대폰 라이트가 켜져 있는가. 정전 뒤 열차 안에서 켠다(TrainUnease). 켜져 있는 동안 접힌 휴대폰에 손전등 표시가 뜬다.</summary>
+        public static bool FlashlightOn { get; set; }
+
         [Tooltip("휴대폰 안의 앱. 컴퓨터 바탕화면과 같은 것들을 세로로 늘어놓는다.")]
         [SerializeField] private List<DesktopIcon> _phoneApps = new List<DesktopIcon>();
 
@@ -107,6 +113,7 @@ namespace UrbanLegendBureau.UI
         private static void ResetStatics()
         {
             IsCutscene = false;
+            FlashlightOn = false;
         }
 
         private Camera _camera;
@@ -313,6 +320,8 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         private void Update()
         {
+            if (_flashlight != null && _flashlight.activeSelf != FlashlightOn) _flashlight.SetActive(FlashlightOn);
+
             if (!IsOpen) return;
 
             if (_input == null && !ServiceRegistry.TryGet(out _input)) return;

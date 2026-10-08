@@ -5730,6 +5730,35 @@ namespace UrbanLegendBureau.EditorTools
             phoneBtnLabel.textWrappingMode = TMPro.TextWrappingModes.Normal;
             phoneBtnLabel.raycastTarget = false;
 
+            // 휴대폰 라이트가 켜져 있다는 표시. 접힌 휴대폰 화면에 은은한 불빛과 위로 비추는 손전등 그림이 든다.
+            // 정전 뒤 라이트를 켠 동안에만 보인다(FieldHudScreen.FlashlightOn).
+            var flash = new GameObject("Flashlight", typeof(RectTransform));
+            flash.transform.SetParent(phoneBtnGlass.transform, false);
+            StretchFull(flash);
+            var flashWarm = new Color(1f, 0.93f, 0.72f, 1f);
+            var flashGlow = CloseupRect(flash.transform, "Glow", new Vector2(0f, 30f), new Vector2(84f, 96f), new Color(1f, 0.9f, 0.6f, 0.32f));
+            flashGlow.sprite = FieldSoftSprite();
+            flashGlow.type = Image.Type.Simple;
+            var beamTop = new Vector2(0f, 38f);
+            foreach (var ray in new[] { -38f, 0f, 38f })
+            {
+                var r = CloseupRect(flash.transform, "Ray", beamTop + new Vector2(Mathf.Sin(ray * Mathf.Deg2Rad) * 15f, Mathf.Cos(ray * Mathf.Deg2Rad) * 15f),
+                    new Vector2(3f, 14f), flashWarm);
+                r.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -ray);
+            }
+            CloseupRect(flash.transform, "Head", new Vector2(0f, 22f), new Vector2(26f, 12f), flashWarm);
+            CloseupRect(flash.transform, "Lens", new Vector2(0f, 27f), new Vector2(20f, 3f), new Color(1f, 1f, 1f, 1f));
+            CloseupRect(flash.transform, "Body", new Vector2(0f, 2f), new Vector2(14f, 30f), new Color(0.78f, 0.74f, 0.64f, 1f));
+            CloseupRect(flash.transform, "Switch", new Vector2(0f, 6f), new Vector2(6f, 6f), new Color(0.35f, 0.32f, 0.26f, 1f));
+            var flashLabel = AddText(flash.transform, "On", 18f, UIFontWeight.Bold, AccentColor, Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            flashLabel.rectTransform.anchorMin = flashLabel.rectTransform.anchorMax = new Vector2(0.5f, 0.5f);
+            flashLabel.rectTransform.anchoredPosition = new Vector2(0f, -30f);
+            flashLabel.rectTransform.sizeDelta = new Vector2(70f, 26f);
+            flashLabel.text = "ON";
+            flashLabel.raycastTarget = false;
+            foreach (var g in flash.GetComponentsInChildren<Graphic>()) g.raycastTarget = false;
+            flash.SetActive(false);
+
             // 아래 손잡이 선. 접힌 것도 휴대폰으로 보이게 하는 것은 이 한 줄이다.
             var phoneBtnHome = CreatePanel(phoneButtonGo.transform, "HomeBar", new Color(0.42f, 0.43f, 0.50f, 1f));
             var phoneBtnHomeRt = (RectTransform)phoneBtnHome.transform;
@@ -5928,6 +5957,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_phoneCloseButton").objectReferenceValue = phoneCloseButton;
             so.FindProperty("_phoneClockText").objectReferenceValue = phoneClock;
             so.FindProperty("_phoneButtonLabel").objectReferenceValue = phoneBtnLabel;
+            so.FindProperty("_flashlight").objectReferenceValue = flash;
 
             // 앱 이름은 컴퓨터 바탕화면과 같은 문구를 쓴다. 전화와 메시지만 따로 둔다.
             // 앱 ID 는 바탕화면과 같은 것을 쓴다. 그래야 여는 쪽이 어느 화면인지 가리지 않는다.
