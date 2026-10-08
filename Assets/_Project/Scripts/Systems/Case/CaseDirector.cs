@@ -1957,13 +1957,18 @@ namespace UrbanLegendBureau.Systems
         private System.Collections.IEnumerator AfterBlackoutPause(TrainUnease unease)
         {
             yield return new WaitForSeconds(1f);
-            CctvLines(BlackoutAfterTextIds, BlackoutAfterIsHanyoung, 0, () =>
+            // 한영의 말 뒤, 차지한이 "휴대폰 라이트 키겠습니다" 하는 순간 휴대폰을 든다. 말이 끝나면 불이 켜진다.
+            CctvLines(new[] { BlackoutAfterTextIds[0] }, new[] { BlackoutAfterIsHanyoung[0] }, 0, () =>
             {
-                _fieldHudScreen.ClearSpeech();
-                unease.PhoneLight(() =>
+                unease.RaisePhone();
+                CctvLines(new[] { BlackoutAfterTextIds[1] }, new[] { BlackoutAfterIsHanyoung[1] }, 0, () =>
                 {
-                    FieldHudScreen.IsCutscene = false;
-                    Debug.Log("[CaseDirector] 휴대폰 라이트를 켰다 | 조사를 이어 간다");
+                    _fieldHudScreen.ClearSpeech();
+                    unease.PhoneLight(() =>
+                    {
+                        FieldHudScreen.IsCutscene = false;
+                        Debug.Log("[CaseDirector] 휴대폰 라이트를 켰다 | 조사를 이어 간다");
+                    });
                 });
             });
         }

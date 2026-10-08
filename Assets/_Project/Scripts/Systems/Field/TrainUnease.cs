@@ -280,8 +280,16 @@ namespace UrbanLegendBureau.Systems
             StartCoroutine(RunPhoneLight(onDone));
         }
 
+        /// <summary>차지한이 휴대폰을 든다. 걷기와 서 있기 그림이 휴대폰 든 모습으로 곧바로 바뀐다. 불은 아직 켜지 않는다.</summary>
+        public void RaisePhone()
+        {
+            var anim = _watcher != null ? _watcher.GetComponent<FieldSpriteAnimator>() : null;
+            if (anim != null) anim.UseSet("phonewalk", "phoneidle");
+        }
+
         private System.Collections.IEnumerator RunPhoneLight(System.Action onDone)
         {
+            RaisePhone();   // 아직 들지 않았다면 켜기 전에 든다
             EnsurePhone();
             _darkState = DarkState.Phone;
             FollowPhone();
@@ -293,9 +301,6 @@ namespace UrbanLegendBureau.Systems
             }
             _phone.enabled = true;
             if (_dark != null) _dark.enabled = false;
-            // 차지한이 휴대폰을 들고 걷고 선다.
-            var anim = _watcher != null ? _watcher.GetComponent<FieldSpriteAnimator>() : null;
-            if (anim != null) anim.UseSet("phonewalk", "phoneidle");
             yield return new WaitForSeconds(0.3f);
             onDone?.Invoke();
         }
