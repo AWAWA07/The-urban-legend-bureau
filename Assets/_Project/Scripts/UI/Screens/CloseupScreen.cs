@@ -25,6 +25,12 @@ namespace UrbanLegendBureau.UI
             public Button button;
             [Tooltip("눌렀을 때 아래 띠에 적는 글.")]
             public string textId;
+
+            [Tooltip("눌렀을 때 숨기는 것. 닫힌 덮개처럼 열어야 보이는 것을 가리던 그림.")]
+            public GameObject hideOnCheck;
+
+            [Tooltip("눌렀을 때 드러나는 것. 덮개를 열면 보이는 안쪽.")]
+            public GameObject showOnCheck;
         }
 
         [SerializeField] private Spot[] _spots = new Spot[0];
@@ -57,6 +63,7 @@ namespace UrbanLegendBureau.UI
         protected override void Awake()
         {
             base.Awake();
+            ResetChecked();
             for (int i = 0; i < _spots.Length; i++)
             {
                 int index = i;
@@ -81,6 +88,12 @@ namespace UrbanLegendBureau.UI
         public void ResetChecked()
         {
             _checked.Clear();
+            foreach (var s in _spots)
+            {
+                if (s == null) continue;
+                if (s.hideOnCheck != null) s.hideOnCheck.SetActive(true);
+                if (s.showOnCheck != null) s.showOnCheck.SetActive(false);
+            }
         }
 
         /// <summary>살필 곳과 돌아가기를 누를 수 있는지 정한다. 연출 동안 막는다.</summary>
@@ -130,6 +143,9 @@ namespace UrbanLegendBureau.UI
 
         private void OnSpot(int index)
         {
+            var spot = _spots[index];
+            if (spot.hideOnCheck != null) spot.hideOnCheck.SetActive(false);
+            if (spot.showOnCheck != null) spot.showOnCheck.SetActive(true);
             ShowLine(_spots[index].textId);
             if (_checked.Add(index)) SpotChecked?.Invoke(_checked.Count);
         }

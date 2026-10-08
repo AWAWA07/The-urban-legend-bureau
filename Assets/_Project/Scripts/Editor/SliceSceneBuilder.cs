@@ -778,6 +778,13 @@ namespace UrbanLegendBureau.EditorTools
             cctvHead.transform.localScale = Vector3.one * 1.35f;   // 멀리서도 렌즈가 어디를 보는지 알아보게 조금 키운다
             AddFieldRect(cctvHead.transform, "Housing", new Vector2(0.42f, -0.16f), new Vector2(1.05f, 0.5f), camBody, -4);
             AddFieldRect(cctvHead.transform, "HousingShade", new Vector2(0.42f, -0.36f), new Vector2(1.05f, 0.12f), camShade, -3);
+            // 몸통 옆면의 흠집. 오래 매달려 있던 티가 난다. 가까이 보기 화면의 흠집과 같은 자리다.
+            foreach (var m in new[] { new[] { 0.28f, -0.09f, 0.26f, 22f }, new[] { 0.33f, -0.15f, 0.2f, 18f }, new[] { 0.38f, -0.21f, 0.13f, 26f } })
+            {
+                var mark = AddFieldRect(cctvHead.transform, "Scratch", new Vector2(m[0], m[1]), new Vector2(m[2], 0.018f), new Color(0.42f, 0.42f, 0.45f), -3);
+                mark.transform.localRotation = Quaternion.Euler(0f, 0f, m[3]);
+            }
+            AddFieldRect(cctvHead.transform, "BatteryLid", new Vector2(0.56f, -0.36f), new Vector2(0.3f, 0.07f), new Color(0.48f, 0.49f, 0.52f), -2);
             AddFieldRect(cctvHead.transform, "Visor", new Vector2(0.5f, 0.12f), new Vector2(1.25f, 0.1f), camShade, -3);
             AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, -3);
             AddFieldRect(cctvHead.transform, "Lens", new Vector2(1.06f, -0.16f), new Vector2(0.08f, 0.26f),
@@ -2562,15 +2569,31 @@ namespace UrbanLegendBureau.EditorTools
             CloseupMarks(head.transform, "Scratches", new Vector2(330f, -60f), marks, 4f, new Color(0.38f, 0.38f, 0.40f));
             var scratchButton = CloseupHotspot(head.transform, "Hotspot_Scratch", new Vector2(330f, -60f), new Vector2(280f, 130f));
 
-            // 배터리 칸. 몸통 아래쪽 판에 달린 칸이 비어 있다.
-            CloseupRect(head.transform, "BatteryBay", new Vector2(560f, -208f), new Vector2(210f, 60f), dark);
-            CloseupRect(head.transform, "BatteryContactL", new Vector2(475f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
-            CloseupRect(head.transform, "BatteryContactR", new Vector2(645f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
+            // 배터리 칸. 처음에는 덮개가 닫혀 있다. 누르면 덮개가 열리고, 안이 비어 있는 것이 보인다.
+            var batteryOpen = new GameObject("BatteryOpen", typeof(RectTransform));
+            batteryOpen.transform.SetParent(head.transform, false);
+            var batteryOpenRt = (RectTransform)batteryOpen.transform;
+            batteryOpenRt.anchorMin = batteryOpenRt.anchorMax = new Vector2(0.5f, 0.5f);
+            batteryOpenRt.sizeDelta = Vector2.zero;
+            CloseupRect(batteryOpen.transform, "BatteryBay", new Vector2(560f, -208f), new Vector2(210f, 60f), dark);
+            CloseupRect(batteryOpen.transform, "BatteryContactL", new Vector2(475f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
+            CloseupRect(batteryOpen.transform, "BatteryContactR", new Vector2(645f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
+            batteryOpen.SetActive(false);
+            var batteryLid = CloseupRect(head.transform, "BatteryLid", new Vector2(560f, -208f), new Vector2(226f, 62f), new Color(0.64f, 0.65f, 0.68f));
+            CloseupRect(batteryLid.transform, "Seam", Vector2.zero, new Vector2(210f, 46f), new Color(0.58f, 0.59f, 0.62f));
+            foreach (var sx in new[] { -92f, 92f })
+            {
+                var screw = CloseupRect(batteryLid.transform, "Screw", new Vector2(sx, 0f), new Vector2(14f, 14f), new Color(0.35f, 0.36f, 0.39f));
+                screw.sprite = RoundSprite();
+                screw.type = Image.Type.Simple;
+            }
+            CloseupRect(batteryLid.transform, "Notch", new Vector2(0f, -8f), new Vector2(40f, 6f), new Color(0.42f, 0.43f, 0.46f));
             var batteryButton = CloseupHotspot(head.transform, "Hotspot_Battery", new Vector2(560f, -215f), new Vector2(300f, 110f));
 
             FinishCloseup(go, screen, "field.subway.cctv_close.hint",
                 new[] { scratchButton, batteryButton },
-                new[] { "field.subway.cctv_close.scratch", "field.subway.cctv_close.battery" });
+                new[] { "field.subway.cctv_close.scratch", "field.subway.cctv_close.battery" },
+                new[] { null, batteryLid.gameObject }, new[] { null, batteryOpen });
             return screen;
         }
 
@@ -2697,7 +2720,8 @@ namespace UrbanLegendBureau.EditorTools
         /// 가까이 보기 화면의 공통 부분. 아래 글자 띠, 띠 위 이름표, 오른쪽 위 돌아가기, 말을 넘기는 판을 달고 살필 곳을 이어 준다.
         /// 글자 크기와 규칙은 현장 대사 띠와 같다.
         /// </summary>
-        private static void FinishCloseup(GameObject go, CloseupScreen screen, string hintId, Button[] spotButtons, string[] spotTextIds)
+        private static void FinishCloseup(GameObject go, CloseupScreen screen, string hintId, Button[] spotButtons, string[] spotTextIds,
+            GameObject[] hides = null, GameObject[] shows = null)
         {
             var band = CreatePanel(go.transform, "Band", new Color(0.03f, 0.03f, 0.04f, 0.94f));
             var bandRt = (RectTransform)band.transform;
@@ -2759,6 +2783,8 @@ namespace UrbanLegendBureau.EditorTools
                 var spot = spots.GetArrayElementAtIndex(i);
                 spot.FindPropertyRelative("button").objectReferenceValue = spotButtons[i];
                 spot.FindPropertyRelative("textId").stringValue = spotTextIds[i];
+                spot.FindPropertyRelative("hideOnCheck").objectReferenceValue = hides != null ? hides[i] : null;
+                spot.FindPropertyRelative("showOnCheck").objectReferenceValue = shows != null ? shows[i] : null;
             }
             so.FindProperty("_closeButton").objectReferenceValue = close.GetComponent<Button>();
             so.FindProperty("_lineText").objectReferenceValue = line;

@@ -28,11 +28,20 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("흔들리는 손잡이 고리.")]
         [SerializeField] private Transform[] _rings = new Transform[0];
 
+        [Tooltip("타고 나서 제 빠르기에 이르기까지 걸리는 시간(초). 처음에는 거의 서 있다가 서서히 빨라진다.")]
+        [SerializeField] private float _startSeconds = 5f;
+
+        /// <summary>지금 빠르기의 배율. 0 이면 서 있고 1 이면 제 빠르기다.</summary>
+        private float _pace;
+        private float _startedAt;
+
         private Vector3 _carBase;
         private Vector3[] _ringBase;
 
         private void OnEnable()
         {
+            _startedAt = Time.time;
+            _pace = 0f;
             if (_car != null) _carBase = _car.localPosition;
             _ringBase = new Vector3[_rings.Length];
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _ringBase[i] = _rings[i].localPosition;
@@ -46,7 +55,11 @@ namespace UrbanLegendBureau.Systems
 
         private void Update()
         {
-            float dt = Time.deltaTime;
+            // 서서히 출발한다. 처음 1초는 덜컹 하고 움찔한 뒤, 느리게 시작해 점점 빨라진다.
+            float since = Time.time - _startedAt;
+            float k = _startSeconds > 0f ? Mathf.Clamp01(since / _startSeconds) : 1f;
+            _pace = k * k;
+            float dt = Time.deltaTime * _pace;
             for (int i = 0; i < _passing.Length; i++)
             {
                 var t = _passing[i];
@@ -64,14 +77,15 @@ namespace UrbanLegendBureau.Systems
             {
                 // 잔잔한 떨림에 이따금 레일 이음매를 넘는 덜컹이 섞인다.
                 float bump = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(time * 2.1f)), 24f) * 0.04f;
-                float y = (Mathf.PerlinNoise(time * 6f, 0.3f) - 0.5f) * 2f * _shake + bump;
+                float jolt = since < 0.35f ? Mathf.Sin(since / 0.35f * Mathf.PI) * 0.05f : 0f;   // 출발할 때 한 번 덜컹
+                float y = (Mathf.PerlinNoise(time * 6f, 0.3f) - 0.5f) * 2f * _shake * Mathf.Max(0.2f, _pace) + bump * _pace - jolt;
                 _car.localPosition = _carBase + new Vector3(0f, y, 0f);
             }
 
             for (int i = 0; i < _rings.Length; i++)
             {
                 if (_rings[i] == null) continue;
-                float sway = Mathf.Sin(time * 1.7f + i * 0.6f) * 0.05f;
+                float sway = Mathf.Sin(time * 1.7f + i * 0.6f) * 0.05f * _pace + (since < 1.2f ? Mathf.Sin(since / 1.2f * Mathf.PI) * 0.08f : 0f);   // 출발할 때 뒤로 쏠렸다 돌아온다
                 _rings[i].localPosition = _ringBase[i] + new Vector3(sway, 0f, 0f);
             }
         }
