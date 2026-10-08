@@ -375,6 +375,7 @@ ui.settings.sfx	효과음 볼륨    {0}	Sound volume    {0}
 
 # --- 조정: 튜토리얼 대화 ---
 ui.dialogue.hint	화면을 눌러 계속	Tap to continue	
+ui.dialogue.skip	스킵 >>	Skip >>	대사를 끝까지 빠르게 넘기는 단추
 tutorial.char.hanyoung	한 영	Hanyoung	
 tutorial.char.chajihan	차지한	Chajihan	
 tutorial.line.001	...	...	
