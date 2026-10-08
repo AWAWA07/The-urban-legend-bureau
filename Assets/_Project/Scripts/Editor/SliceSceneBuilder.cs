@@ -617,7 +617,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 승강장에 선 두 사람. 발은 안전선 안쪽, 바닥 위에 놓는다.
             // 가운데 문 앞(x 0)은 타는 자리라 비워 두고 왼쪽에 선다.
-            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f);
+            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f, scale: PlatformActorScale);
 
             var arrival = root.AddComponent<TrainArrival>();
             var aso = new SerializedObject(arrival);
@@ -1664,7 +1664,10 @@ namespace UrbanLegendBureau.EditorTools
         /// 씬에서 직접 늘려 보고 정한 값이라 여기 한 곳에만 둔다. 크기를 바꾸려면 이 숫자만 고친다.
         /// 좌우를 뒤집을 때 절댓값을 쓰므로 키운 크기는 뒤집어도 그대로 남는다.
         /// </remarks>
-        private const float ActorScale = 1.9f;
+        private const float ActorScale = 1.5f;
+
+        /// <summary>승강장에서만 쓰는 인물 크기. 승강장 배경이 넓어 사람이 작아 보이므로 더 키운다.</summary>
+        private const float PlatformActorScale = 1.9f;
 
         /// <summary>
         /// 조사할 것 위에 뜨는 말풍선 하나.
@@ -1731,12 +1734,12 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         private static void BuildFieldActors(Transform parent, float groundY, float leadX, float gap,
-            float minX, float maxX, bool faceLeft = false)
+            float minX, float maxX, bool faceLeft = false, float scale = ActorScale)
         {
             var lead = BuildFieldActor(parent, "Actor_Chajihan", new Vector2(leadX, groundY), "Chajihan");
             // 왼쪽을 보고 서야 하면 처음부터 뒤집어 세운다. 걷는 쪽이 이 방향을 처음 방향으로 기억한다.
             float side = faceLeft ? -1f : 1f;
-            lead.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
+            lead.transform.localScale = new Vector3(scale * side, scale, scale);
 
             var walker = lead.AddComponent<FieldWalker>();
             var wso = new SerializedObject(walker);
@@ -1746,7 +1749,16 @@ namespace UrbanLegendBureau.EditorTools
             wso.ApplyModifiedPropertiesWithoutUndo();
 
             var mate = BuildFieldActor(parent, "Actor_Hanyoung", new Vector2(leadX - gap, groundY), "Hanyoung");
-            mate.transform.localScale = new Vector3(ActorScale * side, ActorScale, ActorScale);
+            mate.transform.localScale = new Vector3(scale * side, scale, scale);
+
+            // 인물을 키운 만큼 한 걸음도 길다. 걷기 한 바퀴에 걷는 거리를 크기에 맞춰 늘려 발이 미끄러지지 않게 한다.
+            foreach (var actor in new[] { lead, mate })
+            {
+                var aso = new SerializedObject(actor.GetComponent<FieldSpriteAnimator>());
+                aso.Update();
+                aso.FindProperty("_cycleDistance").floatValue = 3.6f * scale / 1.5f;
+                aso.ApplyModifiedPropertiesWithoutUndo();
+            }
 
             var follower = mate.AddComponent<FieldFollower>();
             var fso = new SerializedObject(follower);
@@ -1792,8 +1804,6 @@ namespace UrbanLegendBureau.EditorTools
             aso.FindProperty("_renderer").objectReferenceValue = sr;
             // 걸을 때 몸이 오르내리는 폭. 두 사람 걷기 그림에 오르내림이 들어 있어 코드로는 더하지 않는다.
             aso.FindProperty("_stepBob").floatValue = 0f;
-            // 인물을 키운 만큼 한 걸음도 길다. 걷기 한 바퀴에 걷는 거리를 크기에 맞춰 늘려 발이 미끄러지지 않게 한다.
-            aso.FindProperty("_cycleDistance").floatValue = 3.6f * ActorScale / 1.5f;
             var walk = aso.FindProperty("_walk");
             walk.arraySize = frames.Count;
             for (int i = 0; i < frames.Count; i++) walk.GetArrayElementAtIndex(i).objectReferenceValue = frames[i];
@@ -2374,7 +2384,7 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
 
-            // 넘기기(스킵) 단추. 대사 상자 안에는 두지 않는다.
+            // 이야기 건너뛰기(스킵) 단추. 처음 이야기 동안만 보인다(StorySkip). 대사 상자 안에는 두지 않는다.
             // 전신 대화는 화면 오른쪽 위, 상자형(넘기기 판이 상자 크기)은 상자 바깥 바로 위 오른쪽에 붙는다.
             var skipRt = AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-40f, -100f) : new Vector2(-40f, 14f));
             if (!fullScreen) skipRt.pivot = new Vector2(1f, 0f);
@@ -5075,9 +5085,6 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel 은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             fieldAdvanceImage.raycastTarget = true;
             fieldAdvance.SetActive(false);
-
-            // 넘기기(스킵) 단추. 장면 맨 위 알림 줄 바로 아래 오른쪽에 둔다.
-            AddSkipButton(fieldAdvance.transform, new Vector2(-40f, -100f));
 
             var so = new SerializedObject(screen);
             so.Update();

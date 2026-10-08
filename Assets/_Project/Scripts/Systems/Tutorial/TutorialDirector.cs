@@ -132,9 +132,50 @@ namespace UrbanLegendBureau.Systems
 
         public bool IsRunning { get; private set; }
 
+        /// <summary>현장으로 넘어가는 중이거나 넘어갔다. 여기서부터는 건너뛸 수 없다.</summary>
+        private bool _leftForField;
+
+        /// <summary>
+        /// 처음 이야기를 건너뛸 수 있는가. 사무실 대화, 컴퓨터, 부서 설명 동안만이다.
+        /// 현장에 나가면 건너뛰지 않는다. 거기서부터는 직접 조사하며 진행한다.
+        /// </summary>
+        public bool CanSkipIntro => IsRunning && !_leftForField && !_inFieldTalk;
+
+        /// <summary>
+        /// 처음 이야기를 건너뛰고 곧바로 첫 현장(승강장)으로 간다. 남은 대사와 선택지는 보이지 않고 지나간다.
+        /// 열려 있던 컴퓨터, 괴담넷, 메모장, 작은 대화 상자를 닫고, 부서 설명이 끝났을 때와 똑같이 현장으로 옮겨 간다.
+        /// </summary>
+        public void SkipIntro()
+        {
+            if (!CanSkipIntro) return;
+
+            StopAllCoroutines();
+            GamePointer.SetVisible(false);
+            _dialogueScreen.ClearChoices();
+            _dialogueScreen.HideNote();
+
+            if (_ui != null)
+            {
+                if (_ui.Contains(_memoScreen)) _ui.Close(_memoScreen);
+                if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
+                if (_ui.Contains(_communityScreen)) _ui.Close(_communityScreen);
+                if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
+                if (!_ui.Contains(_dialogueScreen))
+                {
+                    if (_ui.Count == 0) _ui.Push(_dialogueScreen);
+                    else _ui.Replace(_dialogueScreen);
+                }
+            }
+
+            Debug.Log("[TutorialDirector] 처음 이야기를 건너뛴다 | 곧바로 승강장으로");
+            StartFieldTutorial();
+        }
+
         private void Awake()
         {
             ServiceRegistry.TryGet(out _ui);
+            StorySkip.CanSkip = () => CanSkipIntro;
+            StorySkip.Skip = SkipIntro;
             ServiceRegistry.TryGet(out _loc);
             ServiceRegistry.TryGet(out _internet);
             ServiceRegistry.TryGet(out _belief);
@@ -175,6 +216,7 @@ namespace UrbanLegendBureau.Systems
 
             IsRunning = true;
             _finished = false;
+            _leftForField = false;
             _censored = false;
             _lineIndex = 0;
             _postBelief = TutorialPostBelief;
@@ -1546,6 +1588,7 @@ namespace UrbanLegendBureau.Systems
         private void StartFieldTutorial()
         {
             _inBriefing = false;
+            _leftForField = true;
             _dialogueScreen.ClearChoices();
             _dialogueScreen.HideNote();
 

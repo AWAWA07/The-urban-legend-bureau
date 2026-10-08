@@ -72,7 +72,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _coatStandX = -11.5f;
 
         [Tooltip("침대 끝에 걸터앉을 때 몸이 올라가는 높이. 침대가 바닥보다 높아 앉으면 발이 살짝 뜬다.")]
-        [SerializeField] private float _bedSitLift = 0.8f;
+        [SerializeField] private float _bedSitLift = 1.0f;
 
         [Tooltip("코트 벗기, 걸기, 넥타이, 앉기 그림 한 칸을 보여 주는 시간(초).")]
         [SerializeField] private float _undressFrameSeconds = 0.24f;
