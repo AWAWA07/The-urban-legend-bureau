@@ -742,11 +742,11 @@ namespace UrbanLegendBureau.EditorTools
                 const float K = 4.6f / 1360f;
                 var handprint = new GameObject("WindowHandprint");
                 handprint.transform.SetParent(root.transform, false);
-                handprint.transform.localPosition = new Vector2(5f + 560f * K, 0.9f - 80f * K);
-                handprint.transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
+                handprint.transform.localPosition = new Vector2(5f + 564f * K, 0.9f - 158f * K);
+                handprint.transform.localRotation = Quaternion.Euler(0f, 0f, 20.66f);
                 var handSr = handprint.AddComponent<SpriteRenderer>();
                 handSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
-                handSr.color = new Color(1f, 1f, 1f, 0.3f);
+                handSr.color = new Color(1f, 1f, 1f, 10f / 255f);
                 handSr.sortingOrder = -3;
                 if (handSr.sprite != null)
                 {
@@ -2783,12 +2783,12 @@ namespace UrbanLegendBureau.EditorTools
 
             // 손바닥 자국. 그것이 사라진 뒤에야 유리 바깥쪽에 찍혀 있다. 그것이 고개를 내밀던 자리 곁이다.
             // 처음에는 숨어 있다가 스르르 나타나고(CloseupScreen.RevealSpot), 살피면 현장의 창에도 남는다.
-            var hand = CloseupRect(outside, "Handprint", new Vector2(560f, -80f), new Vector2(165f, 170f), new Color(1f, 1f, 1f, 0.3f));
+            var hand = CloseupRect(outside, "Handprint", new Vector2(564f, -158f), new Vector2(165f, 170f), new Color(1f, 1f, 1f, 10f / 255f));
             hand.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
             hand.type = Image.Type.Simple;
             hand.preserveAspect = true;
-            hand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -8f);
-            var handButton = CloseupHotspot(outside, "Hotspot_Hand", new Vector2(560f, -80f), new Vector2(190f, 200f));
+            hand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 20.66f);
+            var handButton = CloseupHotspot(outside, "Hotspot_Hand", new Vector2(564f, -158f), new Vector2(190f, 200f));
             AttachGlow(handButton, hand.gameObject);
 
             // 창 가운데 세로 창살.
