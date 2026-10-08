@@ -20,4 +20,3 @@ tutorial.board.005	serious	넵, 알겠습니다.
 # 열차 안 CCTV
 field.subway.cctv_look.001	ponder	CCTV가 부자연스럽게 돌아가있네요.
 field.subway.cctv_react.001	wary	……!
-field.subway.cctv_react.003	serious	…누가 보고 있다는 거군.

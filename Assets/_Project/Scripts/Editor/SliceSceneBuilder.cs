@@ -2517,8 +2517,31 @@ namespace UrbanLegendBureau.EditorTools
             bandEdgeRt.pivot = new Vector2(0.5f, 1f);
             bandEdgeRt.sizeDelta = new Vector2(0f, 2f);
             var line = AddText(band.transform, "Line", 46f, UIFontWeight.Regular, TextColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.MidlineLeft);
-            StretchInside(line.rectTransform, 120f, 120f, 30f, 30f);
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.TopLeft);
+            StretchInside(line.rectTransform, 120f, 120f, 52f, 30f);
+
+            // 띠 위에 붙은 작은 이름표. 지금 무엇을 하는 중인지 알려 준다.
+            var tab = CreatePanel(go.transform, "Tab", new Color(0.03f, 0.03f, 0.04f, 0.94f));
+            var tabRt = (RectTransform)tab.transform;
+            tabRt.anchorMin = tabRt.anchorMax = new Vector2(0f, 0f);
+            tabRt.pivot = new Vector2(0f, 0f);
+            tabRt.anchoredPosition = new Vector2(100f, 278f);
+            tabRt.sizeDelta = new Vector2(200f, 64f);
+            var tabEdge = CreatePanel(tab.transform, "Edge", BandEdgeColor);
+            var tabEdgeRt = (RectTransform)tabEdge.transform;
+            tabEdgeRt.anchorMin = new Vector2(0f, 1f);
+            tabEdgeRt.anchorMax = new Vector2(1f, 1f);
+            tabEdgeRt.pivot = new Vector2(0.5f, 1f);
+            tabEdgeRt.sizeDelta = new Vector2(0f, 2f);
+            var tabText = AddText(tab.transform, "Label", 32f, UIFontWeight.Bold, AccentColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(tabText.rectTransform, 8f, 8f, 4f, 4f);
+            tabText.raycastTarget = false;
+            var tabLoc = tabText.gameObject.AddComponent<LocalizedText>();
+            var tabSo = new SerializedObject(tabLoc);
+            tabSo.Update();
+            tabSo.FindProperty("_textId").stringValue = "ui.field.closeup_tab";
+            tabSo.ApplyModifiedPropertiesWithoutUndo();
             line.raycastTarget = false;
 
             // 돌아가기. 오른쪽 위.

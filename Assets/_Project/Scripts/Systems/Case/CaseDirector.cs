@@ -1808,8 +1808,8 @@ namespace UrbanLegendBureau.Systems
         /// <summary>CCTV 를 처음 눌렀을 때 나오는 말. 차지한과 한영이 한마디씩 → (CCTV 가 고개를 돌린다) → 둘의 반응.</summary>
         private static readonly string[] CctvLookTextIds = { "field.subway.cctv_look.001", "field.subway.cctv_look.002" };
         private static readonly bool[] CctvLookIsHanyoung = { false, true };
-        private static readonly string[] CctvReactTextIds = { "field.subway.cctv_react.001", "field.subway.cctv_react.002", "field.subway.cctv_react.003" };
-        private static readonly bool[] CctvReactIsHanyoung = { false, true, false };
+        private static readonly string[] CctvReactTextIds = { "field.subway.cctv_react.001", "field.subway.cctv_react.002" };
+        private static readonly bool[] CctvReactIsHanyoung = { false, true };
 
         /// <summary>이번 사건에서 CCTV 가 이미 고개를 돌렸는가. 한 번만 일어난다.</summary>
         private bool _cctvTurned;

@@ -339,7 +339,7 @@ field.subway.cctv_look.001	CCTV가 부자연스럽게 돌아가있네요.	The ca
 field.subway.cctv_look.002	그러게? 누군가 못 찍게 하려한거 처럼..	Right? Like someone didn't want it filming..	한영
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후
 field.subway.cctv_react.002	방금… 저거, 우리 쪽으로 돌아갔지?	Did that just… turn toward us?	
-field.subway.cctv_react.003	…누가 보고 있다는 거군.	…Someone's watching, then.	
+ui.field.closeup_tab	조사	Investigate	가까이 보기 화면의 글자 띠 위 이름표
 field.subway.cctv_close.hint	어디를 살펴볼까.	Where to look?	CCTV 가까이 보기 화면의 첫 안내
 field.subway.cctv_close.scratch	그냥 세월에 생긴 평범한 흠집이다..	Just ordinary scratches from years of use..	CCTV 몸통의 흠집을 눌렀을 때
 field.subway.cctv_close.battery	배터리가 장착되어 있지 않다.	There's no battery in it.	CCTV 배터리 칸을 눌렀을 때
