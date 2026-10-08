@@ -6,7 +6,7 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 조사할 수 있는 것 위에 뜨는 말풍선.
     ///
-    /// 현장에 하나만 둔다. 가까이 간 지점이 바뀌면 그쪽으로 옮겨 다닌다.
+    /// 현장에 하나만 둔다. 마우스를 올린 지점이 바뀌면 그쪽으로 옮겨 다닌다.
     /// 여럿을 만들어 두고 켜고 끄지 않는 이유가 이것이다. 한 번에 하나만 뜬다.
     ///
     /// 무엇이 가까운지는 FieldController 가 정한다. 여기서는 받은 자리에 서서 받은 글을 보일 뿐이다.
@@ -28,9 +28,6 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private Color _plateColor = new Color(0.035f, 0.035f, 0.05f, 0.97f);   // 대사 띠, 가까이 보기 띠와 같은 어두운 바탕
         [SerializeField] private Color _edgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);   // 띠 위쪽 가는 줄과 같은 차분한 회색
         [SerializeField] private Color _textColor = new Color(0.93f, 0.93f, 0.96f);
-
-        [Tooltip("누를 키([E]) 글자 색. 가까이 보기의 이름표(조사)와 같은 금빛이다.")]
-        [SerializeField] private Color _keyColor = new Color(0.86f, 0.74f, 0.48f);
 
         [Header("이미 조사한 곳")]
         [Tooltip("다 본 것은 연둣빛으로 둔다. 글을 읽기 전에 색으로 먼저 안다.")]
@@ -68,9 +65,7 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            // 누를 키만 금빛으로 짚는다. 나머지 글은 차분한 색이다.
-            if (_label != null) _label.text = string.IsNullOrEmpty(text) ? text
-                : text.Replace("[E]", "<color=#" + ColorUtility.ToHtmlStringRGB(_keyColor) + ">[E]</color>");
+            if (_label != null) _label.text = text;
 
             ApplyColors(point.IsInvestigated);
 

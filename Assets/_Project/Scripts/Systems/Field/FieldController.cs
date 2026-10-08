@@ -10,14 +10,11 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 현장에서 무엇을 조사할지 정한다.
     ///
-    /// 손가락으로 찍어 고르지 않는다. 걸어가서 곁에 서면 그 지점 위에 말풍선이 뜨고,
-    /// 상호작용 키를 눌러야 조사가 된다. 현장에 서 있다는 느낌은 여기서 나온다.
-    ///
-    /// 옆에서 본 한 폭의 장면이라 가깝고 먼 것은 좌우 거리로만 잰다.
-    /// 천장의 CCTV처럼 높이 달린 것도 그 아래에 서면 닿는다.
+    /// 마우스로 고른다. 조사할 곳에 마우스를 올리면 물건 모양을 따라 노란 외곽선과 그 위의 말풍선이 뜨고,
+    /// 누르면 서 있는 자리와 상관없이 곧바로 조사한다. 걸어가지 않는다. 걷기는 둘러보는 데에만 쓴다.
     ///
     /// 조사할 수 있는지(단서·단계 조건)는 여기서 따지지 않는다. 그것은 CaseDirector 의 일이다.
-    /// 여기서는 "무엇 앞에 서 있고 언제 눌렀는가"까지만 알린다.
+    /// 여기서는 "무엇을 가리키고 언제 눌렀는가"까지만 알린다.
     /// </summary>
     public class FieldController : MonoBehaviour
     {
@@ -35,10 +32,7 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("괴담별 현장. 사건이 늘면 항목을 추가한다. 코드를 고칠 필요는 없다.")]
         [SerializeField] private List<FieldGroup> _fieldGroups = new List<FieldGroup>();
 
-        [Header("가까이 가서 조사하기")]
-        [Tooltip("이만큼 안에 들어오면 조사할 수 있다. 좌우 거리로만 잰다.")]
-        [SerializeField] private float _reach = 2.4f;
-
+        [Header("마우스로 조사하기")]
         [Tooltip("조사할 것 위에 뜨는 말풍선. 현장마다 따로 두지 않고 하나를 옮겨 쓴다.")]
         [SerializeField] private FieldPrompt _prompt;
 
@@ -46,7 +40,6 @@ namespace UrbanLegendBureau.Systems
         private LocalizationService _loc;
 
         /// <summary>지금 켜진 현장에 든 것들. 현장을 켤 때 한 번만 모은다.</summary>
-        private FieldWalker[] _walkers;
         private InvestigationPoint[] _points;
 
         /// <summary>조사 지점이 실제로 조사됐을 때. 결과 처리는 구독자가 한다.</summary>
@@ -101,7 +94,6 @@ namespace UrbanLegendBureau.Systems
             ActiveRoot = null;
 
             ClearNear();
-            _walkers = null;
             _points = null;
 
             HideAll();
@@ -117,10 +109,9 @@ namespace UrbanLegendBureau.Systems
                 ActiveRoot = group.root;
                 IsActive = true;
 
-                // 걷는 사람도 조사할 것도 현장이 켜져 있는 동안에는 늘어나지 않는다.
+                // 조사할 것은 현장이 켜져 있는 동안에는 늘어나지 않는다.
                 // 꺼진 것까지 모아 두고, 매 프레임에는 켜진 것만 본다.
                 // 막차 현장처럼 승강장과 열차 안이 번갈아 켜지는 곳이 있기 때문이다.
-                _walkers = group.root.GetComponentsInChildren<FieldWalker>(true);
                 _points = group.root.GetComponentsInChildren<InvestigationPoint>(true);
                 return;
             }
@@ -142,10 +133,13 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            SetNear(FindNear());
-            UpdateHover();
+            // 걸어가 곁에 서는 것이 아니라 마우스를 올린 곳이 조사할 곳이다. 말풍선도 그 위에 뜬다.
+            InvestigationPoint hovered = null;
+            if (InvestigationAllowed && TryPointerWorld(out var world)) hovered = PointAt(world);
+            SetNear(hovered);
+            SetHover(hovered);
 
-            // 곁에 선 채로 조사를 마쳤으면 말풍선의 글도 바뀌어야 한다.
+            // 마우스를 올린 채로 조사를 마쳤으면 말풍선의 글도 바뀌어야 한다.
             // 떠났다 돌아올 때까지 "조사함" 이 안 붙으면 방금 뒤진 곳을 또 누르게 된다.
             if (NearPoint != null && NearPoint.IsInvestigated != _nearWasInvestigated)
             {
@@ -153,66 +147,14 @@ namespace UrbanLegendBureau.Systems
                 if (_prompt != null) _prompt.Show(NearPoint, BuildPromptText(NearPoint));
             }
 
-            if (NearPoint != null && _input.InteractPressed)
-            {
-                Investigated?.Invoke(NearPoint);
-                return;
-            }
-
-            HandleClick();
-        }
-
-        // ------------------------------------------------------------- 마우스로 누르기
-
-        /// <summary>
-        /// 장면 속 조사할 곳을 마우스로 누르면 그곳을 조사한다.
-        /// 닿는 거리에 있으면 곧바로, 멀면 차지한이 그 곁까지 걸어간 뒤에 조사한다. 걷는 동안 다시 누르면 새로 누른 곳으로 간다.
-        /// 화면 위의 단추(규칙 추론, 조사 종료 같은 것)를 누른 것은 장면을 누른 것이 아니다.
-        /// </summary>
-        private void HandleClick()
-        {
-            if (!InvestigationAllowed) return;
+            // 누르면 그 자리에서 곧바로 조사한다. 걸어가지 않는다.
             var device = UnityEngine.InputSystem.Pointer.current;
-            if (device == null || !device.press.wasPressedThisFrame) return;
-            if (!TryPointerWorld(out var world)) return;
-
-            var point = PointAt(world);
-            if (point == null) return;
-
-            var walker = ActiveWalker();
-            if (walker == null) return;
-
-            float dx = point.transform.position.x - walker.transform.position.x;
-            if (Mathf.Abs(dx) < _reach)
-            {
-                Investigated?.Invoke(point);
-                return;
-            }
-
-            // 그 곁까지 걸어간다. 지점 바로 앞(닿는 거리의 절반쯤)에 선다.
-            var parent = walker.transform.parent;
-            var target = point.transform.position - new Vector3(Mathf.Sign(dx) * _reach * 0.5f, 0f, 0f);
-            float localX = parent != null ? parent.InverseTransformPoint(target).x : target.x;
-            walker.WalkTo(localX, () =>
-            {
-                // 걷는 사이 다른 화면이 떴거나 말이 시작됐으면 그만둔다.
-                if (!IsActive || !InvestigationAllowed || point == null || !point.isActiveAndEnabled) return;
-                if (UrbanLegendBureau.UI.FieldHudScreen.IsSpeaking || !UrbanLegendBureau.UI.FieldHudScreen.IsFront
-                    || UrbanLegendBureau.UI.FieldHudScreen.IsCutscene) return;
-                Investigated?.Invoke(point);
-            });
+            if (NearPoint != null && device != null && device.press.wasPressedThisFrame)
+                Investigated?.Invoke(NearPoint);
         }
 
         /// <summary>마우스가 올라가 있는 조사 지점. 노란 외곽선이 둘러져 있다.</summary>
         private InvestigationPoint _hovered;
-
-        /// <summary>마우스 아래의 조사 지점을 찾아 외곽선을 옮긴다. 화면 위 단추에 올라가 있거나 장면 밖이면 없다.</summary>
-        private void UpdateHover()
-        {
-            InvestigationPoint point = null;
-            if (InvestigationAllowed && TryPointerWorld(out var world)) point = PointAt(world);
-            SetHover(point);
-        }
 
         private void SetHover(InvestigationPoint point)
         {
@@ -254,54 +196,8 @@ namespace UrbanLegendBureau.Systems
             return null;
         }
 
-        /// <summary>곁에 선 지점을 마지막으로 봤을 때 조사가 끝나 있었는가.</summary>
+        /// <summary>마우스를 올린 지점을 마지막으로 봤을 때 조사가 끝나 있었는가.</summary>
         private bool _nearWasInvestigated;
-
-        /// <summary>
-        /// 서 있는 자리에서 가장 가까운 조사 지점.
-        ///
-        /// 좌우 거리로만 잰다. 위아래까지 재면 천장의 CCTV 처럼 높이 달린 것에 영영 닿지 못한다.
-        /// </summary>
-        private InvestigationPoint FindNear()
-        {
-            if (!InvestigationAllowed) return null;
-
-            var walker = ActiveWalker();
-            if (walker == null || _points == null) return null;
-
-            float x = walker.transform.position.x;
-
-            InvestigationPoint best = null;
-            float bestDistance = _reach;
-
-            for (int i = 0; i < _points.Length; i++)
-            {
-                var point = _points[i];
-
-                // 아직 열리지 않은 지점은 꺼져 있다. 탈 자리가 그렇다.
-                if (point == null || !point.isActiveAndEnabled) continue;
-
-                float distance = Mathf.Abs(point.transform.position.x - x);
-                if (distance >= bestDistance) continue;
-
-                bestDistance = distance;
-                best = point;
-            }
-
-            return best;
-        }
-
-        /// <summary>지금 켜져 있는 쪽의 걷는 사람. 승강장과 열차 안에 하나씩 있다.</summary>
-        private FieldWalker ActiveWalker()
-        {
-            if (_walkers == null) return null;
-
-            for (int i = 0; i < _walkers.Length; i++)
-            {
-                if (_walkers[i] != null && _walkers[i].isActiveAndEnabled) return _walkers[i];
-            }
-            return null;
-        }
 
         private void SetNear(InvestigationPoint point)
         {
