@@ -19,7 +19,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private SpriteRenderer _light;
 
         [Tooltip("평소 머리 각도(도). 위를 올려다보는 각이다.")]
-        [SerializeField] private float _idleAngle = 62f;
+        [SerializeField] private float _idleAngle = 34f;
 
         [Tooltip("고개를 꺾는 데 걸리는 시간(초). 짧을수록 섬뜩하다.")]
         [SerializeField] private float _snapSeconds = 0.16f;

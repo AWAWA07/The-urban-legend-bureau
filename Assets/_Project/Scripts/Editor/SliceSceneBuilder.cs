@@ -2501,8 +2501,6 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(head.transform, "BatteryBay", new Vector2(560f, -208f), new Vector2(210f, 60f), dark);
             CloseupRect(head.transform, "BatteryContactL", new Vector2(475f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
             CloseupRect(head.transform, "BatteryContactR", new Vector2(645f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
-            var lid = CloseupRect(head.transform, "BatteryLid", new Vector2(700f, -262f), new Vector2(200f, 22f), shade);
-            lid.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -24f);
             var batteryButton = CloseupHotspot(head.transform, "Hotspot_Battery", new Vector2(580f, -225f), new Vector2(330f, 120f));
 
             // 아래 띠. 본 것을 한 줄로 적는다.
@@ -2511,14 +2509,14 @@ namespace UrbanLegendBureau.EditorTools
             bandRt.anchorMin = new Vector2(0f, 0f);
             bandRt.anchorMax = new Vector2(1f, 0f);
             bandRt.pivot = new Vector2(0.5f, 0f);
-            bandRt.sizeDelta = new Vector2(0f, 200f);
+            bandRt.sizeDelta = new Vector2(0f, 280f);
             var bandEdge = CreatePanel(band.transform, "Edge", BandEdgeColor);
             var bandEdgeRt = (RectTransform)bandEdge.transform;
             bandEdgeRt.anchorMin = new Vector2(0f, 1f);
             bandEdgeRt.anchorMax = new Vector2(1f, 1f);
             bandEdgeRt.pivot = new Vector2(0.5f, 1f);
             bandEdgeRt.sizeDelta = new Vector2(0f, 2f);
-            var line = AddText(band.transform, "Line", 36f, UIFontWeight.Regular, TextColor,
+            var line = AddText(band.transform, "Line", 46f, UIFontWeight.Regular, TextColor,
                 Vector2.zero, Vector2.zero, TextAlignmentOptions.MidlineLeft);
             StretchInside(line.rectTransform, 120f, 120f, 30f, 30f);
             line.raycastTarget = false;

@@ -335,8 +335,8 @@ web.test.003.c2	닫힘 버튼 안 먹는 건 그냥 고장 아님?	The close but
 field.subway.seat	빈자리	The empty seat	
 field.subway.window	창문	The window	
 field.subway.cctv	차내 CCTV	Onboard camera	
-field.subway.cctv_look.001	CCTV가 부자연스럽게 위를 바라보고 있다.	The camera is staring up at the ceiling. Unnaturally.	CCTV 를 처음 눌렀을 때. 차지한의 혼잣말
-field.subway.cctv_look.002	물리적 충돌로 CCTV가 올라가기에는 너무 높은 위치다.	It's mounted too high to have been knocked up there.	
+field.subway.cctv_look.001	CCTV가 부자연스럽게 돌아가있네요.	The camera's turned at an odd angle.	CCTV 를 처음 눌렀을 때. 차지한
+field.subway.cctv_look.002	그러게? 누군가 못 찍게 하려한거 처럼..	Right? Like someone didn't want it filming..	한영
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후
 field.subway.cctv_react.002	방금… 저거, 우리 쪽으로 돌아갔지?	Did that just… turn toward us?	
 field.subway.cctv_react.003	…누가 보고 있다는 거군.	…Someone's watching, then.	

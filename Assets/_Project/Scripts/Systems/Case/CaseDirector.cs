@@ -1805,8 +1805,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>열차 안 CCTV 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
         private const string CctvPointId = "point_subway_cctv";
 
-        /// <summary>CCTV 를 처음 눌렀을 때 나오는 말. 혼잣말 둘 → (CCTV 가 고개를 돌린다) → 둘의 반응.</summary>
+        /// <summary>CCTV 를 처음 눌렀을 때 나오는 말. 차지한과 한영이 한마디씩 → (CCTV 가 고개를 돌린다) → 둘의 반응.</summary>
         private static readonly string[] CctvLookTextIds = { "field.subway.cctv_look.001", "field.subway.cctv_look.002" };
+        private static readonly bool[] CctvLookIsHanyoung = { false, true };
         private static readonly string[] CctvReactTextIds = { "field.subway.cctv_react.001", "field.subway.cctv_react.002", "field.subway.cctv_react.003" };
         private static readonly bool[] CctvReactIsHanyoung = { false, true, false };
 
@@ -1823,7 +1824,7 @@ namespace UrbanLegendBureau.Systems
             _cctvTurned = true;
             FieldHudScreen.IsCutscene = true;
             Debug.Log("[CaseDirector] CCTV 가 고개를 돌린다");
-            CctvLines(CctvLookTextIds, null, 0, () =>
+            CctvLines(CctvLookTextIds, CctvLookIsHanyoung, 0, () =>
             {
                 _fieldHudScreen.ClearSpeech();
                 var root = _field != null ? _field.ActiveRoot : null;
