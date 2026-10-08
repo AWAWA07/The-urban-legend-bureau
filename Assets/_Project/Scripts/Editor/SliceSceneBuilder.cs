@@ -718,11 +718,28 @@ namespace UrbanLegendBureau.EditorTools
             BuildTrainWindow(root.transform, "Window_Left", -5.0f, 4.6f);
             BuildTrainWindow(root.transform, "Window_Right", 5.0f, 4.6f);
             // 오른쪽 창 왼쪽 위 귀퉁이의 동그란 웃는 얼굴 스티커. 조사하기 전에도 보인다. 가까이 보기 화면의 스티커와 같은 자리다.
-            var fieldSticker = AddFieldRect(root.transform, "WindowSticker", new Vector2(3.2f, 1.62f), new Vector2(0.3f, 0.3f), new Color(1f, 0.83f, 0.3f), -3);
-            fieldSticker.GetComponent<SpriteRenderer>().sprite = RoundSprite();
-            fieldSticker.GetComponent<SpriteRenderer>().drawMode = SpriteDrawMode.Simple;
-            var knob = RoundSprite().bounds.size;
-            fieldSticker.transform.localScale = new Vector3(0.3f / knob.x, 0.3f / knob.y, 1f);
+            var fieldSticker = new GameObject("WindowSticker");
+            fieldSticker.transform.SetParent(root.transform, false);
+            fieldSticker.transform.localPosition = new Vector2(3.11f, 1.54f);
+            fieldSticker.transform.localRotation = Quaternion.Euler(0f, 0f, 12f);
+            var stickerSr = fieldSticker.AddComponent<SpriteRenderer>();
+            stickerSr.sprite = LoadCrispSprite(CloseupArtPath + "sticker_smile.png");
+            stickerSr.sortingOrder = -3;
+            if (stickerSr.sprite != null)
+            {
+                var sb = stickerSr.sprite.bounds.size;
+                fieldSticker.transform.localScale = new Vector3(0.36f / sb.x, 0.36f / sb.y, 1f);
+            }
+
+            // 같은 창의 금과 흠집. 가까이 보기 화면과 같은 모양을 작게 그린다(창 유리 1360 이 현장에서 4.6).
+            FieldCrack(root.transform, "WindowCrack", new Vector2(6.12f, 1.2f), 7, 4.6f / 1360f);
+            foreach (var s in new[] { new[] { 0f, 20f, 200f, 4f }, new[] { 20f, 0f, 160f, 2f }, new[] { -10f, -22f, 120f, 6f }, new[] { 40f, -40f, 80f, 3f } })
+            {
+                const float K = 4.6f / 1360f;
+                var mark = AddFieldRect(root.transform, "WindowScratch", new Vector2(3.72f + s[0] * K, 0.33f + s[1] * K), new Vector2(s[2] * K, 0.012f),
+                    new Color(0.7f, 0.75f, 0.85f, 0.35f), -3);
+                mark.transform.localRotation = Quaternion.Euler(0f, 0f, s[3]);
+            }
 
             // 손잡이 봉과 거기 매달린 고리들. 봉은 천장에 세운 기둥 둘이 받친다.
             AddFieldRect(root.transform, "Handrail", new Vector2(0f, 3.0f), new Vector2(17.0f, 0.16f),
@@ -2453,6 +2470,29 @@ namespace UrbanLegendBureau.EditorTools
         private const string DialogueBackdropPath = "Assets/_Project/Art/Environments/office_night.png";
 
         /// <summary>배경 그림을 한 장짜리 스프라이트로 들여온다. 화면을 다 덮으니 크기를 줄이지 않는다.</summary>
+        /// <summary>가까이 보기 화면의 그림이 있는 곳.</summary>
+        private const string CloseupArtPath = "Assets/_Project/UI/Sprites/Closeup/";
+
+        /// <summary>
+        /// 압축하지 않고 들여오는 그림. 부드럽게 번지는 빛이나 작은 스티커처럼 압축하면 계단이 지거나 뭉개지는 그림에 쓴다.
+        /// </summary>
+        private static Sprite LoadCrispSprite(string path)
+        {
+            var importer = AssetImporter.GetAtPath(path) as TextureImporter;
+            if (importer == null) { Debug.LogWarning("[SliceSceneBuilder] 그림이 없다: " + path); return null; }
+            if (importer.textureType != TextureImporterType.Sprite || importer.spriteImportMode != SpriteImportMode.Single
+                || importer.mipmapEnabled || importer.textureCompression != TextureImporterCompression.Uncompressed)
+            {
+                importer.textureType = TextureImporterType.Sprite;
+                importer.spriteImportMode = SpriteImportMode.Single;
+                importer.mipmapEnabled = false;
+                importer.alphaIsTransparency = true;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
         private static Sprite LoadBackdropSprite(string path)
         {
             var importer = AssetImporter.GetAtPath(path) as TextureImporter;
@@ -2561,13 +2601,13 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(car.transform, "Frame", new Vector2(0f, 60f), new Vector2(1440f, 700f), new Color(0.30f, 0.31f, 0.37f));
 
             // 유리. 안쪽만 보이게 자른다. 창밖의 터널과 그것은 이 안에 그린다.
-            var glass = CloseupRect(car.transform, "Glass", new Vector2(0f, 60f), new Vector2(1360f, 620f), new Color(0.012f, 0.012f, 0.018f));
+            var glass = CloseupRect(car.transform, "Glass", new Vector2(0f, 60f), new Vector2(1360f, 620f), new Color(0.03f, 0.03f, 0.042f));
             glass.gameObject.AddComponent<RectMask2D>();
             var outside = glass.transform;
 
             // 터널 벽. 위아래로 어두운 띠, 가운데쯤 케이블 줄.
-            CloseupRect(outside, "TunnelUpper", new Vector2(0f, 230f), new Vector2(1360f, 160f), new Color(0.008f, 0.008f, 0.012f));
-            CloseupRect(outside, "TunnelLower", new Vector2(0f, -240f), new Vector2(1360f, 140f), new Color(0.006f, 0.006f, 0.01f));
+            CloseupRect(outside, "TunnelUpper", new Vector2(0f, 230f), new Vector2(1360f, 160f), new Color(0.02f, 0.02f, 0.028f));
+            CloseupRect(outside, "TunnelLower", new Vector2(0f, -240f), new Vector2(1360f, 140f), new Color(0.018f, 0.018f, 0.025f));
             CloseupRect(outside, "Cable", new Vector2(0f, 120f), new Vector2(1360f, 6f), new Color(0.06f, 0.06f, 0.075f));
             CloseupRect(outside, "Cable2", new Vector2(0f, 104f), new Vector2(1360f, 4f), new Color(0.045f, 0.045f, 0.06f));
 
@@ -2578,10 +2618,10 @@ namespace UrbanLegendBureau.EditorTools
             {
                 // 터널 벽 불빛. 어둡게 두고 둘레로 빛이 번진다. 번지는 빛은 불빛을 따라 함께 지나간다.
                 var lamp = CloseupRect(outside, "Lamp_" + i, new Vector2(-900f + i * 300f, 150f), new Vector2(130f, 8f),
-                    new Color(1f, 0.8f, 0.5f, 0.32f));
-                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.13f));
+                    new Color(1f, 0.8f, 0.5f, 0.38f));
+                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.16f));
                 var glowImage = glow.GetComponent<Image>();
-                glowImage.sprite = FieldSoftSprite();
+                glowImage.sprite = LoadCrispSprite(CloseupArtPath + "tunnel_glow.png");
                 glowImage.raycastTarget = false;
                 var glowRt = (RectTransform)glow.transform;
                 glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
@@ -2621,30 +2661,11 @@ namespace UrbanLegendBureau.EditorTools
             var scratchButton = CloseupHotspot(outside, "Hotspot_Scratch", new Vector2(-370f, -170f), new Vector2(280f, 130f));
 
             // 스티커. 왼쪽 유리 위쪽 귀퉁이에 붙은 동그란 웃는 얼굴. 현장에서도 같은 자리에 작게 보인다.
-            var sticker = CloseupRect(outside, "Sticker", new Vector2(-560f, 190f), new Vector2(110f, 110f), new Color(1f, 0.98f, 0.94f));
-            sticker.sprite = RoundSprite();
+            var sticker = CloseupRect(outside, "Sticker", new Vector2(-560f, 190f), new Vector2(130f, 130f), Color.white);
+            sticker.sprite = LoadCrispSprite(CloseupArtPath + "sticker_smile.png");
             sticker.type = Image.Type.Simple;
+            sticker.preserveAspect = true;
             sticker.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 12f);
-            var face = CloseupRect(sticker.transform, "Face", Vector2.zero, new Vector2(96f, 96f), new Color(1f, 0.83f, 0.3f));
-            face.sprite = RoundSprite();
-            face.type = Image.Type.Simple;
-            var eyeColor = new Color(0.32f, 0.22f, 0.12f);
-            foreach (var ex in new[] { -18f, 18f })
-            {
-                var eye = CloseupRect(face.transform, ex < 0 ? "EyeL" : "EyeR", new Vector2(ex, 12f), new Vector2(12f, 16f), eyeColor);
-                eye.sprite = RoundSprite();
-                eye.type = Image.Type.Simple;
-            }
-            // 입. 아래로 휜 웃음을 짧은 막대 셋으로 잇는다.
-            CloseupRect(face.transform, "MouthL", new Vector2(-14f, -16f), new Vector2(16f, 5f), eyeColor).rectTransform.localRotation = Quaternion.Euler(0f, 0f, -30f);
-            CloseupRect(face.transform, "MouthM", new Vector2(0f, -21f), new Vector2(16f, 5f), eyeColor);
-            CloseupRect(face.transform, "MouthR", new Vector2(14f, -16f), new Vector2(16f, 5f), eyeColor).rectTransform.localRotation = Quaternion.Euler(0f, 0f, 30f);
-            foreach (var cx in new[] { -30f, 30f })
-            {
-                var cheek = CloseupRect(face.transform, cx < 0 ? "CheekL" : "CheekR", new Vector2(cx, -6f), new Vector2(16f, 10f), new Color(1f, 0.55f, 0.45f, 0.6f));
-                cheek.sprite = RoundSprite();
-                cheek.type = Image.Type.Simple;
-            }
             var stickerButton = CloseupHotspot(outside, "Hotspot_Sticker", new Vector2(-560f, 190f), new Vector2(150f, 150f));
 
             // 창 가운데 세로 창살.
@@ -2748,30 +2769,18 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>
-        /// 유리의 금. 부딪힌 점에서 금이 몇 갈래로 뻗는데, 곧게 가지 않고 조금씩 꺾이며 끝으로 갈수록 가늘고 옅어진다.
+        /// 유리의 금 모양. 부딪힌 점에서 금이 몇 갈래로 뻗는데, 곧게 가지 않고 조금씩 꺾이며 끝으로 갈수록 가늘고 옅어진다.
         /// 몇 갈래에서는 잔가지가 갈라지고, 이웃한 갈래 사이를 짧은 금이 이어 거미줄처럼 보인다.
-        /// 같은 seed 면 늘 같은 모양이다.
+        /// 같은 seed 면 늘 같은 모양이다. 화면 단위(가까이 보기 화면 기준)로 선분 {시작x, 시작y, 끝x, 끝y, 굵기, 투명도} 를 돌려준다.
         /// </summary>
-        private static void CloseupCrack(Transform parent, string name, Vector2 center, int seed)
+        private static List<float[]> CrackSegments(int seed)
         {
-            var group = new GameObject(name, typeof(RectTransform));
-            group.transform.SetParent(parent, false);
-            var rt = (RectTransform)group.transform;
-            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.sizeDelta = Vector2.zero;
-            rt.anchoredPosition = center;
-
+            var list = new List<float[]>();
             var rnd = new System.Random(seed);
             System.Func<float, float, float> range = (a, b) => a + (float)rnd.NextDouble() * (b - a);
-            int n = 0;
             void Segment(Vector2 from, Vector2 to, float thickness, float alpha)
             {
-                var d = to - from;
-                var seg = CloseupRect(group.transform, "Seg_" + (n++), (from + to) * 0.5f, new Vector2(d.magnitude + 1f, thickness),
-                    new Color(0.82f, 0.88f, 0.98f, alpha));
-                seg.sprite = null;   // 둥근 모서리 없이 곧은 선
-                seg.type = Image.Type.Simple;
-                seg.rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+                list.Add(new[] { from.x, from.y, to.x, to.y, thickness, alpha });
             }
 
             const int Arms = 8;
@@ -2811,11 +2820,53 @@ namespace UrbanLegendBureau.EditorTools
                 Segment(rings[a][1], rings[b][1], 1.4f, 0.4f);
                 if (rnd.NextDouble() < 0.5) Segment(rings[a][2], rings[b][2], 1f, 0.25f);
             }
+            return list;
+        }
 
-            // 부딪힌 점. 잘게 부서져 하얗게 보인다.
+        /// <summary>가까이 보기 화면의 금. 부딪힌 점은 잘게 부서져 하얗게 보인다.</summary>
+        private static void CloseupCrack(Transform parent, string name, Vector2 center, int seed)
+        {
+            var group = new GameObject(name, typeof(RectTransform));
+            group.transform.SetParent(parent, false);
+            var rt = (RectTransform)group.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.sizeDelta = Vector2.zero;
+            rt.anchoredPosition = center;
+
+            int n = 0;
+            foreach (var s in CrackSegments(seed))
+            {
+                var from = new Vector2(s[0], s[1]);
+                var to = new Vector2(s[2], s[3]);
+                var d = to - from;
+                var seg = CloseupRect(group.transform, "Seg_" + (n++), (from + to) * 0.5f, new Vector2(d.magnitude + 1f, s[4]),
+                    new Color(0.82f, 0.88f, 0.98f, s[5]));
+                seg.sprite = null;   // 둥근 모서리 없이 곧은 선
+                seg.type = Image.Type.Simple;
+                seg.rectTransform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+            }
+
             var core = CloseupRect(group.transform, "Core", Vector2.zero, new Vector2(14f, 14f), new Color(0.9f, 0.95f, 1f, 0.55f));
             core.sprite = RoundSprite();
             core.type = Image.Type.Simple;
+        }
+
+        /// <summary>현장 창에 그리는 같은 금. scale 은 화면 단위 하나가 현장에서 차지하는 길이다. 너무 가늘면 안 보여 굵기는 따로 둔다.</summary>
+        private static void FieldCrack(Transform parent, string name, Vector2 center, int seed, float scale)
+        {
+            var group = new GameObject(name);
+            group.transform.SetParent(parent, false);
+            group.transform.localPosition = center;
+            int n = 0;
+            foreach (var s in CrackSegments(seed))
+            {
+                var from = new Vector2(s[0], s[1]) * scale;
+                var to = new Vector2(s[2], s[3]) * scale;
+                var d = to - from;
+                var seg = AddFieldRect(group.transform, "Seg_" + (n++), (from + to) * 0.5f,
+                    new Vector2(d.magnitude + 0.005f, Mathf.Max(0.012f, s[4] * scale * 2.2f)), new Color(0.82f, 0.88f, 0.98f, s[5]), -3);
+                seg.transform.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg);
+            }
         }
 
         /// <summary>
