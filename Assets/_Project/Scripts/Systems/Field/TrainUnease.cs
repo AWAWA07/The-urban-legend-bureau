@@ -30,6 +30,16 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("한 번 오가는 데 걸리는 시간(초).")]
         [SerializeField] private float _swingPeriod = 2.3f;
 
+        [Header("창의 손바닥 자국")]
+        [Tooltip("창 가까이 보기에서 손바닥 자국을 살피고 나면 현장의 창에도 보인다. 그 전에는 꺼 둔다.")]
+        [SerializeField] private GameObject _handprint;
+
+        /// <summary>현장의 창에 손바닥 자국을 남기거나 지운다.</summary>
+        public void ShowHandprint(bool on)
+        {
+            if (_handprint != null) _handprint.SetActive(on);
+        }
+
         [Header("4. 맨 오른쪽 창 너머")]
         [SerializeField] private SpriteRenderer _figure;
         [Tooltip("다 드러났을 때의 진하기. 유리에 비친 것처럼 옅다.")]
@@ -155,6 +165,7 @@ namespace UrbanLegendBureau.Systems
             SetDark(_dimAlpha);
             if (_phone != null) _phone.enabled = false;
             SetOutsideAboveDark(false);
+            ShowHandprint(false);
         }
 
         /// <summary>열차 안의 한 곳을 살폈다. 처음 살핀 곳이면 객실이 한 단계 더 이상해진다.</summary>

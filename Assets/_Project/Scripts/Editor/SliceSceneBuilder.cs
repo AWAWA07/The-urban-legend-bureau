@@ -736,6 +736,25 @@ namespace UrbanLegendBureau.EditorTools
 
             // 같은 창의 금과 흠집. 가까이 보기 화면과 같은 모양을 작게 그린다(창 유리 1360 이 현장에서 4.6).
             FieldCrack(root.transform, "WindowCrack", new Vector2(6.12f, 1.2f), 7, 4.6f / 1360f);
+
+            // 같은 창의 손바닥 자국. 창 가까이 보기에서 그것이 사라진 뒤 생긴 자국을 살피고 나면 현장에서도 보인다(TrainUnease).
+            {
+                const float K = 4.6f / 1360f;
+                var handprint = new GameObject("WindowHandprint");
+                handprint.transform.SetParent(root.transform, false);
+                handprint.transform.localPosition = new Vector2(5f + 560f * K, 0.9f - 80f * K);
+                handprint.transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
+                var handSr = handprint.AddComponent<SpriteRenderer>();
+                handSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+                handSr.color = new Color(1f, 1f, 1f, 0.85f);
+                handSr.sortingOrder = -3;
+                if (handSr.sprite != null)
+                {
+                    float hh = handSr.sprite.bounds.size.y;
+                    handprint.transform.localScale = Vector3.one * (240f * K / hh);
+                }
+                handprint.SetActive(false);
+            }
             foreach (var s in new[] { new[] { 0f, 20f, 200f, 4f }, new[] { 20f, 0f, 160f, 2f }, new[] { -10f, -22f, 120f, 6f }, new[] { 40f, -40f, 80f, 3f } })
             {
                 const float K = 4.6f / 1360f;
@@ -910,6 +929,7 @@ namespace UrbanLegendBureau.EditorTools
             uso.FindProperty("_strap").objectReferenceValue = root.transform.Find("Strap_6");
             uso.FindProperty("_ring").objectReferenceValue = root.transform.Find("StrapRing_6");
             uso.FindProperty("_figure").objectReferenceValue = figureSr;
+            uso.FindProperty("_handprint").objectReferenceValue = root.transform.Find("WindowHandprint").gameObject;
             // 객실을 덮는 어둠. 평소에는 아주 옅고, 정전이 되면 거의 새까맣다. 말풍선과 이름표(30)는 이보다 앞이다.
             var darkCover = AddFieldRect(root.transform, "Dark", Vector2.zero, new Vector2(60f, 24f), new Color(0f, 0f, 0f, 0.12f), 20);
             uso.FindProperty("_dark").objectReferenceValue = darkCover.GetComponent<SpriteRenderer>();
@@ -1855,15 +1875,16 @@ namespace UrbanLegendBureau.EditorTools
             const float PlateHeight = FontSize * 0.2f;    // = 0.84
 
             var plate = AddFieldRect(go.transform, "Plate", Vector2.zero, new Vector2(PlateWidth, PlateHeight),
-                new Color(0.06f, 0.06f, 0.09f, 0.92f), Order);
+                new Color(0.035f, 0.035f, 0.05f, 0.97f), Order);
 
             // 말풍선 아래쪽의 뾰족한 끝. 어느 것을 가리키는지 알게 한다.
-            var tail = AddFieldRect(go.transform, "Tail", new Vector2(0f, -PlateHeight * 0.55f),
-                new Vector2(0.26f, 0.26f), new Color(0.06f, 0.06f, 0.09f, 0.92f), Order);
+            var tail = AddFieldRect(go.transform, "Tail", new Vector2(0f, -PlateHeight * 0.5f),
+                new Vector2(0.2f, 0.2f), new Color(0.035f, 0.035f, 0.05f, 0.97f), Order);
+            tail.transform.localRotation = Quaternion.Euler(0f, 0f, 45f);   // 마름모의 아래 절반만 바탕 밑으로 삐져나와 뾰족한 끝이 된다
 
             var edge = AddFieldRect(plate.transform, "Edge", new Vector2(0f, 0f),
-                new Vector2(PlateWidth + 0.1f, PlateHeight + 0.1f),
-                new Color(0.86f, 0.74f, 0.48f, 0.9f), Order - 1);
+                new Vector2(PlateWidth + 0.05f, PlateHeight + 0.05f),
+                new Color(0.30f, 0.30f, 0.36f, 1f), Order - 1);   // 가는 테두리. 띠 위쪽 줄과 같은 색
 
             var textGo = new GameObject("Label");
             textGo.transform.SetParent(go.transform, false);
@@ -2760,6 +2781,16 @@ namespace UrbanLegendBureau.EditorTools
             var stickerButton = CloseupHotspot(outside, "Hotspot_Sticker", new Vector2(-560f, 190f), new Vector2(150f, 150f));
             AttachGlow(stickerButton, sticker.gameObject);
 
+            // 손바닥 자국. 그것이 사라진 뒤에야 유리 바깥쪽에 찍혀 있다. 그것이 고개를 내밀던 자리 곁이다.
+            // 처음에는 숨어 있다가 스르르 나타나고(CloseupScreen.RevealSpot), 살피면 현장의 창에도 남는다.
+            var hand = CloseupRect(outside, "Handprint", new Vector2(560f, -80f), new Vector2(190f, 240f), new Color(1f, 1f, 1f, 0.85f));
+            hand.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+            hand.type = Image.Type.Simple;
+            hand.preserveAspect = true;
+            hand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -8f);
+            var handButton = CloseupHotspot(outside, "Hotspot_Hand", new Vector2(560f, -80f), new Vector2(210f, 260f));
+            AttachGlow(handButton, hand.gameObject);
+
             // 창 가운데 세로 창살.
             CloseupRect(car.transform, "Mullion", new Vector2(0f, 60f), new Vector2(24f, 620f), new Color(0.30f, 0.31f, 0.37f));
 
@@ -2780,8 +2811,9 @@ namespace UrbanLegendBureau.EditorTools
             tso.ApplyModifiedPropertiesWithoutUndo();
 
             FinishCloseup(go, screen, "field.subway.window_close.hint",
-                new[] { crackButton, scratchButton, stickerButton },
-                new[] { "field.subway.window_close.crack", "field.subway.window_close.scratch", "field.subway.window_close.sticker" });
+                new[] { crackButton, scratchButton, stickerButton, handButton },
+                new[] { "field.subway.window_close.crack", "field.subway.window_close.scratch", "field.subway.window_close.sticker", "field.subway.window_close.hand" },
+                hiddenAtStart: new[] { false, false, false, true }, revealObjects: new[] { null, null, null, hand.gameObject });
 
             // 정전 뒤에도 그것은 어둠 속에서 아주 희미하게 비친다. 어둠보다 앞에 같은 모양을 하나 더 두고 옅게 따라 그린다.
             // 유리 밖으로 삐져나오지 않게 유리와 같은 자리, 같은 크기로 자른다. 라이트를 비추면 어둠 아래의 본래 그림이 잘 보인다.
@@ -2808,7 +2840,7 @@ namespace UrbanLegendBureau.EditorTools
         /// 글자 크기와 규칙은 현장 대사 띠와 같다.
         /// </summary>
         private static void FinishCloseup(GameObject go, CloseupScreen screen, string hintId, Button[] spotButtons, string[] spotTextIds,
-            GameObject[] hides = null, GameObject[] shows = null)
+            GameObject[] hides = null, GameObject[] shows = null, bool[] hiddenAtStart = null, GameObject[] revealObjects = null)
         {
             // 정전 뒤의 어둠. 마우스를 따라가는 휴대폰 라이트 자리만 조금 보인다. 대사 띠와 돌아가기 단추보다 뒤에 깐다. 평소에는 꺼 둔다.
             var dark = new GameObject("Dark", typeof(RectTransform), typeof(RawImage));
@@ -2881,6 +2913,13 @@ namespace UrbanLegendBureau.EditorTools
                 spot.FindPropertyRelative("textId").stringValue = spotTextIds[i];
                 spot.FindPropertyRelative("hideOnCheck").objectReferenceValue = hides != null ? hides[i] : null;
                 spot.FindPropertyRelative("showOnCheck").objectReferenceValue = shows != null ? shows[i] : null;
+                spot.FindPropertyRelative("hiddenAtStart").boolValue = hiddenAtStart != null && hiddenAtStart[i];
+                spot.FindPropertyRelative("revealObject").objectReferenceValue = revealObjects != null ? revealObjects[i] : null;
+                if (hiddenAtStart != null && hiddenAtStart[i])
+                {
+                    spotButtons[i].gameObject.SetActive(false);
+                    if (revealObjects != null && revealObjects[i] != null) revealObjects[i].SetActive(false);
+                }
             }
             so.FindProperty("_closeButton").objectReferenceValue = close.GetComponent<Button>();
             so.FindProperty("_lineText").objectReferenceValue = line;

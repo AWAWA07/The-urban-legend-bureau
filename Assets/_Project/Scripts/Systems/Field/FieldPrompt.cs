@@ -25,16 +25,19 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("말풍선 아래의 뾰족한 끝. 바탕과 같은 색으로 둔다.")]
         [SerializeField] private SpriteRenderer _tail;
 
-        [SerializeField] private Color _plateColor = new Color(0.06f, 0.06f, 0.09f, 0.92f);
-        [SerializeField] private Color _edgeColor = new Color(0.86f, 0.74f, 0.48f, 0.9f);
+        [SerializeField] private Color _plateColor = new Color(0.035f, 0.035f, 0.05f, 0.97f);   // 대사 띠, 가까이 보기 띠와 같은 어두운 바탕
+        [SerializeField] private Color _edgeColor = new Color(0.30f, 0.30f, 0.36f, 1f);   // 띠 위쪽 가는 줄과 같은 차분한 회색
         [SerializeField] private Color _textColor = new Color(0.93f, 0.93f, 0.96f);
+
+        [Tooltip("누를 키([E]) 글자 색. 가까이 보기의 이름표(조사)와 같은 금빛이다.")]
+        [SerializeField] private Color _keyColor = new Color(0.86f, 0.74f, 0.48f);
 
         [Header("이미 조사한 곳")]
         [Tooltip("다 본 것은 연둣빛으로 둔다. 글을 읽기 전에 색으로 먼저 안다.")]
-        [SerializeField] private Color _donePlateColor = new Color(0.05f, 0.09f, 0.06f, 0.92f);
+        [SerializeField] private Color _donePlateColor = new Color(0.035f, 0.045f, 0.04f, 0.97f);
 
-        [SerializeField] private Color _doneEdgeColor = new Color(0.58f, 0.82f, 0.45f, 0.9f);
-        [SerializeField] private Color _doneTextColor = new Color(0.80f, 0.92f, 0.74f);
+        [SerializeField] private Color _doneEdgeColor = new Color(0.36f, 0.48f, 0.34f, 1f);
+        [SerializeField] private Color _doneTextColor = new Color(0.66f, 0.76f, 0.64f);
 
         [Tooltip("지점 맨 위에서 이만큼 띄워 뜬다.")]
         [SerializeField] private float _lift = 0.55f;
@@ -65,7 +68,9 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            if (_label != null) _label.text = text;
+            // 누를 키만 금빛으로 짚는다. 나머지 글은 차분한 색이다.
+            if (_label != null) _label.text = string.IsNullOrEmpty(text) ? text
+                : text.Replace("[E]", "<color=#" + ColorUtility.ToHtmlStringRGB(_keyColor) + ">[E]</color>");
 
             ApplyColors(point.IsInvestigated);
 

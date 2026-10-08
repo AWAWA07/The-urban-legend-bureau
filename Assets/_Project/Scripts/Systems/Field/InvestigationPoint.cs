@@ -171,6 +171,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _outlineWidth = 0.05f;
 
         private readonly List<SpriteRenderer> _outlines = new List<SpriteRenderer>();
+        private readonly List<SpriteRenderer> _outlineSources = new List<SpriteRenderer>();   // _outlines 와 같은 순서. 네모 테두리는 null
         private bool _outlinesBuilt;
         private bool _hovered;
 
@@ -183,8 +184,14 @@ namespace UrbanLegendBureau.Systems
             if (_hovered == on) return;
             _hovered = on;
             if (on) BuildOutlines();
-            foreach (var o in _outlines)
-                if (o != null) o.enabled = on;
+            // 꺼져 있는 그림(아직 생기지 않은 자국 같은 것)에는 외곽선도 두르지 않는다.
+            for (int i = 0; i < _outlines.Count; i++)
+            {
+                var o = _outlines[i];
+                if (o == null) continue;
+                var src = _outlineSources[i];
+                o.enabled = on && (src == null || (src.enabled && src.gameObject.activeInHierarchy));
+            }
         }
 
         /// <summary>네모 칸 둘레의 테두리 네 줄. 칸이 차지한 자리를 월드에서 재어 그린다.</summary>
@@ -216,6 +223,7 @@ namespace UrbanLegendBureau.Systems
                 sr.color = _outlineColor;
                 sr.enabled = false;
                 _outlines.Add(sr);
+                _outlineSources.Add(null);
             }
         }
 
@@ -283,6 +291,7 @@ namespace UrbanLegendBureau.Systems
                 }
                 sr.enabled = false;
                 _outlines.Add(sr);
+                _outlineSources.Add(t);
             }
         }
 

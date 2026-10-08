@@ -1980,6 +1980,9 @@ namespace UrbanLegendBureau.Systems
         private static readonly string[] WindowGhostTextIds = { "field.subway.window_ghost.001", "field.subway.window_ghost.002", "field.subway.window_ghost.003" };
         private static readonly bool[] WindowGhostIsHanyoung = { false, true, false };
 
+        /// <summary>창 가까이 보기의 손바닥 자국 자리(살필 곳 순서). 그것이 사라진 뒤에야 드러난다.</summary>
+        private const int WindowHandSpotIndex = 3;
+
         /// <summary>
         /// 창문을 화면 가득 크게 띄운다. 달리는 열차 밖 터널이 지나간다.
         /// 금 간 자국, 흠집, 스티커 가운데 두 군데를 살피면 창밖에서 그것이 슬며시 나왔다가 사라지고, 두 사람이 반응한다.
@@ -1991,6 +1994,14 @@ namespace UrbanLegendBureau.Systems
             {
                 if (_ui.Contains(screen)) _ui.Close(screen);
             };
+            screen.SpotIndexChecked = index =>
+            {
+                // 손바닥 자국을 살피고 나면 현장의 창에도 그 자국이 남는다.
+                if (index != WindowHandSpotIndex) return;
+                var root = _field != null ? _field.ActiveRoot : null;
+                var unease = root != null ? root.GetComponentInChildren<TrainUnease>(true) : null;
+                if (unease != null) unease.ShowHandprint(true);
+            };
             screen.SpotChecked = count =>
             {
                 if (count < 2 || _windowGhostShown || _windowGhost == null) return;
@@ -2001,7 +2012,8 @@ namespace UrbanLegendBureau.Systems
                 {
                     var speakers = new string[WindowGhostTextIds.Length];
                     for (int i = 0; i < speakers.Length; i++) speakers[i] = WindowGhostIsHanyoung[i] ? HanyoungNameTextId : FieldSpeakerTextId;
-                    screen.Talk(speakers, WindowGhostTextIds, null);
+                    // 말이 끝나면 그것이 있던 자리 곁에 손바닥 자국이 스르르 드러난다. 새로 살필 곳이다.
+                    screen.Talk(speakers, WindowGhostTextIds, () => screen.RevealSpot(WindowHandSpotIndex));
                 });
             };
             screen.SetDark(IsTrainDark());

@@ -31,6 +31,12 @@ namespace UrbanLegendBureau.UI
 
             [Tooltip("눌렀을 때 드러나는 것. 덮개를 열면 보이는 안쪽.")]
             public GameObject showOnCheck;
+
+            [Tooltip("켜면 처음에는 숨어 있다가 RevealSpot 으로 드러난다. 무언가 일어난 뒤에야 생기는 자국 같은 것이다.")]
+            public bool hiddenAtStart;
+
+            [Tooltip("드러날 때 함께 스르르 나타나는 그림.")]
+            public GameObject revealObject;
         }
 
         [SerializeField] private Spot[] _spots = new Spot[0];
@@ -62,6 +68,9 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>새 곳을 살폈다. 지금까지 살핀 곳의 수를 넘긴다(같은 곳을 다시 누르면 세지 않는다).</summary>
         public Action<int> SpotChecked;
+
+        /// <summary>새 곳을 살폈다. 살핀 곳의 번호(_spots 순서)를 넘긴다.</summary>
+        public Action<int> SpotIndexChecked;
 
         private readonly HashSet<int> _checked = new HashSet<int>();
         private string[] _talkSpeakers;
@@ -102,6 +111,26 @@ namespace UrbanLegendBureau.UI
                 if (s == null) continue;
                 if (s.hideOnCheck != null) s.hideOnCheck.SetActive(true);
                 if (s.showOnCheck != null) s.showOnCheck.SetActive(false);
+                if (s.hiddenAtStart)
+                {
+                    if (s.button != null) s.button.gameObject.SetActive(false);
+                    if (s.revealObject != null) s.revealObject.SetActive(false);
+                }
+            }
+        }
+
+        /// <summary>숨어 있던 살필 곳을 드러낸다. 그림은 스르르 나타난다. 드러난 뒤로는 사건이 새로 시작될 때까지 그대로 있다.</summary>
+        public void RevealSpot(int index)
+        {
+            if (index < 0 || index >= _spots.Length || _spots[index] == null) return;
+            var s = _spots[index];
+            if (s.button != null) s.button.gameObject.SetActive(true);
+            if (s.revealObject == null) return;
+            s.revealObject.SetActive(true);
+            foreach (var g in s.revealObject.GetComponentsInChildren<Graphic>())
+            {
+                g.canvasRenderer.SetAlpha(0f);
+                g.CrossFadeAlpha(1f, 1.6f, true);
             }
         }
 
@@ -157,7 +186,11 @@ namespace UrbanLegendBureau.UI
             if (spot.hideOnCheck != null) spot.hideOnCheck.SetActive(false);
             if (spot.showOnCheck != null) spot.showOnCheck.SetActive(true);
             ShowLine(_spots[index].textId);
-            if (_checked.Add(index)) SpotChecked?.Invoke(_checked.Count);
+            if (_checked.Add(index))
+            {
+                SpotIndexChecked?.Invoke(index);
+                SpotChecked?.Invoke(_checked.Count);
+            }
         }
 
         private void ShowLine(string id)

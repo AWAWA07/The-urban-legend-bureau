@@ -347,6 +347,7 @@ field.subway.window_close.hint	어디를 살펴볼까.	Where to look?	창문 가
 field.subway.window_close.crack	유리에 금이 가 있다. 바깥쪽에서 무언가 세게 부딪힌 것처럼.	The glass is cracked. As if something hit it hard from outside.	창문의 금 간 자국
 field.subway.window_close.scratch	가늘게 긁힌 자국이 여러 줄 나 있다. 손톱으로 긁은 것 같은….	Thin scratches, several of them. Almost like fingernails….	창문의 흠집
 field.subway.window_close.sticker	동그란 웃는 얼굴 스티커. 누가 붙였는지 모르겠다. 한쪽 귀퉁이가 살짝 들떠 있다.	A round smiley sticker. No telling who stuck it there. One edge is peeling a little.	창문의 스티커
+field.subway.window_close.hand	유리 바깥쪽에 손바닥 자국이 찍혀 있다. …방금 전까지는 없었는데.	A handprint on the outside of the glass. ...It wasn't there a moment ago.	창문의 손바닥 자국(그것이 사라진 뒤 생긴다)
 field.subway.window_ghost.001	……방금, 창밖에.	……Just now. Outside the window.	창밖의 그것이 사라진 직후. 차지한
 field.subway.window_ghost.002	너도 봤지? 웃고 있었어.	You saw it too? It was smiling.	한영
 field.subway.window_ghost.003	달리는 열차 밖에서요.	Outside a moving train.	차지한
