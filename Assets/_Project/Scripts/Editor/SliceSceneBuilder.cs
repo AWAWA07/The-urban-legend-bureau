@@ -746,12 +746,12 @@ namespace UrbanLegendBureau.EditorTools
                 handprint.transform.localRotation = Quaternion.Euler(0f, 0f, -8f);
                 var handSr = handprint.AddComponent<SpriteRenderer>();
                 handSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
-                handSr.color = new Color(1f, 1f, 1f, 0.85f);
+                handSr.color = new Color(1f, 1f, 1f, 0.5f);
                 handSr.sortingOrder = -3;
                 if (handSr.sprite != null)
                 {
                     float hh = handSr.sprite.bounds.size.y;
-                    handprint.transform.localScale = Vector3.one * (240f * K / hh);
+                    handprint.transform.localScale = Vector3.one * (170f * K / hh);
                 }
                 handprint.SetActive(false);
             }
@@ -2783,12 +2783,12 @@ namespace UrbanLegendBureau.EditorTools
 
             // 손바닥 자국. 그것이 사라진 뒤에야 유리 바깥쪽에 찍혀 있다. 그것이 고개를 내밀던 자리 곁이다.
             // 처음에는 숨어 있다가 스르르 나타나고(CloseupScreen.RevealSpot), 살피면 현장의 창에도 남는다.
-            var hand = CloseupRect(outside, "Handprint", new Vector2(560f, -80f), new Vector2(232f, 240f), new Color(1f, 1f, 1f, 0.85f));
+            var hand = CloseupRect(outside, "Handprint", new Vector2(560f, -80f), new Vector2(165f, 170f), new Color(1f, 1f, 1f, 0.5f));
             hand.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
             hand.type = Image.Type.Simple;
             hand.preserveAspect = true;
             hand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -8f);
-            var handButton = CloseupHotspot(outside, "Hotspot_Hand", new Vector2(560f, -80f), new Vector2(250f, 260f));
+            var handButton = CloseupHotspot(outside, "Hotspot_Hand", new Vector2(560f, -80f), new Vector2(190f, 200f));
             AttachGlow(handButton, hand.gameObject);
 
             // 창 가운데 세로 창살.
