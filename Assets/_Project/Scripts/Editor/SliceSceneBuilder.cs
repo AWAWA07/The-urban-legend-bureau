@@ -892,7 +892,7 @@ namespace UrbanLegendBureau.EditorTools
             var figureSr = figure.AddComponent<SpriteRenderer>();
             figureSr.sprite = LoadCrispSprite(CloseupArtPath + "ghost_window.png");
             figureSr.color = new Color(0.62f, 0.66f, 0.76f, 1f);
-            figureSr.sortingOrder = 21;   // 정전으로 깜깜해져도(어둠 20) 유리 속 그것만은 보인다
+            figureSr.sortingOrder = 23;   // 정전으로 깜깜해져도(어둠 20) 유리 속 그것만은 보인다
             figureSr.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
             figureSr.enabled = false;
             if (figureSr.sprite != null)
@@ -916,6 +916,12 @@ namespace UrbanLegendBureau.EditorTools
             var lamps = new List<SpriteRenderer>();
             foreach (Transform child in root.transform)
                 if (child.name.StartsWith("CeilingLamp")) lamps.Add(child.GetComponent<SpriteRenderer>());
+            var outside = new List<SpriteRenderer>();
+            foreach (Transform child in root.transform)
+                if (child.name.StartsWith("PassLamp_") || child.name.StartsWith("PassStreak_")) outside.AddRange(child.GetComponentsInChildren<SpriteRenderer>());
+            var outsideProp = uso.FindProperty("_outsideLights");
+            outsideProp.arraySize = outside.Count;
+            for (int i = 0; i < outside.Count; i++) outsideProp.GetArrayElementAtIndex(i).objectReferenceValue = outside[i];
             var lampProp = uso.FindProperty("_allLamps");
             lampProp.arraySize = lamps.Count;
             for (int i = 0; i < lamps.Count; i++) lampProp.GetArrayElementAtIndex(i).objectReferenceValue = lamps[i];

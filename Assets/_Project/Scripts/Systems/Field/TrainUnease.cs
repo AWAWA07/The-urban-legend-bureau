@@ -52,6 +52,8 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _blackAlpha = 0.995f;   // 색을 선형으로 섞어서 0.97 만 돼도 꽤 비쳐 보인다
         [Tooltip("정전 때 함께 깜빡이다 꺼지는 형광등과 그 빛.")]
         [SerializeField] private SpriteRenderer[] _allLamps = new SpriteRenderer[0];
+        [Tooltip("창밖 터널을 지나가는 불빛. 정전이 되어도 창 너머로 이것만은 흘러간다(어둠보다 앞으로 올린다).")]
+        [SerializeField] private SpriteRenderer[] _outsideLights = new SpriteRenderer[0];
 
         [Header("휴대폰 라이트")]
         [Tooltip("차지한 둘레로 밝아지는 폭(월드 단위). 가로, 세로 반지름이다.")]
@@ -59,7 +61,7 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("빛 한가운데의 어둠. 0 이면 환하고 1 이면 깜깜하다. 조금만 밝힌다.")]
         [SerializeField] private float _lightInnerAlpha = 0.72f;
         [Tooltip("빛 가운데가 차지한의 발에서 얼마나 떨어져 있는가.")]
-        [SerializeField] private Vector2 _lightOffset = new Vector2(0f, 1.6f);
+        [SerializeField] private Vector2 _lightOffset = new Vector2(0f, 2.2f);
 
         /// <summary>
         /// 살핀 곳이 셋이 된 뒤, 플레이어가 현장으로 돌아와 아무것도 하지 않을 때 한 번 부른다.
@@ -73,6 +75,7 @@ namespace UrbanLegendBureau.Systems
         private float _idleSince = -1f;
         private Color[] _allLampColors;
         private SpriteRenderer _phone;
+        private int[] _outsideOrders;
 
         private readonly HashSet<string> _looked = new HashSet<string>();
 
@@ -118,6 +121,8 @@ namespace UrbanLegendBureau.Systems
                 _strapHalf = sr == null ? 0.5f
                     : (sr.drawMode != SpriteDrawMode.Simple ? sr.size.y * 0.5f : sr.sprite != null ? sr.sprite.bounds.extents.y : 0.5f) * _strap.localScale.y; }
             if (_ring != null) _ringBase = _ring.localPosition;
+            _outsideOrders = new int[_outsideLights.Length];
+            for (int i = 0; i < _outsideLights.Length; i++) if (_outsideLights[i] != null) _outsideOrders[i] = _outsideLights[i].sortingOrder;
             _allLampColors = new Color[_allLamps.Length];
             for (int i = 0; i < _allLamps.Length; i++) if (_allLamps[i] != null) _allLampColors[i] = _allLamps[i].color;
         }
@@ -150,6 +155,7 @@ namespace UrbanLegendBureau.Systems
             SetLamps(1f);
             SetDark(_dimAlpha);
             if (_phone != null) _phone.enabled = false;
+            SetOutsideAboveDark(false);
         }
 
         /// <summary>열차 안의 한 곳을 살폈다. 처음 살핀 곳이면 객실이 한 단계 더 이상해진다.</summary>
@@ -243,6 +249,7 @@ namespace UrbanLegendBureau.Systems
         private System.Collections.IEnumerator RunBlackout(System.Action onDark)
         {
             _darkState = DarkState.Flicker;
+            SetOutsideAboveDark(true);
             const float Seconds = 1.9f;
             float end = Time.time + Seconds;
             bool off = false;
@@ -293,6 +300,17 @@ namespace UrbanLegendBureau.Systems
             var c = _dark.color;
             c.a = alpha;
             _dark.color = c;
+        }
+
+        /// <summary>창밖 터널 불빛을 어둠보다 앞으로 올리거나 제자리로 돌린다. 불빛은 유리 마스크 안에서만 보이므로 창 너머로만 흐른다.</summary>
+        private void SetOutsideAboveDark(bool above)
+        {
+            if (_outsideOrders == null) return;
+            int front = (_dark != null ? _dark.sortingOrder : 20) + 1;
+            for (int i = 0; i < _outsideLights.Length; i++)
+                if (_outsideLights[i] != null)
+                    // 번지는 빛을 먼저, 불빛 줄기를 그 위에 그린다. 같은 순서끼리는 앞뒤가 들쭉날쭉해진다.
+                    _outsideLights[i].sortingOrder = above ? front + (_outsideLights[i].name == "Glow" ? 0 : 1) : _outsideOrders[i];
         }
 
         private void SetLamps(float on)
