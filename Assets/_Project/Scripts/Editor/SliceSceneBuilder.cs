@@ -2374,8 +2374,10 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
 
-            // 넘기기(스킵) 단추. 넘기기 판의 오른쪽 위 모서리에 붙는다. 전신 대화는 화면 오른쪽 위, 상자형은 상자 오른쪽 위다.
-            AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-40f, -100f) : new Vector2(-24f, -18f));
+            // 넘기기(스킵) 단추. 대사 상자 안에는 두지 않는다.
+            // 전신 대화는 화면 오른쪽 위, 상자형(넘기기 판이 상자 크기)은 상자 바깥 바로 위 오른쪽에 붙는다.
+            var skipRt = AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-40f, -100f) : new Vector2(-40f, 14f));
+            if (!fullScreen) skipRt.pivot = new Vector2(1f, 0f);
 
             // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
             // 배경만 투명할 뿐 대화 자체는 같은 모습이어야 한다.
@@ -5574,7 +5576,7 @@ namespace UrbanLegendBureau.EditorTools
         /// 대사 넘기기(스킵) 단추. 넘기기 판의 자식이라 판이 켜졌을 때만 보인다.
         /// offset 은 판의 오른쪽 위 모서리에서 잰 자리다.
         /// </summary>
-        private static void AddSkipButton(Transform advance, Vector2 offset)
+        private static RectTransform AddSkipButton(Transform advance, Vector2 offset)
         {
             var go = CreatePanel(advance, "Btn_Skip", new Color(0.05f, 0.05f, 0.07f, 0.72f));
             var rt = (RectTransform)go.transform;
@@ -5616,6 +5618,7 @@ namespace UrbanLegendBureau.EditorTools
             sso.Update();
             sso.FindProperty("_button").objectReferenceValue = button;
             sso.ApplyModifiedPropertiesWithoutUndo();
+            return rt;
         }
 
         private static GameObject CreateButton(Transform parent, string name, string textId)
