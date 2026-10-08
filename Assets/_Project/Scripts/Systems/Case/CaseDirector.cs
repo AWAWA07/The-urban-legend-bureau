@@ -1801,6 +1801,10 @@ namespace UrbanLegendBureau.Systems
 
             swap.SetAfter(true);
             _boarded = true;
+
+            // 문이 닫히고 열차가 서서히 출발한다. 한 번만 일어난다.
+            var running = _field.ActiveRoot.GetComponentInChildren<TrainRunning>();
+            if (running != null) running.Depart();
             RefreshFieldHud();
 
             Debug.Log("[CaseDirector] 열차가 들어왔다 | 승강장 -> 열차 안");

@@ -33,15 +33,23 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>지금 빠르기의 배율. 0 이면 서 있고 1 이면 제 빠르기다.</summary>
         private float _pace;
-        private float _startedAt;
+        private float _startedAt = -1000f;
+
+        /// <summary>
+        /// 출발한다. 열차에 탄 순간 한 번만 부른다. 덜컹 하고 서서히 빨라진다.
+        /// 조사 화면을 열었다 닫아 객실이 다시 켜져도 이미 달리던 그대로 이어 간다.
+        /// </summary>
+        public void Depart()
+        {
+            _startedAt = Time.time;
+            _pace = 0f;
+        }
 
         private Vector3 _carBase;
         private Vector3[] _ringBase;
 
         private void OnEnable()
         {
-            _startedAt = Time.time;
-            _pace = 0f;
             if (_car != null) _carBase = _car.localPosition;
             _ringBase = new Vector3[_rings.Length];
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _ringBase[i] = _rings[i].localPosition;
