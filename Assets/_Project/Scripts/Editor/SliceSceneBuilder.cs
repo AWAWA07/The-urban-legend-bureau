@@ -746,7 +746,7 @@ namespace UrbanLegendBureau.EditorTools
                 handprint.transform.localRotation = Quaternion.Euler(0f, 0f, 20.66f);
                 var handSr = handprint.AddComponent<SpriteRenderer>();
                 handSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
-                handSr.color = new Color(1f, 1f, 1f, 10f / 255f);
+                handSr.color = new Color(1f, 1f, 1f, 18f / 255f);
                 handSr.sortingOrder = -3;
                 if (handSr.sprite != null)
                 {
@@ -2783,7 +2783,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 손바닥 자국. 그것이 사라진 뒤에야 유리 바깥쪽에 찍혀 있다. 그것이 고개를 내밀던 자리 곁이다.
             // 처음에는 숨어 있다가 스르르 나타나고(CloseupScreen.RevealSpot), 살피면 현장의 창에도 남는다.
-            var hand = CloseupRect(outside, "Handprint", new Vector2(564f, -158f), new Vector2(165f, 170f), new Color(1f, 1f, 1f, 10f / 255f));
+            var hand = CloseupRect(outside, "Handprint", new Vector2(564f, -158f), new Vector2(165f, 170f), new Color(1f, 1f, 1f, 18f / 255f));
             hand.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
             hand.type = Image.Type.Simple;
             hand.preserveAspect = true;
