@@ -149,7 +149,7 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "action_subway_window_trace", "action_subway_glass_check", "action_subway_photo" }, null, false, CaseStep.Started);
             ConfigurePoint(cctv, "point_subway_cctv",
                 new[] { "action_subway_cctv_inspect", "action_subway_photo" },
-                new[] { "clue_subway_001" }, false, CaseStep.Started);
+                null, false, CaseStep.Started);   // CCTV 는 다른 조사 없이도 바로 들여다볼 수 있다
             // 글끼리 견줘 보는 조사는 여기에 둔다. 승강장 기록을 뒤지는 자리라 견줄 거리가 있다.
             // 이 방법이 주는 단서(clue_subway_004)가 없으면 맞는 규칙을 세울 수 없다. 어디에도 걸려 있지 않았다.
             // 목격담 대조도 여기에 둔다. 겪고도 멀쩡한 사람이 하나 있다는 것(clue_subway_006)이
@@ -216,6 +216,7 @@ namespace UrbanLegendBureau.EditorTools
             var community = BuildCommunityScreen("Screen_Community");
             var memo = BuildMemoScreen("Screen_Memo");
             var toast = BuildToastScreen("Screen_Toast");
+            var cctvCloseup = BuildCctvCloseupScreen("Screen_CctvCloseup");
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -290,6 +291,7 @@ namespace UrbanLegendBureau.EditorTools
             var postWriting = directorGo.AddComponent<PostWritingDirector>();
             dso.FindProperty("_postWriting").objectReferenceValue = postWriting;
             dso.FindProperty("_travelScreen").objectReferenceValue = travel;
+            dso.FindProperty("_cctvCloseupScreen").objectReferenceValue = cctvCloseup;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);
@@ -2431,6 +2433,144 @@ namespace UrbanLegendBureau.EditorTools
                 importer.SaveAndReimport();
             }
             return AssetDatabase.LoadAssetAtPath<Sprite>(path);
+        }
+
+        /// <summary>
+        /// 열차 안 CCTV 를 가까이서 보는 화면. 화면 전체를 덮는다.
+        ///
+        /// 천장 받침과 팔, 관절에 매달린 몸통을 크게 그린다. 몸통은 차지한을 내려다보던 그대로 살짝 아래를 향한다.
+        /// 몸통 옆면의 흠집과 아래쪽의 배터리 칸을 누를 수 있다. 마우스를 올리면 그 자리가 옅게 밝아진다.
+        /// 아래 띠에 본 것을 한 줄로 적고, 오른쪽 위의 돌아가기로 현장에 돌아간다.
+        /// </summary>
+        private static CctvCloseupScreen BuildCctvCloseupScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.05f, 0.05f, 0.07f, 1f));
+            StretchFull(go);
+            var screen = go.AddComponent<CctvCloseupScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var body = new Color(0.78f, 0.79f, 0.80f);
+            var shade = new Color(0.55f, 0.56f, 0.59f);
+            var dark = new Color(0.10f, 0.10f, 0.12f);
+
+            // 뒤쪽 객실 벽과 천장. 어두운 빛이 위에서 번진다.
+            var wall = CreatePanel(go.transform, "Wall", new Color(0.12f, 0.13f, 0.17f, 1f));
+            StretchFull(wall);
+            CloseupRect(go.transform, "Ceiling", new Vector2(0f, 500f), new Vector2(1920f, 80f), new Color(0.09f, 0.09f, 0.12f));
+            CloseupRect(go.transform, "CeilingEdge", new Vector2(0f, 456f), new Vector2(1920f, 10f), new Color(0.22f, 0.23f, 0.28f));
+
+            // 받침, 팔, 관절. 관절이 몸통이 도는 축이다.
+            CloseupRect(go.transform, "Mount", new Vector2(-330f, 440f), new Vector2(300f, 44f), shade);
+            CloseupRect(go.transform, "Arm", new Vector2(-330f, 345f), new Vector2(60f, 170f), shade);
+            CloseupRect(go.transform, "Joint", new Vector2(-330f, 250f), new Vector2(110f, 110f), dark);
+
+            // 몸통. 관절 아래에 매달려 렌즈가 오른쪽을 본다. 살짝 아래를 향해 기운다.
+            var head = new GameObject("Head", typeof(RectTransform));
+            head.transform.SetParent(go.transform, false);
+            var headRt = (RectTransform)head.transform;
+            headRt.anchorMin = headRt.anchorMax = new Vector2(0.5f, 0.5f);
+            headRt.sizeDelta = Vector2.zero;
+            headRt.anchoredPosition = new Vector2(-330f, 250f);
+            headRt.localRotation = Quaternion.Euler(0f, 0f, -14f);
+
+            CloseupRect(head.transform, "Housing", new Vector2(420f, -90f), new Vector2(820f, 300f), body);
+            CloseupRect(head.transform, "HousingShade", new Vector2(420f, -215f), new Vector2(820f, 50f), shade);
+            CloseupRect(head.transform, "Visor", new Vector2(470f, 80f), new Vector2(940f, 40f), shade);
+            CloseupRect(head.transform, "LensRing", new Vector2(830f, -90f), new Vector2(100f, 250f), dark);
+            CloseupRect(head.transform, "Lens", new Vector2(890f, -90f), new Vector2(46f, 170f), new Color(0.18f, 0.24f, 0.34f));
+            CloseupRect(head.transform, "LensGlint", new Vector2(896f, -40f), new Vector2(12f, 40f), new Color(0.55f, 0.65f, 0.8f, 0.8f));
+            CloseupRect(head.transform, "RecLight", new Vector2(80f, -30f), new Vector2(44f, 44f), new Color(1f, 0.12f, 0.1f));
+
+            // 흠집. 몸통 옆면에 비스듬히 그어진 가는 자국 몇 줄.
+            var scratch = new GameObject("Scratches", typeof(RectTransform));
+            scratch.transform.SetParent(head.transform, false);
+            var scratchRt = (RectTransform)scratch.transform;
+            scratchRt.anchorMin = scratchRt.anchorMax = new Vector2(0.5f, 0.5f);
+            scratchRt.sizeDelta = Vector2.zero;
+            scratchRt.anchoredPosition = new Vector2(330f, -60f);
+            float[][] marks = { new[] { -40f, 20f, 170f, 22f }, new[] { 10f, -6f, 120f, 18f }, new[] { 40f, -36f, 80f, 26f }, new[] { -70f, -30f, 60f, 15f } };
+            for (int i = 0; i < marks.Length; i++)
+            {
+                var m = CloseupRect(scratch.transform, "Mark_" + i, new Vector2(marks[i][0], marks[i][1]), new Vector2(marks[i][2], 4f),
+                    new Color(0.38f, 0.38f, 0.40f));
+                m.rectTransform.localRotation = Quaternion.Euler(0f, 0f, marks[i][3]);
+            }
+            var scratchButton = CloseupHotspot(head.transform, "Hotspot_Scratch", new Vector2(330f, -60f), new Vector2(280f, 130f));
+
+            // 배터리 칸. 몸통 아래쪽 판에 달린 덮개가 열려 있고, 안이 비어 있다.
+            CloseupRect(head.transform, "BatteryBay", new Vector2(560f, -208f), new Vector2(210f, 60f), dark);
+            CloseupRect(head.transform, "BatteryContactL", new Vector2(475f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
+            CloseupRect(head.transform, "BatteryContactR", new Vector2(645f, -208f), new Vector2(10f, 30f), new Color(0.65f, 0.55f, 0.3f));
+            var lid = CloseupRect(head.transform, "BatteryLid", new Vector2(700f, -262f), new Vector2(200f, 22f), shade);
+            lid.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -24f);
+            var batteryButton = CloseupHotspot(head.transform, "Hotspot_Battery", new Vector2(580f, -225f), new Vector2(330f, 120f));
+
+            // 아래 띠. 본 것을 한 줄로 적는다.
+            var band = CreatePanel(go.transform, "Band", new Color(0.03f, 0.03f, 0.04f, 0.94f));
+            var bandRt = (RectTransform)band.transform;
+            bandRt.anchorMin = new Vector2(0f, 0f);
+            bandRt.anchorMax = new Vector2(1f, 0f);
+            bandRt.pivot = new Vector2(0.5f, 0f);
+            bandRt.sizeDelta = new Vector2(0f, 200f);
+            var bandEdge = CreatePanel(band.transform, "Edge", BandEdgeColor);
+            var bandEdgeRt = (RectTransform)bandEdge.transform;
+            bandEdgeRt.anchorMin = new Vector2(0f, 1f);
+            bandEdgeRt.anchorMax = new Vector2(1f, 1f);
+            bandEdgeRt.pivot = new Vector2(0.5f, 1f);
+            bandEdgeRt.sizeDelta = new Vector2(0f, 2f);
+            var line = AddText(band.transform, "Line", 36f, UIFontWeight.Regular, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.MidlineLeft);
+            StretchInside(line.rectTransform, 120f, 120f, 30f, 30f);
+            line.raycastTarget = false;
+
+            // 돌아가기. 오른쪽 위.
+            var close = CreateButton(go.transform, "Btn_Close", "ui.common.back");
+            var closeRt = (RectTransform)close.transform;
+            closeRt.anchorMin = closeRt.anchorMax = new Vector2(1f, 1f);
+            closeRt.pivot = new Vector2(1f, 1f);
+            closeRt.anchoredPosition = new Vector2(-40f, -40f);
+            ResizeButton(close, new Vector2(220f, 76f), 28f);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_scratchButton").objectReferenceValue = scratchButton;
+            so.FindProperty("_batteryButton").objectReferenceValue = batteryButton;
+            so.FindProperty("_closeButton").objectReferenceValue = close.GetComponent<Button>();
+            so.FindProperty("_lineText").objectReferenceValue = line;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
+        /// <summary>가까이 보기 화면의 네모 하나. 가운데를 기준으로 놓는다. 모서리가 살짝 둥글다.</summary>
+        private static Image CloseupRect(Transform parent, string name, Vector2 position, Vector2 size, Color color)
+        {
+            var go = CreatePanel(parent, name, color);
+            var image = go.GetComponent<Image>();
+            image.sprite = BuiltinSprite();
+            image.type = Image.Type.Sliced;
+            image.raycastTarget = false;
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = position;
+            rt.sizeDelta = size;
+            return image;
+        }
+
+        /// <summary>눌러 볼 수 있는 자리. 평소에는 보이지 않고, 마우스를 올리면 옅게 밝아진다.</summary>
+        private static Button CloseupHotspot(Transform parent, string name, Vector2 position, Vector2 size)
+        {
+            var image = CloseupRect(parent, name, position, size, Color.white);
+            image.raycastTarget = true;
+            var button = image.gameObject.AddComponent<Button>();
+            button.targetGraphic = image;
+            var colors = button.colors;
+            colors.normalColor = new Color(1f, 1f, 1f, 0f);
+            colors.highlightedColor = new Color(1f, 0.95f, 0.8f, 0.16f);
+            colors.pressedColor = new Color(1f, 0.95f, 0.8f, 0.28f);
+            colors.selectedColor = new Color(1f, 1f, 1f, 0f);
+            colors.fadeDuration = 0.08f;
+            button.colors = colors;
+            return button;
         }
 
         /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>

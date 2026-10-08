@@ -340,6 +340,9 @@ field.subway.cctv_look.002	물리적 충돌로 CCTV가 올라가기에는 너무
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후
 field.subway.cctv_react.002	방금… 저거, 우리 쪽으로 돌아갔지?	Did that just… turn toward us?	
 field.subway.cctv_react.003	…누가 보고 있다는 거군.	…Someone's watching, then.	
+field.subway.cctv_close.hint	어디를 살펴볼까.	Where to look?	CCTV 가까이 보기 화면의 첫 안내
+field.subway.cctv_close.scratch	그냥 세월에 생긴 평범한 흠집이다..	Just ordinary scratches from years of use..	CCTV 몸통의 흠집을 눌렀을 때
+field.subway.cctv_close.battery	배터리가 장착되어 있지 않다.	There's no battery in it.	CCTV 배터리 칸을 눌렀을 때
 field.subway.platform	승강장	The platform	
 action.subway.photo.name	사진 촬영	Take photos	
 action.subway.photo.desc	눈에 보이는 상태를 그대로 남긴다. 빠르지만 깊이 들어가지는 못한다.	Record what is visible. Quick, but it does not go deep.	

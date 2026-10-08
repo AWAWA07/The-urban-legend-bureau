@@ -22,6 +22,9 @@ namespace UrbanLegendBureau.Systems
     {
         [Header("화면")]
         [SerializeField] private TextPanelScreen _titleScreen;
+
+        [Tooltip("열차 안 CCTV 를 가까이서 보는 화면.")]
+        [SerializeField] private CctvCloseupScreen _cctvCloseupScreen;
         [SerializeField] private TextPanelScreen _helpScreen;
         [SerializeField] private SettingsScreen _settingsScreen;
         [SerializeField] private CaseListScreen _caseListScreen;
@@ -1813,7 +1816,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>
         /// CCTV 를 처음 눌렀다. 위를 올려다보는 것이 이상하다고 말하는 사이, CCTV 가 갑자기 차지한을 내려다본다.
         /// 두 사람이 놀라 움찔하고 한마디씩 한다. 이 동안에는 걷지 못한다. 시간도 확산도 쓰지 않는다.
-        /// 다음에 누를 때부터는 평소처럼 조사 방법을 고른다.
+        /// 말이 끝나면 CCTV 를 가까이 들여다보는 화면이 열린다. 다음에 누를 때부터는 곧바로 그 화면이 열린다.
         /// </summary>
         private void PlayCctvTurn()
         {
@@ -1879,8 +1882,21 @@ namespace UrbanLegendBureau.Systems
             {
                 _fieldHudScreen.ClearSpeech();
                 FieldHudScreen.IsCutscene = false;
-                Debug.Log("[CaseDirector] CCTV 연출 끝 | 다음부터는 평소처럼 조사한다");
+                Debug.Log("[CaseDirector] CCTV 연출 끝 | 가까이 들여다본다");
+                OpenCctvCloseup();
             });
+        }
+
+        /// <summary>CCTV 를 화면 가득 크게 띄운다. 흠집과 배터리 칸을 눌러 볼 수 있다. 돌아가기를 누르면 현장으로 돌아온다.</summary>
+        private void OpenCctvCloseup()
+        {
+            if (_cctvCloseupScreen == null) return;
+            _cctvCloseupScreen.Closed = () =>
+            {
+                if (_ui.Contains(_cctvCloseupScreen)) _ui.Close(_cctvCloseupScreen);
+            };
+            _ui.Push(_cctvCloseupScreen);
+            Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
         }
 
         /// <summary>현장 대사 띠에 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.</summary>
@@ -1910,10 +1926,11 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            // 열차 안 CCTV 는 처음 누를 때 고개를 돌린다. 조사가 아니라 연출이라 해금 조건보다 먼저 본다.
-            if (point.PointId == CctvPointId && !_cctvTurned)
+            // 열차 안 CCTV 는 다른 조사를 하지 않았어도 바로 들여다본다. 처음 누르면 먼저 고개를 돌린다.
+            if (point.PointId == CctvPointId && _cctvCloseupScreen != null)
             {
-                PlayCctvTurn();
+                if (!_cctvTurned) PlayCctvTurn();
+                else OpenCctvCloseup();
                 return;
             }
 
