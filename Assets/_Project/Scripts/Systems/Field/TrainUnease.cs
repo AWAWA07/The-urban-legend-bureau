@@ -8,8 +8,11 @@ namespace UrbanLegendBureau.Systems
     ///
     /// 살핀 곳 1곳: 형광등 하나가 이따금 깜빡인다.
     /// 2곳: 창밖 터널이 잠깐 멈췄다가 다시 흐른다. 객실은 그대로 흔들리는데 바깥만 멈춘다.
-    /// 3곳: 손잡이 하나가 흔들림과 상관없이 혼자 크게 흔들린다.
-    /// 4곳: 가운데 문 유리 너머에 무언가 서 있다. 가까이 가면 사라진다.
+    /// 3곳: 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
+    ///      손잡이 하나도 흔들림과 상관없이 혼자 크게 흔들린다.
+    /// 4곳: 가운데 문 유리 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
+    ///
+    /// 평소에도 객실 전체가 아주 조금 어둡다(_dark).
     ///
     /// 객실이 꺼져 있는 동안(가까이 보기 화면)에는 아무것도 하지 않는다. 다시 켜지면 조금 뒤에 이어 간다.
     /// </summary>
@@ -42,6 +45,35 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("다가가는 사람. 비워 두면 객실 안의 걷는 사람을 찾는다.")]
         [SerializeField] private Transform _watcher;
 
+        [Header("어둠")]
+        [Tooltip("객실 전체를 덮는 검은 막. 평소에도 아주 조금 어둡다. 정전이 되면 거의 새까맣다.")]
+        [SerializeField] private SpriteRenderer _dark;
+        [SerializeField] private float _dimAlpha = 0.12f;
+        [SerializeField] private float _blackAlpha = 0.995f;   // 색을 선형으로 섞어서 0.97 만 돼도 꽤 비쳐 보인다
+        [Tooltip("정전 때 함께 깜빡이다 꺼지는 형광등과 그 빛.")]
+        [SerializeField] private SpriteRenderer[] _allLamps = new SpriteRenderer[0];
+
+        [Header("휴대폰 라이트")]
+        [Tooltip("차지한 둘레로 밝아지는 폭(월드 단위). 가로, 세로 반지름이다.")]
+        [SerializeField] private Vector2 _lightRadius = new Vector2(2.2f, 2.0f);
+        [Tooltip("빛 한가운데의 어둠. 0 이면 환하고 1 이면 깜깜하다. 조금만 밝힌다.")]
+        [SerializeField] private float _lightInnerAlpha = 0.72f;
+        [Tooltip("빛 가운데가 차지한의 발에서 얼마나 떨어져 있는가.")]
+        [SerializeField] private Vector2 _lightOffset = new Vector2(0f, 1.6f);
+
+        /// <summary>
+        /// 살핀 곳이 셋이 된 뒤, 플레이어가 현장으로 돌아와 아무것도 하지 않을 때 한 번 부른다.
+        /// 받는 쪽(CaseDirector)이 정전 연출을 시작한다(Blackout).
+        /// </summary>
+        public System.Action<TrainUnease> BlackoutReady;
+
+        private enum DarkState { None, Flicker, Black, Phone }
+        private DarkState _darkState;
+        private bool _blackoutAsked;
+        private float _idleSince = -1f;
+        private Color[] _allLampColors;
+        private SpriteRenderer _phone;
+
         private readonly HashSet<string> _looked = new HashSet<string>();
 
         /// <summary>지금 단계. 살핀 곳의 수다.</summary>
@@ -70,6 +102,7 @@ namespace UrbanLegendBureau.Systems
                 if (walker != null) _watcher = walker.transform;
             }
             Apply(1f);
+            SetDark(_dimAlpha);
             if (_figure != null) _figure.enabled = false;
         }
 
@@ -85,6 +118,8 @@ namespace UrbanLegendBureau.Systems
                 _strapHalf = sr == null ? 0.5f
                     : (sr.drawMode != SpriteDrawMode.Simple ? sr.size.y * 0.5f : sr.sprite != null ? sr.sprite.bounds.extents.y : 0.5f) * _strap.localScale.y; }
             if (_ring != null) _ringBase = _ring.localPosition;
+            _allLampColors = new Color[_allLamps.Length];
+            for (int i = 0; i < _allLamps.Length; i++) if (_allLamps[i] != null) _allLampColors[i] = _allLamps[i].color;
         }
 
         private void OnEnable()
@@ -108,6 +143,13 @@ namespace UrbanLegendBureau.Systems
             if (_figure != null) _figure.enabled = false;
             if (_strap != null) { _strap.localPosition = _strapBase; _strap.localRotation = _strapRotation; }
             if (_ring != null) _ring.localPosition = _ringBase;
+            StopAllCoroutines();
+            _darkState = DarkState.None;
+            _blackoutAsked = false;
+            _idleSince = -1f;
+            SetLamps(1f);
+            SetDark(_dimAlpha);
+            if (_phone != null) _phone.enabled = false;
         }
 
         /// <summary>열차 안의 한 곳을 살폈다. 처음 살핀 곳이면 객실이 한 단계 더 이상해진다.</summary>
@@ -140,7 +182,20 @@ namespace UrbanLegendBureau.Systems
                     lampOn = Mathf.PerlinNoise(now * 28f, 0.7f) > 0.5f ? 1f : 0.18f;
                 }
             }
-            Apply(lampOn);
+            if (_darkState == DarkState.None) Apply(lampOn);
+
+            // --- 3. 정전 ---
+            // 셋째 곳을 살피고 현장으로 돌아와 잠깐 숨을 돌린 뒤에 일어난다.
+            if (stage >= 3 && !_blackoutAsked && _darkState == DarkState.None)
+            {
+                if (!IsFieldIdle()) _idleSince = -1f;
+                else if (_idleSince < 0f) _idleSince = now;
+                else if (now - _idleSince > 0.8f && BlackoutReady != null)
+                {
+                    _blackoutAsked = true;
+                    BlackoutReady(this);
+                }
+            }
 
             // --- 2. 창밖 ---
             if (stage >= 2 && _running != null && _nextHold > 0f && now >= _nextHold)
@@ -170,7 +225,135 @@ namespace UrbanLegendBureau.Systems
 
             // --- 4. 문 유리 너머 ---
             if (_figure != null) UpdateFigure();
+
+            if (_darkState == DarkState.Phone) FollowPhone();
         }
+
+        // ------------------------------------------------------------- 정전
+
+        /// <summary>
+        /// 불이 미친 듯이 깜빡이다가 모두 꺼진다. 거의 아무것도 보이지 않는다. 다 꺼지고 잠시 뒤 onDark 를 부른다.
+        /// </summary>
+        public void Blackout(System.Action onDark)
+        {
+            StopAllCoroutines();
+            StartCoroutine(RunBlackout(onDark));
+        }
+
+        private System.Collections.IEnumerator RunBlackout(System.Action onDark)
+        {
+            _darkState = DarkState.Flicker;
+            const float Seconds = 1.9f;
+            float end = Time.time + Seconds;
+            bool off = false;
+            while (Time.time < end)
+            {
+                off = !off;
+                // 갈수록 꺼져 있는 틈이 길어지고 켜져 있는 틈이 짧아진다.
+                float left = (end - Time.time) / Seconds;
+                SetDark(off ? Random.Range(0.7f, 0.92f) : _dimAlpha);
+                SetLamps(off ? 0.08f : 1f);
+                yield return new WaitForSeconds(off ? Random.Range(0.03f, 0.12f) * (2f - left) : Random.Range(0.03f, 0.1f) * (0.4f + left));
+            }
+            SetLamps(0f);
+            SetDark(_blackAlpha);
+            _darkState = DarkState.Black;
+            yield return new WaitForSeconds(0.8f);
+            onDark?.Invoke();
+        }
+
+        /// <summary>차지한이 휴대폰 라이트를 켠다. 딸깍 한두 번 깜빡이고 켜진다. 그 둘레만 조금 밝다. 다 켜지면 onDone 을 부른다.</summary>
+        public void PhoneLight(System.Action onDone)
+        {
+            StopAllCoroutines();
+            StartCoroutine(RunPhoneLight(onDone));
+        }
+
+        private System.Collections.IEnumerator RunPhoneLight(System.Action onDone)
+        {
+            EnsurePhone();
+            _darkState = DarkState.Phone;
+            FollowPhone();
+            foreach (float wait in new[] { 0.06f, 0.08f, 0.05f })
+            {
+                _phone.enabled = !_phone.enabled;
+                if (_dark != null) _dark.enabled = !_phone.enabled;
+                yield return new WaitForSeconds(wait);
+            }
+            _phone.enabled = true;
+            if (_dark != null) _dark.enabled = false;
+            yield return new WaitForSeconds(0.3f);
+            onDone?.Invoke();
+        }
+
+        private void SetDark(float alpha)
+        {
+            if (_dark == null) return;
+            _dark.enabled = true;
+            var c = _dark.color;
+            c.a = alpha;
+            _dark.color = c;
+        }
+
+        private void SetLamps(float on)
+        {
+            if (_allLampColors == null) return;
+            for (int i = 0; i < _allLamps.Length; i++)
+            {
+                if (_allLamps[i] == null) continue;
+                var c = _allLampColors[i];
+                c.a *= on;
+                _allLamps[i].color = c;
+            }
+        }
+
+        /// <summary>
+        /// 휴대폰 빛. 화면을 다 덮는 검은 판에 타원 구멍이 하나 뚫려 있다. 구멍 가운데도 아주 환하지는 않다.
+        /// 그림은 처음 켤 때 한 번 만든다.
+        /// </summary>
+        private void EnsurePhone()
+        {
+            if (_phone != null) return;
+            const int W = 512, H = 256;
+            const float WorldW = 72f;   // 객실 끝에 서도 화면 끝까지 덮는다
+            float ppu = W / WorldW;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color32[W * H];
+            float rx = _lightRadius.x * ppu, ry = _lightRadius.y * ppu;
+            for (int y = 0; y < H; y++)
+            for (int x = 0; x < W; x++)
+            {
+                float dx = (x + 0.5f - W * 0.5f) / rx, dy = (y + 0.5f - H * 0.5f) / ry;
+                float d = Mathf.Sqrt(dx * dx + dy * dy);
+                float a = Mathf.Lerp(_lightInnerAlpha, _blackAlpha, Mathf.SmoothStep(0f, 1f, Mathf.InverseLerp(0.25f, 1f, d)));
+                px[y * W + x] = new Color32(0, 0, 0, (byte)Mathf.RoundToInt(a * 255f));
+            }
+            tex.SetPixels32(px);
+            tex.Apply();
+
+            var go = new GameObject("PhoneLight");
+            go.transform.SetParent(transform, false);
+            _phone = go.AddComponent<SpriteRenderer>();
+            _phone.sprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), ppu);
+            _phone.sortingOrder = _dark != null ? _dark.sortingOrder : 20;
+            _phone.enabled = false;
+        }
+
+        private void FollowPhone()
+        {
+            if (_phone == null || _watcher == null) return;
+            var p = _watcher.position + (Vector3)_lightOffset;
+            p.z = _phone.transform.position.z;
+            _phone.transform.position = p;
+        }
+
+        /// <summary>플레이어가 현장에서 자유로운가. 말하는 중이거나 다른 화면이 덮여 있으면 아니다.</summary>
+        private static bool IsFieldIdle()
+        {
+            return UrbanLegendBureau.UI.FieldHudScreen.IsFront && !UrbanLegendBureau.UI.FieldHudScreen.IsSpeaking
+                && !UrbanLegendBureau.UI.FieldHudScreen.IsCutscene && !UrbanLegendBureau.UI.TravelScreen.IsPlaying;
+        }
+
 
         private void UpdateFigure()
         {

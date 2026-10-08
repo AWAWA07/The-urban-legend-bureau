@@ -643,6 +643,9 @@ namespace UrbanLegendBureau.EditorTools
             SetTransformArray(aso.FindProperty("_rightLeaves"), rightLeaves);
             aso.ApplyModifiedPropertiesWithoutUndo();
 
+            // 현장 전체를 아주 조금 어둡게 덮는다. 사람까지 함께 어둡다. 말풍선과 이름표(30)는 이보다 앞이다.
+            AddFieldRect(root.transform, "Dim", Vector2.zero, new Vector2(60f, 24f), new Color(0f, 0f, 0f, 0.12f), 20);
+
             root.SetActive(false);
             return root;
         }
@@ -889,7 +892,7 @@ namespace UrbanLegendBureau.EditorTools
             var figureSr = figure.AddComponent<SpriteRenderer>();
             figureSr.sprite = LoadCrispSprite(CloseupArtPath + "ghost_window.png");
             figureSr.color = new Color(0.62f, 0.66f, 0.76f, 1f);
-            figureSr.sortingOrder = -3;
+            figureSr.sortingOrder = 21;   // 정전으로 깜깜해져도(어둠 20) 유리 속 그것만은 보인다
             figureSr.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
             figureSr.enabled = false;
             if (figureSr.sprite != null)
@@ -907,6 +910,15 @@ namespace UrbanLegendBureau.EditorTools
             uso.FindProperty("_strap").objectReferenceValue = root.transform.Find("Strap_6");
             uso.FindProperty("_ring").objectReferenceValue = root.transform.Find("StrapRing_6");
             uso.FindProperty("_figure").objectReferenceValue = figureSr;
+            // 객실을 덮는 어둠. 평소에는 아주 옅고, 정전이 되면 거의 새까맣다. 말풍선과 이름표(30)는 이보다 앞이다.
+            var darkCover = AddFieldRect(root.transform, "Dark", Vector2.zero, new Vector2(60f, 24f), new Color(0f, 0f, 0f, 0.12f), 20);
+            uso.FindProperty("_dark").objectReferenceValue = darkCover.GetComponent<SpriteRenderer>();
+            var lamps = new List<SpriteRenderer>();
+            foreach (Transform child in root.transform)
+                if (child.name.StartsWith("CeilingLamp")) lamps.Add(child.GetComponent<SpriteRenderer>());
+            var lampProp = uso.FindProperty("_allLamps");
+            lampProp.arraySize = lamps.Count;
+            for (int i = 0; i < lamps.Count; i++) lampProp.GetArrayElementAtIndex(i).objectReferenceValue = lamps[i];
             uso.ApplyModifiedPropertiesWithoutUndo();
 
             root.SetActive(false);

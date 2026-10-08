@@ -275,7 +275,11 @@ namespace UrbanLegendBureau.Systems
             _fieldTimeAdded = false;
             _cctvTurned = false;
             _windowGhostShown = false;
-            foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None)) unease.ResetUnease();
+            foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+            {
+                unease.ResetUnease();
+                unease.BlackoutReady = PlayBlackout;
+            }
             if (_cctvCloseupScreen != null) _cctvCloseupScreen.ResetChecked();
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             _terminusDone = false;
@@ -1912,6 +1916,47 @@ namespace UrbanLegendBureau.Systems
             };
             _ui.Push(_cctvCloseupScreen);
             Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
+        }
+
+        // ------------------------------------------------------------- 열차 안 정전
+
+        /// <summary>불이 다 꺼진 직후 두 사람이 주고받는 말.</summary>
+        private static readonly string[] BlackoutTextIds = { "field.subway.blackout.001", "field.subway.blackout.002" };
+        private static readonly bool[] BlackoutIsHanyoung = { false, true };
+
+        /// <summary>잠깐 말이 끊겼다가 이어지는 말. 끝나면 차지한이 휴대폰 라이트를 켠다.</summary>
+        private static readonly string[] BlackoutAfterTextIds = { "field.subway.blackout.003", "field.subway.blackout.004" };
+        private static readonly bool[] BlackoutAfterIsHanyoung = { true, false };
+
+        /// <summary>
+        /// 열차 안에서 셋째 곳을 살피고 돌아오면 불이 미친 듯이 깜빡이다 꺼진다.
+        /// 깜깜한 채로 두 사람이 한마디씩 하고, 1초 말이 끊겼다가 다시 한마디씩 한 뒤 차지한이 휴대폰 라이트를 켠다.
+        /// 그 뒤로는 라이트 둘레만 조금 보인 채로 조사를 이어 간다. 이 동안에는 걷지 못한다. 시간도 확산도 쓰지 않는다.
+        /// </summary>
+        private void PlayBlackout(TrainUnease unease)
+        {
+            if (unease == null) return;
+            FieldHudScreen.IsCutscene = true;
+            Debug.Log("[CaseDirector] 열차 안 불이 꺼진다");
+            unease.Blackout(() => CctvLines(BlackoutTextIds, BlackoutIsHanyoung, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                StartCoroutine(AfterBlackoutPause(unease));
+            }));
+        }
+
+        private System.Collections.IEnumerator AfterBlackoutPause(TrainUnease unease)
+        {
+            yield return new WaitForSeconds(1f);
+            CctvLines(BlackoutAfterTextIds, BlackoutAfterIsHanyoung, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                unease.PhoneLight(() =>
+                {
+                    FieldHudScreen.IsCutscene = false;
+                    Debug.Log("[CaseDirector] 휴대폰 라이트를 켰다 | 조사를 이어 간다");
+                });
+            });
         }
 
         // ------------------------------------------------------------- 열차 창문

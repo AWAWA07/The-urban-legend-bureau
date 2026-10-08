@@ -350,6 +350,10 @@ field.subway.window_close.sticker	동그란 웃는 얼굴 스티커. 누가 붙�
 field.subway.window_ghost.001	……방금, 창밖에.	……Just now. Outside the window.	창밖의 그것이 사라진 직후. 차지한
 field.subway.window_ghost.002	너도 봤지? 웃고 있었어.	You saw it too? It was smiling.	한영
 field.subway.window_ghost.003	달리는 열차 밖에서요.	Outside a moving train.	차지한
+field.subway.blackout.001	정전인가?	A blackout?	차지한
+field.subway.blackout.002	..화가 났나 보네.	...Looks like it's angry.	한영
+field.subway.blackout.003	뭐해? 빨리 조사해야지.	What are you doing? We need to keep investigating.	한영
+field.subway.blackout.004	ㄴ.. 넵! 휴대폰 라이트 키겠습니다.	Y-yes! Turning on my phone light.	차지한
 field.subway.platform	승강장	The platform	
 action.subway.photo.name	사진 촬영	Take photos	
 action.subway.photo.desc	눈에 보이는 상태를 그대로 남긴다. 빠르지만 깊이 들어가지는 못한다.	Record what is visible. Quick, but it does not go deep.	
