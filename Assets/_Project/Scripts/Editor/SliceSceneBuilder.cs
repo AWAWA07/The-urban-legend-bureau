@@ -767,30 +767,33 @@ namespace UrbanLegendBureau.EditorTools
             var cctvRoot = new GameObject("Cctv");
             cctvRoot.transform.SetParent(root.transform, false);
             cctvRoot.transform.localPosition = new Vector2(-10.6f, 0f);
-            AddFieldRect(cctvRoot.transform, "Mount", new Vector2(0f, 3.5f), new Vector2(0.62f, 0.14f), camShade, -5);
-            AddFieldRect(cctvRoot.transform, "Arm", new Vector2(0f, 3.18f), new Vector2(0.14f, 0.62f), camShade, -5);
-            AddFieldRect(cctvRoot.transform, "Joint", new Vector2(0f, 2.88f), new Vector2(0.26f, 0.26f), camDark, -4);
+            // 부품이 서로 겹친다. 같은 순서끼리는 흔들릴 때마다 앞뒤가 뒤바뀌어 번쩍이므로, 묶음 하나로 객실에 끼우고 안에서는 순서를 하나씩 나눈다.
+            var cctvGroup = cctvRoot.AddComponent<UnityEngine.Rendering.SortingGroup>();
+            cctvGroup.sortingOrder = -4;
+            AddFieldRect(cctvRoot.transform, "Mount", new Vector2(0f, 3.5f), new Vector2(0.62f, 0.14f), camShade, 0);
+            AddFieldRect(cctvRoot.transform, "Arm", new Vector2(0f, 3.18f), new Vector2(0.14f, 0.62f), camShade, 1);
+            AddFieldRect(cctvRoot.transform, "Joint", new Vector2(0f, 2.88f), new Vector2(0.26f, 0.26f), camDark, 2);
 
             // 몸통. 관절이 원점이고 렌즈는 오른쪽을 본다. 관절 아래쪽에 매달린 꼴이라 몸통 가운데가 관절보다 조금 아래다.
             var cctvHead = new GameObject("Head");
             cctvHead.transform.SetParent(cctvRoot.transform, false);
             cctvHead.transform.localPosition = new Vector2(0f, 2.88f);
             cctvHead.transform.localScale = Vector3.one * 1.35f;   // 멀리서도 렌즈가 어디를 보는지 알아보게 조금 키운다
-            AddFieldRect(cctvHead.transform, "Housing", new Vector2(0.42f, -0.16f), new Vector2(1.05f, 0.5f), camBody, -4);
-            AddFieldRect(cctvHead.transform, "HousingShade", new Vector2(0.42f, -0.36f), new Vector2(1.05f, 0.12f), camShade, -3);
+            AddFieldRect(cctvHead.transform, "Housing", new Vector2(0.42f, -0.16f), new Vector2(1.05f, 0.5f), camBody, 3);
+            AddFieldRect(cctvHead.transform, "HousingShade", new Vector2(0.42f, -0.36f), new Vector2(1.05f, 0.12f), camShade, 4);
             // 몸통 옆면의 흠집. 오래 매달려 있던 티가 난다. 가까이 보기 화면의 흠집과 같은 자리다.
             foreach (var m in new[] { new[] { 0.28f, -0.09f, 0.26f, 22f }, new[] { 0.33f, -0.15f, 0.2f, 18f }, new[] { 0.38f, -0.21f, 0.13f, 26f } })
             {
-                var mark = AddFieldRect(cctvHead.transform, "Scratch", new Vector2(m[0], m[1]), new Vector2(m[2], 0.018f), new Color(0.42f, 0.42f, 0.45f), -3);
+                var mark = AddFieldRect(cctvHead.transform, "Scratch", new Vector2(m[0], m[1]), new Vector2(m[2], 0.018f), new Color(0.42f, 0.42f, 0.45f), 5);
                 mark.transform.localRotation = Quaternion.Euler(0f, 0f, m[3]);
             }
-            AddFieldRect(cctvHead.transform, "BatteryLid", new Vector2(0.56f, -0.36f), new Vector2(0.3f, 0.07f), new Color(0.48f, 0.49f, 0.52f), -2);
-            AddFieldRect(cctvHead.transform, "Visor", new Vector2(0.5f, 0.12f), new Vector2(1.25f, 0.1f), camShade, -3);
-            AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, -3);
+            AddFieldRect(cctvHead.transform, "BatteryLid", new Vector2(0.56f, -0.36f), new Vector2(0.3f, 0.07f), new Color(0.48f, 0.49f, 0.52f), 6);
+            AddFieldRect(cctvHead.transform, "Visor", new Vector2(0.5f, 0.12f), new Vector2(1.25f, 0.1f), camShade, 7);
+            AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, 8);
             AddFieldRect(cctvHead.transform, "Lens", new Vector2(1.06f, -0.16f), new Vector2(0.08f, 0.26f),
-                new Color(0.18f, 0.24f, 0.34f), -2);
+                new Color(0.18f, 0.24f, 0.34f), 9);
             var cctvLight = AddFieldRect(cctvHead.transform, "RecLight", new Vector2(0.16f, -0.06f), new Vector2(0.13f, 0.13f),
-                new Color(1f, 0.12f, 0.1f, 1f), -2);
+                new Color(1f, 0.12f, 0.1f, 1f), 10);
 
             var glance = cctvRoot.AddComponent<CctvGlance>();
             var gso = new SerializedObject(glance);
@@ -1909,7 +1912,8 @@ namespace UrbanLegendBureau.EditorTools
             sprite.transform.SetParent(go.transform, false);
             var sr = sprite.AddComponent<SpriteRenderer>();
             sr.sprite = frames.Count > 0 ? frames[0] : null;
-            sr.sortingOrder = Order;
+            // 두 사람이 겹치면 차지한이 늘 앞에 선다. 같은 순서끼리는 앞뒤가 들쭉날쭉해진다.
+            sr.sortingOrder = art == "Chajihan" ? Order + 1 : Order;
 
             var animator = go.AddComponent<FieldSpriteAnimator>();
             var aso = new SerializedObject(animator);
