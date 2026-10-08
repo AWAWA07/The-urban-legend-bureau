@@ -15,7 +15,7 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private GameObject[] _targets = new GameObject[0];
 
         [SerializeField] private Color _glowColor = new Color(1f, 0.93f, 0.7f, 0.55f);
-        [SerializeField] private float _glowWidth = 3f;
+        [SerializeField] private float _glowWidth = 5f;
 
         private Outline[] _outlines;
         private Button _button;
@@ -30,12 +30,16 @@ namespace UrbanLegendBureau.UI
                 foreach (var g in root.GetComponentsInChildren<Graphic>(true))
                 {
                     if (g is TMPro.TMP_Text) continue;
-                    var o = g.gameObject.AddComponent<Outline>();
-                    o.effectColor = _glowColor;
-                    o.effectDistance = new Vector2(_glowWidth, -_glowWidth);
-                    o.useGraphicAlpha = false;
-                    o.enabled = false;
-                    list.Add(o);
+                    // 두 겹으로 둘러 가는 선에서도 빛 사이가 비지 않고 두툼하게 보이게 한다.
+                    foreach (var w in new[] { _glowWidth * 0.5f, _glowWidth })
+                    {
+                        var o = g.gameObject.AddComponent<Outline>();
+                        o.effectColor = _glowColor;
+                        o.effectDistance = new Vector2(w, -w);
+                        o.useGraphicAlpha = false;
+                        o.enabled = false;
+                        list.Add(o);
+                    }
                 }
             }
             _outlines = list.ToArray();
