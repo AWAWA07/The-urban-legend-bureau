@@ -617,7 +617,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 승강장에 선 두 사람. 발은 안전선 안쪽, 바닥 위에 놓는다.
             // 가운데 문 앞(x 0)은 타는 자리라 비워 두고 왼쪽에 선다.
-            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f, scale: PlatformActorScale);
+            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f);
 
             var arrival = root.AddComponent<TrainArrival>();
             var aso = new SerializedObject(arrival);
@@ -763,7 +763,7 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 객실 안에 선 두 사람. 바닥 위에 놓는다. 의자와 봉 사이를 오간다.
-            BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f);
+            BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f, scale: TrainActorScale);
 
             root.SetActive(false);
             return root;
@@ -1666,8 +1666,8 @@ namespace UrbanLegendBureau.EditorTools
         /// </remarks>
         private const float ActorScale = 1.5f;
 
-        /// <summary>승강장에서만 쓰는 인물 크기. 승강장 배경이 넓어 사람이 작아 보이므로 더 키운다.</summary>
-        private const float PlatformActorScale = 1.9f;
+        /// <summary>지하철 안에서만 쓰는 인물 크기. 객실 배경에 비해 사람이 작아 보이므로 더 키운다.</summary>
+        private const float TrainActorScale = 1.9f;
 
         /// <summary>
         /// 조사할 것 위에 뜨는 말풍선 하나.
