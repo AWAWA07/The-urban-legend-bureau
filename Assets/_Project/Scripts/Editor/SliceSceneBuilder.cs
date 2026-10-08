@@ -891,7 +891,7 @@ namespace UrbanLegendBureau.EditorTools
             figure.transform.localPosition = new Vector2(1.05f, 0.75f);
             var figureSr = figure.AddComponent<SpriteRenderer>();
             figureSr.sprite = LoadCrispSprite(CloseupArtPath + "ghost_window.png");
-            figureSr.color = new Color(0.62f, 0.66f, 0.76f, 1f);
+            figureSr.color = new Color(0.42f, 0.45f, 0.52f, 1f);   // 어둠 속에서 희끄무레하게만 보이게 어둡게
             figureSr.sortingOrder = 23;   // 정전으로 깜깜해져도(어둠 20) 유리 속 그것만은 보인다
             figureSr.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
             figureSr.enabled = false;
@@ -2792,6 +2792,15 @@ namespace UrbanLegendBureau.EditorTools
         private static void FinishCloseup(GameObject go, CloseupScreen screen, string hintId, Button[] spotButtons, string[] spotTextIds,
             GameObject[] hides = null, GameObject[] shows = null)
         {
+            // 정전 뒤의 어둠. 마우스를 따라가는 휴대폰 라이트 자리만 조금 보인다. 대사 띠와 돌아가기 단추보다 뒤에 깐다. 평소에는 꺼 둔다.
+            var dark = new GameObject("Dark", typeof(RectTransform), typeof(RawImage));
+            dark.transform.SetParent(go.transform, false);
+            var darkRt = (RectTransform)dark.transform;
+            darkRt.anchorMin = darkRt.anchorMax = darkRt.pivot = new Vector2(0.5f, 0.5f);
+            dark.GetComponent<RawImage>().raycastTarget = false;
+            dark.AddComponent<CloseupDark>();
+            dark.SetActive(false);
+
             var band = CreatePanel(go.transform, "Band", new Color(0.03f, 0.03f, 0.04f, 0.94f));
             var bandRt = (RectTransform)band.transform;
             bandRt.anchorMin = new Vector2(0f, 0f);
@@ -2860,6 +2869,7 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_tabText").objectReferenceValue = tabText;
             so.FindProperty("_advanceButton").objectReferenceValue = advanceButton;
             so.FindProperty("_hintTextId").stringValue = hintId;
+            so.FindProperty("_dark").objectReferenceValue = dark;
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

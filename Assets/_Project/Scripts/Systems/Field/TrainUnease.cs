@@ -37,7 +37,7 @@ namespace UrbanLegendBureau.Systems
         [Header("4. 문 유리 너머")]
         [SerializeField] private SpriteRenderer _figure;
         [Tooltip("다 드러났을 때의 진하기. 유리에 비친 것처럼 옅다.")]
-        [SerializeField] private float _figureAlpha = 0.34f;
+        [SerializeField] private float _figureAlpha = 0.2f;
         [Tooltip("이만큼(월드 x) 다가가면 사라진다.")]
         [SerializeField] private float _vanishDistance = 3.2f;
         [Tooltip("사라진 뒤 다시 서 있기까지 기다리는 시간(초). 그동안 멀리 떨어져 있어야 한다.")]
@@ -71,6 +71,9 @@ namespace UrbanLegendBureau.Systems
 
         private enum DarkState { None, Flicker, Black, Phone }
         private DarkState _darkState;
+
+        /// <summary>불이 다 꺼졌는가(정전 뒤). 가까이 보기 화면도 이때는 어둡게 연다.</summary>
+        public bool IsDark => _darkState == DarkState.Black || _darkState == DarkState.Phone;
         private bool _blackoutAsked;
         private float _idleSince = -1f;
         private Color[] _allLampColors;

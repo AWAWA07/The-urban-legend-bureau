@@ -48,6 +48,15 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private string _hintTextId = "field.subway.cctv_close.hint";
         [SerializeField] private string _tabTextId = "ui.field.closeup_tab";
 
+        [Tooltip("정전 뒤에 덮는 어둠. 마우스를 따라가는 휴대폰 라이트 자리만 조금 보인다(CloseupDark). 평소에는 꺼 둔다.")]
+        [SerializeField] private GameObject _dark;
+
+        /// <summary>정전 뒤인가. 켜면 화면이 현장처럼 깜깜하고 라이트 둘레만 보인다.</summary>
+        public void SetDark(bool on)
+        {
+            if (_dark != null) _dark.SetActive(on);
+        }
+
         /// <summary>돌아가기를 눌렀다. 화면 스택을 아는 쪽이 닫는다.</summary>
         public Action Closed;
 

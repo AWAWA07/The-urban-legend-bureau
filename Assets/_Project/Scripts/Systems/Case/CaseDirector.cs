@@ -1914,6 +1914,7 @@ namespace UrbanLegendBureau.Systems
             {
                 if (_ui.Contains(_cctvCloseupScreen)) _ui.Close(_cctvCloseupScreen);
             };
+            _cctvCloseupScreen.SetDark(IsTrainDark());
             _ui.Push(_cctvCloseupScreen);
             Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
         }
@@ -1933,6 +1934,14 @@ namespace UrbanLegendBureau.Systems
         /// 깜깜한 채로 두 사람이 한마디씩 하고, 1초 말이 끊겼다가 다시 한마디씩 한 뒤 차지한이 휴대폰 라이트를 켠다.
         /// 그 뒤로는 라이트 둘레만 조금 보인 채로 조사를 이어 간다. 이 동안에는 걷지 못한다. 시간도 확산도 쓰지 않는다.
         /// </summary>
+        /// <summary>지금 현장의 열차 안이 정전 뒤인가.</summary>
+        private bool IsTrainDark()
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            var unease = root != null ? root.GetComponentInChildren<TrainUnease>(true) : null;
+            return unease != null && unease.IsDark;
+        }
+
         private void PlayBlackout(TrainUnease unease)
         {
             if (unease == null) return;
@@ -1995,6 +2004,7 @@ namespace UrbanLegendBureau.Systems
                     screen.Talk(speakers, WindowGhostTextIds, null);
                 });
             };
+            screen.SetDark(IsTrainDark());
             _ui.Push(screen);
             Debug.Log("[CaseDirector] 창문을 가까이 들여다본다");
         }
