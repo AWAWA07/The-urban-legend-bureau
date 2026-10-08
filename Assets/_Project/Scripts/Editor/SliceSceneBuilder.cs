@@ -2581,6 +2581,7 @@ namespace UrbanLegendBureau.EditorTools
             float[][] marks = { new[] { -40f, 20f, 170f, 22f }, new[] { 10f, -6f, 120f, 18f }, new[] { 40f, -36f, 80f, 26f }, new[] { -70f, -30f, 60f, 15f } };
             CloseupMarks(head.transform, "Scratches", new Vector2(330f, -60f), marks, 4f, new Color(0.38f, 0.38f, 0.40f));
             var scratchButton = CloseupHotspot(head.transform, "Hotspot_Scratch", new Vector2(330f, -60f), new Vector2(280f, 130f));
+            AttachGlow(scratchButton, head.transform.Find("Scratches").gameObject);
 
             // 배터리 칸. 처음에는 덮개가 닫혀 있다. 누르면 덮개가 열리고, 안이 비어 있는 것이 보인다.
             var batteryOpen = new GameObject("BatteryOpen", typeof(RectTransform));
@@ -2602,6 +2603,7 @@ namespace UrbanLegendBureau.EditorTools
             }
             CloseupRect(batteryLid.transform, "Notch", new Vector2(0f, -8f), new Vector2(40f, 6f), new Color(0.42f, 0.43f, 0.46f));
             var batteryButton = CloseupHotspot(head.transform, "Hotspot_Battery", new Vector2(560f, -215f), new Vector2(300f, 110f));
+            AttachGlow(batteryButton, batteryLid.gameObject, batteryOpen);
 
             FinishCloseup(go, screen, "field.subway.cctv_close.hint",
                 new[] { scratchButton, batteryButton },
@@ -2662,16 +2664,16 @@ namespace UrbanLegendBureau.EditorTools
                 var glowRt = (RectTransform)glow.transform;
                 glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
                 glowRt.sizeDelta = new Vector2(380f, 120f);
-                items.Add(lamp.rectTransform); speeds.Add(1470f);
+                items.Add(lamp.rectTransform); speeds.Add(1760f);
                 var streak = CloseupRect(outside, "Streak_" + i, new Vector2(-750f + i * 300f, -150f), new Vector2(220f, 4f),
                     new Color(0.5f, 0.55f, 0.65f, 0.1f));
-                items.Add(streak.rectTransform); speeds.Add(1910f);
+                items.Add(streak.rectTransform); speeds.Add(2290f);
             }
             for (int i = 0; i < 2; i++)
             {
                 var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(90f, 700f),
                     new Color(0f, 0f, 0f, 1f));
-                items.Add(pillar.rectTransform); speeds.Add(2670f);
+                items.Add(pillar.rectTransform); speeds.Add(3200f);
             }
 
             // 그것. 창 오른쪽 가장자리 바깥에 숨어 있다가 슬며시 고개를 내민다.
@@ -2690,11 +2692,13 @@ namespace UrbanLegendBureau.EditorTools
             // 금 간 자국. 부딪힌 점에서 금이 여러 갈래로 꺾이며 뻗고, 갈래 사이를 짧은 금이 잇는다.
             CloseupCrack(outside, "Crack", new Vector2(330f, 90f), 7);
             var crackButton = CloseupHotspot(outside, "Hotspot_Crack", new Vector2(330f, 90f), new Vector2(320f, 280f));
+            AttachGlow(crackButton, outside.Find("Crack").gameObject);
 
             // 흠집. 왼쪽 아래에 가로로 긁힌 가는 자국.
             float[][] scratches = { new[] { 0f, 20f, 200f, 4f }, new[] { 20f, 0f, 160f, 2f }, new[] { -10f, -22f, 120f, 6f }, new[] { 40f, -40f, 80f, 3f } };
             CloseupMarks(outside, "Scratches", new Vector2(-380f, -170f), scratches, 3f, new Color(0.7f, 0.75f, 0.85f, 0.35f));
             var scratchButton = CloseupHotspot(outside, "Hotspot_Scratch", new Vector2(-370f, -170f), new Vector2(280f, 130f));
+            AttachGlow(scratchButton, outside.Find("Scratches").gameObject);
 
             // 스티커. 왼쪽 유리 위쪽 귀퉁이에 붙은 동그란 웃는 얼굴. 현장에서도 같은 자리에 작게 보인다.
             var sticker = CloseupRect(outside, "Sticker", new Vector2(-560f, 190f), new Vector2(130f, 130f), Color.white);
@@ -2703,6 +2707,7 @@ namespace UrbanLegendBureau.EditorTools
             sticker.preserveAspect = true;
             sticker.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 12f);
             var stickerButton = CloseupHotspot(outside, "Hotspot_Sticker", new Vector2(-560f, 190f), new Vector2(150f, 150f));
+            AttachGlow(stickerButton, sticker.gameObject);
 
             // 창 가운데 세로 창살.
             CloseupRect(car.transform, "Mullion", new Vector2(0f, 60f), new Vector2(24f, 620f), new Color(0.30f, 0.31f, 0.37f));
@@ -3000,15 +3005,21 @@ namespace UrbanLegendBureau.EditorTools
             image.raycastTarget = true;
             var button = image.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
-            var colors = button.colors;
-            colors.normalColor = new Color(1f, 1f, 1f, 0f);
-            colors.highlightedColor = new Color(1f, 0.95f, 0.8f, 0.16f);
-            colors.pressedColor = new Color(1f, 0.95f, 0.8f, 0.28f);
-            colors.disabledColor = new Color(1f, 1f, 1f, 0f);   // 연출 중에 막혀도 회색 네모가 드러나지 않게
-            colors.selectedColor = new Color(1f, 1f, 1f, 0f);
-            colors.fadeDuration = 0.08f;
-            button.colors = colors;
+            image.color = new Color(1f, 1f, 1f, 0f);   // 누르는 자리만 잡는다. 빛나는 것은 물건 그림이다(HotspotGlow)
+            button.transition = Selectable.Transition.None;
             return button;
+        }
+
+        /// <summary>살필 곳에 마우스를 올리면 targets 그림들이 제 모양 그대로 둘레가 빛나게 한다.</summary>
+        private static void AttachGlow(Button button, params GameObject[] targets)
+        {
+            var glow = button.gameObject.AddComponent<HotspotGlow>();
+            var so = new SerializedObject(glow);
+            so.Update();
+            var prop = so.FindProperty("_targets");
+            prop.arraySize = targets.Length;
+            for (int i = 0; i < targets.Length; i++) prop.GetArrayElementAtIndex(i).objectReferenceValue = targets[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
         }
 
         /// <summary>현장 대사 띠(타입 2)의 높이. 화면 아래 1/3.</summary>
