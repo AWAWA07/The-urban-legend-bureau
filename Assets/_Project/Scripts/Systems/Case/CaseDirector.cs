@@ -275,6 +275,7 @@ namespace UrbanLegendBureau.Systems
             _fieldTimeAdded = false;
             _cctvTurned = false;
             _windowGhostShown = false;
+            foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None)) unease.ResetUnease();
             if (_cctvCloseupScreen != null) _cctvCloseupScreen.ResetChecked();
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             _terminusDone = false;
@@ -1979,6 +1980,10 @@ namespace UrbanLegendBureau.Systems
                 BoardTrain();
                 return;
             }
+
+            // 열차 안은 살필수록 조금씩 이상해진다. 어떤 곳이든 처음 들여다본 순간 한 단계 나아간다.
+            var trainUnease = point.GetComponentInParent<TrainUnease>(true);
+            if (trainUnease != null) trainUnease.Look(point.PointId);
 
             // 열차 안 CCTV 는 다른 조사를 하지 않았어도 바로 들여다본다. 처음 누르면 먼저 고개를 돌린다.
             // 열차 창문도 바로 들여다본다. 다른 조사를 하지 않았어도 된다.

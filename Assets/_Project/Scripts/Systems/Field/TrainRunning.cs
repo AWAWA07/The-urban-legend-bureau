@@ -45,6 +45,17 @@ namespace UrbanLegendBureau.Systems
             _pace = 0f;
         }
 
+        private float _holdUntil = -1f;
+
+        /// <summary>
+        /// 창밖만 잠깐 멈춘다. 객실은 그대로 흔들리고 달리는 소리도 그대로인데 바깥의 터널이 멈춰 서 있다.
+        /// 멈췄던 것은 끝에서 다시 그 빠르기로 흐른다.
+        /// </summary>
+        public void HoldOutside(float seconds)
+        {
+            _holdUntil = Time.time + seconds;
+        }
+
         private Vector3 _carBase;
         private Vector3[] _ringBase;
 
@@ -67,7 +78,7 @@ namespace UrbanLegendBureau.Systems
             float since = Time.time - _startedAt;
             float k = _startSeconds > 0f ? Mathf.Clamp01(since / _startSeconds) : 1f;
             _pace = k * k;
-            float dt = Time.deltaTime * _pace;
+            float dt = Time.time < _holdUntil ? 0f : Time.deltaTime * _pace;
             for (int i = 0; i < _passing.Length; i++)
             {
                 var t = _passing[i];

@@ -880,6 +880,35 @@ namespace UrbanLegendBureau.EditorTools
             rso.FindProperty("_car").objectReferenceValue = root.transform;
             rso.ApplyModifiedPropertiesWithoutUndo();
 
+            // 살필수록 이상해지는 객실(TrainUnease). 깜빡일 형광등, 혼자 흔들릴 손잡이, 가운데 문 유리 너머의 그것.
+            // 그것은 창 가까이 보기에서 얼굴을 내밀던 그 그림이다. 유리에 비친 것처럼 옅게, 터널보다 앞에 서 있다.
+            var doorCenter = root.transform.Find("Door_Center");
+            var figure = new GameObject("Unease_Figure");
+            figure.transform.SetParent(doorCenter, false);
+            figure.transform.localPosition = new Vector2(1.05f, 0.75f);
+            var figureSr = figure.AddComponent<SpriteRenderer>();
+            figureSr.sprite = LoadCrispSprite(CloseupArtPath + "ghost_window.png");
+            figureSr.color = new Color(0.62f, 0.66f, 0.76f, 1f);
+            figureSr.sortingOrder = -3;
+            figureSr.maskInteraction = SpriteMaskInteraction.VisibleInsideMask;
+            figureSr.enabled = false;
+            if (figureSr.sprite != null)
+            {
+                float fh = figureSr.sprite.bounds.size.y;
+                figure.transform.localScale = Vector3.one * (2.6f / fh);
+            }
+
+            var unease = root.AddComponent<TrainUnease>();
+            var uso = new SerializedObject(unease);
+            uso.Update();
+            uso.FindProperty("_lamp").objectReferenceValue = root.transform.Find("CeilingLamp_2").GetComponent<SpriteRenderer>();
+            uso.FindProperty("_lampGlow").objectReferenceValue = root.transform.Find("CeilingLampGlow_2").GetComponent<SpriteRenderer>();
+            uso.FindProperty("_running").objectReferenceValue = running;
+            uso.FindProperty("_strap").objectReferenceValue = root.transform.Find("Strap_6");
+            uso.FindProperty("_ring").objectReferenceValue = root.transform.Find("StrapRing_6");
+            uso.FindProperty("_figure").objectReferenceValue = figureSr;
+            uso.ApplyModifiedPropertiesWithoutUndo();
+
             root.SetActive(false);
             return root;
         }
