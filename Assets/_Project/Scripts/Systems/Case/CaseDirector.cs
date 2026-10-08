@@ -1931,7 +1931,7 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 열차 안에서 처음 한 곳을 살피고 돌아오면 불이 미친 듯이 깜빡이다 꺼진다.
-        /// 깜깜한 채로 두 사람이 한마디씩 하고, 1초 말이 끊겼다가 다시 한마디씩 한 뒤 차지한이 휴대폰 라이트를 켠다.
+        /// 깜깜한 채로 두 사람이 한마디씩 하고, 1.5초 말이 끊겼다가 다시 한마디씩 한 뒤 차지한이 휴대폰 라이트를 켠다.
         /// 그 뒤로는 라이트 둘레만 조금 보인 채로 조사를 이어 간다. 이 동안에는 걷지 못한다. 시간도 확산도 쓰지 않는다.
         /// </summary>
         /// <summary>지금 현장의 열차 안이 정전 뒤인가.</summary>
@@ -1956,7 +1956,7 @@ namespace UrbanLegendBureau.Systems
 
         private System.Collections.IEnumerator AfterBlackoutPause(TrainUnease unease)
         {
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(1.5f);   // 깜깜한 채로 말이 잠깐 끊긴다
             // 한영의 말 뒤, 차지한이 "휴대폰 라이트 키겠습니다" 하는 순간 휴대폰을 든다. 말이 끝나면 불이 켜진다.
             CctvLines(new[] { BlackoutAfterTextIds[0] }, new[] { BlackoutAfterIsHanyoung[0] }, 0, () =>
             {
