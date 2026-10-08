@@ -2386,7 +2386,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 이야기 건너뛰기(스킵) 단추. 처음 이야기 동안만 보인다(StorySkip). 대사 상자 안에는 두지 않는다.
             // 전신 대화는 화면 오른쪽 위, 상자형(넘기기 판이 상자 크기)은 상자 바깥 바로 위 오른쪽에 붙는다.
-            var skipRt = AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-40f, -100f) : new Vector2(-40f, 14f));
+            var skipRt = AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-64.1f, -51.9f) : new Vector2(-40f, 14f));
             if (!fullScreen) skipRt.pivot = new Vector2(1f, 0f);
 
             // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
