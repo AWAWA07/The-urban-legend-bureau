@@ -131,6 +131,7 @@ namespace UrbanLegendBureau.UI
                 _talkLines = null;
                 if (_advanceButton != null) _advanceButton.gameObject.SetActive(false);
                 SetTab(_tabTextId);
+                if (_lineText != null) _lineText.text = string.Empty;   // 말이 끝나면 띠를 비우고 다시 조사로 돌아간다
                 SetInteractable(true);
                 var done = _talkDone;
                 _talkDone = null;

@@ -2662,16 +2662,16 @@ namespace UrbanLegendBureau.EditorTools
                 var glowRt = (RectTransform)glow.transform;
                 glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
                 glowRt.sizeDelta = new Vector2(380f, 120f);
-                items.Add(lamp.rectTransform); speeds.Add(2600f);
+                items.Add(lamp.rectTransform); speeds.Add(3200f);
                 var streak = CloseupRect(outside, "Streak_" + i, new Vector2(-750f + i * 300f, -150f), new Vector2(220f, 4f),
                     new Color(0.5f, 0.55f, 0.65f, 0.1f));
-                items.Add(streak.rectTransform); speeds.Add(3200f);
+                items.Add(streak.rectTransform); speeds.Add(3950f);
             }
             for (int i = 0; i < 2; i++)
             {
                 var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(90f, 700f),
                     new Color(0f, 0f, 0f, 1f));
-                items.Add(pillar.rectTransform); speeds.Add(4200f);
+                items.Add(pillar.rectTransform); speeds.Add(5150f);
             }
 
             // 그것. 창 오른쪽 가장자리 바깥에 숨어 있다가 슬며시 고개를 내민다.
@@ -2927,6 +2927,7 @@ namespace UrbanLegendBureau.EditorTools
         /// 객실 너비 전체를 지나가는 터널. 불빛(둘레로 빛이 번진다), 희미한 빛줄기, 시커먼 기둥이 오른쪽에서 왼쪽으로 흘러간다.
         /// 유리 마스크 안에서만 보이므로, 창과 창 사이를 지나며 끊김 없이 이어진다. 움직임은 TrainRunning 이 맡는다.
         /// </summary>
+        // 빠르기는 창 너비에 견주어 가까이 보기 화면과 같게 맞춘다. 창 하나를 1초에 두 번 남짓 지나간다.
         private static void AddRunningTunnel(Transform root, List<Transform> passing, List<float> speeds, List<Vector2> ranges)
         {
             var range = new Vector2(-24f, 24f);
@@ -2944,19 +2945,19 @@ namespace UrbanLegendBureau.EditorTools
                 var lamp = AddFieldRect(root, "PassLamp_" + i, new Vector2(range.x + (i + 0.5f) * span / Lamps, 1.5f),
                     new Vector2(0.8f, 0.05f), new Color(1f, 0.8f, 0.5f, 0.32f), -4);
                 AddFieldSoft(lamp.transform, "Glow", Vector2.zero, new Vector2(2.4f, 0.7f), new Color(1f, 0.75f, 0.45f, 0.12f), -4);
-                Add(lamp, 13f);
+                Add(lamp, 11f);
             }
             for (int i = 0; i < 8; i++)
             {
                 var streak = AddFieldRect(root, "PassStreak_" + i, new Vector2(range.x + (i + 0.3f) * span / 8f, 0.35f),
                     new Vector2(1.4f, 0.03f), new Color(0.5f, 0.55f, 0.65f, 0.12f), -4);
-                Add(streak, 17f);
+                Add(streak, 14.3f);
             }
             for (int i = 0; i < 3; i++)
             {
                 var pillar = AddFieldRect(root, "PassPillar_" + i, new Vector2(range.x + (i + 0.2f) * span / 3f, 0.9f),
                     new Vector2(0.45f, 2.6f), new Color(0f, 0f, 0f, 1f), -4);
-                Add(pillar, 24f);
+                Add(pillar, 20f);
             }
         }
 
