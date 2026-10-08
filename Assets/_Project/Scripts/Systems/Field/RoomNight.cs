@@ -58,8 +58,8 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("누운 자리(방 기준). 발이 이 자리에 놓이고 머리는 베개 쪽으로 간다.")]
         [SerializeField] private Vector2 _lyingPosition = new Vector2(-8.2f, -1.4f);
 
-        [Tooltip("눕는 그림을 쓸 때 누운 몸의 아래 가운데 자리(방 기준). 매트리스 위, 침대 가운데다.")]
-        [SerializeField] private Vector2 _lyingArtPosition = new Vector2(-9.5f, -2.1f);
+        [Tooltip("눕는 그림을 쓸 때 누운 몸의 아래 가운데 자리(방 기준). 매트리스 위, 머리가 베개(x -11.45)에 오는 자리다.")]
+        [SerializeField] private Vector2 _lyingArtPosition = new Vector2(-10.45f, -2.1f);
 
         [Tooltip("누운 몸 위로 덮는 이불. 누울 때 켜진다.")]
         [SerializeField] private GameObject _blanketOver;
