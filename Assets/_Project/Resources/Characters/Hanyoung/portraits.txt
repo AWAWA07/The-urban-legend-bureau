@@ -26,3 +26,6 @@ tutorial.board.006	gentle	내려야 되는 시간은 12시 30분이니, 그때�
 
 # 게시물 올리러
 tutorial.room.cue	smile	처음 치고는 잘하는데? 이제 마지막으로 조사한걸 바탕으로 게시물을 올려보자.
+
+# 열차 안 CCTV 가 고개를 돌렸을 때
+field.subway.cctv_react.002	surprised	방금… 저거, 우리 쪽으로 돌아갔지?

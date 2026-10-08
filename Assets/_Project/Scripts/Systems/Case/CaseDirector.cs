@@ -264,6 +264,7 @@ namespace UrbanLegendBureau.Systems
             _activePoint = null;
             _boarded = false;
             _fieldTimeAdded = false;
+            _cctvTurned = false;
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
@@ -1796,6 +1797,101 @@ namespace UrbanLegendBureau.Systems
             if (_tutorial != null) _tutorial.OnBoardedTrain();
         }
 
+        // ------------------------------------------------------------- 열차 안 CCTV
+
+        /// <summary>열차 안 CCTV 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
+        private const string CctvPointId = "point_subway_cctv";
+
+        /// <summary>CCTV 를 처음 눌렀을 때 나오는 말. 혼잣말 둘 → (CCTV 가 고개를 돌린다) → 둘의 반응.</summary>
+        private static readonly string[] CctvLookTextIds = { "field.subway.cctv_look.001", "field.subway.cctv_look.002" };
+        private static readonly string[] CctvReactTextIds = { "field.subway.cctv_react.001", "field.subway.cctv_react.002", "field.subway.cctv_react.003" };
+        private static readonly bool[] CctvReactIsHanyoung = { false, true, false };
+
+        /// <summary>이번 사건에서 CCTV 가 이미 고개를 돌렸는가. 한 번만 일어난다.</summary>
+        private bool _cctvTurned;
+
+        /// <summary>
+        /// CCTV 를 처음 눌렀다. 위를 올려다보는 것이 이상하다고 말하는 사이, CCTV 가 갑자기 차지한을 내려다본다.
+        /// 두 사람이 놀라 움찔하고 한마디씩 한다. 이 동안에는 걷지 못한다. 시간도 확산도 쓰지 않는다.
+        /// 다음에 누를 때부터는 평소처럼 조사 방법을 고른다.
+        /// </summary>
+        private void PlayCctvTurn()
+        {
+            _cctvTurned = true;
+            FieldHudScreen.IsCutscene = true;
+            Debug.Log("[CaseDirector] CCTV 가 고개를 돌린다");
+            CctvLines(CctvLookTextIds, null, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                var root = _field != null ? _field.ActiveRoot : null;
+                var cctv = root != null ? root.GetComponentInChildren<CctvGlance>() : null;
+                var lead = root != null ? root.GetComponentInChildren<FieldWalker>() : null;
+                if (cctv == null || lead == null) { OnCctvTurned(); return; }
+                cctv.LookAt(lead.transform, OnCctvTurned);
+            });
+        }
+
+        private void OnCctvTurned()
+        {
+            StartCoroutine(StartleActors());
+        }
+
+        /// <summary>두 사람이 화들짝 놀라 CCTV 쪽으로 돌아보며 움찔 뛴다. 그 뒤에 말을 주고받는다.</summary>
+        private System.Collections.IEnumerator StartleActors()
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            var cctv = root != null ? root.GetComponentInChildren<CctvGlance>() : null;
+            var actors = new List<Transform>();
+            if (root != null)
+            {
+                foreach (var w in root.GetComponentsInChildren<FieldWalker>()) actors.Add(w.transform);
+                foreach (var f in root.GetComponentsInChildren<FieldFollower>()) actors.Add(f.transform);
+            }
+
+            // CCTV 쪽을 본다.
+            var bases = new List<Vector3>();
+            foreach (var a in actors)
+            {
+                if (cctv != null)
+                {
+                    var s = a.localScale;
+                    s.x = Mathf.Abs(s.x) * (cctv.transform.position.x < a.position.x ? -1f : 1f);
+                    a.localScale = s;
+                }
+                bases.Add(a.localPosition);
+            }
+
+            // 움찔 뛴다. 차지한이 먼저, 한영이 조금 늦게.
+            const float Hop = 0.3f, Seconds = 0.26f, Lag = 0.06f;
+            for (float e = 0f; e < Seconds + Lag; e += Time.deltaTime)
+            {
+                for (int i = 0; i < actors.Count; i++)
+                {
+                    float k = Mathf.Clamp01((e - i * Lag) / Seconds);
+                    actors[i].localPosition = bases[i] + new Vector3(0f, Hop * 4f * k * (1f - k), 0f);
+                }
+                yield return null;
+            }
+            for (int i = 0; i < actors.Count; i++) actors[i].localPosition = bases[i];
+
+            yield return new WaitForSeconds(0.25f);
+            CctvLines(CctvReactTextIds, CctvReactIsHanyoung, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                FieldHudScreen.IsCutscene = false;
+                Debug.Log("[CaseDirector] CCTV 연출 끝 | 다음부터는 평소처럼 조사한다");
+            });
+        }
+
+        /// <summary>현장 대사 띠에 몇 마디를 차례로 띄운다. isHanyoung 이 null 이면 모두 차지한이 한다.</summary>
+        private void CctvLines(string[] ids, bool[] isHanyoung, int index, System.Action onDone)
+        {
+            if (index >= ids.Length) { onDone?.Invoke(); return; }
+            string id = ids[index];
+            string speaker = isHanyoung != null && isHanyoung[index] ? HanyoungNameTextId : FieldSpeakerTextId;
+            _fieldHudScreen.ShowLine(speaker, () => _loc.Get(id), () => CctvLines(ids, isHanyoung, index + 1, onDone), id);
+        }
+
         private void OnPointInvestigated(InvestigationPoint point)
         {
             if (point == null) return;
@@ -1811,6 +1907,13 @@ namespace UrbanLegendBureau.Systems
             if (point.PointId == BoardingPointId)
             {
                 BoardTrain();
+                return;
+            }
+
+            // 열차 안 CCTV 는 처음 누를 때 고개를 돌린다. 조사가 아니라 연출이라 해금 조건보다 먼저 본다.
+            if (point.PointId == CctvPointId && !_cctvTurned)
+            {
+                PlayCctvTurn();
                 return;
             }
 

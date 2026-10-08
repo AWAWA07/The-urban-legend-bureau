@@ -16,3 +16,9 @@ tutorial.board.choice_1	think	'막차 시간표 스샷 찍어왔습니다.' 이�
 tutorial.board.choice_2	smirk	'지하철 9-4 칸은 타지 마세요' 이거에요.
 tutorial.board.choice_3	think	'거울 앞에서 사진 찍었는데 하나 더 있음' 게시물이요.
 tutorial.board.005	serious	넵, 알겠습니다.
+
+# 열차 안 CCTV
+field.subway.cctv_look.001	ponder	CCTV가 부자연스럽게 위를 바라보고 있다.
+field.subway.cctv_look.002	think	물리적 충돌로 CCTV가 올라가기에는 너무 높은 위치다.
+field.subway.cctv_react.001	wary	……!
+field.subway.cctv_react.003	serious	…누가 보고 있다는 거군.

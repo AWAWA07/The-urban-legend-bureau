@@ -138,7 +138,8 @@ namespace UrbanLegendBureau.EditorTools
             // 곁에 서면 네모 칸이 아니라 그 자리의 그림이 밝아진다.
             // 빈자리는 긴 의자의 한 칸이라 따로 떨어진 그림이 없다. 그 칸 크기의 네모를 그대로 쓴다.
             FitHighlightToArt(window, trainInside.transform);
-            SetHighlightTargets(cctv, trainInside.transform, "CctvArm", "CctvShade");   // 칸보다 큰 몸통이라 직접 댄다
+            SetHighlightTargets(cctv, trainInside.transform, "Cctv/Mount", "Cctv/Arm", "Cctv/Joint", "Cctv/Head/Housing",
+                "Cctv/Head/HousingShade", "Cctv/Head/Visor", "Cctv/Head/LensRing");   // 빨간 불은 따로 켜고 끄므로 뺀다
             FitHighlightToArt(platform, trainInside.transform);
 
             // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
@@ -728,11 +729,40 @@ namespace UrbanLegendBureau.EditorTools
                     new Vector2(0.44f, 0.44f), new Color(0.34f, 0.31f, 0.24f), -5);
             }
 
-            // 왼쪽 위 모서리의 CCTV. 천장에서 내려온 팔에 매달린다.
+            // 왼쪽 위 모서리의 CCTV. 천장에 붙은 받침에서 팔이 내려오고, 팔 끝 관절에 몸통이 매달린다.
+            // 몸통은 관절을 축으로 돈다(CctvGlance). 평소에는 부자연스럽게 천장 쪽을 올려다본다.
             // 이름표가 맨 위 한 줄에 가리지 않도록 조사 지점을 y 2.6 에 둔다.
             // 걸어가서 닿는 자리여야 한다. 걸을 수 있는 왼쪽 끝(-12)보다 안쪽에 둔다.
-            AddFieldRect(root.transform, "CctvArm", new Vector2(-10.6f, 3.25f), new Vector2(0.28f, 1.0f), trim, -5);
-            AddFieldRect(root.transform, "CctvShade", new Vector2(-10.6f, 2.6f), new Vector2(2.2f, 1.7f), dark, -6);
+            var camBody = new Color(0.78f, 0.79f, 0.80f);
+            var camShade = new Color(0.55f, 0.56f, 0.59f);
+            var camDark = new Color(0.10f, 0.10f, 0.12f);
+            var cctvRoot = new GameObject("Cctv");
+            cctvRoot.transform.SetParent(root.transform, false);
+            cctvRoot.transform.localPosition = new Vector2(-10.6f, 0f);
+            AddFieldRect(cctvRoot.transform, "Mount", new Vector2(0f, 3.5f), new Vector2(0.62f, 0.14f), camShade, -5);
+            AddFieldRect(cctvRoot.transform, "Arm", new Vector2(0f, 3.18f), new Vector2(0.14f, 0.62f), camShade, -5);
+            AddFieldRect(cctvRoot.transform, "Joint", new Vector2(0f, 2.88f), new Vector2(0.26f, 0.26f), camDark, -4);
+
+            // 몸통. 관절이 원점이고 렌즈는 오른쪽을 본다. 관절 아래쪽에 매달린 꼴이라 몸통 가운데가 관절보다 조금 아래다.
+            var cctvHead = new GameObject("Head");
+            cctvHead.transform.SetParent(cctvRoot.transform, false);
+            cctvHead.transform.localPosition = new Vector2(0f, 2.88f);
+            cctvHead.transform.localScale = Vector3.one * 1.35f;   // 멀리서도 렌즈가 어디를 보는지 알아보게 조금 키운다
+            AddFieldRect(cctvHead.transform, "Housing", new Vector2(0.42f, -0.16f), new Vector2(1.05f, 0.5f), camBody, -4);
+            AddFieldRect(cctvHead.transform, "HousingShade", new Vector2(0.42f, -0.36f), new Vector2(1.05f, 0.12f), camShade, -3);
+            AddFieldRect(cctvHead.transform, "Visor", new Vector2(0.5f, 0.12f), new Vector2(1.25f, 0.1f), camShade, -3);
+            AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, -3);
+            AddFieldRect(cctvHead.transform, "Lens", new Vector2(1.06f, -0.16f), new Vector2(0.08f, 0.26f),
+                new Color(0.18f, 0.24f, 0.34f), -2);
+            var cctvLight = AddFieldRect(cctvHead.transform, "RecLight", new Vector2(0.16f, -0.06f), new Vector2(0.13f, 0.13f),
+                new Color(1f, 0.12f, 0.1f, 1f), -2);
+
+            var glance = cctvRoot.AddComponent<CctvGlance>();
+            var gso = new SerializedObject(glance);
+            gso.Update();
+            gso.FindProperty("_head").objectReferenceValue = cctvHead.transform;
+            gso.FindProperty("_light").objectReferenceValue = cctvLight.GetComponent<SpriteRenderer>();
+            gso.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 객실의 빛과 그늘 ---
             // 형광등 아래로 번지는 빛. 등 하나하나가 제 몫의 빛을 떨군다.
