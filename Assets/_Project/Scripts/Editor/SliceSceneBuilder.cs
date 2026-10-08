@@ -5730,15 +5730,12 @@ namespace UrbanLegendBureau.EditorTools
             phoneBtnLabel.textWrappingMode = TMPro.TextWrappingModes.Normal;
             phoneBtnLabel.raycastTarget = false;
 
-            // 휴대폰 라이트가 켜져 있다는 표시. 접힌 휴대폰 화면에 은은한 불빛과 위로 비추는 손전등 그림이 든다.
+            // 휴대폰 라이트가 켜져 있다는 표시. 접힌 휴대폰 화면에 위로 비추는 손전등 그림이 든다.
             // 정전 뒤 라이트를 켠 동안에만 보인다(FieldHudScreen.FlashlightOn).
             var flash = new GameObject("Flashlight", typeof(RectTransform));
             flash.transform.SetParent(phoneBtnGlass.transform, false);
             StretchFull(flash);
             var flashWarm = new Color(1f, 0.93f, 0.72f, 1f);
-            var flashGlow = CloseupRect(flash.transform, "Glow", new Vector2(0f, 30f), new Vector2(84f, 96f), new Color(1f, 0.9f, 0.6f, 0.32f));
-            flashGlow.sprite = FieldSoftSprite();
-            flashGlow.type = Image.Type.Simple;
             var beamTop = new Vector2(0f, 38f);
             foreach (var ray in new[] { -38f, 0f, 38f })
             {
