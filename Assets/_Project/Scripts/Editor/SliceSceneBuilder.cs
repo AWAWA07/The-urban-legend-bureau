@@ -842,8 +842,20 @@ namespace UrbanLegendBureau.EditorTools
             var passing = new List<Transform>();
             var passSpeeds = new List<float>();
             var passRanges = new List<Vector2>();
-            AddRunningWindow(root.transform, "Window_Left", 4.6f, passing, passSpeeds, passRanges);
-            AddRunningWindow(root.transform, "Window_Right", 4.6f, passing, passSpeeds, passRanges);
+            foreach (var windowName in new[] { "Window_Left", "Window_Right" })
+            {
+                var window = root.transform.Find(windowName);
+                AddGlassMask(window, "PassMask", Vector2.zero, new Vector2(4.6f, 2.3f));
+                // 창 사이 세로 창살과 유리의 반사가 지나가는 것보다 앞에 오게 한다.
+                foreach (var front in new[] { "Mullion", "Sheen" }) window.Find(front).GetComponent<SpriteRenderer>().sortingOrder = -3;
+            }
+            foreach (var doorName in new[] { "Door_Left", "Door_Center" })
+            {
+                var door = root.transform.Find(doorName);
+                AddGlassMask(door, "PassMask_0", new Vector2(-1.05f, 0.9f), new Vector2(1.5f, 2.2f));
+                AddGlassMask(door, "PassMask_1", new Vector2(1.05f, 0.9f), new Vector2(1.5f, 2.2f));
+            }
+            AddRunningTunnel(root.transform, passing, passSpeeds, passRanges);
             var rings = new List<Transform>();
             foreach (Transform child in root.transform) if (child.name.StartsWith("StrapRing_")) rings.Add(child);
             var running = root.AddComponent<TrainRunning>();
@@ -1299,6 +1311,7 @@ namespace UrbanLegendBureau.EditorTools
                 if (sr == box || sr.sprite == null) continue;
                 if (sr.GetComponent<InvestigationPoint>() != null) continue;
                 if (sr.GetComponentInParent<FieldWalker>(true) != null || sr.GetComponentInParent<FieldFollower>(true) != null) continue;
+                if (sr.maskInteraction != SpriteMaskInteraction.None) continue;   // 창밖에서 지나가는 것은 밝히지 않는다
                 if (sr.color.a < 0.5f) continue;   // 번지는 빛과 그늘은 밝히지 않는다
 
                 var b = sr.bounds;
@@ -2670,7 +2683,7 @@ namespace UrbanLegendBureau.EditorTools
             var ghso = new SerializedObject(ghost);
             ghso.Update();
             ghso.FindProperty("_image").objectReferenceValue = ghostImage;
-            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(850f, -20f);
+            ghso.FindProperty("_hiddenPosition").vector2Value = new Vector2(760f, -20f);
             ghso.FindProperty("_peekPosition").vector2Value = new Vector2(590f, -20f);
             ghso.ApplyModifiedPropertiesWithoutUndo();
 
@@ -2896,30 +2909,28 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>
-        /// 창 하나의 바깥을 달리는 터널로 채운다. 유리 자리에 마스크를 깔아 그 안에서만 보이게 한다.
-        /// 불빛 셋(둘레로 빛이 번진다), 희미한 빛줄기 둘, 시커먼 기둥 하나가 지나간다. 움직임은 TrainRunning 이 맡는다.
+        /// 유리 한 장 자리에 마스크를 깐다. 창밖에서 지나가는 것들은 이 마스크들 안에서만 보인다.
+        /// 객실 창도, 문짝의 작은 창도 모두 같은 터널을 내다본다.
         /// </summary>
-        private static void AddRunningWindow(Transform root, string windowName, float width,
-            List<Transform> passing, List<float> speeds, List<Vector2> ranges)
+        private static void AddGlassMask(Transform holder, string name, Vector2 center, Vector2 size)
         {
-            var window = root.Find(windowName);
-            if (window == null) return;
-
-            // 창 사이 세로 창살과 유리의 반사가 지나가는 것보다 앞에 오게 한다.
-            foreach (var front in new[] { "Mullion", "Sheen" })
-            {
-                var t = window.Find(front);
-                if (t != null) t.GetComponent<SpriteRenderer>().sortingOrder = -4;
-            }
-
-            var maskGo = new GameObject("PassMask");
-            maskGo.transform.SetParent(window, false);
+            var maskGo = new GameObject(name);
+            maskGo.transform.SetParent(holder, false);
+            maskGo.transform.localPosition = center;
             var mask = maskGo.AddComponent<SpriteMask>();
             mask.sprite = BuiltinSprite();
             var b = mask.sprite.bounds.size;
-            maskGo.transform.localScale = new Vector3(width / b.x, 2.3f / b.y, 1f);
+            maskGo.transform.localScale = new Vector3(size.x / b.x, size.y / b.y, 1f);
+        }
 
-            var range = new Vector2(-width * 0.5f - 1.6f, width * 0.5f + 1.6f);
+        /// <summary>
+        /// 객실 너비 전체를 지나가는 터널. 불빛(둘레로 빛이 번진다), 희미한 빛줄기, 시커먼 기둥이 오른쪽에서 왼쪽으로 흘러간다.
+        /// 유리 마스크 안에서만 보이므로, 창과 창 사이를 지나며 끊김 없이 이어진다. 움직임은 TrainRunning 이 맡는다.
+        /// </summary>
+        private static void AddRunningTunnel(Transform root, List<Transform> passing, List<float> speeds, List<Vector2> ranges)
+        {
+            var range = new Vector2(-24f, 24f);
+            float span = range.y - range.x;
             void Add(GameObject go, float speed)
             {
                 foreach (var sr in go.GetComponentsInChildren<SpriteRenderer>())
@@ -2927,22 +2938,26 @@ namespace UrbanLegendBureau.EditorTools
                 passing.Add(go.transform); speeds.Add(speed); ranges.Add(range);
             }
 
-            for (int i = 0; i < 3; i++)
+            const int Lamps = 12;
+            for (int i = 0; i < Lamps; i++)
             {
-                var lamp = AddFieldRect(window, "PassLamp_" + i, new Vector2(range.x + (i + 0.5f) * (range.y - range.x) / 3f, 0.6f),
-                    new Vector2(0.8f, 0.05f), new Color(1f, 0.8f, 0.5f, 0.32f), -5);
-                AddFieldSoft(lamp.transform, "Glow", Vector2.zero, new Vector2(2.4f, 0.7f), new Color(1f, 0.75f, 0.45f, 0.12f), -5);
+                var lamp = AddFieldRect(root, "PassLamp_" + i, new Vector2(range.x + (i + 0.5f) * span / Lamps, 1.5f),
+                    new Vector2(0.8f, 0.05f), new Color(1f, 0.8f, 0.5f, 0.32f), -4);
+                AddFieldSoft(lamp.transform, "Glow", Vector2.zero, new Vector2(2.4f, 0.7f), new Color(1f, 0.75f, 0.45f, 0.12f), -4);
                 Add(lamp, 13f);
             }
-            for (int i = 0; i < 2; i++)
+            for (int i = 0; i < 8; i++)
             {
-                var streak = AddFieldRect(window, "PassStreak_" + i, new Vector2(range.x + (i + 0.3f) * (range.y - range.x) / 2f, -0.55f),
-                    new Vector2(1.4f, 0.03f), new Color(0.5f, 0.55f, 0.65f, 0.12f), -5);
+                var streak = AddFieldRect(root, "PassStreak_" + i, new Vector2(range.x + (i + 0.3f) * span / 8f, 0.35f),
+                    new Vector2(1.4f, 0.03f), new Color(0.5f, 0.55f, 0.65f, 0.12f), -4);
                 Add(streak, 17f);
             }
-            var pillar = AddFieldRect(window, "PassPillar", new Vector2(range.x + 0.4f * (range.y - range.x), 0f),
-                new Vector2(0.45f, 2.6f), new Color(0f, 0f, 0f, 1f), -5);
-            Add(pillar, 24f);
+            for (int i = 0; i < 3; i++)
+            {
+                var pillar = AddFieldRect(root, "PassPillar_" + i, new Vector2(range.x + (i + 0.2f) * span / 3f, 0.9f),
+                    new Vector2(0.45f, 2.6f), new Color(0f, 0f, 0f, 1f), -4);
+                Add(pillar, 24f);
+            }
         }
 
         /// <summary>한 점에서 뻗는 가는 자국 여럿. 각 줄은 {x, y, 길이, 각도}다.</summary>
