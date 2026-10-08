@@ -155,7 +155,73 @@ namespace UrbanLegendBureau.Systems
             if (NearPoint != null && _input.InteractPressed)
             {
                 Investigated?.Invoke(NearPoint);
+                return;
             }
+
+            HandleClick();
+        }
+
+        // ------------------------------------------------------------- 마우스로 누르기
+
+        /// <summary>
+        /// 장면 속 조사할 곳을 마우스로 누르면 그곳을 조사한다.
+        /// 닿는 거리에 있으면 곧바로, 멀면 차지한이 그 곁까지 걸어간 뒤에 조사한다. 걷는 동안 다시 누르면 새로 누른 곳으로 간다.
+        /// 화면 위의 단추(규칙 추론, 조사 종료 같은 것)를 누른 것은 장면을 누른 것이 아니다.
+        /// </summary>
+        private void HandleClick()
+        {
+            if (!InvestigationAllowed) return;
+            var device = UnityEngine.InputSystem.Pointer.current;
+            if (device == null || !device.press.wasPressedThisFrame) return;
+
+            var events = UnityEngine.EventSystems.EventSystem.current;
+            if (events != null && events.IsPointerOverGameObject()) return;
+
+            var cam = Camera.main;
+            if (cam == null) return;
+            Vector2 screen = device.position.ReadValue();
+            if (!cam.pixelRect.Contains(screen)) return;
+            Vector2 world = cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 0f));
+
+            var point = PointAt(world);
+            if (point == null) return;
+
+            var walker = ActiveWalker();
+            if (walker == null) return;
+
+            float dx = point.transform.position.x - walker.transform.position.x;
+            if (Mathf.Abs(dx) < _reach)
+            {
+                Investigated?.Invoke(point);
+                return;
+            }
+
+            // 그 곁까지 걸어간다. 지점 바로 앞(닿는 거리의 절반쯤)에 선다.
+            var parent = walker.transform.parent;
+            var target = point.transform.position - new Vector3(Mathf.Sign(dx) * _reach * 0.5f, 0f, 0f);
+            float localX = parent != null ? parent.InverseTransformPoint(target).x : target.x;
+            walker.WalkTo(localX, () =>
+            {
+                // 걷는 사이 다른 화면이 떴거나 말이 시작됐으면 그만둔다.
+                if (!IsActive || !InvestigationAllowed || point == null || !point.isActiveAndEnabled) return;
+                if (UrbanLegendBureau.UI.FieldHudScreen.IsSpeaking || !UrbanLegendBureau.UI.FieldHudScreen.IsFront
+                    || UrbanLegendBureau.UI.FieldHudScreen.IsCutscene) return;
+                Investigated?.Invoke(point);
+            });
+        }
+
+        /// <summary>그 자리에 있는 조사 지점. 켜져 있는 것만 본다.</summary>
+        private InvestigationPoint PointAt(Vector2 world)
+        {
+            if (_points == null) return null;
+            for (int i = 0; i < _points.Length; i++)
+            {
+                var point = _points[i];
+                if (point == null || !point.isActiveAndEnabled) continue;
+                var collider = point.GetComponent<Collider2D>();
+                if (collider != null && collider.enabled && collider.OverlapPoint(world)) return point;
+            }
+            return null;
         }
 
         /// <summary>곁에 선 지점을 마지막으로 봤을 때 조사가 끝나 있었는가.</summary>
