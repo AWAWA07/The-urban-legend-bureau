@@ -143,6 +143,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             SetNear(FindNear());
+            UpdateHover();
 
             // 곁에 선 채로 조사를 마쳤으면 말풍선의 글도 바뀌어야 한다.
             // 떠났다 돌아올 때까지 "조사함" 이 안 붙으면 방금 뒤진 곳을 또 누르게 된다.
@@ -173,15 +174,7 @@ namespace UrbanLegendBureau.Systems
             if (!InvestigationAllowed) return;
             var device = UnityEngine.InputSystem.Pointer.current;
             if (device == null || !device.press.wasPressedThisFrame) return;
-
-            var events = UnityEngine.EventSystems.EventSystem.current;
-            if (events != null && events.IsPointerOverGameObject()) return;
-
-            var cam = Camera.main;
-            if (cam == null) return;
-            Vector2 screen = device.position.ReadValue();
-            if (!cam.pixelRect.Contains(screen)) return;
-            Vector2 world = cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 0f));
+            if (!TryPointerWorld(out var world)) return;
 
             var point = PointAt(world);
             if (point == null) return;
@@ -208,6 +201,43 @@ namespace UrbanLegendBureau.Systems
                     || UrbanLegendBureau.UI.FieldHudScreen.IsCutscene) return;
                 Investigated?.Invoke(point);
             });
+        }
+
+        /// <summary>마우스가 올라가 있는 조사 지점. 노란 외곽선이 둘러져 있다.</summary>
+        private InvestigationPoint _hovered;
+
+        /// <summary>마우스 아래의 조사 지점을 찾아 외곽선을 옮긴다. 화면 위 단추에 올라가 있거나 장면 밖이면 없다.</summary>
+        private void UpdateHover()
+        {
+            InvestigationPoint point = null;
+            if (InvestigationAllowed && TryPointerWorld(out var world)) point = PointAt(world);
+            SetHover(point);
+        }
+
+        private void SetHover(InvestigationPoint point)
+        {
+            if (_hovered == point) return;
+            if (_hovered != null) _hovered.SetHovered(false);
+            _hovered = point;
+            if (point != null) point.SetHovered(true);
+        }
+
+        /// <summary>마우스가 가리키는 장면 속 자리. 화면 위 단추에 올라가 있거나 장면 밖이면 false.</summary>
+        private static bool TryPointerWorld(out Vector2 world)
+        {
+            world = default;
+            var device = UnityEngine.InputSystem.Pointer.current;
+            if (device == null) return false;
+
+            var events = UnityEngine.EventSystems.EventSystem.current;
+            if (events != null && events.IsPointerOverGameObject()) return false;
+
+            var cam = Camera.main;
+            if (cam == null) return false;
+            Vector2 screen = device.position.ReadValue();
+            if (!cam.pixelRect.Contains(screen)) return false;
+            world = cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 0f));
+            return true;
         }
 
         /// <summary>그 자리에 있는 조사 지점. 켜져 있는 것만 본다.</summary>
@@ -293,6 +323,7 @@ namespace UrbanLegendBureau.Systems
 
         private void ClearNear()
         {
+            SetHover(null);
             if (NearPoint != null) NearPoint.SetHighlighted(false);
             NearPoint = null;
             if (_prompt != null) _prompt.Hide();

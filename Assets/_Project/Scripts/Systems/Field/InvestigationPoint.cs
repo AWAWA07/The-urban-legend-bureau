@@ -161,5 +161,130 @@ namespace UrbanLegendBureau.Systems
                 ? Color.Lerp(_pressedColor, _investigatedColor, 0.5f)
                 : _pressedColor;
         }
+        // ------------------------------------------------------- 마우스를 올렸을 때
+
+        [Header("마우스를 올렸을 때")]
+        [Tooltip("물건 모양을 따라 둘러지는 외곽선의 색. 가까이 보기 화면의 외곽선과 같다.")]
+        [SerializeField] private Color _outlineColor = new Color(1f, 0.86f, 0.25f, 1f);
+
+        [Tooltip("외곽선 두께(월드 단위).")]
+        [SerializeField] private float _outlineWidth = 0.05f;
+
+        private readonly List<SpriteRenderer> _outlines = new List<SpriteRenderer>();
+        private bool _outlinesBuilt;
+        private bool _hovered;
+
+        /// <summary>
+        /// 마우스를 올리면 물건 모양 그대로 노란 외곽선이 둘러진다. 내리면 사라진다.
+        /// 밝힐 그림마다 같은 모양을 조금 크게 만들어 그 뒤에 깐다. 처음 올렸을 때 한 번 만든다.
+        /// </summary>
+        public void SetHovered(bool on)
+        {
+            if (_hovered == on) return;
+            _hovered = on;
+            if (on) BuildOutlines();
+            foreach (var o in _outlines)
+                if (o != null) o.enabled = on;
+        }
+
+        /// <summary>네모 칸 둘레의 테두리 네 줄. 칸이 차지한 자리를 월드에서 재어 그린다.</summary>
+        private void BuildBoxOutline()
+        {
+            if (_renderer == null || _renderer.sprite == null) return;
+            var b = _renderer.bounds;
+            float w = _outlineWidth;
+            var edges = new[]
+            {
+                (new Vector2(b.center.x, b.max.y + w * 0.5f), new Vector2(b.size.x + w * 2f, w)),
+                (new Vector2(b.center.x, b.min.y - w * 0.5f), new Vector2(b.size.x + w * 2f, w)),
+                (new Vector2(b.min.x - w * 0.5f, b.center.y), new Vector2(w, b.size.y)),
+                (new Vector2(b.max.x + w * 0.5f, b.center.y), new Vector2(w, b.size.y)),
+            };
+            var unit = _renderer.sprite.bounds.size;
+            foreach (var (center, size) in edges)
+            {
+                var go = new GameObject("BoxOutline");
+                go.transform.SetParent(transform, true);
+                go.transform.position = new Vector3(center.x, center.y, transform.position.z);
+                go.transform.rotation = Quaternion.identity;
+                var parentScale = transform.lossyScale;
+                go.transform.localScale = new Vector3(size.x / unit.x / parentScale.x, size.y / unit.y / parentScale.y, 1f);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = _renderer.sprite;
+                sr.sortingLayerID = _renderer.sortingLayerID;
+                sr.sortingOrder = _renderer.sortingOrder + 1;
+                sr.color = _outlineColor;
+                sr.enabled = false;
+                _outlines.Add(sr);
+            }
+        }
+
+        private void BuildOutlines()
+        {
+            if (_outlinesBuilt) return;
+            _outlinesBuilt = true;
+
+            var targets = new List<SpriteRenderer>();
+            if (HasTargets) { foreach (var t in _highlightTargets) if (t != null) targets.Add(t); }
+            else
+            {
+                // 밝힐 그림이 따로 없는 지점은 네모 칸 둘레에 테두리만 두른다. 칸을 통째로 칠하면 장면이 가려진다.
+                BuildBoxOutline();
+                return;
+            }
+
+            // 외곽선은 같은 묶음(SortingGroup) 안에서 가장 뒤의 그림보다 한 칸 뒤에 둔다. 물건의 다른 조각을 덮지 않는다.
+            var lowest = new Dictionary<UnityEngine.Rendering.SortingGroup, int>();
+            var noGroup = int.MaxValue;
+            foreach (var t in targets)
+            {
+                var g = t.GetComponentInParent<UnityEngine.Rendering.SortingGroup>();
+                if (g == null) noGroup = Mathf.Min(noGroup, t.sortingOrder);
+                else lowest[g] = lowest.TryGetValue(g, out var v) ? Mathf.Min(v, t.sortingOrder) : t.sortingOrder;
+            }
+
+            foreach (var t in targets)
+            {
+                if (t.sprite == null) continue;
+                var g = t.GetComponentInParent<UnityEngine.Rendering.SortingGroup>();
+                int order = (g == null ? noGroup : lowest[g]) - 1;
+
+                var go = new GameObject(t.name + "_Outline");
+                go.transform.SetParent(t.transform.parent, false);
+                go.transform.localPosition = t.transform.localPosition;
+                go.transform.localRotation = t.transform.localRotation;
+                go.transform.localScale = t.transform.localScale;
+
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = t.sprite;
+                sr.drawMode = t.drawMode;
+                sr.flipX = t.flipX;
+                sr.flipY = t.flipY;
+                sr.maskInteraction = t.maskInteraction;
+                sr.sortingLayerID = t.sortingLayerID;
+                sr.sortingOrder = order;
+                sr.sharedMaterial = t.sharedMaterial;
+                sr.color = _outlineColor;
+
+                // 둘레만큼 키운다. 월드에서 잰 두께가 어느 그림이든 같도록 그림의 월드 크기로 나눈다.
+                var lossy = t.transform.lossyScale;
+                float sx = Mathf.Max(1e-4f, Mathf.Abs(lossy.x)), sy = Mathf.Max(1e-4f, Mathf.Abs(lossy.y));
+                if (t.drawMode != SpriteDrawMode.Simple)
+                {
+                    sr.size = t.size + new Vector2(_outlineWidth * 2f / sx, _outlineWidth * 2f / sy);
+                }
+                else
+                {
+                    var size = t.sprite.bounds.size;
+                    float wx = size.x * sx, wy = size.y * sy;
+                    var s = go.transform.localScale;
+                    go.transform.localScale = new Vector3(s.x * (wx + _outlineWidth * 2f) / Mathf.Max(1e-4f, wx),
+                        s.y * (wy + _outlineWidth * 2f) / Mathf.Max(1e-4f, wy), s.z);
+                }
+                sr.enabled = false;
+                _outlines.Add(sr);
+            }
+        }
+
     }
 }
