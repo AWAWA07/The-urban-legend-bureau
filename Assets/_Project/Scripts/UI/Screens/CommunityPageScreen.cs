@@ -217,12 +217,13 @@ namespace UrbanLegendBureau.UI
         private const string BoardBeliefName = "Text_Belief";
 
         /// <summary>
-        /// 아직 열 수 없는 글인가. 그런 글은 목록에서 살짝 회색으로 두고 오른쪽 끝에 자물쇠를 붙이며, 누를 수 없다.
+        /// 아직 열 수 없는 글인가. 그런 글은 목록에서 바탕과 글을 살짝 회색으로 두고 한가운데에 자물쇠를 붙이며, 누를 수 없다.
         /// 언제 풀리는지는 이야기 쪽(TutorialDirector)이 정한다. 비워 두면 모든 글이 열린다.
         /// </summary>
         public static Func<CommunityBoardEntry, bool> EntryLocked;
 
         private static readonly Color LockedTextColor = new Color(0.58f, 0.60f, 0.65f, 1f);
+        private static readonly Color LockedRowColor = new Color(0.90f, 0.91f, 0.93f, 1f);
         /// <summary>목록 줄의 곁가지(닉네임 / 조회 / 댓글 / 시간)를 제목보다 얼마나 작게 둘 것인가.</summary>
         private const int MetaSizePercent = 72;
 
@@ -1325,11 +1326,11 @@ namespace UrbanLegendBureau.UI
 
                 var lockIcon = item.transform.Find("Lock");
                 if (lockIcon != null) lockIcon.gameObject.SetActive(locked);
-                if (locked)
+                if (locked && item.targetGraphic != null)
                 {
-                    // 믿음도 숫자가 붙는 글이면 자물쇠 자리만큼 왼쪽으로 비킨다.
-                    var belief = item.transform.Find(BoardBeliefName) as RectTransform;
-                    if (belief != null) belief.anchoredPosition = new Vector2(-56f, belief.anchoredPosition.y);
+                    // 잠긴 글은 바탕도 옅은 회색이다. 누를 수 없으니 마우스에 따라 색이 바뀌지도 않는다.
+                    item.transition = Selectable.Transition.None;
+                    item.targetGraphic.color = LockedRowColor;
                 }
 
                 // 열 수 있는 줄은 마우스를 올리면 옅은 회색이 된다. 실제 게시판이 그렇다.

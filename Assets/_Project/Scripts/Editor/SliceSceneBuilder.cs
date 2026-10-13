@@ -2629,6 +2629,10 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(go.transform, "Backrest", new Vector2(0f, 160f), new Vector2(1640f, 250f), cushion);
             CloseupRect(go.transform, "Seat", new Vector2(0f, -40f), new Vector2(1720f, 170f), new Color(0.30f, 0.34f, 0.50f));
             CloseupRect(go.transform, "SeatFront", new Vector2(0f, -140f), new Vector2(1720f, 40f), cushionDark);
+            // 가운데 칸만 따로 한 번 더 깐다. 마우스를 올리면 이 칸 모양만 빛난다.
+            CloseupRect(go.transform, "MiddleBack", new Vector2(0f, 160f), new Vector2(554f, 250f), cushion);
+            CloseupRect(go.transform, "MiddleSeat", new Vector2(0f, -40f), new Vector2(554f, 170f), new Color(0.30f, 0.34f, 0.50f));
+            CloseupRect(go.transform, "MiddleFront", new Vector2(0f, -140f), new Vector2(554f, 40f), cushionDark);
             CloseupRect(go.transform, "Gap", new Vector2(0f, 38f), new Vector2(1640f, 16f), new Color(0.07f, 0.07f, 0.10f));
             foreach (float sx in new[] { -280f, 280f })
             {
@@ -2641,16 +2645,16 @@ namespace UrbanLegendBureau.EditorTools
             dent.transform.SetParent(go.transform, false);
             var dentRt = (RectTransform)dent.transform;
             dentRt.anchorMin = dentRt.anchorMax = new Vector2(0.5f, 0.5f);
-            dentRt.anchoredPosition = new Vector2(0f, -30f);
-            dentRt.sizeDelta = new Vector2(380f, 120f);
-            var dentShadow = CloseupRect(dent.transform, "Shadow", Vector2.zero, new Vector2(380f, 120f), new Color(0f, 0f, 0f, 0.42f));
-            dentShadow.sprite = FieldSoftSprite();
-            dentShadow.type = Image.Type.Simple;
-            var dentRim = CloseupRect(dent.transform, "Rim", new Vector2(0f, -46f), new Vector2(420f, 40f), new Color(1f, 1f, 1f, 0.08f));
-            dentRim.sprite = FieldSoftSprite();
-            dentRim.type = Image.Type.Simple;
-            var dentButton = CloseupHotspot(go.transform, "Hotspot_Dent", new Vector2(0f, -30f), new Vector2(420f, 150f));
-            AttachGlow(dentButton, dentShadow.gameObject);
+            dentRt.anchoredPosition = new Vector2(0f, -38f);
+            dentRt.sizeDelta = new Vector2(540f, 198f);
+            // 두 쪽으로 오목한 그늘, 앞 가장자리의 옅은 빛, 가장자리에서 당겨진 주름을 한 장에 그렸다.
+            var dentArt = CloseupRect(dent.transform, "Art", Vector2.zero, new Vector2(540f, 198f), Color.white);
+            dentArt.sprite = LoadCrispSprite(CloseupArtPath + "seat_dent.png");
+            dentArt.type = Image.Type.Simple;
+            // 가운데 한 칸(등받이, 방석, 앞면)이 누르는 자리다. 그 칸 어디를 눌러도 빈자리를 살핀다.
+            var dentButton = CloseupHotspot(go.transform, "Hotspot_Dent", new Vector2(0f, 60f), new Vector2(550f, 400f));
+            dentButton.transform.SetSiblingIndex(dent.transform.GetSiblingIndex() + 1);
+            AttachGlow(dentButton, go.transform.Find("MiddleBack").gameObject, go.transform.Find("MiddleSeat").gameObject, go.transform.Find("MiddleFront").gameObject);
 
             // 승차권. 등받이와 방석 틈에 비스듬히 끼어 있다.
             var ticket = CloseupRect(go.transform, "Ticket", new Vector2(-470f, 52f), new Vector2(130f, 62f), new Color(0.88f, 0.86f, 0.78f));
@@ -2660,21 +2664,14 @@ namespace UrbanLegendBureau.EditorTools
             var ticketButton = CloseupHotspot(go.transform, "Hotspot_Ticket", new Vector2(-470f, 52f), new Vector2(170f, 110f));
             AttachGlow(ticketButton, ticket.gameObject);
 
-            // 머리카락. 오른쪽 칸 방석 위에 길고 검은 것 한 올이 굽이져 놓여 있다.
-            var hair = new GameObject("Hair", typeof(RectTransform));
-            hair.transform.SetParent(go.transform, false);
-            var hairRt = (RectTransform)hair.transform;
-            hairRt.anchorMin = hairRt.anchorMax = new Vector2(0.5f, 0.5f);
-            hairRt.anchoredPosition = new Vector2(470f, -40f);
-            hairRt.sizeDelta = Vector2.zero;
-            float[][] strands = { new[] { -90f, 10f, 70f, 8f }, new[] { -28f, 2f, 60f, -14f }, new[] { 28f, 6f, 60f, 18f }, new[] { 86f, 18f, 60f, -6f }, new[] { 138f, 6f, 50f, -30f } };
-            foreach (var s in strands)
-            {
-                var strand = CloseupRect(hair.transform, "Strand", new Vector2(s[0], s[1]), new Vector2(s[2], 3f), new Color(0.04f, 0.04f, 0.05f));
-                strand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, s[3]);
-            }
-            var hairButton = CloseupHotspot(go.transform, "Hotspot_Hair", new Vector2(490f, -34f), new Vector2(320f, 90f));
-            AttachGlow(hairButton, hair);
+            // 머리카락. 오른쪽 칸 방석 위에 길고 검은 것 한 올이 부드럽게 굽이져 놓여 있다. 끝으로 갈수록 가늘다.
+            // 그림은 흰 선이라 색을 입혀 검게 둔다. 마우스를 올리면 하얗게 밝아진다(HotspotGlow).
+            var hair = CloseupRect(go.transform, "Hair", new Vector2(480f, -40f), new Vector2(420f, 117f), new Color(0.05f, 0.05f, 0.06f, 1f));
+            hair.sprite = LoadCrispSprite(CloseupArtPath + "line_hair.png");
+            hair.type = Image.Type.Simple;
+            hair.preserveAspect = true;
+            var hairButton = CloseupHotspot(go.transform, "Hotspot_Hair", new Vector2(480f, -40f), new Vector2(420f, 110f));
+            AttachGlow(hairButton, hair.gameObject);
 
             FinishCloseup(go, screen, "field.subway.seat_close.hint",
                 new[] { dentButton, ticketButton, hairButton },
@@ -4611,14 +4608,14 @@ namespace UrbanLegendBureau.EditorTools
             btRule.AddComponent<LayoutElement>().ignoreLayout = true;
             AddCrisp(btRule, 1f);
 
-            // 아직 열 수 없는 글의 자물쇠. 오른쪽 끝에 작게 붙는다. 잠긴 글에만 켠다(CommunityPageScreen.EntryLocked).
+            // 아직 열 수 없는 글의 자물쇠. 줄 한가운데에 붙는다. 잠긴 글에만 켠다(CommunityPageScreen.EntryLocked).
             var btLock = new GameObject("Lock", typeof(RectTransform));
             btLock.transform.SetParent(boardTemplate.transform, false);
             btLock.AddComponent<LayoutElement>().ignoreLayout = true;
             var btLockRt = (RectTransform)btLock.transform;
-            btLockRt.anchorMin = btLockRt.anchorMax = new Vector2(1f, 0.5f);
-            btLockRt.pivot = new Vector2(1f, 0.5f);
-            btLockRt.anchoredPosition = new Vector2(-20f, 4f);
+            btLockRt.anchorMin = btLockRt.anchorMax = new Vector2(0.5f, 0.5f);   // 줄 한가운데
+            btLockRt.pivot = new Vector2(0.5f, 0.5f);
+            btLockRt.anchoredPosition = new Vector2(0f, 4f);
             btLockRt.sizeDelta = new Vector2(24f, 30f);
             var lockColor = new Color(0.55f, 0.57f, 0.62f, 1f);
             CloseupRect(btLock.transform, "ShackleL", new Vector2(-6f, 6f), new Vector2(3f, 12f), lockColor);

@@ -73,7 +73,8 @@ namespace UrbanLegendBureau.UI
 
                 if (_glowColor.a > 0f)
                     foreach (var e in entries) e.glow = MakeCopy(e.source, _glowWidth, _glowColor, index++);
-                foreach (var e in entries) e.outline = MakeCopy(e.source, _outlineWidth, _outlineColor, index++);
+                foreach (var e in entries)
+                    if (!IsDrawnLine(e.source)) e.outline = MakeCopy(e.source, _outlineWidth, _outlineColor, index++);
                 _entries.AddRange(entries);
             }
         }
@@ -104,8 +105,15 @@ namespace UrbanLegendBureau.UI
             return go;
         }
 
+        /// <summary>그림으로 그린 가는 선(머리카락 같은 것). 키운 사본이 선과 어긋나 외곽선을 두르지 않고 하얗게만 밝힌다. 그림 이름이 line_ 으로 시작한다.</summary>
+        private static bool IsDrawnLine(Image image)
+        {
+            return image.sprite != null && image.sprite.name.StartsWith("line_");
+        }
+
         private static bool IsLine(Image image)
         {
+            if (IsDrawnLine(image)) return true;
             var size = image.rectTransform.sizeDelta;
             return Mathf.Min(size.x, size.y) <= 8f;
         }
