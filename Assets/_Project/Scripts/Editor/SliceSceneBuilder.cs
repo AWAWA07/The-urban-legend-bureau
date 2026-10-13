@@ -119,8 +119,9 @@ namespace UrbanLegendBureau.EditorTools
             //   빈자리 - 왼쪽 긴 의자의 한 칸.
             //   창문   - 오른쪽 긴 의자 위의 창.
             //   CCTV   - 왼쪽 위 천장 모서리.
-            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(5.0f, -1.95f),
-                new Vector2(4.6f / 3f, 3.1f), new Color(0.32f, 0.36f, 0.48f),
+            // 빈자리 칸은 창 바로 아래부터 바닥까지다. 윗변을 창틀(아랫변 -0.45)보다 조금 아래(-0.64)에 두어 두 테두리가 겹치지 않게 한다.
+            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(5.0f, -2.07f),
+                new Vector2(4.6f / 3f, 2.86f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
             var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
                 new Vector2(4.4f, 2.2f), new Color(0.26f, 0.42f, 0.46f),

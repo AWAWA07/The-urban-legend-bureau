@@ -226,7 +226,8 @@ namespace UrbanLegendBureau.Systems
                 (new Vector2(b.min.x - w * 0.5f, b.center.y), new Vector2(w, b.size.y)),
                 (new Vector2(b.max.x + w * 0.5f, b.center.y), new Vector2(w, b.size.y)),
             };
-            var unit = _renderer.sprite.bounds.size;
+            // 둥근 모서리 그림을 가늘게 늘이면 줄 끝이 뾰족해져 모서리가 비어 보인다. 반듯한 네모(한 변 1)를 쓴다.
+            var unit = Vector3.one;
             foreach (var (center, size) in edges)
             {
                 var go = new GameObject("BoxOutline");
@@ -236,7 +237,7 @@ namespace UrbanLegendBureau.Systems
                 var parentScale = transform.lossyScale;
                 go.transform.localScale = new Vector3(size.x / unit.x / parentScale.x, size.y / unit.y / parentScale.y, 1f);
                 var sr = go.AddComponent<SpriteRenderer>();
-                sr.sprite = _renderer.sprite;
+                sr.sprite = SquareSprite();
                 sr.sortingLayerID = _renderer.sortingLayerID;
                 sr.sortingOrder = _renderer.sortingOrder + 1;
                 sr.color = _outlineColor;
