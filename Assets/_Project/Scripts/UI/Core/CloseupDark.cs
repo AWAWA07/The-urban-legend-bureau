@@ -77,7 +77,13 @@ namespace UrbanLegendBureau.UI
             var canvas = GetComponentInParent<Canvas>();
             var cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
             if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, pointer.position.ReadValue(), cam, out var local))
+            {
+                // 마우스가 화면 밖(창 바깥)에 있으면 판이 엉뚱한 곳으로 가 화면 한쪽이 그대로 드러난다. 화면 안으로 붙잡아 둔다.
+                var r = parent.rect;
+                local.x = Mathf.Clamp(local.x, r.xMin, r.xMax);
+                local.y = Mathf.Clamp(local.y, r.yMin, r.yMax);
                 _rect.localPosition = local;
+            }
         }
     }
 }

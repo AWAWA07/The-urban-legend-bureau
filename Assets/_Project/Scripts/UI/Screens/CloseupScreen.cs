@@ -60,10 +60,14 @@ namespace UrbanLegendBureau.UI
         [Tooltip("정전 뒤에 덮는 어둠. 마우스를 따라가는 휴대폰 라이트 자리만 조금 보인다(CloseupDark). 평소에는 꺼 둔다.")]
         [SerializeField] private GameObject _dark;
 
+        [Tooltip("어둠이 덮였을 때만 켜는 것. 어둠 위에서 빛나야 하는 것(CCTV 전원 불)을 어둠 앞에 따로 그려 둔다.")]
+        [SerializeField] private GameObject[] _darkOnly = new GameObject[0];
+
         /// <summary>정전 뒤인가. 켜면 화면이 현장처럼 깜깜하고 라이트 둘레만 보인다.</summary>
         public void SetDark(bool on)
         {
             if (_dark != null) _dark.SetActive(on);
+            foreach (var g in _darkOnly) if (g != null) g.SetActive(on);
         }
 
         /// <summary>돌아가기를 눌렀다. 화면 스택을 아는 쪽이 닫는다.</summary>

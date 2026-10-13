@@ -2920,6 +2920,33 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "field.subway.cctv_close.scratch", "field.subway.cctv_close.battery" },
                 new[] { null, batteryLid.gameObject }, new[] { null, batteryOpen },
                 actionIds: new[] { null, "action_subway_cctv_inspect" });   // 배터리 칸을 열어 보는 것이 CCTV 기록을 확인하는 일이다
+
+            // 정전 뒤 어둠 속에서도 빨간 전원 불은 빛난다. 몸통과 같은 자리·기울기로 어둠 앞에 불과 빛만 따로 그려 둔다(어둠이 덮일 때만 켠다).
+            var darkCover = go.transform.Find("Dark");
+            var headEcho = new GameObject("RecLightOverDark", typeof(RectTransform));
+            headEcho.transform.SetParent(go.transform, false);
+            headEcho.transform.SetSiblingIndex(darkCover.GetSiblingIndex() + 1);
+            var headEchoRt = (RectTransform)headEcho.transform;
+            headEchoRt.anchorMin = headEchoRt.anchorMax = headRt.anchorMin;
+            headEchoRt.sizeDelta = Vector2.zero;
+            headEchoRt.anchoredPosition = headRt.anchoredPosition;
+            headEchoRt.localRotation = headRt.localRotation;
+            var echoGlow = CloseupRect(headEcho.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(190f, 190f), new Color(1f, 0.12f, 0.08f, 0.7f));
+            echoGlow.sprite = FieldSoftSprite();
+            echoGlow.type = Image.Type.Simple;
+            var echoLight = CloseupRect(headEcho.transform, "RecLight", new Vector2(80f, -30f), new Vector2(46f, 46f), new Color(1f, 0.3f, 0.24f));
+            echoLight.sprite = RoundSprite();
+            echoLight.type = Image.Type.Simple;
+            var echoShine = CloseupRect(echoLight.transform, "Shine", new Vector2(-8f, 8f), new Vector2(14f, 14f), new Color(1f, 0.8f, 0.75f, 0.85f));
+            echoShine.sprite = RoundSprite();
+            echoShine.type = Image.Type.Simple;
+            headEcho.SetActive(false);
+            var cso = new SerializedObject(screen);
+            cso.Update();
+            var darkOnly = cso.FindProperty("_darkOnly");
+            darkOnly.arraySize = 1;
+            darkOnly.GetArrayElementAtIndex(0).objectReferenceValue = headEcho;
+            cso.ApplyModifiedPropertiesWithoutUndo();
             return screen;
         }
 

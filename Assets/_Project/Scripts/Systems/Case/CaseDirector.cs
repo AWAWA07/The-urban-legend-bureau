@@ -2055,6 +2055,7 @@ namespace UrbanLegendBureau.Systems
             {
                 Sfx.Play("door_bang");
                 if (door != null) StartCoroutine(ShakeDoor(door));
+                if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
                 yield return new WaitForSeconds(gaps[i]);
             }
@@ -2071,6 +2072,45 @@ namespace UrbanLegendBureau.Systems
             foreach (var p in FindObjectsByType<InvestigationPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
                 if (p != null && p.PointId == DoorPointId) return p;
             return null;
+        }
+
+        /// <summary>
+        /// 문이 처음 울린 순간의 반응. 두 사람이 문 쪽으로 홱 돌아본다.
+        /// 차지한은 화들짝 놀라 움찔 뛰고, 한영은 귀신을 무서워하지 않아 돌아보기만 한다.
+        /// </summary>
+        private System.Collections.IEnumerator ReactToDoor(Transform door)
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            if (root == null || door == null) yield break;
+            var walkers = root.GetComponentsInChildren<FieldWalker>();
+            var followers = root.GetComponentsInChildren<FieldFollower>();
+            var all = new List<Transform>();
+            foreach (var w in walkers) all.Add(w.transform);
+            foreach (var f in followers) all.Add(f.transform);
+            foreach (var a in all)
+            {
+                var s = a.localScale;
+                s.x = Mathf.Abs(s.x) * (door.position.x < a.position.x ? -1f : 1f);
+                a.localScale = s;
+            }
+
+            // 차지한만 뛴다. 한 번 크게, 이어서 작게 한 번 더 움찔한다.
+            foreach (var w in walkers)
+            {
+                var t = w.transform;
+                var home = t.localPosition;
+                foreach (float hop in new[] { 0.36f, 0.12f })
+                {
+                    const float Seconds = 0.24f;
+                    for (float e = 0f; e < Seconds; e += Time.deltaTime)
+                    {
+                        float k = e / Seconds;
+                        t.localPosition = home + new Vector3(0f, hop * 4f * k * (1f - k), 0f);
+                        yield return null;
+                    }
+                    t.localPosition = home;
+                }
+            }
         }
 
         /// <summary>지금 켜진 현장에서 그 이름의 켜져 있는 것.</summary>
