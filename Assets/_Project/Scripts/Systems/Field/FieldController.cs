@@ -184,12 +184,25 @@ namespace UrbanLegendBureau.Systems
         /// <summary>마우스가 올라가 있는 조사 지점. 노란 외곽선이 둘러져 있다.</summary>
         private InvestigationPoint _hovered;
 
+        /// <summary>지금 노란 외곽선을 두른 지점들. 겹친 곳 앞에 서면 둘 다 두른다.</summary>
+        private readonly List<InvestigationPoint> _outlined = new List<InvestigationPoint>();
+
+        /// <summary>
+        /// 그 지점에 노란 외곽선을 두른다. 걸어가 선 자리에 겹친 곳들(창문과 그 아래 빈자리)이 있고 그 가운데 하나면 모두 두른다.
+        /// </summary>
         private void SetHover(InvestigationPoint point)
         {
-            if (_hovered == point) return;
-            if (_hovered != null) _hovered.SetHovered(false);
             _hovered = point;
-            if (point != null) point.SetHovered(true);
+            var want = new List<InvestigationPoint>();
+            if (point != null)
+            {
+                if (_nearTies.Count > 1 && _nearTies.Contains(point)) want.AddRange(_nearTies);
+                else want.Add(point);
+            }
+            foreach (var p in _outlined) if (p != null && !want.Contains(p)) p.SetHovered(false);
+            foreach (var p in want) p.SetHovered(true);
+            _outlined.Clear();
+            _outlined.AddRange(want);
         }
 
         /// <summary>마우스가 가리키는 장면 속 자리. 화면 위 단추에 올라가 있거나 장면 밖이면 false.</summary>
