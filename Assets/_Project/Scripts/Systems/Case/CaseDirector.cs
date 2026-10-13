@@ -1442,14 +1442,39 @@ namespace UrbanLegendBureau.Systems
         private const string SitYesTextId = "field.subway.sit.yes";
         private const string SitNoTextId = "field.subway.sit.no";
 
-        /// <summary>앉은 모습 일러스트(Resources 기준). 없으면 검은 화면에 그림 자리라고 적는다.</summary>
-        private const string SitIllustrationPath = "Illustrations/subway_sit";
         private const string SitPlaceholderTextId = "field.subway.sit.placeholder";
 
-        private static readonly string[] SitTextIds =
-            { "field.subway.sit.001", "field.subway.sit.002", "field.subway.sit.003", "field.subway.sit.004" };
-        private static readonly string[] SitSpeakers =
-            { FieldSpeakerTextId, HanyoungNameTextId, FieldSpeakerTextId, HanyoungNameTextId };
+        /// <summary>
+        /// 앉아 본 뒤의 대사. 한 줄마다 {대사 글 ID, 말하는 사람, 그때 띄울 일러스트(Resources/Illustrations/subway_sit_ 뒤 이름)}.
+        /// 정면에서 눈 뜸 → 눈 감음 → 비스듬히 눈 감음 → 눈 뜸 → 옆자리를 힐끗 봄. 괄호로 적은 줄은 차지한의 속마음이다.
+        /// 없는 그림은 검은 화면에 그림 자리라고 적는다.
+        /// </summary>
+        private static readonly string[][] SitScript =
+        {
+            new[] { "field.subway.sit.001", FieldSpeakerTextId, "front_open" },
+            new[] { "field.subway.sit.002", HanyoungNameTextId, "front_open" },
+            new[] { "field.subway.sit.003", FieldSpeakerTextId, "front_open" },
+            new[] { "field.subway.sit.004", HanyoungNameTextId, "front_closed" },
+            new[] { "field.subway.sit.005", FieldSpeakerTextId, "front_closed" },
+            new[] { "field.subway.sit.006", FieldSpeakerTextId, "angle_closed" },
+            new[] { "field.subway.sit.007", FieldSpeakerTextId, "angle_closed" },
+            new[] { "field.subway.sit.008", FieldSpeakerTextId, "angle_closed" },
+            new[] { "field.subway.sit.009", FieldSpeakerTextId, "angle_closed" },
+            new[] { "field.subway.sit.010", HanyoungNameTextId, "angle_closed" },
+            new[] { "field.subway.sit.011", HanyoungNameTextId, "angle_open" },
+            new[] { "field.subway.sit.012", HanyoungNameTextId, "angle_open" },
+            new[] { "field.subway.sit.013", FieldSpeakerTextId, "angle_open" },
+            new[] { "field.subway.sit.014", FieldSpeakerTextId, "angle_open" },
+            new[] { "field.subway.sit.015", FieldSpeakerTextId, "angle_side" },
+            new[] { "field.subway.sit.016", HanyoungNameTextId, "angle_side" },
+        };
+
+        private static string[] SitColumn(int column)
+        {
+            var list = new string[SitScript.Length];
+            for (int i = 0; i < SitScript.Length; i++) list[i] = SitScript[i][column];
+            return list;
+        }
 
         /// <summary>다 살피고 현장으로 돌아오면 한영이 빈자리에 직접 앉아 보라고 한다. 차지한은 마지못해 따른다.</summary>
         private void PlaySitReady()
@@ -1484,16 +1509,21 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void PlaySit(CloseupScreen screen)
         {
-            var sprite = Resources.Load<Sprite>(SitIllustrationPath);
-            screen.ShowIllustration(sprite, _loc.Get(SitPlaceholderTextId));
-            Debug.Log("[CaseDirector] 차지한이 빈자리에 앉는다" + (sprite == null ? " | 일러스트 없음(Resources/" + SitIllustrationPath + ")" : string.Empty));
-            screen.Talk(SitSpeakers, SitTextIds, () =>
+            Debug.Log("[CaseDirector] 차지한이 빈자리에 앉는다");
+            screen.Talk(SitColumn(1), SitColumn(0), () =>
             {
                 screen.HideIllustration();
                 _sitStage = SitStage.Done;
                 if (!IsAfterTerminus()) GameClock.SetExactly(TerminusMinutesOfDay / 60, TerminusMinutesOfDay % 60);
                 PushStatus();
                 screen.Closed?.Invoke();   // 현장으로 돌아가면 종점 알림이 뜬다
+            }, line =>
+            {
+                // 대사 한 줄마다 그 줄의 그림으로 바꾼다.
+                string path = "Illustrations/subway_sit_" + SitScript[Mathf.Min(line, SitScript.Length - 1)][2];
+                var sprite = Resources.Load<Sprite>(path);
+                if (sprite == null) Debug.LogWarning("[CaseDirector] 앉은 모습 일러스트 없음 | Resources/" + path);
+                screen.ShowIllustration(sprite, _loc.Get(SitPlaceholderTextId));
             });
         }
 

@@ -360,10 +360,22 @@ field.subway.sit.ask	진짜 이 자리에 앉을까요?	Am I really sitting in t
 field.subway.sit.yes	앉는다	Sit down	선택지
 field.subway.sit.no	조금만 더 생각해 보자	Let me think a bit more	선택지
 field.subway.sit.placeholder	(차지한이 빈자리에 앉은 일러스트 자리)	(Illustration: Chajihan sitting in the empty seat)	일러스트를 넣기 전 임시
-field.subway.sit.001	……앉았어요.	...I'm sitting.	차지한. 일러스트 위
-field.subway.sit.002	어때?	Well?	한영. 차분하게
-field.subway.sit.003	…방석이, 따뜻해요. 방금까지 누가 앉아 있던 것처럼.	...The cushion's warm. Like someone was sitting here just now.	차지한
-field.subway.sit.004	그래. 그거면 됐어.	Right. That's enough.	한영
+field.subway.sit.001	……앉았어요.	...I'm sitting.	차지한. 정면, 눈 뜸
+field.subway.sit.002	어때. 뭐 느껴지는 거 있어?	Well? Feel anything?	한영. 차분하게
+field.subway.sit.003	아직은… 그냥 의자예요. 조금 미지근한 거 말고는.	Not yet... It's just a seat. A little lukewarm, that's all.	차지한
+field.subway.sit.004	눈 감고, 가만히 있어 봐. 숨도 천천히.	Close your eyes. Stay still. Breathe slowly.	한영. 정면, 눈 감음
+field.subway.sit.005	(……열차 소리만 들린다. 덜컹, 덜컹.)	(...Only the sound of the train. Clack, clack.)	차지한 속마음
+field.subway.sit.006	(……엉덩이 밑이, 점점 따뜻해진다.)	(...The seat under me is slowly getting warmer.)	차지한 속마음. 비스듬히, 눈 감음
+field.subway.sit.007	(……옆에서, 인기척이 느껴진다.)	(...I can feel someone beside me.)	차지한 속마음
+field.subway.sit.008	(누군가 바로 옆자리에 앉는 것처럼, 방석이 살짝 꺼진다.)	(The cushion sinks a little, as if someone just sat down right next to me.)	차지한 속마음
+field.subway.sit.009	저, 저기… 인기척 안 느껴져요? 지금 제 옆에 누구 있는 거 아니에요?	H-hey... Don't you feel that? Isn't someone sitting right next to me?	차지한. 눈 감은 채
+field.subway.sit.010	없어.	No one's there.	한영. 담담하게
+field.subway.sit.011	이제 눈 떠.	Open your eyes now.	한영. 비스듬히, 눈 뜸
+field.subway.sit.012	그리고 옆을 봐.	And look beside you.	한영
+field.subway.sit.013	…….	......	차지한. 망설임
+field.subway.sit.014	(보고 싶지 않다. 그래도…)	(I don't want to look. But...)	차지한 속마음
+field.subway.sit.015	……아무것도, 없네요.	...There's nothing there.	차지한. 옆자리를 봄
+field.subway.sit.016	그래. 일어나. 다 됐어.	Right. Get up. We're done.	한영
 field.subway.cctv_look.001	CCTV가 부자연스럽게 돌아가있네요.	The camera's turned at an odd angle.	CCTV 를 처음 눌렀을 때. 차지한
 field.subway.cctv_look.002	그러게? 누군가 못 찍게 하려한거 처럼..	Right? Like someone didn't want it filming..	한영
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후

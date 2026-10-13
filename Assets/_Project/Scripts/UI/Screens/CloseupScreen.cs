@@ -84,6 +84,7 @@ namespace UrbanLegendBureau.UI
         private string[] _talkLines;
         private int _talkIndex;
         private Action _talkDone;
+        private Action<int> _talkOnLine;   // 한 줄을 띄울 때마다 그 번호로 부른다(그림 바꾸기 같은 것)
 
         protected override void Awake()
         {
@@ -176,8 +177,9 @@ namespace UrbanLegendBureau.UI
         /// 말을 차례로 띄운다. speakers 는 말하는 사람 이름 글 ID, lines 는 대사 글 ID 다.
         /// 화면 어디를 눌러도 다음 말로 넘어가고, 다 끝나면 이름표를 '조사' 로 되돌리고 done 을 부른다.
         /// </summary>
-        public void Talk(string[] speakers, string[] lines, Action done)
+        public void Talk(string[] speakers, string[] lines, Action done, Action<int> onLine = null)
         {
+            _talkOnLine = onLine;
             _talkSpeakers = speakers;
             _talkLines = lines;
             _talkIndex = -1;
@@ -209,6 +211,7 @@ namespace UrbanLegendBureau.UI
             }
             SetTab(_talkSpeakers[_talkIndex]);
             ShowLine(_talkLines[_talkIndex]);
+            _talkOnLine?.Invoke(_talkIndex);
         }
 
         private void OnSpot(int index)
@@ -317,8 +320,12 @@ namespace UrbanLegendBureau.UI
             }
 
             // 띠와 이름표, 넘기는 판보다 뒤, 나머지 모든 것보다 앞.
+            // 이미 떠 있으면 다음 그림으로 곧장 바꾼다(장면이 끊어 넘어가듯). 처음 뜰 때만 서서히 떠오른다.
+            bool shown = _illustration.gameObject.activeSelf;
             var bandRoot = _lineText != null ? _lineText.transform.parent : null;
-            _illustration.transform.SetSiblingIndex(bandRoot != null ? bandRoot.GetSiblingIndex() : transform.childCount - 1);
+            // 그림이 띠보다 뒤에 있을 때만 옮긴다. 이미 앞에 있는 것을 띠 자리로 옮기면 하나씩 밀려 띠 뒤로 가 버린다.
+            int bandIndex = bandRoot != null ? bandRoot.GetSiblingIndex() : transform.childCount - 1;
+            if (_illustration.transform.GetSiblingIndex() > bandIndex) _illustration.transform.SetSiblingIndex(bandIndex);
 
             _illustration.sprite = sprite;
             _illustration.color = sprite != null ? Color.white : Color.black;
@@ -327,6 +334,7 @@ namespace UrbanLegendBureau.UI
             holder.text = sprite != null ? string.Empty : placeholder;
             _illustration.gameObject.SetActive(true);
             if (_closeButton != null) _closeButton.gameObject.SetActive(false);   // 그림 위로 돌아가기가 뜨지 않게
+            if (shown) return;
             foreach (var g in _illustration.GetComponentsInChildren<Graphic>(true))
             {
                 g.canvasRenderer.SetAlpha(0f);
