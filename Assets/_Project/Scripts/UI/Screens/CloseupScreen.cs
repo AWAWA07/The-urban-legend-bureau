@@ -213,6 +213,8 @@ namespace UrbanLegendBureau.UI
 
         private void OnSpot(int index)
         {
+            // 부르는 쪽이 이 누름을 가로채면(앉아 보기를 묻는 것 같은) 평소처럼 살피지 않는다.
+            if (SpotIntercept != null && SpotIntercept(index)) return;
             var spot = _spots[index];
             if (spot.hideOnCheck != null) spot.hideOnCheck.SetActive(false);
             if (spot.showOnCheck != null) spot.showOnCheck.SetActive(true);
@@ -222,6 +224,121 @@ namespace UrbanLegendBureau.UI
                 SpotIndexChecked?.Invoke(index);
                 SpotChecked?.Invoke(_checked.Count);
             }
+        }
+
+        // ------------------------------------------------------------- 묻기와 그림
+
+        /// <summary>
+        /// 살필 곳을 눌렀을 때 먼저 묻는다. true 를 돌려주면 그 누름은 여기서 끝나고 평소처럼 살피지 않는다.
+        /// 다 살핀 뒤 같은 자리를 다시 눌러 다른 일(직접 앉아 보기)을 하게 할 때 쓴다.
+        /// </summary>
+        public Func<int, bool> SpotIntercept;
+
+        private readonly List<GameObject> _choices = new List<GameObject>();
+        private Image _illustration;
+
+        /// <summary>
+        /// 띠에 물음을 띄우고 고를 것을 띠 오른쪽에 세로로 세운다. 고르는 동안에는 살필 곳도 돌아가기도 눌리지 않는다.
+        /// 고르면 이름표를 '조사' 로 되돌리고 onPick 에 고른 번호를 넘긴다.
+        /// 단추는 돌아가기 단추를 본떠 만든다. 모양과 글꼴이 화면의 다른 단추와 같다.
+        /// </summary>
+        public void Ask(string speakerTextId, string questionTextId, string[] optionTextIds, Action<int> onPick)
+        {
+            ClearChoices();
+            SetTab(speakerTextId);
+            ShowLine(questionTextId);
+            SetInteractable(false);
+            if (_closeButton == null || optionTextIds == null) return;
+
+            var band = _lineText != null ? _lineText.transform.parent : transform;
+            for (int i = 0; i < optionTextIds.Length; i++)
+            {
+                var go = Instantiate(_closeButton.gameObject, band);
+                go.name = "Choice_" + i;
+                foreach (var localized in go.GetComponentsInChildren<LocalizedText>(true)) DestroyImmediate(localized);
+                var label = go.GetComponentInChildren<TMP_Text>(true);
+                if (label != null) label.text = Get(optionTextIds[i]);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = rt.anchorMax = new Vector2(1f, 0.5f);
+                rt.pivot = new Vector2(1f, 0.5f);
+                rt.sizeDelta = new Vector2(380f, rt.sizeDelta.y);
+                float gap = rt.sizeDelta.y + 16f;
+                rt.anchoredPosition = new Vector2(-120f, ((optionTextIds.Length - 1) * 0.5f - i) * gap);
+                var button = go.GetComponent<Button>();
+                button.interactable = true;
+                button.onClick.RemoveAllListeners();
+                int picked = i;
+                button.onClick.AddListener(() =>
+                {
+                    ClearChoices();
+                    SetTab(_tabTextId);
+                    if (_lineText != null) _lineText.text = string.Empty;
+                    SetInteractable(true);
+                    onPick?.Invoke(picked);
+                });
+                _choices.Add(go);
+            }
+        }
+
+        private void ClearChoices()
+        {
+            foreach (var c in _choices) if (c != null) Destroy(c);
+            _choices.Clear();
+        }
+
+        /// <summary>
+        /// 화면 전체에 그림 한 장을 깐다. 아래 띠와 이름표는 그 위에 남아 말을 이어 갈 수 있다. 서서히 떠오른다.
+        /// 그림이 없으면 검은 판에 그림 자리라고만 적는다(그림을 넣기 전에도 흐름은 돈다).
+        /// </summary>
+        public void ShowIllustration(Sprite sprite, string placeholder)
+        {
+            if (_illustration == null)
+            {
+                var go = new GameObject("Illustration", typeof(RectTransform), typeof(Image));
+                go.transform.SetParent(transform, false);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = Vector2.zero;
+                rt.anchorMax = Vector2.one;
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                _illustration = go.GetComponent<Image>();
+                _illustration.raycastTarget = false;
+
+                var text = new GameObject("Placeholder", typeof(RectTransform), typeof(TextMeshProUGUI));
+                text.transform.SetParent(go.transform, false);
+                var trt = (RectTransform)text.transform;
+                trt.anchorMin = trt.anchorMax = new Vector2(0.5f, 0.62f);
+                trt.sizeDelta = new Vector2(1400f, 200f);
+                var tmp = text.GetComponent<TextMeshProUGUI>();
+                if (_lineText != null) tmp.font = _lineText.font;
+                tmp.fontSize = 40f;
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.color = new Color(1f, 1f, 1f, 0.35f);
+                tmp.raycastTarget = false;
+            }
+
+            // 띠와 이름표, 넘기는 판보다 뒤, 나머지 모든 것보다 앞.
+            var bandRoot = _lineText != null ? _lineText.transform.parent : null;
+            _illustration.transform.SetSiblingIndex(bandRoot != null ? bandRoot.GetSiblingIndex() : transform.childCount - 1);
+
+            _illustration.sprite = sprite;
+            _illustration.color = sprite != null ? Color.white : Color.black;
+            _illustration.preserveAspect = false;
+            var holder = _illustration.GetComponentInChildren<TMP_Text>(true);
+            holder.text = sprite != null ? string.Empty : placeholder;
+            _illustration.gameObject.SetActive(true);
+            if (_closeButton != null) _closeButton.gameObject.SetActive(false);   // 그림 위로 돌아가기가 뜨지 않게
+            foreach (var g in _illustration.GetComponentsInChildren<Graphic>(true))
+            {
+                g.canvasRenderer.SetAlpha(0f);
+                g.CrossFadeAlpha(1f, 0.8f, true);
+            }
+        }
+
+        /// <summary>깔았던 그림을 거둔다.</summary>
+        public void HideIllustration()
+        {
+            if (_illustration != null) _illustration.gameObject.SetActive(false);
+            if (_closeButton != null) _closeButton.gameObject.SetActive(true);
         }
 
         private void ShowLine(string id)

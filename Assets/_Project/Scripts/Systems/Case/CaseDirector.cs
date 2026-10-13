@@ -280,6 +280,7 @@ namespace UrbanLegendBureau.Systems
             _cctvTurned = false;
             _windowGhostShown = false;
             _intercomUsed = false;
+            _sitStage = SitStage.None;
             var doorPoint = FindDoorPointAnywhere();
             if (doorPoint != null) doorPoint.gameObject.SetActive(false);   // 문은 인터폰 통화 중에 울린 뒤에야 나타난다
             foreach (var t in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -1403,15 +1404,97 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 열차 안을 다 살폈으면 막차가 곧 종점에 닿는다. 시계를 00:30 으로 맞춘다.
-        /// 종점 알림은 현장으로 돌아왔을 때 늘 하던 대로 뜬다(CheckTerminus).
+        /// 열차 안을 다 살폈으면 종점이 코앞이다(00:25). 현장으로 돌아와 숨을 돌리면 한영이 직접 앉아 보라고 한다(PlaySitReady).
+        /// 차지한이 빈자리에 앉아 보고 나면 막차가 00:30 종점에 닿는다(PlaySit).
         /// </summary>
         private void CheckTrainFullySearched()
         {
-            if (_terminusDone || IsAfterTerminus() || !IsTrainFullySearched()) return;
-            GameClock.SetExactly(TerminusMinutesOfDay / 60, TerminusMinutesOfDay % 60);
-            Debug.Log("[CaseDirector] 열차 안을 다 살폈다 | 막차가 종점 00:30 에 닿는다");
+            if (_terminusDone || IsAfterTerminus() || _sitStage != SitStage.None || !IsTrainFullySearched()) return;
+            _sitStage = SitStage.Pending;
+            int now = GameClock.MinutesOfDay;
+            if (now < SitReadyMinutesOfDay || now >= MorningMinutesOfDay)
+                GameClock.SetExactly(SitReadyMinutesOfDay / 60, SitReadyMinutesOfDay % 60);
+            Debug.Log("[CaseDirector] 열차 안을 다 살폈다 | 곧 종점. 한영이 빈자리에 앉아 보라고 한다");
             PushStatus();
+        }
+
+        // ------------------------------------------------------------- 빈자리에 직접 앉아 보기
+
+        private enum SitStage { None, Pending, Ready, Done }
+
+        /// <summary>
+        /// 빈자리에 앉아 보는 일의 단계. Pending 은 다 살폈지만 아직 한영이 말을 꺼내지 않음,
+        /// Ready 는 말을 들었고 앉기를 기다림, Done 은 앉아 봄. Pending 과 Ready 동안에는 종점이 오지 않는다.
+        /// </summary>
+        private SitStage _sitStage;
+
+        /// <summary>다 살핀 때의 시각. 종점(00:30) 바로 앞이다.</summary>
+        private const int SitReadyMinutesOfDay = 25;   // 00:25
+
+        private static readonly string[] SitReadyTextIds =
+            { "field.subway.sit_ready.001", "field.subway.sit_ready.002", "field.subway.sit_ready.003", "field.subway.sit_ready.004" };
+        private static readonly bool[] SitReadyIsHanyoung = { true, false, true, false };
+
+        /// <summary>빈자리 가까이 보기에서 앉아 볼 자리. 가운데 칸(눌린 방석)이다.</summary>
+        private const int SitSpotIndex = 0;
+
+        private const string SitAskTextId = "field.subway.sit.ask";
+        private const string SitYesTextId = "field.subway.sit.yes";
+        private const string SitNoTextId = "field.subway.sit.no";
+
+        /// <summary>앉은 모습 일러스트(Resources 기준). 없으면 검은 화면에 그림 자리라고 적는다.</summary>
+        private const string SitIllustrationPath = "Illustrations/subway_sit";
+        private const string SitPlaceholderTextId = "field.subway.sit.placeholder";
+
+        private static readonly string[] SitTextIds =
+            { "field.subway.sit.001", "field.subway.sit.002", "field.subway.sit.003", "field.subway.sit.004" };
+        private static readonly string[] SitSpeakers =
+            { FieldSpeakerTextId, HanyoungNameTextId, FieldSpeakerTextId, HanyoungNameTextId };
+
+        /// <summary>다 살피고 현장으로 돌아오면 한영이 빈자리에 직접 앉아 보라고 한다. 차지한은 마지못해 따른다.</summary>
+        private void PlaySitReady()
+        {
+            _sitStage = SitStage.Ready;
+            FieldHudScreen.IsCutscene = true;
+            CctvLines(SitReadyTextIds, SitReadyIsHanyoung, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                FieldHudScreen.IsCutscene = false;
+            });
+            Debug.Log("[CaseDirector] 한영: 이제 직접 앉아 봐");
+        }
+
+        /// <summary>
+        /// 빈자리 가까이 보기에서 가운데 칸을 눌렀다. 앉아 볼 때가 되었으면 정말 앉을지 묻고 true 를 돌려준다.
+        /// 아직이면 false 로 평소처럼 살피게 둔다.
+        /// </summary>
+        private bool AskToSit(CloseupScreen screen, int index)
+        {
+            if (_sitStage != SitStage.Ready || index != SitSpotIndex || FieldHudScreen.IsCutscene) return false;
+            screen.Ask(FieldSpeakerTextId, SitAskTextId, new[] { SitYesTextId, SitNoTextId }, pick =>
+            {
+                if (pick == 0) PlaySit(screen);
+            });
+            return true;
+        }
+
+        /// <summary>
+        /// 차지한이 빈자리에 앉는다. 앉은 모습이 화면 가득 뜨고 두 사람이 몇 마디 나눈다.
+        /// 말이 끝나면 그림을 거두고 현장으로 돌아간다. 막차는 그때 00:30 종점에 닿는다.
+        /// </summary>
+        private void PlaySit(CloseupScreen screen)
+        {
+            var sprite = Resources.Load<Sprite>(SitIllustrationPath);
+            screen.ShowIllustration(sprite, _loc.Get(SitPlaceholderTextId));
+            Debug.Log("[CaseDirector] 차지한이 빈자리에 앉는다" + (sprite == null ? " | 일러스트 없음(Resources/" + SitIllustrationPath + ")" : string.Empty));
+            screen.Talk(SitSpeakers, SitTextIds, () =>
+            {
+                screen.HideIllustration();
+                _sitStage = SitStage.Done;
+                if (!IsAfterTerminus()) GameClock.SetExactly(TerminusMinutesOfDay / 60, TerminusMinutesOfDay % 60);
+                PushStatus();
+                screen.Closed?.Invoke();   // 현장으로 돌아가면 종점 알림이 뜬다
+            });
         }
 
         /// <summary>
@@ -1463,6 +1546,7 @@ namespace UrbanLegendBureau.Systems
             if (_terminusDone || _field == null || !_field.IsActive) return;
             // 가까이 보기를 보고 있거나 누가 말하는 중이면 현장으로 돌아와 숨을 돌릴 때까지 미룬다.
             if (!FieldHudScreen.IsFront || FieldHudScreen.IsSpeaking || FieldHudScreen.IsCutscene) return;
+            if (_sitStage == SitStage.Pending) { PlaySitReady(); return; }
             CheckTerminus();
         }
 
@@ -1525,6 +1609,8 @@ namespace UrbanLegendBureau.Systems
         private void CheckTerminus()
         {
             if (_terminusDone || !IsAfterTerminus()) return;
+            // 열차를 다 살폈으면 차지한이 그 빈자리에 직접 앉아 볼 때까지 종점을 미룬다.
+            if (_sitStage == SitStage.Pending || _sitStage == SitStage.Ready) return;
 
             // 현장에 서 있을 때에만 알린다.
             //
@@ -2213,6 +2299,7 @@ namespace UrbanLegendBureau.Systems
                 if (_ui.Contains(screen)) _ui.Close(screen);
             };
             screen.SpotIndexChecked = index => PerformCloseupSpot(screen, SeatPointId, index);
+            screen.SpotIntercept = index => AskToSit(screen, index);
             screen.SetDark(IsTrainDark());
             _ui.Push(screen);
             Debug.Log("[CaseDirector] 빈자리를 가까이 들여다본다");
