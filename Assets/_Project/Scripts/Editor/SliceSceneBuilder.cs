@@ -725,18 +725,34 @@ namespace UrbanLegendBureau.EditorTools
             BuildTrainDoor(root.transform, "Door_Left", -10.0f, false);
             BuildTrainDoor(root.transform, "Door_Right", 10.0f, false);   // 오른쪽 문도 닫혀 있다. 조사할 것은 없다
 
-            // 인터폰 바로 옆 문(왼쪽 문) 오른쪽 문짝 유리의 손바닥 자국. 문이 쾅쾅쾅 울린 뒤에 생긴다(CaseDirector).
+            // 인터폰 바로 옆 문(왼쪽 문) 유리의 손바닥 자국들. 문을 쾅쾅 두드릴 때마다 하나씩 늘어 여러 개가 남는다(CaseDirector).
+            // 두 문짝의 작은 창 유리(문짝 가운데 x ±1.05, y 0.9, 1.5×2.2) 여기저기에 크기와 기울기를 달리해 찍는다.
             {
-                var doorHand = new GameObject("DoorHandprint");
-                doorHand.transform.SetParent(root.transform.Find("Door_Left"), false);
-                doorHand.transform.localPosition = new Vector2(1.0f, 1.05f);
-                doorHand.transform.localRotation = Quaternion.Euler(0f, 0f, -12f);
-                var dhSr = doorHand.AddComponent<SpriteRenderer>();
-                dhSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
-                dhSr.color = new Color(1f, 1f, 1f, 40f / 255f);
-                dhSr.sortingOrder = -3;
-                if (dhSr.sprite != null) doorHand.transform.localScale = Vector3.one * (0.55f / dhSr.sprite.bounds.size.y);
-                doorHand.SetActive(false);
+                var prints = new GameObject("DoorHandprints");
+                prints.transform.SetParent(root.transform.Find("Door_Left"), false);
+                var handSprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+                float[][] spots =
+                {
+                    new[] { 1.0f, 1.25f, -12f, 0.55f }, new[] { -1.1f, 0.6f, 8f, 0.5f }, new[] { 1.35f, 0.35f, 20f, 0.48f },
+                    new[] { -0.8f, 1.5f, -18f, 0.52f }, new[] { 0.75f, 0.55f, 4f, 0.5f }, new[] { -1.35f, 1.1f, 15f, 0.46f },
+                    new[] { 1.2f, 1.75f, -6f, 0.45f }, new[] { -0.95f, 0.2f, -25f, 0.5f }, new[] { 0.85f, 1.0f, 30f, 0.42f },
+                    new[] { -1.2f, 1.85f, 2f, 0.44f }, new[] { 1.45f, 0.95f, -30f, 0.4f }, new[] { -0.7f, 0.95f, 24f, 0.47f },
+                };
+                for (int i = 0; i < spots.Length; i++)
+                {
+                    var s = spots[i];
+                    var hand = new GameObject("Handprint_" + i);
+                    hand.transform.SetParent(prints.transform, false);
+                    hand.transform.localPosition = new Vector2(s[0], s[1]);
+                    hand.transform.localRotation = Quaternion.Euler(0f, 0f, s[2]);
+                    var sr = hand.AddComponent<SpriteRenderer>();
+                    sr.sprite = handSprite;
+                    sr.flipX = i % 2 == 1;   // 왼손 오른손이 섞인다
+                    sr.color = new Color(1f, 1f, 1f, (34f + (i % 3) * 8f) / 255f);
+                    sr.sortingOrder = -3;
+                    if (handSprite != null) hand.transform.localScale = Vector3.one * (s[3] / handSprite.bounds.size.y);
+                    hand.SetActive(false);
+                }
             }
 
             // 비상 인터폰. 왼쪽 문 바깥쪽 맨 끝 빈 벽에 붙어 있다. 누르면 역무실로 이어진다(CaseDirector).

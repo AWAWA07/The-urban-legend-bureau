@@ -283,7 +283,7 @@ namespace UrbanLegendBureau.Systems
             var doorPoint = FindDoorPointAnywhere();
             if (doorPoint != null) doorPoint.gameObject.SetActive(false);   // 문은 인터폰 통화 중에 울린 뒤에야 나타난다
             foreach (var t in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (t.name == "DoorHandprint") t.gameObject.SetActive(false);
+                if (t.name == "DoorHandprints") foreach (Transform hand in t) hand.gameObject.SetActive(false);
             foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 unease.ResetUnease();
@@ -2017,17 +2017,15 @@ namespace UrbanLegendBureau.Systems
         /// <summary>문이 울리는 줄(역무원의 "한 분 더 계시네요?").</summary>
         private const int IntercomBangLine = 4;
 
-        /// <summary>신호음 두 번과 받는 소리. 말한 사람 없이 띠에 소리만 적는다. 누르지 않아도 저절로 넘어간다.</summary>
+        /// <summary>신호음 두 번과 받는 소리. 글자 없이 소리만 난다. 그동안 대사 띠는 비워 두고, 누르지 않아도 저절로 넘어간다.</summary>
         private System.Collections.IEnumerator IntercomRing(System.Action then)
         {
-            string[] ids = { "field.subway.intercom.ring1", "field.subway.intercom.ring2", "field.subway.intercom.click" };
+            _fieldHudScreen.ClearSpeech();
             string[] sounds = { "intercom_ring", "intercom_ring", "intercom_pickup" };
-            float[] waits = { 0.9f, 0.9f, 0.6f };
-            for (int i = 0; i < ids.Length; i++)
+            float[] waits = { 1.3f, 1.3f, 0.7f };   // 울리고 잠깐 쉬고, 다시 울리고, 철컥
+            for (int i = 0; i < sounds.Length; i++)
             {
-                string id = ids[i];
                 Sfx.Play(sounds[i]);
-                _fieldHudScreen.ShowLine(string.Empty, () => _loc.Get(id), null, id);
                 yield return new WaitForSeconds(waits[i]);
             }
             then?.Invoke();
@@ -2042,33 +2040,29 @@ namespace UrbanLegendBureau.Systems
         private static readonly bool[] DoorIsHanyoung = { false, true, false };
 
         /// <summary>
-        /// 인터폰 바로 옆 문이 쾅, 쾅, 쾅 울린다. 문 위에 "쾅!" 이 튀어나오고 문짝이 흔들린다(소리 파일이 있으면 소리도 난다).
+        /// 인터폰 바로 옆 문을 누가 쾅쾅 두드린다. 두드릴 때마다 소리가 나고 문짝이 덜컹 흔들린다.
         /// 다 울리면 그 문을 조사할 수 있게 된다.
         /// </summary>
         private System.Collections.IEnumerator DoorBang()
         {
             yield return new WaitForSeconds(0.6f);
             var door = FindActiveField("Door_Left");
-            var font = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true)?.font : null;
-            // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅. 다섯 번. 사이가 고르지 않아 다급하다.
-            float[] gaps = { 0.17f, 0.15f, 0.4f, 0.14f, 0f };
+            // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅, 또 쾅쾅쾅. 여덟 번. 사이가 고르지 않아 다급하다.
+            // 두드릴 때마다 문 유리에 손바닥 자국이 하나씩 늘어난다. 다 두드리고 나면 남은 자국까지 한꺼번에 드러난다.
+            float[] gaps = { 0.17f, 0.15f, 0.4f, 0.14f, 0.13f, 0.38f, 0.15f, 0f };
+            var prints = door != null ? door.Find("DoorHandprints") : null;
             for (int i = 0; i < gaps.Length; i++)
             {
                 Sfx.Play("door_bang");
-                if (door != null)
-                {
-                    var offset = new Vector2(Random.Range(-1.6f, 1.6f), Random.Range(0.1f, 1.9f));
-                    StartCoroutine(BangText(door.position + (Vector3)offset, font));
-                    StartCoroutine(ShakeDoor(door));
-                }
+                if (door != null) StartCoroutine(ShakeDoor(door));
+                if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
                 yield return new WaitForSeconds(gaps[i]);
             }
             yield return new WaitForSeconds(0.3f);
 
             var point = FindFieldPoint(DoorPointId);
             if (point != null) point.gameObject.SetActive(true);
-            var hand = door != null ? door.Find("DoorHandprint") : null;
-            if (hand != null) hand.gameObject.SetActive(true);   // 바깥쪽 유리에 손자국이 남는다
+            if (prints != null) foreach (Transform hand in prints) hand.gameObject.SetActive(true);   // 바깥쪽 유리에 손자국이 잔뜩 남는다
             Debug.Log("[CaseDirector] 인터폰 옆 문이 울렸다 | 문을 조사할 수 있다");
         }
 
@@ -2087,36 +2081,6 @@ namespace UrbanLegendBureau.Systems
             foreach (var t in root.GetComponentsInChildren<Transform>())
                 if (t.name == name) return t;
             return null;
-        }
-
-        /// <summary>"쾅!" 한 번. 크게 튀어나왔다가 줄어들며 사라진다. 어둠보다 앞에 그린다.</summary>
-        private System.Collections.IEnumerator BangText(Vector3 position, TMPro.TMP_FontAsset font)
-        {
-            var go = new GameObject("Bang");
-            go.transform.position = position;
-            var text = go.AddComponent<TMPro.TextMeshPro>();
-            if (font != null) text.font = font;
-            text.text = _loc.Get("field.subway.door.bang");
-            text.fontSize = 9f;
-            text.fontStyle = TMPro.FontStyles.Bold;
-            text.alignment = TMPro.TextAlignmentOptions.Center;
-            text.color = new Color(0.95f, 0.9f, 0.82f, 1f);
-            text.rectTransform.sizeDelta = new Vector2(4f, 2f);
-            var mesh = go.GetComponent<MeshRenderer>();
-            if (mesh != null) mesh.sortingOrder = 31;
-            go.transform.localRotation = Quaternion.Euler(0f, 0f, Random.Range(-12f, 12f));
-
-            const float Seconds = 0.55f;
-            for (float e = 0f; e < Seconds; e += Time.deltaTime)
-            {
-                float k = e / Seconds;
-                go.transform.localScale = Vector3.one * Mathf.Lerp(1.5f, 1f, Mathf.Min(1f, k * 4f));
-                var c = text.color;
-                c.a = k < 0.5f ? 1f : 1f - (k - 0.5f) * 2f;
-                text.color = c;
-                yield return null;
-            }
-            Destroy(go);
         }
 
         /// <summary>문짝이 짧게 덜컹 흔들린다.</summary>
