@@ -1441,6 +1441,8 @@ namespace UrbanLegendBureau.Systems
         private const string SitAskTextId = "field.subway.sit.ask";
         private const string SitYesTextId = "field.subway.sit.yes";
         private const string SitNoTextId = "field.subway.sit.no";
+        /// <summary>앉아 볼 때가 되면 빈자리 가까이 보기의 가운데 자리 위에 뜨는 글.</summary>
+        private const string SitMarkTextId = "field.subway.sit.mark";
 
         private const string SitPlaceholderTextId = "field.subway.sit.placeholder";
 
@@ -1510,6 +1512,7 @@ namespace UrbanLegendBureau.Systems
         private void PlaySit(CloseupScreen screen)
         {
             Debug.Log("[CaseDirector] 차지한이 빈자리에 앉는다");
+            screen.PinSpot(SitSpotIndex, false);
             screen.Talk(SitColumn(1), SitColumn(0), () =>
             {
                 screen.HideIllustration();
@@ -2330,6 +2333,8 @@ namespace UrbanLegendBureau.Systems
             };
             screen.SpotIndexChecked = index => PerformCloseupSpot(screen, SeatPointId, index);
             screen.SpotIntercept = index => AskToSit(screen, index);
+            // 앉아 볼 때가 되었으면 가운데 자리를 또렷이 표시한다.
+            screen.PinSpot(SitSpotIndex, _sitStage == SitStage.Ready, _loc.Get(SitMarkTextId));
             screen.SetDark(IsTrainDark());
             _ui.Push(screen);
             Debug.Log("[CaseDirector] 빈자리를 가까이 들여다본다");

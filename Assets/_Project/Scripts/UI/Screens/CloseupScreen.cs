@@ -237,6 +237,77 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         public Func<int, bool> SpotIntercept;
 
+        private TMP_Text _pinLabel;
+        private Image _pinFill;
+
+        private void Update()
+        {
+            // 표시한 자리의 노란빛이 천천히 숨 쉰다. 외곽선 깜빡임(HotspotGlow)과 같은 빠르기다.
+            if (_pinFill == null || !_pinFill.gameObject.activeSelf) return;
+            float k = 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.2f);
+            _pinFill.color = new Color(1f, 0.86f, 0.25f, Mathf.Lerp(0.02f, 0.07f, k));
+        }
+
+        /// <summary>
+        /// 그 살필 곳을 또렷이 표시한다. 노란 외곽선이 숨 쉬듯 깜빡이며 남고, 그 위에 짧은 글(label)이 뜬다.
+        /// 다 살핀 뒤 같은 자리에서 다른 일을 해야 할 때(빈자리에 직접 앉아 보기) 어디를 누를지 알린다. off 면 거둔다.
+        /// </summary>
+        public void PinSpot(int index, bool on, string label = null)
+        {
+            if (index < 0 || index >= _spots.Length || _spots[index] == null || _spots[index].button == null) return;
+            var button = _spots[index].button;
+            var glow = button.GetComponent<HotspotGlow>();
+            if (glow != null) glow.Pinned = on;
+
+            if (_pinLabel == null && on)
+            {
+                var go = new GameObject("PinLabel", typeof(RectTransform), typeof(TextMeshProUGUI));
+                go.transform.SetParent(button.transform.parent, false);
+                _pinLabel = go.GetComponent<TextMeshProUGUI>();
+                if (_lineText != null) _pinLabel.font = _lineText.font;
+                _pinLabel.fontSize = 38f;
+                _pinLabel.fontStyle = FontStyles.Bold;
+                _pinLabel.alignment = TextAlignmentOptions.Center;
+                _pinLabel.color = new Color(1f, 0.86f, 0.25f, 1f);
+                _pinLabel.raycastTarget = false;
+                _pinLabel.enableWordWrapping = false;
+            }
+            // 누르는 자리 전체를 옅은 노란빛으로 덮는다. 누름은 그대로 아래 단추가 받는다.
+            if (_pinFill == null && on)
+            {
+                var fill = new GameObject("PinFill", typeof(RectTransform), typeof(Image));
+                fill.transform.SetParent(button.transform.parent, false);
+                _pinFill = fill.GetComponent<Image>();
+                _pinFill.raycastTarget = false;
+            }
+            if (_pinFill != null)
+            {
+                _pinFill.gameObject.SetActive(on);
+                if (on)
+                {
+                    var src = (RectTransform)button.transform;
+                    var frt = _pinFill.rectTransform;
+                    frt.anchorMin = src.anchorMin; frt.anchorMax = src.anchorMax; frt.pivot = src.pivot;
+                    frt.anchoredPosition = src.anchoredPosition; frt.sizeDelta = src.sizeDelta;
+                    _pinFill.transform.SetAsLastSibling();
+                }
+            }
+
+            if (_pinLabel == null) return;
+
+            _pinLabel.gameObject.SetActive(on && !string.IsNullOrEmpty(label));
+            if (!on) return;
+            _pinLabel.text = label;
+            // 누르는 자리의 위 가장자리 안쪽, 가운데.
+            var b = (RectTransform)button.transform;
+            var rt = _pinLabel.rectTransform;
+            rt.anchorMin = rt.anchorMax = b.anchorMin;
+            rt.pivot = new Vector2(0.5f, 1f);
+            rt.sizeDelta = new Vector2(600f, 60f);
+            rt.anchoredPosition = b.anchoredPosition + new Vector2(0f, b.sizeDelta.y * (1f - b.pivot.y) - 40f);
+            _pinLabel.transform.SetAsLastSibling();
+        }
+
         private readonly List<GameObject> _choices = new List<GameObject>();
         private Image _illustration;
 

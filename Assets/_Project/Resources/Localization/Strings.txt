@@ -359,6 +359,7 @@ field.subway.sit_ready.004	아... 넵..	Ah... Okay...	차지한
 field.subway.sit.ask	진짜 이 자리에 앉을까요?	Am I really sitting in this seat?	차지한. 빈자리 가운데 칸을 다시 눌렀을 때
 field.subway.sit.yes	앉는다	Sit down	선택지
 field.subway.sit.no	조금만 더 생각해 보자	Let me think a bit more	선택지
+field.subway.sit.mark	앉아 볼 자리	The seat to sit in	빈자리 가까이 보기의 가운데 칸 위 표시. 한영이 앉아 보라고 한 뒤
 field.subway.sit.placeholder	(차지한이 빈자리에 앉은 일러스트 자리)	(Illustration: Chajihan sitting in the empty seat)	일러스트를 넣기 전 임시
 field.subway.sit.001	……앉았어요.	...I'm sitting.	차지한. 정면, 눈 뜸
 field.subway.sit.002	어때. 뭐 느껴지는 거 있어?	Well? Feel anything?	한영. 차분하게

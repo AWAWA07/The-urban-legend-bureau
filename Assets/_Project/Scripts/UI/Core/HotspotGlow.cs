@@ -35,6 +35,17 @@ namespace UrbanLegendBureau.UI
 
         private readonly List<Entry> _entries = new List<Entry>();
         private Button _button;
+        private bool _hovered;
+        private bool _pinned;
+
+        /// <summary>
+        /// 켜 두면 마우스를 올리지 않아도 노란 외곽선이 천천히 숨 쉬듯 깜빡이며 남는다. 지금 눌러야 할 자리를 또렷이 알릴 때 쓴다.
+        /// </summary>
+        public bool Pinned
+        {
+            get => _pinned;
+            set { _pinned = value; Set(_hovered || _pinned); }
+        }
 
         private void Awake()
         {
@@ -118,20 +129,42 @@ namespace UrbanLegendBureau.UI
             return Mathf.Min(size.x, size.y) <= 8f;
         }
 
+        private void OnEnable()
+        {
+            if (_pinned) Set(true);
+        }
+
         private void OnDisable()
         {
+            _hovered = false;
             Set(false);
+        }
+
+        private void Update()
+        {
+            if (!_pinned || _hovered) return;
+            float a = 0.45f + 0.55f * (0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.2f));
+            foreach (var e in _entries)
+            {
+                if (e.outline == null) continue;
+                var image = e.outline.GetComponent<Image>();
+                var c = _outlineColor;
+                c.a *= a;
+                image.color = c;
+            }
         }
 
         public void OnPointerEnter(PointerEventData eventData)
         {
             if (_button != null && !_button.interactable) return;
+            _hovered = true;
             Set(true);
         }
 
         public void OnPointerExit(PointerEventData eventData)
         {
-            Set(false);
+            _hovered = false;
+            Set(_pinned);
         }
 
         private void Set(bool on)
@@ -143,6 +176,7 @@ namespace UrbanLegendBureau.UI
                 bool show = on && e.source.gameObject.activeInHierarchy;
                 if (e.glow != null) e.glow.SetActive(show);
                 if (e.outline != null) e.outline.SetActive(show);
+                if (e.outline != null) e.outline.GetComponent<Image>().color = _outlineColor;   // 깜빡이던 것을 진하게 되돌린다
                 // 금이나 흠집 같은 가는 선은 하얗게 밝힌다. 스티커나 덮개처럼 면이 있는 그림은 제 색 그대로 둔다.
                 // 그림으로 그린 선(머리카락)은 외곽선 대신 선 자체가 노란 외곽선 색으로 물든다. 다른 살필 곳의 노란 빛과 맞춘다.
                 if (IsDrawnLine(e.source)) e.source.color = show ? _outlineColor : e.sourceColor;

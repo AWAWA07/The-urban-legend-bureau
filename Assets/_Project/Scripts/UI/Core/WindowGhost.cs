@@ -23,10 +23,10 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private float _delay = 1.1f;
 
         [Tooltip("슬며시 나오는 데 걸리는 시간(초).")]
-        [SerializeField] private float _slideSeconds = 2.2f;
+        [SerializeField] private float _slideSeconds = 1.0f;
 
         [Tooltip("내민 채 멈춰 있는 시간(초).")]
-        [SerializeField] private float _holdSeconds = 0.9f;
+        [SerializeField] private float _holdSeconds = 0.35f;
 
         [Tooltip("다 드러났을 때의 진하기. 낮을수록 어둠에 묻혀 보일 듯 말 듯하다.")]
         [SerializeField] private float _maxAlpha = 0.38f;
@@ -85,6 +85,28 @@ namespace UrbanLegendBureau.UI
             StartCoroutine(Run(onDone));
         }
 
+        /// <summary>
+        /// 휴대폰 라이트(마우스가 가리키는 자리)가 그것에 닿았는가. 유리 안에 보이는 부분만 친다.
+        /// 마우스 자리가 그림 둘레(조금 넉넉히)와 유리 안에 함께 들면 비춘 것이다.
+        /// </summary>
+        private bool Lit()
+        {
+            var device = UnityEngine.InputSystem.Pointer.current;
+            if (device == null || _image == null) return false;
+            Vector2 p = device.position.ReadValue();
+            var canvas = _image.canvas;
+            var cam = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+            var glass = _image.rectTransform.parent as RectTransform;
+            if (glass != null && !RectTransformUtility.RectangleContainsScreenPoint(glass, p, cam)) return false;
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_image.rectTransform, p, cam, out var local)) return false;
+            var r = _image.rectTransform.rect;
+            r.xMin -= LightReach; r.xMax += LightReach; r.yMin -= LightReach; r.yMax += LightReach;
+            return r.Contains(local);
+        }
+
+        /// <summary>라이트 둘레만큼 넉넉히 친다(그림 단위). 가장자리를 스치기만 해도 사라진다.</summary>
+        private const float LightReach = 60f;
+
         private IEnumerator Run(Action onDone)
         {
             yield return new WaitForSecondsRealtime(_delay);
@@ -99,12 +121,12 @@ namespace UrbanLegendBureau.UI
             SetAlpha(_maxAlpha);
             for (float e = 0f; e < _slideSeconds; e += Time.unscaledDeltaTime)
             {
+                if (Lit()) break;   // 휴대폰 라이트(마우스)를 비추면 그 자리에서 곧장 사라진다
                 float k = Mathf.SmoothStep(0f, 1f, e / _slideSeconds);
                 rt.anchoredPosition = Vector2.Lerp(_hiddenPosition, _peekPosition, k);
                 yield return null;
             }
-            rt.anchoredPosition = _peekPosition;
-            yield return new WaitForSecondsRealtime(_holdSeconds);
+            for (float e = 0f; e < _holdSeconds && !Lit(); e += Time.unscaledDeltaTime) yield return null;
 
             // 갑자기. 한 번 끊겼다가 사라진다.
             _image.enabled = false;
