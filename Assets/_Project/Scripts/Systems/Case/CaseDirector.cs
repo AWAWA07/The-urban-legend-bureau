@@ -29,6 +29,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("열차 창문을 가까이서 보는 화면.")]
         [SerializeField] private CloseupScreen _windowCloseupScreen;
 
+        [Tooltip("열차의 빈자리를 가까이서 보는 화면.")]
+        [SerializeField] private CloseupScreen _seatCloseupScreen;
+
         [Tooltip("창밖의 그것. 창문에서 두 군데를 살피면 나왔다 사라진다.")]
         [SerializeField] private WindowGhost _windowGhost;
         [SerializeField] private TextPanelScreen _helpScreen;
@@ -282,6 +285,7 @@ namespace UrbanLegendBureau.Systems
             }
             if (_cctvCloseupScreen != null) _cctvCloseupScreen.ResetChecked();
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
+            if (_seatCloseupScreen != null) _seatCloseupScreen.ResetChecked();
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
@@ -1914,9 +1918,77 @@ namespace UrbanLegendBureau.Systems
             {
                 if (_ui.Contains(_cctvCloseupScreen)) _ui.Close(_cctvCloseupScreen);
             };
+            _cctvCloseupScreen.SpotIndexChecked = index => PerformCloseupSpot(_cctvCloseupScreen, CctvPointId, index);
             _cctvCloseupScreen.SetDark(IsTrainDark());
             _ui.Push(_cctvCloseupScreen);
             Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
+        }
+
+        // ------------------------------------------------------------- 열차 빈자리
+
+        /// <summary>열차 빈자리 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
+        private const string SeatPointId = "point_subway_seat";
+
+        /// <summary>빈자리를 화면 가득 크게 띄운다. 눌린 방석, 틈에 낀 승차권, 머리카락을 살필 수 있다.</summary>
+        private void OpenSeatCloseup()
+        {
+            var screen = _seatCloseupScreen;
+            screen.Closed = () =>
+            {
+                if (_ui.Contains(screen)) _ui.Close(screen);
+            };
+            screen.SpotIndexChecked = index => PerformCloseupSpot(screen, SeatPointId, index);
+            screen.SetDark(IsTrainDark());
+            _ui.Push(screen);
+            Debug.Log("[CaseDirector] 빈자리를 가까이 들여다본다");
+        }
+
+        // ------------------------------------------------------------- 가까이 보기에서 살피기
+
+        /// <summary>
+        /// 가까이 보기 화면에서 처음 살핀 곳. 현장 조사처럼 시간이 흐르고 소문이 퍼진다.
+        /// 그 자리에 조사 행동이 걸려 있으면 그 행동을 한 것으로 치고(단서가 생길 수 있다), 없으면 현장을 한 번 뒤진 것으로 친다.
+        /// 단서를 새로 얻으면 아래 띠의 글 뒤에 단서 이름을 붙인다.
+        /// </summary>
+        private void PerformCloseupSpot(CloseupScreen screen, string pointId, int index)
+        {
+            if (screen == null) return;
+            string actionId = screen.SpotActionId(index);
+            var action = string.IsNullOrEmpty(actionId) || _actions == null ? null : _actions.GetAction(actionId);
+            if (action != null && _actions.CanPerform(_save, action))
+            {
+                var result = _actions.Perform(_save, _caseId, _legendId, action);
+                if (result.Success)
+                {
+                    AfterAction(result.MinutesAdded, result.Spread);
+                    var point = FindFieldPoint(pointId);
+                    if (point != null) MarkActionDone(point, action);
+                    if (result.GotNewClue)
+                    {
+                        screen.AppendLine("<color=#D9BC7A>" + _loc.Get(CloseupClueTextId, ResolveClueTitle(result.AcquiredClueId) ?? result.AcquiredClueId) + "</color>");
+                        NotifyRuleCandidates();
+                    }
+                    Debug.Log($"[CaseDirector] 가까이 보기 조사 | {pointId} #{index} -> {action.ActionId} | {result.MinutesAdded}분");
+                    if (_fieldHudScreen != null) _fieldHudScreen.Refresh();   // 현장 맨 위 줄의 경과 시간과 행동 수
+                    return;
+                }
+            }
+            RegisterAction(InvestigationAction.FieldSearch);
+            Debug.Log($"[CaseDirector] 가까이 보기 조사 | {pointId} #{index} -> 현장 뒤지기");
+            if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
+        }
+
+        /// <summary>가까이 보기에서 단서를 얻었을 때 붙이는 한 줄. {0} 에 단서 이름이 들어간다.</summary>
+        private const string CloseupClueTextId = "field.closeup.clue";
+
+        /// <summary>지금 현장에서 그 ID 의 조사 지점.</summary>
+        private InvestigationPoint FindFieldPoint(string pointId)
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            if (root == null) return null;
+            foreach (var p in root.GetComponentsInChildren<InvestigationPoint>(true))
+                if (p != null && p.PointId == pointId) return p;
+            return null;
         }
 
         // ------------------------------------------------------------- 열차 안 정전
@@ -2001,6 +2073,8 @@ namespace UrbanLegendBureau.Systems
             };
             screen.SpotIndexChecked = index =>
             {
+                PerformCloseupSpot(screen, WindowPointId, index);
+
                 // 손바닥 자국을 살피고 나면 현장의 창에도 그 자국이 남는다.
                 if (index != WindowHandSpotIndex) return;
                 var root = _field != null ? _field.ActiveRoot : null;
@@ -2062,6 +2136,13 @@ namespace UrbanLegendBureau.Systems
             if (point.PointId == WindowPointId && _windowCloseupScreen != null)
             {
                 OpenWindowCloseup();
+                return;
+            }
+
+            // 빈자리도 가까이 들여다본다.
+            if (point.PointId == SeatPointId && _seatCloseupScreen != null)
+            {
+                OpenSeatCloseup();
                 return;
             }
 

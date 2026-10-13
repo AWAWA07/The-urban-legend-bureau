@@ -37,6 +37,9 @@ namespace UrbanLegendBureau.UI
 
             [Tooltip("드러날 때 함께 스르르 나타나는 그림.")]
             public GameObject revealObject;
+
+            [Tooltip("처음 살필 때 함께 하는 조사 행동(InvestigationActionSO 의 ID). 시간이 흐르고 단서가 생긴다. 비우면 현장을 한 번 뒤진 것으로 친다.")]
+            public string actionId;
         }
 
         [SerializeField] private Spot[] _spots = new Spot[0];
@@ -117,6 +120,19 @@ namespace UrbanLegendBureau.UI
                     if (s.revealObject != null) s.revealObject.SetActive(false);
                 }
             }
+        }
+
+        /// <summary>그 살필 곳에 걸린 조사 행동의 ID. 없으면 빈 문자열.</summary>
+        public string SpotActionId(int index)
+        {
+            return index >= 0 && index < _spots.Length && _spots[index] != null ? _spots[index].actionId ?? string.Empty : string.Empty;
+        }
+
+        /// <summary>아래 띠의 글 뒤에 한 줄을 덧붙인다. 살펴서 얻은 단서를 알릴 때 쓴다.</summary>
+        public void AppendLine(string text)
+        {
+            if (_lineText == null || string.IsNullOrEmpty(text)) return;
+            _lineText.text += "\n" + text;
         }
 
         /// <summary>숨어 있던 살필 곳을 드러낸다. 그림은 스르르 나타난다. 드러난 뒤로는 사건이 새로 시작될 때까지 그대로 있다.</summary>

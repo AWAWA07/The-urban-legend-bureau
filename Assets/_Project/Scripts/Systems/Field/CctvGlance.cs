@@ -18,6 +18,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("녹화 중임을 알리는 빨간 불. 고개를 돌린 뒤에 켜진다.")]
         [SerializeField] private SpriteRenderer _light;
 
+        [Tooltip("빨간 불 둘레에 번지는 빛. 불과 함께 켜지고 꺼진다.")]
+        [SerializeField] private SpriteRenderer _glow;
+
         [Tooltip("평소 머리 각도(도). 위를 올려다보는 각이다.")]
         [SerializeField] private float _idleAngle = 34f;
 
@@ -25,6 +28,7 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _snapSeconds = 0.16f;
 
         private Color _lightOn;
+        private Color _glowOn;
         private Coroutine _turn;
 
         /// <summary>지금 내려다보고 있는가. 한 번 돌아간 뒤로는 그대로 둔다.</summary>
@@ -33,6 +37,7 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_light != null) _lightOn = _light.color;
+            if (_glow != null) _glowOn = _glow.color;
             ResetPose();
         }
 
@@ -104,10 +109,18 @@ namespace UrbanLegendBureau.Systems
 
         private void SetLight(float on)
         {
-            if (_light == null) return;
-            var c = _lightOn;
-            c.a *= on;
-            _light.color = c;
+            if (_light != null)
+            {
+                var c = _lightOn;
+                c.a *= on;
+                _light.color = c;
+            }
+            if (_glow != null)
+            {
+                var g = _glowOn;
+                g.a *= on;
+                _glow.color = g;
+            }
         }
     }
 }

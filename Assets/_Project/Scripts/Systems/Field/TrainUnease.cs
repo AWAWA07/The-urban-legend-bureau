@@ -9,7 +9,7 @@ namespace UrbanLegendBureau.Systems
     /// 타자마자: 형광등 하나가 이따금 깜빡인다.
     /// 살핀 곳 1곳: 살피고 돌아오면 곧바로 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
     /// 3곳: 손잡이 하나가 흔들림과 상관없이 혼자 크게 흔들린다.
-    /// 4곳: 맨 오른쪽 창 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
+    /// 3곳(모두): 맨 오른쪽 창 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
     ///
     /// 평소에도 객실 전체가 아주 조금 어둡다(_dark).
     ///
@@ -436,7 +436,7 @@ namespace UrbanLegendBureau.Systems
             float now = Time.time;
             float distance = _watcher != null ? Mathf.Abs(_watcher.position.x - _figure.transform.position.x) : 99f;
 
-            if (Stage < 4)
+            if (Stage < 3)   // 열차 안 조사 지점(좌석, 창문, CCTV)을 모두 살핀 뒤
             {
                 _figureFade = 0f;
             }

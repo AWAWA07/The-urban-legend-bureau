@@ -348,6 +348,11 @@ field.subway.window_close.crack	유리에 금이 가 있다. 바깥쪽에서 무
 field.subway.window_close.scratch	가늘게 긁힌 자국이 여러 줄 나 있다. 손톱으로 긁은 것 같은….	Thin scratches, several of them. Almost like fingernails….	창문의 흠집
 field.subway.window_close.sticker	동그란 웃는 얼굴 스티커. 누가 붙였는지 모르겠다. 한쪽 귀퉁이가 살짝 들떠 있다.	A round smiley sticker. No telling who stuck it there. One edge is peeling a little.	창문의 스티커
 field.subway.window_close.hand	유리 바깥쪽에 손바닥 자국이 찍혀 있다. …방금 전까지는 없었는데.	A handprint on the outside of the glass. ...It wasn't there a moment ago.	창문의 손바닥 자국(그것이 사라진 뒤 생긴다)
+field.subway.seat_close.hint	어디를 살펴볼까.	Where to look?	빈자리 가까이 보기 화면의 첫 안내
+field.subway.seat_close.dent	아무도 앉아 있지 않은데, 방석 한가운데가 누가 앉은 것처럼 오목하게 눌려 있다. 손을 대 보니… 미지근하다.	Nobody is sitting here, yet the middle of the cushion is pressed in as if someone were. It's… lukewarm to the touch.	빈자리의 눌린 방석(좌석 조사)
+field.subway.seat_close.ticket	등받이와 방석 틈에 승차권 한 장이 끼어 있다. 오늘 날짜, 막차 시각이 찍혀 있다.	A ticket is wedged between the backrest and the cushion. Today's date, stamped with the last train's time.	빈자리 틈의 승차권
+field.subway.seat_close.hair	길고 검은 머리카락 한 올이 방석 위에 놓여 있다. 이 칸에는 처음부터 우리 둘뿐이었는데.	A single long black hair lies on the cushion. It's been just the two of us in this car from the start.	빈자리의 머리카락
+field.closeup.clue	단서 획득: {0}	Clue found: {0}	가까이 보기에서 단서를 얻었을 때 띠에 붙는 줄
 field.subway.window_ghost.001	……방금, 창밖에.	……Just now. Outside the window.	창밖의 그것이 사라진 직후. 차지한
 field.subway.window_ghost.002	너도 봤지? 웃고 있었어.	You saw it too? It was smiling.	한영
 field.subway.window_ghost.003	달리는 열차 밖에서요.	Outside a moving train.	차지한

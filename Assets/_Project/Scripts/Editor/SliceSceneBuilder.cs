@@ -119,7 +119,6 @@ namespace UrbanLegendBureau.EditorTools
             //   빈자리 - 왼쪽 긴 의자의 한 칸.
             //   창문   - 오른쪽 긴 의자 위의 창.
             //   CCTV   - 왼쪽 위 천장 모서리.
-            //   승강장 - 오른쪽 열린 문 너머.
             var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(-6.53f, -1.6f),
                 new Vector2(1.5f, 2.35f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
@@ -131,16 +130,12 @@ namespace UrbanLegendBureau.EditorTools
             var cctv = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayCctv", new Vector2(-10.6f, 2.6f),
                 new Vector2(1.6f, 1.15f), new Color(0.46f, 0.40f, 0.30f),
                 "field.subway.cctv", "field.subway.cctv", null);
-            var platform = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayPlatform", new Vector2(10.0f, -0.9f),
-                new Vector2(3.1f, 4.8f), new Color(0.38f, 0.32f, 0.36f),
-                "field.subway.platform", "field.subway.platform", null);
 
             // 곁에 서면 네모 칸이 아니라 그 자리의 그림이 밝아진다.
             // 빈자리는 긴 의자의 한 칸이라 따로 떨어진 그림이 없다. 그 칸 크기의 네모를 그대로 쓴다.
             FitHighlightToArt(window, trainInside.transform);
             SetHighlightTargets(cctv, trainInside.transform, "Cctv/Mount", "Cctv/Arm", "Cctv/Joint", "Cctv/Head/Housing",
                 "Cctv/Head/HousingShade", "Cctv/Head/Visor", "Cctv/Head/LensRing");   // 빨간 불은 따로 켜고 끄므로 뺀다
-            FitHighlightToArt(platform, trainInside.transform);
 
             // 좌석에서 얻은 진술이 있어야 영상과 대조할 마음이 든다.
             ConfigurePoint(seat, "point_subway_seat",
@@ -150,13 +145,6 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(cctv, "point_subway_cctv",
                 new[] { "action_subway_cctv_inspect", "action_subway_photo" },
                 null, false, CaseStep.Started);   // CCTV 는 다른 조사 없이도 바로 들여다볼 수 있다
-            // 글끼리 견줘 보는 조사는 여기에 둔다. 승강장 기록을 뒤지는 자리라 견줄 거리가 있다.
-            // 이 방법이 주는 단서(clue_subway_004)가 없으면 맞는 규칙을 세울 수 없다. 어디에도 걸려 있지 않았다.
-            // 목격담 대조도 여기에 둔다. 겪고도 멀쩡한 사람이 하나 있다는 것(clue_subway_006)이
-            // 파훼법의 다른 한쪽이다. 돌아본 쪽과 안 돌아본 쪽을 나란히 놓아야 무엇이 갈랐는지가 보인다.
-            ConfigurePoint(platform, "point_subway_platform",
-                new[] { "action_subway_platform_search", "action_subway_platform_trace", "action_subway_compare", "action_subway_witness" },
-                null, false, CaseStep.Started);
 
             // 열차가 들어오면 승강장 대신 열차 안이 보인다.
             // 장소를 새로 만들지 않고 보이는 것만 갈아 끼운다.
@@ -218,6 +206,7 @@ namespace UrbanLegendBureau.EditorTools
             var toast = BuildToastScreen("Screen_Toast");
             var cctvCloseup = BuildCctvCloseupScreen("Screen_CctvCloseup");
             var windowCloseup = BuildWindowCloseupScreen("Screen_WindowCloseup", out var windowGhost);
+            var seatCloseup = BuildSeatCloseupScreen("Screen_SeatCloseup");
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -294,6 +283,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_travelScreen").objectReferenceValue = travel;
             dso.FindProperty("_cctvCloseupScreen").objectReferenceValue = cctvCloseup;
             dso.FindProperty("_windowCloseupScreen").objectReferenceValue = windowCloseup;
+            dso.FindProperty("_seatCloseupScreen").objectReferenceValue = seatCloseup;
             dso.FindProperty("_windowGhost").objectReferenceValue = windowGhost;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
@@ -708,10 +698,10 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.14f, 0.14f, 0.18f), -8);
             AddFieldRect(root.transform, "FloorEdge", new Vector2(0f, -3.42f), new Vector2(44f, 0.16f), trim, -7);
 
-            // 문. 가운데와 양 끝. 오른쪽 문만 열려 있어 승강장이 보인다.
+            // 문. 가운데와 양 끝. 모두 닫혀 있고 작은 창 너머로 터널이 지나간다.
             BuildTrainDoor(root.transform, "Door_Center", 0f, false);
             BuildTrainDoor(root.transform, "Door_Left", -10.0f, false);
-            BuildTrainDoor(root.transform, "Door_Right", 10.0f, true);
+            BuildTrainDoor(root.transform, "Door_Right", 10.0f, false);   // 오른쪽 문도 닫혀 있다. 조사할 것은 없다
 
             // 긴 의자 둘. 문 사이에 하나씩 들어간다.
             BuildTrainBench(root.transform, "Bench_Left", -5.0f, 4.6f);
@@ -814,14 +804,18 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, 8);
             AddFieldRect(cctvHead.transform, "Lens", new Vector2(1.06f, -0.16f), new Vector2(0.08f, 0.26f),
                 new Color(0.18f, 0.24f, 0.34f), 9);
+            // 녹화 중임을 알리는 빨간 불. 밝게 빛나고 둘레로 붉은 빛이 번진다.
             var cctvLight = AddFieldRect(cctvHead.transform, "RecLight", new Vector2(0.16f, -0.06f), new Vector2(0.13f, 0.13f),
-                new Color(1f, 0.12f, 0.1f, 1f), 10);
+                new Color(1f, 0.32f, 0.26f, 1f), 10);
+            var cctvGlow = AddFieldSoft(cctvHead.transform, "RecGlow", new Vector2(0.16f, -0.06f), new Vector2(0.55f, 0.55f),
+                new Color(1f, 0.12f, 0.08f, 0.75f), 11);
 
             var glance = cctvRoot.AddComponent<CctvGlance>();
             var gso = new SerializedObject(glance);
             gso.Update();
             gso.FindProperty("_head").objectReferenceValue = cctvHead.transform;
             gso.FindProperty("_light").objectReferenceValue = cctvLight.GetComponent<SpriteRenderer>();
+            gso.FindProperty("_glow").objectReferenceValue = cctvGlow.GetComponent<SpriteRenderer>();
             gso.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 객실의 빛과 그늘 ---
@@ -874,7 +868,7 @@ namespace UrbanLegendBureau.EditorTools
                 // 창 사이 세로 창살과 유리의 반사가 지나가는 것보다 앞에 오게 한다.
                 foreach (var front in new[] { "Mullion", "Sheen" }) window.Find(front).GetComponent<SpriteRenderer>().sortingOrder = -3;
             }
-            foreach (var doorName in new[] { "Door_Left", "Door_Center" })
+            foreach (var doorName in new[] { "Door_Left", "Door_Center", "Door_Right" })
             {
                 var door = root.transform.Find(doorName);
                 AddGlassMask(door, "PassMask_0", new Vector2(-1.05f, 0.9f), new Vector2(1.5f, 2.2f));
@@ -2610,6 +2604,85 @@ namespace UrbanLegendBureau.EditorTools
         /// 몸통 옆면의 흠집과 아래쪽의 배터리 칸을 누를 수 있다. 마우스를 올리면 그 자리가 옅게 밝아진다.
         /// 아래 띠에 본 것을 한 줄로 적고, 오른쪽 위의 돌아가기로 현장에 돌아간다.
         /// </summary>
+        /// <summary>
+        /// 빈자리를 가까이서 보는 화면(임시). 긴 의자의 한 칸과 그 위 창이 보인다.
+        /// 살필 곳은 셋이다. 아무도 없는데 오목하게 눌린 방석, 등받이 틈에 낀 승차권, 방석 위의 긴 머리카락.
+        /// 눌린 방석을 살피는 것이 좌석 조사(action_subway_seat_search)다.
+        /// </summary>
+        private static CloseupScreen BuildSeatCloseupScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.05f, 0.05f, 0.07f, 1f));
+            StretchFull(go);
+            var screen = go.AddComponent<CloseupScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var wall = CreatePanel(go.transform, "Wall", new Color(0.12f, 0.13f, 0.17f, 1f));
+            StretchFull(wall);
+
+            // 의자 위의 창. 바깥은 캄캄한 터널이다.
+            CloseupRect(go.transform, "WindowFrame", new Vector2(0f, 400f), new Vector2(1700f, 250f), new Color(0.30f, 0.31f, 0.37f));
+            CloseupRect(go.transform, "WindowGlass", new Vector2(0f, 400f), new Vector2(1640f, 200f), new Color(0.03f, 0.03f, 0.05f));
+
+            // 등받이와 방석. 세 칸이 이어진 긴 의자의 가운데 칸을 본다.
+            var cushion = new Color(0.27f, 0.31f, 0.46f);
+            var cushionDark = new Color(0.20f, 0.23f, 0.35f);
+            CloseupRect(go.transform, "Backrest", new Vector2(0f, 160f), new Vector2(1640f, 250f), cushion);
+            CloseupRect(go.transform, "Seat", new Vector2(0f, -40f), new Vector2(1720f, 170f), new Color(0.30f, 0.34f, 0.50f));
+            CloseupRect(go.transform, "SeatFront", new Vector2(0f, -140f), new Vector2(1720f, 40f), cushionDark);
+            CloseupRect(go.transform, "Gap", new Vector2(0f, 38f), new Vector2(1640f, 16f), new Color(0.07f, 0.07f, 0.10f));
+            foreach (float sx in new[] { -280f, 280f })
+            {
+                CloseupRect(go.transform, "SeamBack", new Vector2(sx, 160f), new Vector2(6f, 250f), cushionDark);
+                CloseupRect(go.transform, "SeamSeat", new Vector2(sx, -40f), new Vector2(6f, 170f), cushionDark);
+            }
+
+            // 눌린 자국. 가운데 칸 방석이 누가 앉은 것처럼 오목하다.
+            var dent = new GameObject("Dent", typeof(RectTransform));
+            dent.transform.SetParent(go.transform, false);
+            var dentRt = (RectTransform)dent.transform;
+            dentRt.anchorMin = dentRt.anchorMax = new Vector2(0.5f, 0.5f);
+            dentRt.anchoredPosition = new Vector2(0f, -30f);
+            dentRt.sizeDelta = new Vector2(380f, 120f);
+            var dentShadow = CloseupRect(dent.transform, "Shadow", Vector2.zero, new Vector2(380f, 120f), new Color(0f, 0f, 0f, 0.42f));
+            dentShadow.sprite = FieldSoftSprite();
+            dentShadow.type = Image.Type.Simple;
+            var dentRim = CloseupRect(dent.transform, "Rim", new Vector2(0f, -46f), new Vector2(420f, 40f), new Color(1f, 1f, 1f, 0.08f));
+            dentRim.sprite = FieldSoftSprite();
+            dentRim.type = Image.Type.Simple;
+            var dentButton = CloseupHotspot(go.transform, "Hotspot_Dent", new Vector2(0f, -30f), new Vector2(420f, 150f));
+            AttachGlow(dentButton, dentShadow.gameObject);
+
+            // 승차권. 등받이와 방석 틈에 비스듬히 끼어 있다.
+            var ticket = CloseupRect(go.transform, "Ticket", new Vector2(-470f, 52f), new Vector2(130f, 62f), new Color(0.88f, 0.86f, 0.78f));
+            ticket.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 14f);
+            CloseupRect(ticket.transform, "Stripe", new Vector2(0f, -16f), new Vector2(130f, 12f), new Color(0.15f, 0.15f, 0.18f));
+            CloseupRect(ticket.transform, "Print", new Vector2(-18f, 10f), new Vector2(70f, 6f), new Color(0.45f, 0.44f, 0.42f));
+            var ticketButton = CloseupHotspot(go.transform, "Hotspot_Ticket", new Vector2(-470f, 52f), new Vector2(170f, 110f));
+            AttachGlow(ticketButton, ticket.gameObject);
+
+            // 머리카락. 오른쪽 칸 방석 위에 길고 검은 것 한 올이 굽이져 놓여 있다.
+            var hair = new GameObject("Hair", typeof(RectTransform));
+            hair.transform.SetParent(go.transform, false);
+            var hairRt = (RectTransform)hair.transform;
+            hairRt.anchorMin = hairRt.anchorMax = new Vector2(0.5f, 0.5f);
+            hairRt.anchoredPosition = new Vector2(470f, -40f);
+            hairRt.sizeDelta = Vector2.zero;
+            float[][] strands = { new[] { -90f, 10f, 70f, 8f }, new[] { -28f, 2f, 60f, -14f }, new[] { 28f, 6f, 60f, 18f }, new[] { 86f, 18f, 60f, -6f }, new[] { 138f, 6f, 50f, -30f } };
+            foreach (var s in strands)
+            {
+                var strand = CloseupRect(hair.transform, "Strand", new Vector2(s[0], s[1]), new Vector2(s[2], 3f), new Color(0.04f, 0.04f, 0.05f));
+                strand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, s[3]);
+            }
+            var hairButton = CloseupHotspot(go.transform, "Hotspot_Hair", new Vector2(490f, -34f), new Vector2(320f, 90f));
+            AttachGlow(hairButton, hair);
+
+            FinishCloseup(go, screen, "field.subway.seat_close.hint",
+                new[] { dentButton, ticketButton, hairButton },
+                new[] { "field.subway.seat_close.dent", "field.subway.seat_close.ticket", "field.subway.seat_close.hair" },
+                actionIds: new[] { "action_subway_seat_search", null, null });
+            return screen;
+        }
+
         private static CloseupScreen BuildCctvCloseupScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.05f, 0.05f, 0.07f, 1f));
@@ -2647,7 +2720,16 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(head.transform, "LensRing", new Vector2(830f, -90f), new Vector2(100f, 250f), dark);
             CloseupRect(head.transform, "Lens", new Vector2(890f, -90f), new Vector2(46f, 170f), new Color(0.18f, 0.24f, 0.34f));
             CloseupRect(head.transform, "LensGlint", new Vector2(896f, -40f), new Vector2(12f, 40f), new Color(0.55f, 0.65f, 0.8f, 0.8f));
-            CloseupRect(head.transform, "RecLight", new Vector2(80f, -30f), new Vector2(44f, 44f), new Color(1f, 0.12f, 0.1f));
+            // 빨간 불. 밝게 빛나고 둘레로 붉은 빛이 번진다.
+            var recGlow = CloseupRect(head.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(170f, 170f), new Color(1f, 0.12f, 0.08f, 0.6f));
+            recGlow.sprite = FieldSoftSprite();
+            recGlow.type = Image.Type.Simple;
+            var recLight = CloseupRect(head.transform, "RecLight", new Vector2(80f, -30f), new Vector2(46f, 46f), new Color(1f, 0.3f, 0.24f));
+            recLight.sprite = RoundSprite();
+            recLight.type = Image.Type.Simple;
+            var recShine = CloseupRect(recLight.transform, "Shine", new Vector2(-8f, 8f), new Vector2(14f, 14f), new Color(1f, 0.8f, 0.75f, 0.85f));
+            recShine.sprite = RoundSprite();
+            recShine.type = Image.Type.Simple;
 
             // 흠집. 몸통 옆면에 비스듬히 그어진 가는 자국 몇 줄.
             float[][] marks = { new[] { -40f, 20f, 170f, 22f }, new[] { 10f, -6f, 120f, 18f }, new[] { 40f, -36f, 80f, 26f }, new[] { -70f, -30f, 60f, 15f } };
@@ -2680,7 +2762,8 @@ namespace UrbanLegendBureau.EditorTools
             FinishCloseup(go, screen, "field.subway.cctv_close.hint",
                 new[] { scratchButton, batteryButton },
                 new[] { "field.subway.cctv_close.scratch", "field.subway.cctv_close.battery" },
-                new[] { null, batteryLid.gameObject }, new[] { null, batteryOpen });
+                new[] { null, batteryLid.gameObject }, new[] { null, batteryOpen },
+                actionIds: new[] { null, "action_subway_cctv_inspect" });   // 배터리 칸을 열어 보는 것이 CCTV 기록을 확인하는 일이다
             return screen;
         }
 
@@ -2813,7 +2896,8 @@ namespace UrbanLegendBureau.EditorTools
             FinishCloseup(go, screen, "field.subway.window_close.hint",
                 new[] { crackButton, scratchButton, stickerButton, handButton },
                 new[] { "field.subway.window_close.crack", "field.subway.window_close.scratch", "field.subway.window_close.sticker", "field.subway.window_close.hand" },
-                hiddenAtStart: new[] { false, false, false, true }, revealObjects: new[] { null, null, null, hand.gameObject });
+                hiddenAtStart: new[] { false, false, false, true }, revealObjects: new[] { null, null, null, hand.gameObject },
+                actionIds: new[] { "action_subway_window_trace", null, null, "action_subway_glass_check" });
 
             // 정전 뒤에도 그것은 어둠 속에서 아주 희미하게 비친다. 어둠보다 앞에 같은 모양을 하나 더 두고 옅게 따라 그린다.
             // 유리 밖으로 삐져나오지 않게 유리와 같은 자리, 같은 크기로 자른다. 라이트를 비추면 어둠 아래의 본래 그림이 잘 보인다.
@@ -2840,7 +2924,7 @@ namespace UrbanLegendBureau.EditorTools
         /// 글자 크기와 규칙은 현장 대사 띠와 같다.
         /// </summary>
         private static void FinishCloseup(GameObject go, CloseupScreen screen, string hintId, Button[] spotButtons, string[] spotTextIds,
-            GameObject[] hides = null, GameObject[] shows = null, bool[] hiddenAtStart = null, GameObject[] revealObjects = null)
+            GameObject[] hides = null, GameObject[] shows = null, bool[] hiddenAtStart = null, GameObject[] revealObjects = null, string[] actionIds = null)
         {
             // 정전 뒤의 어둠. 마우스를 따라가는 휴대폰 라이트 자리만 조금 보인다. 대사 띠와 돌아가기 단추보다 뒤에 깐다. 평소에는 꺼 둔다.
             var dark = new GameObject("Dark", typeof(RectTransform), typeof(RawImage));
@@ -2915,6 +2999,7 @@ namespace UrbanLegendBureau.EditorTools
                 spot.FindPropertyRelative("showOnCheck").objectReferenceValue = shows != null ? shows[i] : null;
                 spot.FindPropertyRelative("hiddenAtStart").boolValue = hiddenAtStart != null && hiddenAtStart[i];
                 spot.FindPropertyRelative("revealObject").objectReferenceValue = revealObjects != null ? revealObjects[i] : null;
+                spot.FindPropertyRelative("actionId").stringValue = actionIds != null && actionIds[i] != null ? actionIds[i] : string.Empty;
                 if (hiddenAtStart != null && hiddenAtStart[i])
                 {
                     spotButtons[i].gameObject.SetActive(false);
@@ -4525,6 +4610,23 @@ namespace UrbanLegendBureau.EditorTools
             btRule.GetComponent<Image>().raycastTarget = false;
             btRule.AddComponent<LayoutElement>().ignoreLayout = true;
             AddCrisp(btRule, 1f);
+
+            // 아직 열 수 없는 글의 자물쇠. 오른쪽 끝에 작게 붙는다. 잠긴 글에만 켠다(CommunityPageScreen.EntryLocked).
+            var btLock = new GameObject("Lock", typeof(RectTransform));
+            btLock.transform.SetParent(boardTemplate.transform, false);
+            btLock.AddComponent<LayoutElement>().ignoreLayout = true;
+            var btLockRt = (RectTransform)btLock.transform;
+            btLockRt.anchorMin = btLockRt.anchorMax = new Vector2(1f, 0.5f);
+            btLockRt.pivot = new Vector2(1f, 0.5f);
+            btLockRt.anchoredPosition = new Vector2(-20f, 4f);
+            btLockRt.sizeDelta = new Vector2(24f, 30f);
+            var lockColor = new Color(0.55f, 0.57f, 0.62f, 1f);
+            CloseupRect(btLock.transform, "ShackleL", new Vector2(-6f, 6f), new Vector2(3f, 12f), lockColor);
+            CloseupRect(btLock.transform, "ShackleR", new Vector2(6f, 6f), new Vector2(3f, 12f), lockColor);
+            CloseupRect(btLock.transform, "ShackleTop", new Vector2(0f, 11f), new Vector2(15f, 3f), lockColor);
+            CloseupRect(btLock.transform, "Body", new Vector2(0f, -5f), new Vector2(22f, 16f), lockColor);
+            CloseupRect(btLock.transform, "Keyhole", new Vector2(0f, -5f), new Vector2(3f, 6f), new Color(0.97f, 0.97f, 0.98f, 1f));
+            btLock.SetActive(false);
             boardTemplate.SetActive(false);
 
             // --- 글 하나를 펼친 보기 ---

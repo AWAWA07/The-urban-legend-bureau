@@ -173,6 +173,9 @@ namespace UrbanLegendBureau.Systems
 
         private void Awake()
         {
+            // 게시판을 채우는 글은 현장으로 나간 뒤에야 열린다. 그 전에는 목록에서 잠긴 글로 보인다.
+            CommunityPageScreen.EntryLocked = entry =>
+                entry != null && !entry.Openable && (!PostsUnlocked || (string.IsNullOrEmpty(entry.BodyTextId) && entry.BodyTextIds == null));
             ServiceRegistry.TryGet(out _ui);
             StorySkip.CanSkip = () => CanSkipIntro;
             StorySkip.Skip = SkipIntro;
@@ -416,7 +419,7 @@ namespace UrbanLegendBureau.Systems
             if (entry == null) return;
 
             if (entry.Openable) { OpenCommunity(); return; }
-            if (!PostsUnlocked || string.IsNullOrEmpty(entry.BodyTextId)) return;
+            if (CommunityPageScreen.EntryLocked != null && CommunityPageScreen.EntryLocked(entry)) return;
 
             OpenFillerPost(entry);
         }

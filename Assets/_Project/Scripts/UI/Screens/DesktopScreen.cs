@@ -192,8 +192,15 @@ namespace UrbanLegendBureau.UI
             {
                 if (icon == null) continue;
 
-                bool open = !_lockAll && (_allowAll || _allowed.Contains(icon.appId));
-                if (icon.button != null) icon.button.interactable = open;
+                // 아직 열리지 않은 앱은 바탕화면에서 아예 숨긴다. 풀리면 그때 나타난다.
+                // 한영이 말하는 동안 모두 잠그는 것(_lockAll)은 잠깐이라 숨기지 않고 누르지만 못하게 한다.
+                bool unlocked = _allowAll || _allowed.Contains(icon.appId);
+                bool open = !_lockAll && unlocked;
+                if (icon.button != null)
+                {
+                    icon.button.gameObject.SetActive(unlocked);
+                    icon.button.interactable = open;
+                }
 
                 // 가리키는 세모는 지목된 아이콘 하나에만 선다. 잠겨 있으면 아직 누를 때가 아니다.
                 if (icon.hint != null) icon.hint.SetActive(open && icon.appId == _hintAppId);
@@ -324,6 +331,7 @@ namespace UrbanLegendBureau.UI
             foreach (var icon in _icons)
             {
                 if (icon == null) continue;
+                if (icon.button != null && !icon.button.gameObject.activeSelf) continue;   // 숨긴 앱은 찾아지지도 않는다
                 string label = icon.label != null ? Normalize(icon.label.text) : string.Empty;
                 if (label.Contains(q) || Normalize(icon.appId).Contains(q)) hits.Add(icon);
             }
