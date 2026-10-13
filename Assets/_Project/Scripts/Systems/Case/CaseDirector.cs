@@ -260,6 +260,7 @@ namespace UrbanLegendBureau.Systems
             if (_field != null)
             {
                 _field.Investigated += OnPointInvestigated;
+                _field.ChooseAmong += OnChooseAmong;
                 _field.SetFieldVisible(false);
             }
 
@@ -309,6 +310,7 @@ namespace UrbanLegendBureau.Systems
         private void OnDestroy()
         {
             if (_field != null) _field.Investigated -= OnPointInvestigated;
+            if (_field != null) _field.ChooseAmong -= OnChooseAmong;
         }
 
         // ------------------------------------------------------------- 화면 전환
@@ -2109,6 +2111,31 @@ namespace UrbanLegendBureau.Systems
             string speaker = isHanyoung != null && isHanyoung[index] ? HanyoungNameTextId : FieldSpeakerTextId;
             _fieldHudScreen.ShowLine(speaker, () => _loc.Get(id), () => CctvLines(ids, isHanyoung, index + 1, onDone), id);
         }
+
+        /// <summary>
+        /// 걸어가 선 자리에 조사할 곳이 둘 이상 겹쳐 있다(창문과 그 아래 빈자리). 아래 띠에 어느 것을 조사할지 고르게 한다.
+        /// 그만두기를 고르면 아무 일도 없다. 고르는 동안에는 걷지 못한다.
+        /// </summary>
+        private void OnChooseAmong(IReadOnlyList<InvestigationPoint> points)
+        {
+            if (points == null || points.Count == 0 || _fieldHudScreen == null) return;
+            var captured = new List<InvestigationPoint>(points);
+            var labels = new List<System.Func<string>>();
+            foreach (var p in captured)
+            {
+                var point = p;
+                labels.Add(() => _loc.Get(ChoosePointTextId, string.IsNullOrEmpty(point.NameTextId) ? point.PointId : _loc.Get(point.NameTextId)));
+            }
+            labels.Add(() => _loc.Get(ChooseCancelTextId));
+            _fieldHudScreen.ShowChoices(FieldSpeakerTextId, labels, pick =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                if (pick >= 0 && pick < captured.Count) OnPointInvestigated(captured[pick]);
+            });
+        }
+
+        private const string ChoosePointTextId = "ui.field.choose_point";
+        private const string ChooseCancelTextId = "ui.field.choose_cancel";
 
         private void OnPointInvestigated(InvestigationPoint point)
         {

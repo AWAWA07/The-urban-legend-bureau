@@ -49,6 +49,16 @@ namespace UrbanLegendBureau.Systems
         /// <summary>조사 지점이 실제로 조사됐을 때. 결과 처리는 구독자가 한다.</summary>
         public event Action<InvestigationPoint> Investigated;
 
+        /// <summary>
+        /// 걸어가 선 자리에 조사할 곳이 둘 이상 겹쳐 있을 때(창문과 그 아래 빈자리처럼) E 를 눌렀다.
+        /// 어느 것을 조사할지 고르게 하는 것은 받는 쪽(CaseDirector)이 한다.
+        /// </summary>
+        public event Action<IReadOnlyList<InvestigationPoint>> ChooseAmong;
+
+        /// <summary>곁에 선 자리에서 똑같이 가까운 조사 지점들. 하나뿐이면 겹친 것이 없다.</summary>
+        private readonly List<InvestigationPoint> _nearTies = new List<InvestigationPoint>();
+        private string _tieKey = string.Empty;
+
         /// <summary>현재 조사 입력을 받는가.</summary>
         public bool IsActive { get; private set; }
 
@@ -144,6 +154,8 @@ namespace UrbanLegendBureau.Systems
             InvestigationPoint hovered = null;
             if (InvestigationAllowed && TryPointerWorld(out var world)) hovered = PointAt(world);
             SetNear(hovered != null ? hovered : FindNear());
+            if (hovered != null) _nearTies.Clear();
+            RefreshTiePrompt();
             SetHover(NearPoint);   // 걸어가 곁에 섰을 때도 마우스를 올렸을 때처럼 노란 외곽선이 둘러진다
 
             // 곁에 서거나 마우스를 올린 채로 조사를 마쳤으면 말풍선의 글도 바뀌어야 한다.
@@ -151,12 +163,15 @@ namespace UrbanLegendBureau.Systems
             if (NearPoint != null && NearPoint.IsInvestigated != _nearWasInvestigated)
             {
                 _nearWasInvestigated = NearPoint.IsInvestigated;
-                if (_prompt != null) _prompt.Show(NearPoint, BuildPromptText(NearPoint));
+                if (_nearTies.Count > 1) { _tieKey = string.Empty; RefreshTiePrompt(); }
+                else if (_prompt != null) _prompt.Show(NearPoint, BuildPromptText(NearPoint));
             }
 
             if (NearPoint != null && _input.InteractPressed)
             {
-                Investigated?.Invoke(NearPoint);
+                // 같은 자리에 둘 이상 겹쳐 있으면 어느 것을 조사할지 고르게 한다.
+                if (_nearTies.Count > 1 && ChooseAmong != null) ChooseAmong(new List<InvestigationPoint>(_nearTies));
+                else Investigated?.Invoke(NearPoint);
                 return;
             }
 
@@ -228,6 +243,7 @@ namespace UrbanLegendBureau.Systems
 
             InvestigationPoint best = null;
             float bestDistance = _reach;
+            _nearTies.Clear();
 
             for (int i = 0; i < _points.Length; i++)
             {
@@ -243,6 +259,15 @@ namespace UrbanLegendBureau.Systems
                 best = point;
             }
 
+            // 똑같이 가까운 것들을 모은다. 위아래로 겹쳐 놓인 창문과 그 아래 빈자리가 그렇다.
+            if (best != null)
+                for (int i = 0; i < _points.Length; i++)
+                {
+                    var point = _points[i];
+                    if (point == null || !point.isActiveAndEnabled) continue;
+                    if (Mathf.Abs(Mathf.Abs(point.transform.position.x - x) - bestDistance) < 0.05f) _nearTies.Add(point);
+                }
+
             return best;
         }
 
@@ -256,6 +281,24 @@ namespace UrbanLegendBureau.Systems
                 if (_walkers[i] != null && _walkers[i].isActiveAndEnabled) return _walkers[i];
             }
             return null;
+        }
+
+        /// <summary>
+        /// 겹친 곳 앞에 섰으면 말풍선에 둘 다 적는다("[E] 창문 · 빈자리 조사"). 겹친 것이 바뀔 때만 다시 쓴다.
+        /// </summary>
+        private void RefreshTiePrompt()
+        {
+            string key = string.Empty;
+            if (_nearTies.Count > 1) foreach (var p in _nearTies) key += p.PointId + "|";
+            if (key == _tieKey) return;
+            _tieKey = key;
+            if (_prompt == null || NearPoint == null) return;
+            if (_nearTies.Count <= 1) { _prompt.Show(NearPoint, BuildPromptText(NearPoint)); return; }
+
+            if (_loc == null && !ServiceRegistry.TryGet(out _loc)) return;
+            var names = new List<string>();
+            foreach (var p in _nearTies) names.Add(string.IsNullOrEmpty(p.NameTextId) ? p.PointId : _loc.Get(p.NameTextId));
+            _prompt.Show(NearPoint, _loc.Get(PromptTextId, string.Join(" · ", names)));
         }
 
         private void SetNear(InvestigationPoint point)
