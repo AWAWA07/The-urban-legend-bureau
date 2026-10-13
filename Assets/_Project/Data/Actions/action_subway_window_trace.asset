@@ -18,7 +18,7 @@ MonoBehaviour:
   _resultTextId: action.subway.window_trace.result
   _actionKind: 7
   _usage: 2
-  _minutesOverride: 15
+  _minutesOverride: 4
   _useSpreadOverride: 1
   _spreadOverride: 2.5
   _requiredClueIds: []

@@ -1372,6 +1372,49 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
+        /// 열차 안에서 한 곳을 살피는 데 드는 사건 시간(분). 가까이 보기의 한 자리, 문, 인터폰이 모두 같다.
+        /// 열차에서 살필 곳이 열한 군데라 다 살피면 40분 남짓, 실제로 흐른 시간까지 더해 00:30 종점 무렵이 된다.
+        /// 조사 행동 데이터(action_subway_*)의 시간도 이 값에 맞춰 둔다.
+        /// </summary>
+        private const int TrainStepMinutes = 4;
+
+        /// <summary>열차 안에서 현장을 한 번 뒤진 것으로 친다. 시간은 TrainStepMinutes 만큼 흐른다.</summary>
+        private void RegisterTrainStep()
+        {
+            if (_time == null || _case == null) return;
+
+            int before = _time.GetElapsedMinutes(_save.Current, _caseId);
+            var result = _time.RegisterAction(_save, _caseId, _legendId, InvestigationAction.FieldSearch,
+                TrainStepMinutes, InvestigationTimeService.GetSpreadCost(InvestigationAction.FieldSearch));
+            if (result.Registered) AfterAction(result.ElapsedMinutes - before, result.Spread);
+        }
+
+        /// <summary>
+        /// 열차 안을 다 살폈는가. 빈자리·창문·CCTV 가까이 보기의 모든 자리, 인터폰 통화, 울린 문까지다.
+        /// </summary>
+        private bool IsTrainFullySearched()
+        {
+            if (_seatCloseupScreen == null || !_seatCloseupScreen.AllChecked) return false;
+            if (_windowCloseupScreen == null || !_windowCloseupScreen.AllChecked) return false;
+            if (_cctvCloseupScreen == null || !_cctvCloseupScreen.AllChecked) return false;
+            if (!_intercomUsed) return false;
+            var door = FindDoorPointAnywhere();
+            return door != null && door.IsInvestigated;
+        }
+
+        /// <summary>
+        /// 열차 안을 다 살폈으면 막차가 곧 종점에 닿는다. 시계를 00:30 으로 맞춘다.
+        /// 종점 알림은 현장으로 돌아왔을 때 늘 하던 대로 뜬다(CheckTerminus).
+        /// </summary>
+        private void CheckTrainFullySearched()
+        {
+            if (_terminusDone || IsAfterTerminus() || !IsTrainFullySearched()) return;
+            GameClock.SetExactly(TerminusMinutesOfDay / 60, TerminusMinutesOfDay % 60);
+            Debug.Log("[CaseDirector] 열차 안을 다 살폈다 | 막차가 종점 00:30 에 닿는다");
+            PushStatus();
+        }
+
+        /// <summary>
         /// 조사 행동 한 번이 끝난 뒤에 따라오는 것들.
         ///
         /// 사건 시간이 흐른 만큼 벽시계도 흐른다. 컴퓨터를 보든 휴대폰을 보든 같은 시각이다.
@@ -1418,6 +1461,8 @@ namespace UrbanLegendBureau.Systems
         private void Update()
         {
             if (_terminusDone || _field == null || !_field.IsActive) return;
+            // 가까이 보기를 보고 있거나 누가 말하는 중이면 현장으로 돌아와 숨을 돌릴 때까지 미룬다.
+            if (!FieldHudScreen.IsFront || FieldHudScreen.IsSpeaking || FieldHudScreen.IsCutscene) return;
             CheckTerminus();
         }
 
@@ -1985,6 +2030,7 @@ namespace UrbanLegendBureau.Systems
                 MarkActionDone(point, action);
                 if (AreAllActionsDone(point)) point.MarkInvestigated();
                 if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
+                CheckTrainFullySearched();
 
                 if (result.GotNewClue)
                 {
@@ -2146,7 +2192,8 @@ namespace UrbanLegendBureau.Systems
                 if (!point.IsInvestigated)
                 {
                     point.MarkInvestigated();
-                    RegisterAction(InvestigationAction.FieldSearch);
+                    RegisterTrainStep();
+                    CheckTrainFullySearched();
                     if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
                 }
             });
@@ -2198,10 +2245,12 @@ namespace UrbanLegendBureau.Systems
                     }
                     Debug.Log($"[CaseDirector] 가까이 보기 조사 | {pointId} #{index} -> {action.ActionId} | {result.MinutesAdded}분");
                     if (_fieldHudScreen != null) _fieldHudScreen.Refresh();   // 현장 맨 위 줄의 경과 시간과 행동 수
+                    CheckTrainFullySearched();
                     return;
                 }
             }
-            RegisterAction(InvestigationAction.FieldSearch);
+            RegisterTrainStep();
+            CheckTrainFullySearched();
             Debug.Log($"[CaseDirector] 가까이 보기 조사 | {pointId} #{index} -> 현장 뒤지기");
             if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
         }

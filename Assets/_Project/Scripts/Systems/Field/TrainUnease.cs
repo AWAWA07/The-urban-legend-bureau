@@ -53,8 +53,10 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _figureAlpha = 0.11f;
         [Tooltip("이만큼(월드 x) 다가가면 사라진다.")]
         [SerializeField] private float _vanishDistance = 3.2f;
-        [Tooltip("사라진 뒤 다시 서 있기까지 기다리는 시간(초). 그동안 멀리 떨어져 있어야 한다.")]
-        [SerializeField] private float _returnSeconds = 14f;
+        [Tooltip("다 드러난 뒤 이만큼(초) 지나면 저절로 사라진다. 한 번 사라지면 다시 나오지 않는다.")]
+        [SerializeField] private float _figureLingerSeconds = 4f;
+        [Tooltip("휴대폰 라이트(마우스 빛)의 가운데가 이만큼(반지름에 대한 비율) 가까이 오면 비친 것으로 보고 사라진다.")]
+        [SerializeField] private float _lightTouch = 0.8f;
         [Tooltip("다가가는 사람. 비워 두면 객실 안의 걷는 사람을 찾는다.")]
         [SerializeField] private Transform _watcher;
 
@@ -113,6 +115,8 @@ namespace UrbanLegendBureau.Systems
         private float _figureFade;          // 0 이면 없고 1 이면 다 드러났다
         private bool _figureGone;
         private float _figureGoneAt = -1000f;
+        private float _figureShownAt = -1f;   // 다 드러난 때. 아직이면 -1
+        private Vector2 _pointerWorld = new Vector2(9999f, 9999f);   // 마우스 빛의 가운데. 빛이 없으면 멀리
 
         private void Awake()
         {
@@ -167,6 +171,8 @@ namespace UrbanLegendBureau.Systems
             _figureFade = 0f;
             _figureGone = false;
             _figureGoneAt = -1000f;
+            _figureShownAt = -1f;
+            _pointerWorld = new Vector2(9999f, 9999f);
             Apply(1f);
             if (_figure != null) _figure.enabled = false;
             if (_strap != null) { _strap.localPosition = _strapBase; _strap.localRotation = _strapRotation; }
@@ -454,6 +460,7 @@ namespace UrbanLegendBureau.Systems
                 Vector2 screen = device.position.ReadValue();
                 if (cam.pixelRect.Contains(screen)) pointer = cam.ScreenToWorldPoint(new Vector3(screen.x, screen.y, 0f));
             }
+            _pointerWorld = pointer;
 
             float left = center.x - viewW * 0.5f, bottom = center.y - viewH * 0.5f;
             float stepX = viewW / w, stepY = viewH / h;
@@ -497,22 +504,29 @@ namespace UrbanLegendBureau.Systems
             {
                 _figureFade = 0f;
             }
+            else if (!_figureGone && !IsFieldIdle())
+            {
+                // 가까이 보기를 보거나 말하는 동안에는 기다린다. 현장으로 돌아와야 서서히 드러나고 몇 초를 센다.
+                if (_figureShownAt >= 0f) _figureShownAt += Time.deltaTime;
+            }
             else if (!_figureGone)
             {
-                if (distance < _vanishDistance && _figureFade > 0.5f)
+                // 휴대폰 라이트로 비추면, 다가가면, 다 드러나고 몇 초 지나면 끊기듯 사라진다. 스르르 사라지지 않는다.
+                // 한 번 사라지면 다시 나오지 않는다.
+                bool lit = _darkState == DarkState.Phone && _figureFade > 0.3f
+                    && Vector2.Distance(_pointerWorld, _figure.bounds.center) < _pointerRadius * _lightTouch;
+                bool near = distance < _vanishDistance && _figureFade > 0.5f;
+                bool lingered = _figureShownAt >= 0f && now - _figureShownAt > _figureLingerSeconds;
+                if (lit || near || lingered)
                 {
-                    // 다가가면 끊기듯 사라진다. 스르르 사라지지 않는다.
                     _figureGone = true;
                     _figureGoneAt = now;
                 }
                 else
                 {
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
+                    if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }
-            }
-            else if (now - _figureGoneAt > _returnSeconds && distance > _vanishDistance * 2f)
-            {
-                _figureGone = false;
             }
 
             float alpha = _figureFade * _figureAlpha;

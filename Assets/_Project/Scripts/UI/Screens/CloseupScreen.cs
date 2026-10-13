@@ -109,6 +109,17 @@ namespace UrbanLegendBureau.UI
             SetInteractable(true);
         }
 
+        /// <summary>살필 곳을 모두 살폈는가. 나중에 드러나는 자리도 센다.</summary>
+        public bool AllChecked
+        {
+            get
+            {
+                for (int i = 0; i < _spots.Length; i++)
+                    if (_spots[i] != null && _spots[i].button != null && !_checked.Contains(i)) return false;
+                return true;
+            }
+        }
+
         /// <summary>살핀 기록을 지운다. 사건이 새로 시작될 때 부른다.</summary>
         public void ResetChecked()
         {
