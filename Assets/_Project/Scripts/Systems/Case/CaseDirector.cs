@@ -1887,11 +1887,12 @@ namespace UrbanLegendBureau.Systems
                 bases.Add(a.localPosition);
             }
 
-            // 움찔 뛴다. 차지한이 먼저, 한영이 조금 늦게.
+            // 움찔 뛴다. 차지한만 뛴다. 한영은 귀신을 무서워하지 않아 돌아보기만 한다.
+            int jumpers = root != null ? root.GetComponentsInChildren<FieldWalker>().Length : 0;
             const float Hop = 0.3f, Seconds = 0.26f, Lag = 0.06f;
             for (float e = 0f; e < Seconds + Lag; e += Time.deltaTime)
             {
-                for (int i = 0; i < actors.Count; i++)
+                for (int i = 0; i < actors.Count && i < jumpers; i++)
                 {
                     float k = Mathf.Clamp01((e - i * Lag) / Seconds);
                     actors[i].localPosition = bases[i] + new Vector3(0f, Hop * 4f * k * (1f - k), 0f);

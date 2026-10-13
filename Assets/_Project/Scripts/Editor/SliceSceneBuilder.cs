@@ -119,7 +119,7 @@ namespace UrbanLegendBureau.EditorTools
             //   빈자리 - 왼쪽 긴 의자의 한 칸.
             //   창문   - 오른쪽 긴 의자 위의 창.
             //   CCTV   - 왼쪽 위 천장 모서리.
-            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(-6.53f, -1.6f),
+            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(-5.0f, -1.6f),
                 new Vector2(1.5f, 2.35f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
             var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
@@ -923,6 +923,8 @@ namespace UrbanLegendBureau.EditorTools
             uso.FindProperty("_strap").objectReferenceValue = root.transform.Find("Strap_6");
             uso.FindProperty("_ring").objectReferenceValue = root.transform.Find("StrapRing_6");
             uso.FindProperty("_figure").objectReferenceValue = figureSr;
+            uso.FindProperty("_cctvLight").objectReferenceValue = root.transform.Find("Cctv/Head/RecLight").GetComponent<SpriteRenderer>();
+            uso.FindProperty("_cctvGlow").objectReferenceValue = root.transform.Find("Cctv/Head/RecGlow").GetComponent<SpriteRenderer>();
             uso.FindProperty("_handprint").objectReferenceValue = root.transform.Find("WindowHandprint").gameObject;
             // 객실을 덮는 어둠. 평소에는 아주 옅고, 정전이 되면 거의 새까맣다. 말풍선과 이름표(30)는 이보다 앞이다.
             var darkCover = AddFieldRect(root.transform, "Dark", Vector2.zero, new Vector2(60f, 24f), new Color(0f, 0f, 0f, 0.12f), 20);
@@ -2605,9 +2607,11 @@ namespace UrbanLegendBureau.EditorTools
         /// 아래 띠에 본 것을 한 줄로 적고, 오른쪽 위의 돌아가기로 현장에 돌아간다.
         /// </summary>
         /// <summary>
-        /// 빈자리를 가까이서 보는 화면(임시). 긴 의자의 한 칸과 그 위 창이 보인다.
-        /// 살필 곳은 셋이다. 아무도 없는데 오목하게 눌린 방석, 등받이 틈에 낀 승차권, 방석 위의 긴 머리카락.
-        /// 눌린 방석을 살피는 것이 좌석 조사(action_subway_seat_search)다.
+        /// 빈자리를 가까이서 보는 화면(임시). 현장의 왼쪽 긴 의자와 그 위 창을 그대로 크게 본 모습이다.
+        /// 현장 좌표(긴 의자 가운데가 x -5, 바닥 근처가 y -3.5)를 화면으로 옮겨 그리므로 색과 짜임이 현장과 같다.
+        /// 창 너머로는 달리는 터널이 지나간다(TunnelScroll). 객실은 잔잔히 흔들린다.
+        /// 살필 곳은 셋이다. 가운데 칸(눌린 방석), 왼쪽 칸 틈에 낀 승차권, 오른쪽 칸 방석 위의 머리카락.
+        /// 가운데 칸을 살피는 것이 좌석 조사(action_subway_seat_search)다.
         /// </summary>
         private static CloseupScreen BuildSeatCloseupScreen(string name)
         {
@@ -2616,62 +2620,137 @@ namespace UrbanLegendBureau.EditorTools
             var screen = go.AddComponent<CloseupScreen>();
             ConfigureScreen(screen, name, UILayer.Screen, true, true);
 
-            var wall = CreatePanel(go.transform, "Wall", new Color(0.12f, 0.13f, 0.17f, 1f));
+            // 흔들리는 묶음. 객실 벽, 문, 창, 의자가 모두 들어 있다.
+            var car = new GameObject("Car", typeof(RectTransform));
+            car.transform.SetParent(go.transform, false);
+            var carRt = (RectTransform)car.transform;
+            carRt.anchorMin = Vector2.zero;
+            carRt.anchorMax = Vector2.one;
+            carRt.offsetMin = carRt.offsetMax = Vector2.zero;
+            var c = car.transform;
+
+            // 현장 한 단위가 화면 260픽셀. 긴 의자 가운데(x -5)가 화면 가운데, 현장 y -3.1(의자 앞면)이 대사 띠 바로 위다.
+            // 의자를 가까이 보느라 창은 아래쪽 띠만 화면에 걸린다. 그 띠 안으로 터널 불빛이 지나간다.
+            const float K = 260f;
+            const float BaseY = -3.1f;
+            Image R(Transform parent, string n, float fx, float fy, float fw, float fh, Color col)
+                => CloseupRect(parent, n, new Vector2((fx + 5f) * K, (fy - BaseY) * K - 260f), new Vector2(fw * K, fh * K), col);
+
+            var wall = CreatePanel(c, "Wall", new Color(0.19f, 0.20f, 0.25f, 1f));
             StretchFull(wall);
 
-            // 의자 위의 창. 바깥은 캄캄한 터널이다.
-            CloseupRect(go.transform, "WindowFrame", new Vector2(0f, 400f), new Vector2(1700f, 250f), new Color(0.30f, 0.31f, 0.37f));
-            CloseupRect(go.transform, "WindowGlass", new Vector2(0f, 400f), new Vector2(1640f, 200f), new Color(0.03f, 0.03f, 0.05f));
-
-            // 등받이와 방석. 세 칸이 이어진 긴 의자의 가운데 칸을 본다.
-            var cushion = new Color(0.27f, 0.31f, 0.46f);
-            var cushionDark = new Color(0.20f, 0.23f, 0.35f);
-            CloseupRect(go.transform, "Backrest", new Vector2(0f, 160f), new Vector2(1640f, 250f), cushion);
-            CloseupRect(go.transform, "Seat", new Vector2(0f, -40f), new Vector2(1720f, 170f), new Color(0.30f, 0.34f, 0.50f));
-            CloseupRect(go.transform, "SeatFront", new Vector2(0f, -140f), new Vector2(1720f, 40f), cushionDark);
-            // 가운데 칸만 따로 한 번 더 깐다. 마우스를 올리면 이 칸 모양만 빛난다.
-            CloseupRect(go.transform, "MiddleBack", new Vector2(0f, 160f), new Vector2(554f, 250f), cushion);
-            CloseupRect(go.transform, "MiddleSeat", new Vector2(0f, -40f), new Vector2(554f, 170f), new Color(0.30f, 0.34f, 0.50f));
-            CloseupRect(go.transform, "MiddleFront", new Vector2(0f, -140f), new Vector2(554f, 40f), cushionDark);
-            CloseupRect(go.transform, "Gap", new Vector2(0f, 38f), new Vector2(1640f, 16f), new Color(0.07f, 0.07f, 0.10f));
-            foreach (float sx in new[] { -280f, 280f })
+            // 양옆의 문. 현장의 왼쪽 문(x -10)과 가운데 문(x 0)이 화면 끝에 걸린다.
+            foreach (float dx in new[] { -10f, 0f })
             {
-                CloseupRect(go.transform, "SeamBack", new Vector2(sx, 160f), new Vector2(6f, 250f), cushionDark);
-                CloseupRect(go.transform, "SeamSeat", new Vector2(sx, -40f), new Vector2(6f, 170f), cushionDark);
+                R(c, "DoorFrame", dx, -0.6f, 4.6f, 6.0f, new Color(0.24f, 0.25f, 0.31f));
+                foreach (float lx in new[] { -1.05f, 1.05f })
+                {
+                    R(c, "Leaf", dx + lx, -0.6f, 2.0f, 5.6f, new Color(0.21f, 0.22f, 0.27f));
+                    R(c, "LeafGlass", dx + lx, 0.9f, 1.5f, 2.2f, new Color(0.08f, 0.10f, 0.14f));
+                }
             }
 
-            // 눌린 자국. 가운데 칸 방석이 누가 앉은 것처럼 오목하다.
-            var dent = new GameObject("Dent", typeof(RectTransform));
-            dent.transform.SetParent(go.transform, false);
-            var dentRt = (RectTransform)dent.transform;
-            dentRt.anchorMin = dentRt.anchorMax = new Vector2(0.5f, 0.5f);
-            dentRt.anchoredPosition = new Vector2(0f, -38f);
-            dentRt.sizeDelta = new Vector2(540f, 198f);
-            // 두 쪽으로 오목한 그늘, 앞 가장자리의 옅은 빛, 가장자리에서 당겨진 주름을 한 장에 그렸다.
-            var dentArt = CloseupRect(dent.transform, "Art", Vector2.zero, new Vector2(540f, 198f), Color.white);
-            dentArt.sprite = LoadCrispSprite(CloseupArtPath + "seat_dent.png");
-            dentArt.type = Image.Type.Simple;
-            // 가운데 한 칸(등받이, 방석, 앞면)이 누르는 자리다. 그 칸 어디를 눌러도 빈자리를 살핀다.
-            var dentButton = CloseupHotspot(go.transform, "Hotspot_Dent", new Vector2(0f, 60f), new Vector2(550f, 400f));
-            dentButton.transform.SetSiblingIndex(dent.transform.GetSiblingIndex() + 1);
-            AttachGlow(dentButton, go.transform.Find("MiddleBack").gameObject, go.transform.Find("MiddleSeat").gameObject, go.transform.Find("MiddleFront").gameObject);
+            // 의자 위의 창. 현장과 같은 틀, 유리, 가운데 창살이다. 유리 안에서 터널이 지나간다.
+            R(c, "WindowFrame", -5f, 0.9f, 5.0f, 2.7f, new Color(0.30f, 0.31f, 0.37f));
+            var glass = R(c, "Glass", -5f, 0.9f, 4.6f, 2.3f, new Color(0.03f, 0.035f, 0.05f));
+            glass.gameObject.AddComponent<RectMask2D>();
+            var outside = glass.transform;
+            // 유리 안쪽 좌표. 화면 위로 잘려 아래쪽 띠만 보인다. 터널 것들은 그 보이는 띠(유리 밑변 위)에 둔다.
+            float glassBottom = -1.15f * K;
+            float glassWidth = 4.6f * K;
+            CloseupRect(outside, "TunnelLower", new Vector2(0f, glassBottom + 8f), new Vector2(glassWidth, 16f), new Color(0.012f, 0.012f, 0.017f));
+            CloseupRect(outside, "Cable", new Vector2(0f, glassBottom + 52f), new Vector2(glassWidth, 4f), new Color(0.06f, 0.06f, 0.075f));
+            var items = new List<RectTransform>();
+            var speeds = new List<float>();
+            for (int i = 0; i < 6; i++)
+            {
+                var lamp = CloseupRect(outside, "Lamp_" + i, new Vector2(-900f + i * 300f, glassBottom + 34f), new Vector2(110f, 7f),
+                    new Color(1f, 0.8f, 0.5f, 0.34f));
+                var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.14f));
+                var glowImage = glow.GetComponent<Image>();
+                glowImage.sprite = LoadCrispSprite(CloseupArtPath + "tunnel_glow.png");
+                glowImage.raycastTarget = false;
+                var glowRt = (RectTransform)glow.transform;
+                glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
+                glowRt.sizeDelta = new Vector2(260f, 84f);
+                items.Add(lamp.rectTransform); speeds.Add(1200f);
+                var streak = CloseupRect(outside, "Streak_" + i, new Vector2(-750f + i * 300f, glassBottom + 18f), new Vector2(180f, 3f),
+                    new Color(0.5f, 0.55f, 0.65f, 0.1f));
+                items.Add(streak.rectTransform); speeds.Add(1560f);
+            }
+            for (int i = 0; i < 2; i++)
+            {
+                var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(80f, 2.3f * K),
+                    new Color(0f, 0f, 0f, 1f));
+                items.Add(pillar.rectTransform); speeds.Add(2180f);
+            }
+            R(c, "Mullion", -5f, 0.9f, 0.16f, 2.3f, new Color(0.30f, 0.31f, 0.37f));
 
-            // 승차권. 등받이와 방석 틈에 비스듬히 끼어 있다.
-            var ticket = CloseupRect(go.transform, "Ticket", new Vector2(-470f, 52f), new Vector2(130f, 62f), new Color(0.88f, 0.86f, 0.78f));
+            // 긴 의자. 현장의 BuildTrainBench 와 같은 짜임과 색이다.
+            var fabric = new Color(0.26f, 0.28f, 0.36f);
+            var seatColor = Color.Lerp(fabric, Color.white, 0.12f);
+            var edgeColor = Color.Lerp(fabric, Color.white, 0.3f);
+            R(c, "Back", -5f, -1.35f, 4.6f, 1.9f, fabric);
+            R(c, "Seat", -5f, -2.45f, 4.6f, 0.6f, seatColor);
+            R(c, "Skirt", -5f, -3.1f, 4.6f, 0.8f, new Color(0.17f, 0.18f, 0.22f));
+
+            // 가운데 칸만 따로 한 번 더 깐다. 마우스를 올리면 이 칸 모양만 빛난다.
+            const float Slot = 4.6f / 3f;
+            R(c, "MiddleBack", -5f, -1.35f, Slot, 1.9f, fabric);
+            R(c, "MiddleSeat", -5f, -2.45f, Slot, 0.6f, seatColor);
+            R(c, "MiddleSkirt", -5f, -3.1f, Slot, 0.8f, new Color(0.17f, 0.18f, 0.22f));
+
+            var backShade = R(c, "BackShade", -5f, -1.95f, 4.6f, 0.6f, new Color(0f, 0f, 0f, 0.18f));
+            backShade.sprite = FieldGradientSprite();
+            backShade.type = Image.Type.Simple;
+            backShade.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 180f);
+            R(c, "SeatEdge", -5f, -2.18f, 4.6f, 0.06f, edgeColor);
+            foreach (float lx in new[] { -Slot * 0.5f, Slot * 0.5f })
+                R(c, "SeatLine", -5f + lx, -2.0f, 0.06f, 2.9f, new Color(0.19f, 0.20f, 0.26f));
+            foreach (float lx in new[] { -2.5f, 2.5f })
+                R(c, "Divider", -5f + lx, -1.7f, 0.4f, 3.6f, new Color(0.31f, 0.32f, 0.38f));
+
+            // 눌린 자국. 가운데 칸 방석이 누가 앉은 것처럼 오목하다.
+            var dent = R(c, "Dent", -5f, -2.42f, 1.4f, 0.5f, Color.white);
+            dent.sprite = LoadCrispSprite(CloseupArtPath + "seat_dent.png");
+            dent.type = Image.Type.Simple;
+
+            // 가운데 칸 전체가 누르는 자리다. 그 칸 어디를 눌러도 빈자리를 살핀다.
+            var dentButton = CloseupHotspot(c, "Hotspot_Dent", new Vector2(0f, (-1.9f - BaseY) * K - 260f), new Vector2(Slot * K, 2.9f * K));
+            AttachGlow(dentButton, c.Find("MiddleBack").gameObject, c.Find("MiddleSeat").gameObject, c.Find("MiddleSkirt").gameObject);
+
+            // 승차권. 왼쪽 칸 등받이와 방석 틈에 비스듬히 끼어 있다.
+            var ticket = R(c, "Ticket", -5f - Slot, -2.12f, 0.5f, 0.24f, new Color(0.88f, 0.86f, 0.78f));
             ticket.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 14f);
-            CloseupRect(ticket.transform, "Stripe", new Vector2(0f, -16f), new Vector2(130f, 12f), new Color(0.15f, 0.15f, 0.18f));
-            CloseupRect(ticket.transform, "Print", new Vector2(-18f, 10f), new Vector2(70f, 6f), new Color(0.45f, 0.44f, 0.42f));
-            var ticketButton = CloseupHotspot(go.transform, "Hotspot_Ticket", new Vector2(-470f, 52f), new Vector2(170f, 110f));
+            CloseupRect(ticket.transform, "Stripe", new Vector2(0f, -0.06f * K), new Vector2(0.5f * K, 0.045f * K), new Color(0.15f, 0.15f, 0.18f));
+            CloseupRect(ticket.transform, "Print", new Vector2(-0.07f * K, 0.04f * K), new Vector2(0.27f * K, 0.025f * K), new Color(0.45f, 0.44f, 0.42f));
+            var ticketButton = CloseupHotspot(c, "Hotspot_Ticket", ticket.rectTransform.anchoredPosition, new Vector2(0.7f * K, 0.45f * K));
             AttachGlow(ticketButton, ticket.gameObject);
 
             // 머리카락. 오른쪽 칸 방석 위에 길고 검은 것 한 올이 부드럽게 굽이져 놓여 있다. 끝으로 갈수록 가늘다.
-            // 그림은 흰 선이라 색을 입혀 검게 둔다. 마우스를 올리면 하얗게 밝아진다(HotspotGlow).
-            var hair = CloseupRect(go.transform, "Hair", new Vector2(480f, -40f), new Vector2(420f, 117f), new Color(0.05f, 0.05f, 0.06f, 1f));
+            // 그림은 흰 선이라 색을 입혀 검게 둔다. 마우스를 올리면 노랗게 물든다(HotspotGlow).
+            var hair = R(c, "Hair", -5f + Slot, -2.44f, 1.3f, 0.36f, new Color(0.05f, 0.05f, 0.06f, 1f));
             hair.sprite = LoadCrispSprite(CloseupArtPath + "line_hair.png");
             hair.type = Image.Type.Simple;
             hair.preserveAspect = true;
-            var hairButton = CloseupHotspot(go.transform, "Hotspot_Hair", new Vector2(480f, -40f), new Vector2(420f, 110f));
+            var hairButton = CloseupHotspot(c, "Hotspot_Hair", hair.rectTransform.anchoredPosition, new Vector2(1.3f * K, 0.45f * K));
             AttachGlow(hairButton, hair.gameObject);
+
+            var scroll = go.AddComponent<TunnelScroll>();
+            var tso = new SerializedObject(scroll);
+            tso.Update();
+            var itemsProp = tso.FindProperty("_items");
+            var speedsProp = tso.FindProperty("_speeds");
+            itemsProp.arraySize = items.Count;
+            speedsProp.arraySize = speeds.Count;
+            for (int i = 0; i < items.Count; i++)
+            {
+                itemsProp.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+                speedsProp.GetArrayElementAtIndex(i).floatValue = speeds[i];
+            }
+            tso.FindProperty("_span").floatValue = 1800f;
+            tso.FindProperty("_shake").objectReferenceValue = carRt;
+            tso.ApplyModifiedPropertiesWithoutUndo();
 
             FinishCloseup(go, screen, "field.subway.seat_close.hint",
                 new[] { dentButton, ticketButton, hairButton },

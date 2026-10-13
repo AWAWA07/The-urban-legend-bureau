@@ -9,7 +9,7 @@ namespace UrbanLegendBureau.Systems
     /// 타자마자: 형광등 하나가 이따금 깜빡인다.
     /// 살핀 곳 1곳: 살피고 돌아오면 곧바로 불이 미친 듯이 깜빡이다 모두 꺼진다(정전). 그 뒤로는 차지한의 휴대폰 라이트 둘레만 조금 보인다.
     /// 3곳: 손잡이 하나가 흔들림과 상관없이 혼자 크게 흔들린다.
-    /// 3곳(모두): 맨 오른쪽 창 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
+    /// 2곳: 맨 오른쪽 창 너머에 무언가 서 있다. 가까이 가면 사라진다. 어둠 속에서도 유리 속 그것만은 보인다.
     ///
     /// 평소에도 객실 전체가 아주 조금 어둡다(_dark).
     ///
@@ -29,6 +29,13 @@ namespace UrbanLegendBureau.Systems
         [SerializeField] private float _swingAngle = 24f;
         [Tooltip("한 번 오가는 데 걸리는 시간(초).")]
         [SerializeField] private float _swingPeriod = 2.3f;
+
+        [Header("정전 때의 CCTV 불")]
+        [Tooltip("CCTV 의 빨간 불과 그 둘레 빛. 정전이 되면 이 둘을 어둠 위에 그대로 따라 그려, 깜깜한 객실에서 CCTV 전원 불만 붉게 빛난다.")]
+        [SerializeField] private SpriteRenderer _cctvLight;
+        [SerializeField] private SpriteRenderer _cctvGlow;
+
+        private SpriteRenderer _cctvDarkLight, _cctvDarkGlow;
 
         [Header("창의 손바닥 자국")]
         [Tooltip("창 가까이 보기에서 손바닥 자국을 살피고 나면 현장의 창에도 보인다. 그 전에는 꺼 둔다.")]
@@ -243,7 +250,55 @@ namespace UrbanLegendBureau.Systems
             if (_figure != null) UpdateFigure();
 
             if (_darkState == DarkState.Phone) FollowPhone();
+            UpdateCctvDarkLight();
             UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = _darkState == DarkState.Phone;
+        }
+
+        /// <summary>
+        /// 정전 동안 CCTV 전원 불을 어둠 위에 따라 그린다. 원래 불은 CCTV 묶음 안에 있어 어둠보다 앞으로 올릴 수 없다.
+        /// 고개를 돌리든 객실이 흔들리든 원래 불의 자리와 크기를 매 프레임 그대로 따른다. 숨 쉬듯 아주 조금 밝아졌다 어두워진다.
+        /// </summary>
+        private void UpdateCctvDarkLight()
+        {
+            bool on = _darkState != DarkState.None && _cctvLight != null;
+            if (on && _cctvDarkLight == null)
+            {
+                int front = (_dark != null ? _dark.sortingOrder : 20) + 1;
+                _cctvDarkGlow = MakeFollower("CctvDarkGlow", _cctvGlow, front);
+                _cctvDarkLight = MakeFollower("CctvDarkLight", _cctvLight, front + 1);
+            }
+            if (_cctvDarkLight == null) return;
+
+            float pulse = 0.82f + 0.18f * Mathf.Sin(Time.time * 2.4f);
+            Follow(_cctvDarkLight, _cctvLight, on, new Color(1f, 0.3f, 0.24f, 1f));
+            Follow(_cctvDarkGlow, _cctvGlow, on, new Color(1f, 0.12f, 0.08f, 0.75f * pulse));
+        }
+
+        private SpriteRenderer MakeFollower(string name, SpriteRenderer source, int order)
+        {
+            if (source == null) return null;
+            var go = new GameObject(name);
+            go.transform.SetParent(transform, false);
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = source.sprite;
+            sr.drawMode = source.drawMode;
+            sr.size = source.size;
+            sr.sortingLayerID = source.sortingLayerID;
+            sr.sortingOrder = order;
+            return sr;
+        }
+
+        private static void Follow(SpriteRenderer follower, SpriteRenderer source, bool on, Color color)
+        {
+            if (follower == null) return;
+            follower.enabled = on && source != null;
+            if (!follower.enabled) return;
+            follower.transform.position = source.transform.position;
+            follower.transform.rotation = source.transform.rotation;
+            var parentScale = follower.transform.parent != null ? follower.transform.parent.lossyScale : Vector3.one;
+            var s = source.transform.lossyScale;
+            follower.transform.localScale = new Vector3(s.x / parentScale.x, s.y / parentScale.y, 1f);
+            follower.color = color;
         }
 
         // ------------------------------------------------------------- 정전
@@ -436,7 +491,7 @@ namespace UrbanLegendBureau.Systems
             float now = Time.time;
             float distance = _watcher != null ? Mathf.Abs(_watcher.position.x - _figure.transform.position.x) : 99f;
 
-            if (Stage < 3)   // 열차 안 조사 지점(좌석, 창문, CCTV)을 모두 살핀 뒤
+            if (Stage < 2)   // 두 곳째를 살핀 뒤부터
             {
                 _figureFade = 0f;
             }
