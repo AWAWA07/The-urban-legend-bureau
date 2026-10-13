@@ -743,12 +743,14 @@ namespace UrbanLegendBureau.EditorTools
                 var prints = new GameObject("DoorHandprints");
                 prints.transform.SetParent(root.transform.Find("Door_Left"), false);
                 var handSprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+                // 손자국은 두 문짝의 유리(가운데 x ±1.05, y 0.9, 1.5 x 2.2) 안에만 찍힌다. 기울어진 손 하나의 반폭이 0.3 남짓이라
+                // 가운데를 x 0.75~1.35, y 0.3~1.55 안에 두어 유리 테두리를 넘지 않게 한다.
                 float[][] spots =
                 {
-                    new[] { 1.0f, 1.25f, -12f, 0.55f }, new[] { -1.1f, 0.6f, 8f, 0.5f }, new[] { 1.35f, 0.35f, 20f, 0.48f },
-                    new[] { -0.8f, 1.5f, -18f, 0.52f }, new[] { 0.75f, 0.55f, 4f, 0.5f }, new[] { -1.35f, 1.1f, 15f, 0.46f },
-                    new[] { 1.2f, 1.75f, -6f, 0.45f }, new[] { -0.95f, 0.2f, -25f, 0.5f }, new[] { 0.85f, 1.0f, 30f, 0.42f },
-                    new[] { -1.2f, 1.85f, 2f, 0.44f }, new[] { 1.45f, 0.95f, -30f, 0.4f }, new[] { -0.7f, 0.95f, 24f, 0.47f },
+                    new[] { 0.9f, 1.3f, -12f, 0.46f }, new[] { -1.1f, 0.6f, 8f, 0.46f }, new[] { 1.3f, 0.4f, 20f, 0.44f },
+                    new[] { -0.85f, 1.4f, -18f, 0.46f }, new[] { 0.8f, 0.55f, 4f, 0.46f }, new[] { -1.35f, 1.05f, 15f, 0.42f },
+                    new[] { 1.3f, 1.55f, -6f, 0.42f }, new[] { -0.95f, 0.3f, -25f, 0.44f }, new[] { 0.95f, 0.95f, 30f, 0.42f },
+                    new[] { -1.25f, 1.55f, 2f, 0.42f }, new[] { 1.35f, 0.95f, -30f, 0.4f }, new[] { -0.75f, 0.95f, 24f, 0.44f },
                 };
                 for (int i = 0; i < spots.Length; i++)
                 {

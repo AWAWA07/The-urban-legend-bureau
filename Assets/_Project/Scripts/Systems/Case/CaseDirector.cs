@@ -2672,6 +2672,15 @@ namespace UrbanLegendBureau.Systems
             CaseFlow.SetStep(_save, CaseStep.RuleDeduction);
 
             int count = candidates.Count;
+
+            // 현장에 있는 동안에는 알림 창을 띄우지 않는다. 창의 확인이 곧장 봉인으로 넘어가 조사가 끊겨 버린다.
+            // 추론은 현장의 '규칙 추론' 단추로 언제든 열 수 있다.
+            if (_field != null && _field.ActiveRoot != null)
+            {
+                Debug.Log($"[CaseDirector] 규칙 후보 {count}개 생김 | 현장이라 알림 창은 띄우지 않는다");
+                return false;
+            }
+
             _rulePopupScreen.BindWithBodyProvider(
                 RuleCandidateFoundTextId,
                 () => _loc.Get(RuleCandidateHintTextId, count));
