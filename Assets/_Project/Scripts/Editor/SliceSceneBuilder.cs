@@ -131,6 +131,10 @@ namespace UrbanLegendBureau.EditorTools
             var cctv = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayCctv", new Vector2(-10.6f, 2.6f),
                 new Vector2(1.6f, 1.15f), new Color(0.46f, 0.40f, 0.30f),
                 "field.subway.cctv", "field.subway.cctv", null);
+            // 비상 인터폰. 맨 왼쪽 빈 벽. 걸을 수 있는 왼쪽 끝(-12)에서 닿는다.
+            var intercom = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayIntercom", new Vector2(-12.85f, 1.15f),
+                new Vector2(0.6f, 0.9f), new Color(0.40f, 0.36f, 0.30f),
+                "field.subway.intercom", "field.subway.intercom", null);
 
             // 곁에 서면 네모 칸이 아니라 그 자리의 그림이 밝아진다.
             // 빈자리는 긴 의자의 한 칸이라 따로 떨어진 그림이 없다. 그 칸 크기의 네모를 그대로 쓴다.
@@ -150,6 +154,10 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "action_subway_seat_search", "action_subway_photo" }, null, false, CaseStep.Started);
             ConfigurePoint(window, "point_subway_window",
                 new[] { "action_subway_window_trace", "action_subway_glass_check", "action_subway_photo" }, null, false, CaseStep.Started);
+            SetHighlightTargets(intercom, trainInside.transform, "Intercom");
+            // 인터폰으로 역무실에 묻는 것이 역무실 신고 기록을 확인하는 일이다. 대사와 단서는 CaseDirector 가 낸다.
+            ConfigurePoint(intercom, "point_subway_intercom",
+                new[] { "action_subway_platform_search" }, null, false, CaseStep.Started);
             ConfigurePoint(cctv, "point_subway_cctv",
                 new[] { "action_subway_cctv_inspect", "action_subway_photo" },
                 null, false, CaseStep.Started);   // CCTV 는 다른 조사 없이도 바로 들여다볼 수 있다
@@ -710,6 +718,21 @@ namespace UrbanLegendBureau.EditorTools
             BuildTrainDoor(root.transform, "Door_Center", 0f, false);
             BuildTrainDoor(root.transform, "Door_Left", -10.0f, false);
             BuildTrainDoor(root.transform, "Door_Right", 10.0f, false);   // 오른쪽 문도 닫혀 있다. 조사할 것은 없다
+
+            // 비상 인터폰. 왼쪽 문 바깥쪽 맨 끝 빈 벽에 붙어 있다. 누르면 역무실로 이어진다(CaseDirector).
+            {
+                var intercom = new GameObject("Intercom");
+                intercom.transform.SetParent(root.transform, false);
+                intercom.transform.localPosition = new Vector2(-12.85f, 1.15f);   // 사람 머리보다 조금 위. 맨 왼쪽에 서도 가려지지 않는다
+                var it = intercom.transform;
+                AddFieldRect(it, "Plate", Vector2.zero, new Vector2(0.44f, 0.74f), new Color(0.58f, 0.59f, 0.63f), -6);
+                AddFieldRect(it, "PlateShade", new Vector2(0f, -0.34f), new Vector2(0.44f, 0.06f), new Color(0.42f, 0.43f, 0.47f), -5);
+                AddFieldRect(it, "Label", new Vector2(0f, 0.27f), new Vector2(0.34f, 0.09f), new Color(0.86f, 0.70f, 0.20f), -5);
+                for (int i = 0; i < 4; i++)
+                    AddFieldRect(it, "Grille_" + i, new Vector2(0f, 0.13f - i * 0.06f), new Vector2(0.24f, 0.022f), new Color(0.22f, 0.22f, 0.25f), -5);
+                AddFieldRect(it, "ButtonRim", new Vector2(0f, -0.17f), new Vector2(0.17f, 0.17f), new Color(0.30f, 0.30f, 0.33f), -5);
+                AddFieldRect(it, "Button", new Vector2(0f, -0.17f), new Vector2(0.12f, 0.12f), new Color(0.85f, 0.16f, 0.13f), -4);
+            }
 
             // 긴 의자 둘. 문 사이에 하나씩 들어간다.
             BuildTrainBench(root.transform, "Bench_Left", -5.0f, 4.6f);

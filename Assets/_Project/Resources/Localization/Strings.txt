@@ -337,6 +337,17 @@ web.test.003.c2	닫힘 버튼 안 먹는 건 그냥 고장 아님?	The close but
 field.subway.seat	빈자리	The empty seat	
 field.subway.window	창문	The window	
 field.subway.cctv	차내 CCTV	Onboard camera	
+field.subway.intercom	비상 인터폰	Emergency intercom	열차 맨 왼쪽 벽의 비상 인터폰(조사 지점 이름)
+field.subway.intercom.staff	역무원	Station staff	인터폰 너머 역무원의 이름표
+field.subway.intercom.001	비상 인터폰이네요. 역무실로 바로 연결될 거예요.	An emergency intercom. It should go straight to the station office.	차지한
+field.subway.intercom.002	…네, 역무실입니다. 무슨 일이세요?	...Yes, station office. What's the matter?	역무원
+field.subway.intercom.003	이 칸 빈자리요. 그 자리로 신고 들어온 적 있어요?	The empty seat in this car. Have you ever had reports about it?	한영. 차분하게
+field.subway.intercom.004	아… 또 그 자리요. 몇 년째 비슷한 신고가 들어와요. 다들 옆에 누가 앉아 있었다고 하더라고요.	Ah... that seat again. We've had the same reports for years. Everyone says someone was sitting next to them.	역무원
+field.subway.intercom.005	…그런데 지금 그 칸에, 두 분 말고 한 분 더 계시네요?	...But right now, there's someone else in that car besides you two?	역무원. 섬뜩한 끝말
+field.subway.intercom.006	……네?	......What?	차지한
+field.subway.intercom.007	…끊겼어요.	...It cut off.	차지한
+field.subway.intercom.008	들을 건 다 들었어. 기록부터 확인해 보자.	We heard what we needed. Let's check the records first.	한영. 겁먹지 않는다
+field.subway.intercom.again	…잡음만 나네요. 다시는 안 받는 것 같아요.	...Just static. I don't think they'll pick up again.	차지한. 인터폰을 다시 눌렀을 때
 field.subway.cctv_look.001	CCTV가 부자연스럽게 돌아가있네요.	The camera's turned at an odd angle.	CCTV 를 처음 눌렀을 때. 차지한
 field.subway.cctv_look.002	그러게? 누군가 못 찍게 하려한거 처럼..	Right? Like someone didn't want it filming..	한영
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후

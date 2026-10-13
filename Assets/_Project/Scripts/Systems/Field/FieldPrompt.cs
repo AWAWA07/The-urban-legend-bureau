@@ -95,6 +95,23 @@ namespace UrbanLegendBureau.Systems
                 _home = new Vector3(point.transform.position.x, top + _lift, 0f);
                 SetTail(false, 0f);
             }
+            // 화면 끝에 붙은 것(맨 왼쪽 벽의 인터폰)은 말풍선이 화면 밖으로 잘린다. 화면 안으로 밀어 넣고, 아래 꼬리는 물건 쪽으로 옮긴다.
+            var cam = Camera.main;
+            if (cam != null && cam.orthographic && _plate != null && !beside.HasValue && !(top + _lift > _maxY))
+            {
+                float halfW = _plate.bounds.extents.x;
+                float viewHalf = cam.orthographicSize * cam.aspect;
+                float minX = cam.transform.position.x - viewHalf + halfW + 0.2f;
+                float maxX = cam.transform.position.x + viewHalf - halfW - 0.2f;
+                float wantX = _home.x;
+                _home.x = Mathf.Clamp(_home.x, minX, maxX);
+                if (_tail != null)
+                {
+                    var tp = _tail.transform.localPosition;
+                    tp.x = Mathf.Clamp(wantX - _home.x, -halfW + 0.2f, halfW - 0.2f);
+                    _tail.transform.localPosition = tp;
+                }
+            }
             transform.position = _home;
 
             _showing = true;

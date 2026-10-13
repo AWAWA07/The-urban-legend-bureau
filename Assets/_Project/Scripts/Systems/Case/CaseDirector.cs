@@ -279,6 +279,7 @@ namespace UrbanLegendBureau.Systems
             _fieldTimeAdded = false;
             _cctvTurned = false;
             _windowGhostShown = false;
+            _intercomUsed = false;
             foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 unease.ResetUnease();
@@ -1927,6 +1928,81 @@ namespace UrbanLegendBureau.Systems
             Debug.Log("[CaseDirector] CCTV 를 가까이 들여다본다");
         }
 
+        // ------------------------------------------------------------- 비상 인터폰
+
+        /// <summary>열차 비상 인터폰 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
+        private const string IntercomPointId = "point_subway_intercom";
+
+        /// <summary>인터폰 너머 역무원의 이름표.</summary>
+        private const string IntercomStaffTextId = "field.subway.intercom.staff";
+
+        /// <summary>처음 눌렀을 때 오가는 말. 역무원이 받고, 한영이 묻고, 마지막에 역무원이 이상한 말을 하고 끊긴다.</summary>
+        private static readonly string[] IntercomTextIds =
+        {
+            "field.subway.intercom.001", "field.subway.intercom.002", "field.subway.intercom.003", "field.subway.intercom.004",
+            "field.subway.intercom.005", "field.subway.intercom.006", "field.subway.intercom.007", "field.subway.intercom.008",
+        };
+
+        /// <summary>각 줄을 누가 하는가. 0 차지한, 1 한영, 2 역무원.</summary>
+        private static readonly int[] IntercomSpeakers = { 0, 2, 1, 2, 2, 0, 0, 1 };
+
+        /// <summary>이번 사건에서 인터폰으로 이미 통화했는가. 다시 누르면 잡음만 난다.</summary>
+        private bool _intercomUsed;
+
+        /// <summary>
+        /// 비상 인터폰을 누른다. 역무실과 짧게 통화하고, 끝나면 역무실 신고 기록(조사 행동 action_subway_platform_search)을 얻는다.
+        /// 통화 동안에는 걷지 못한다. 시간과 확산은 그 조사 행동만큼 흐른다. 두 번째부터는 잡음뿐이다.
+        /// </summary>
+        private void PlayIntercom(InvestigationPoint point)
+        {
+            FieldHudScreen.IsCutscene = true;
+            if (_intercomUsed)
+            {
+                _fieldHudScreen.ShowLine(FieldSpeakerTextId, () => _loc.Get("field.subway.intercom.again"), () =>
+                {
+                    _fieldHudScreen.ClearSpeech();
+                    FieldHudScreen.IsCutscene = false;
+                }, "field.subway.intercom.again");
+                return;
+            }
+
+            _intercomUsed = true;
+            Debug.Log("[CaseDirector] 비상 인터폰을 누른다");
+            IntercomLine(0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                FieldHudScreen.IsCutscene = false;
+
+                var action = _actions != null && point.HasActions ? point.Actions[0] : null;
+                if (action == null || !_actions.CanPerform(_save, action)) return;
+                var result = _actions.Perform(_save, _caseId, _legendId, action);
+                if (!result.Success) return;
+                AfterAction(result.MinutesAdded, result.Spread);
+                MarkActionDone(point, action);
+                if (AreAllActionsDone(point)) point.MarkInvestigated();
+                if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
+
+                if (result.GotNewClue)
+                {
+                    string clueId = result.AcquiredClueId;
+                    _pendingClueId = clueId;
+                    _cluePopupScreen.BindWithBodyProvider(IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId,
+                        () => BuildClueFinding(clueId));
+                    _ui.Push(_cluePopupScreen);
+                }
+                Debug.Log($"[CaseDirector] 인터폰 통화 끝 | {action.ActionId} | {result.MinutesAdded}분");
+            });
+        }
+
+        private void IntercomLine(int index, System.Action onDone)
+        {
+            if (index >= IntercomTextIds.Length) { onDone?.Invoke(); return; }
+            string id = IntercomTextIds[index];
+            int who = IntercomSpeakers[index];
+            string speaker = who == 1 ? HanyoungNameTextId : who == 2 ? IntercomStaffTextId : FieldSpeakerTextId;
+            _fieldHudScreen.ShowLine(speaker, () => _loc.Get(id), () => IntercomLine(index + 1, onDone), id);
+        }
+
         // ------------------------------------------------------------- 열차 빈자리
 
         /// <summary>열차 빈자리 조사 지점. 현장을 짓는 쪽과 같은 이름이다.</summary>
@@ -2164,6 +2240,13 @@ namespace UrbanLegendBureau.Systems
             if (point.PointId == WindowPointId && _windowCloseupScreen != null)
             {
                 OpenWindowCloseup();
+                return;
+            }
+
+            // 비상 인터폰은 누르면 역무실과 통화한다.
+            if (point.PointId == IntercomPointId)
+            {
+                PlayIntercom(point);
                 return;
             }
 
