@@ -144,7 +144,7 @@ namespace UrbanLegendBureau.Systems
             InvestigationPoint hovered = null;
             if (InvestigationAllowed && TryPointerWorld(out var world)) hovered = PointAt(world);
             SetNear(hovered != null ? hovered : FindNear());
-            SetHover(hovered);
+            SetHover(NearPoint);   // 걸어가 곁에 섰을 때도 마우스를 올렸을 때처럼 노란 외곽선이 둘러진다
 
             // 곁에 서거나 마우스를 올린 채로 조사를 마쳤으면 말풍선의 글도 바뀌어야 한다.
             // 떠났다 돌아올 때까지 "조사함" 이 안 붙으면 방금 뒤진 곳을 또 누르게 된다.

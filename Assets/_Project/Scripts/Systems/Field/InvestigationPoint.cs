@@ -310,5 +310,147 @@ namespace UrbanLegendBureau.Systems
             }
         }
 
+        // ------------------------------------------------------- 어둠 속에서 마우스를 올렸을 때
+
+        /// <summary>
+        /// 외곽선을 어둠 위로 올려 그리는가. 정전으로 객실이 깜깜할 때 켠다(TrainUnease).
+        /// 평소 외곽선은 물건 뒤에 깔려 어둠에 함께 묻힌다. 그때는 어둠 위에 둘레만 남긴 노란 고리를 따로 그린다.
+        /// </summary>
+        public static bool OutlinesOnTop { get; set; }
+
+        /// <summary>어둠(20)과 그 위의 것들(창밖 불빛 21~22, 창 너머 그것 23)보다 앞, 말풍선(30)보다 뒤.</summary>
+        private const int OnTopOrder = 26;
+
+        private readonly List<SpriteRenderer> _topOutlines = new List<SpriteRenderer>();
+        private readonly List<SpriteMask> _topMasks = new List<SpriteMask>();
+        private readonly List<SpriteRenderer> _topSources = new List<SpriteRenderer>();
+        private bool _topBuilt;
+
+        private void LateUpdate()
+        {
+            if (!_hovered && _topOutlines.Count == 0) return;
+            bool top = _hovered && OutlinesOnTop;
+            if (top) BuildTopOutlines();
+
+            // 평소 외곽선(물건 뒤)과 어둠 위 고리 중 하나만 보인다.
+            for (int i = 0; i < _outlines.Count; i++)
+            {
+                var o = _outlines[i];
+                if (o == null) continue;
+                var src = _outlineSources[i];
+                bool visible = _hovered && (src == null || (src.enabled && src.gameObject.activeInHierarchy));
+                if (src == null)
+                {
+                    // 네모 테두리는 이미 둘레만 있는 줄이라 그대로 어둠 위로 올린다.
+                    o.enabled = visible;
+                    o.sortingOrder = top ? OnTopOrder : (_renderer != null ? _renderer.sortingOrder + 1 : o.sortingOrder);
+                }
+                else o.enabled = visible && !top;
+            }
+
+            for (int i = 0; i < _topOutlines.Count; i++)
+            {
+                var src = _topSources[i];
+                bool on = top && src != null && src.enabled && src.gameObject.activeInHierarchy;
+                var o = _topOutlines[i];
+                var m = _topMasks[i];
+                o.enabled = on;
+                m.enabled = on;
+                if (!on) continue;
+                FollowTarget(src, o.transform, m.transform, o);
+            }
+        }
+
+        /// <summary>
+        /// 어둠 위 고리. 그림마다 같은 모양을 둘레만큼 크게 한 노란 판과, 원래 크기의 가림판(SpriteMask)을 짝으로 둔다.
+        /// 노란 판은 가림판 바깥만 보이므로 둘레의 고리만 남는다. 가림판은 이 순서(OnTopOrder)의 그림에만 작용한다.
+        /// 물건이 다른 묶음(SortingGroup) 안에 있어도 어둠 위로 올라오도록 조사 지점 아래에 두고 매 프레임 자리를 따른다.
+        /// </summary>
+        private void BuildTopOutlines()
+        {
+            if (_topBuilt) return;
+            _topBuilt = true;
+            if (!HasTargets) return;
+
+            foreach (var t in _highlightTargets)
+            {
+                if (t == null || t.sprite == null) continue;
+
+                var go = new GameObject(t.name + "_TopOutline");
+                go.transform.SetParent(transform, false);
+                var sr = go.AddComponent<SpriteRenderer>();
+                sr.sprite = t.sprite;
+                sr.drawMode = t.drawMode;
+                sr.flipX = t.flipX;
+                sr.flipY = t.flipY;
+                sr.sortingLayerID = t.sortingLayerID;
+                sr.sortingOrder = OnTopOrder;
+                sr.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;
+                sr.color = _outlineColor;
+                sr.enabled = false;
+
+                var mgo = new GameObject(t.name + "_TopMask");
+                mgo.transform.SetParent(transform, false);
+                var mask = mgo.AddComponent<SpriteMask>();
+                // 늘여 그린 네모(현장의 판들)는 둥근 모서리 그림을 늘이면 가림판이 일그러진다. 반듯한 네모를 쓴다.
+                mask.sprite = t.drawMode != SpriteDrawMode.Simple ? SquareSprite() : t.sprite;
+                mask.isCustomRangeActive = true;
+                mask.frontSortingLayerID = t.sortingLayerID;
+                mask.backSortingLayerID = t.sortingLayerID;
+                mask.frontSortingOrder = OnTopOrder;
+                mask.backSortingOrder = OnTopOrder - 1;
+                mask.enabled = false;
+
+                _topOutlines.Add(sr);
+                _topMasks.Add(mask);
+                _topSources.Add(t);
+            }
+        }
+
+        private static Sprite _square;
+
+        /// <summary>한 변이 1 인 흰 네모. 가림판에 쓴다.</summary>
+        private static Sprite SquareSprite()
+        {
+            if (_square != null) return _square;
+            var tex = new Texture2D(4, 4, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point };
+            var px = new Color32[16];
+            for (int i = 0; i < px.Length; i++) px[i] = new Color32(255, 255, 255, 255);
+            tex.SetPixels32(px);
+            tex.Apply();
+            _square = Sprite.Create(tex, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f), 4f);
+            return _square;
+        }
+
+        /// <summary>그림의 지금 자리, 돌림, 크기를 고리와 가림판에 옮긴다. 고리는 둘레만큼 크다.</summary>
+        private void FollowTarget(SpriteRenderer t, Transform ring, Transform mask, SpriteRenderer ringSr)
+        {
+            var parentScale = transform.lossyScale;
+            var lossy = t.transform.lossyScale;
+            float sx = Mathf.Max(1e-4f, Mathf.Abs(lossy.x)), sy = Mathf.Max(1e-4f, Mathf.Abs(lossy.y));
+            var local = new Vector3(lossy.x / parentScale.x, lossy.y / parentScale.y, 1f);
+
+            ring.position = t.transform.position;
+            ring.rotation = t.transform.rotation;
+            mask.position = t.transform.position;
+            mask.rotation = t.transform.rotation;
+
+            var spriteSize = t.sprite.bounds.size;
+            if (t.drawMode != SpriteDrawMode.Simple)
+            {
+                ring.localScale = local;
+                ringSr.size = t.size + new Vector2(_outlineWidth * 2f / sx, _outlineWidth * 2f / sy);
+                // 가림판은 한 변이 1 인 네모다. 그림이 차지한 크기만큼 배율로 맞춘다.
+                mask.localScale = new Vector3(local.x * t.size.x, local.y * t.size.y, 1f);
+            }
+            else
+            {
+                float wx = spriteSize.x * sx, wy = spriteSize.y * sy;
+                ring.localScale = new Vector3(local.x * (wx + _outlineWidth * 2f) / Mathf.Max(1e-4f, wx),
+                    local.y * (wy + _outlineWidth * 2f) / Mathf.Max(1e-4f, wy), 1f);
+                mask.localScale = local;
+            }
+        }
+
     }
 }

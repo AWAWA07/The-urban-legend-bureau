@@ -149,6 +149,7 @@ namespace UrbanLegendBureau.Systems
         {
             // 열차 밖(승강장, 숙소)에서는 휴대폰에 라이트 표시를 띄우지 않는다.
             UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = false;
+            InvestigationPoint.OutlinesOnTop = false;
         }
 
         private void OnEnable()
@@ -252,6 +253,7 @@ namespace UrbanLegendBureau.Systems
             if (_darkState == DarkState.Phone) FollowPhone();
             UpdateCctvDarkLight();
             UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = _darkState == DarkState.Phone;
+            InvestigationPoint.OutlinesOnTop = _darkState != DarkState.None;   // 깜깜할 때는 마우스를 올린 곳의 노란 테두리를 어둠 위에 그린다
         }
 
         /// <summary>
