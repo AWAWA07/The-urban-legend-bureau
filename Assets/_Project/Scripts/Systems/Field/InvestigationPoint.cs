@@ -25,6 +25,11 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("지점 고유 ID. 로그와 디버그용. 비워 두면 오브젝트 이름을 쓴다.")]
         [SerializeField] private string _pointId;
 
+        [Tooltip("같은 자리에 함께 놓인 지점끼리 같은 이름을 준다(창문과 그 아래 빈자리, CCTV 와 그 아래 문). 걸어가 곁에 서면 묶음을 함께 가리키고, E 를 누르면 어느 것을 조사할지 고른다.")]
+        [SerializeField] private string _groupId;
+
+        public string GroupId => _groupId;
+
         [Header("조사 방법 (17단계)")]
         [Tooltip("이 지점에서 고를 수 있는 조사 행동. 비워 두면 예전처럼 곧바로 단서를 준다.")]
         [SerializeField] private List<InvestigationActionSO> _actions = new List<InvestigationActionSO>();

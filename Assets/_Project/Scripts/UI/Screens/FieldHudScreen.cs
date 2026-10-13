@@ -246,6 +246,7 @@ namespace UrbanLegendBureau.UI
             Sprite face = null;
             if (speakerTextId == CharacterArt.HanyoungNameTextId) face = CharacterArt.HanyoungFace(lineTextId);
             else if (speakerTextId == CharacterArt.ChajihanNameTextId) face = CharacterArt.ChajihanFace(lineTextId);
+            else if (speakerTextId == CharacterArt.StaffNameTextId) face = CharacterArt.StaffFace(lineTextId);
             if (face != null)
             {
                 _portrait.sprite = face;

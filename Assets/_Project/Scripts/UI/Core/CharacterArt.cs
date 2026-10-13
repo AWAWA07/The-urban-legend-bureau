@@ -74,6 +74,20 @@ namespace UrbanLegendBureau.UI
             return Load(ChajihanRoot + "Portrait/" + face) ?? Load(ChajihanRoot + "Portrait/" + ChajihanDefaultPortrait);
         }
 
+        /// <summary>역무원(인터폰 너머)의 이름 ID. 현장 대사 띠가 말하는 사람을 이것으로 알아본다.</summary>
+        public const string StaffNameTextId = "field.subway.intercom.staff";
+
+        private const string StaffRoot = "Characters/Staff/";
+        private static Dictionary<string, string> _staffPortraits;
+
+        /// <summary>그 대사에 맞는 역무원의 초상. 표(Staff/portraits.txt)에 없으면 calm.</summary>
+        public static Sprite StaffFace(string lineTextId)
+        {
+            if (_staffPortraits == null) _staffPortraits = LoadTable(StaffRoot + "portraits");
+            string face = !string.IsNullOrEmpty(lineTextId) && _staffPortraits.TryGetValue(lineTextId, out var f) ? f : "calm";
+            return Load(StaffRoot + "Portrait/" + face) ?? Load(StaffRoot + "Portrait/calm");
+        }
+
         /// <summary>차지한의 처음 모습.</summary>
         public static Sprite ChajihanDefault()
         {

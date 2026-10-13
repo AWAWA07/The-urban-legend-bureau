@@ -1,0 +1,5 @@
+# 역무원(인터폰 너머)의 대사별 초상. 한 줄 = 대사ID <탭> 표정. 적지 않은 대사는 calm.
+# 표정: calm(담담) flustered(입을 연 당황) frown(미간을 찌푸림)
+field.subway.intercom.002	calm
+field.subway.intercom.004	flustered
+field.subway.intercom.005	frown

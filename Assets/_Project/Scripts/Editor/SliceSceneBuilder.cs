@@ -160,6 +160,9 @@ namespace UrbanLegendBureau.EditorTools
                 new Vector2(4.2f, 5.3f), new Color(0.36f, 0.34f, 0.40f),
                 "field.subway.door", "field.subway.door", null);
             ConfigurePoint(door, "point_subway_door", null, null, false, CaseStep.Started);
+            // 같은 자리에 함께 놓인 것끼리 묶는다. 곁에 서면 둘 다 말풍선에 적히고 E 로 고른다.
+            SetGroup(window, "subway_right"); SetGroup(seat, "subway_right");
+            SetGroup(cctv, "subway_left"); SetGroup(door, "subway_left");
             door.SetActive(false);
             // 인터폰으로 역무실에 묻는 것이 역무실 신고 기록을 확인하는 일이다. 대사와 단서는 CaseDirector 가 낸다.
             ConfigurePoint(intercom, "point_subway_intercom",
@@ -428,6 +431,15 @@ namespace UrbanLegendBureau.EditorTools
         // ------------------------------------------------------------- 현장
 
         /// <summary>조사 지점에 조사 방법과 해금 조건을 붙인다. 행동 데이터는 ID로 찾아 직접 참조로 넣는다.</summary>
+        /// <summary>조사 지점의 묶음 이름을 정한다(InvestigationPoint.GroupId).</summary>
+        private static void SetGroup(GameObject pointGo, string groupId)
+        {
+            var so = new SerializedObject(pointGo.GetComponent<InvestigationPoint>());
+            so.Update();
+            so.FindProperty("_groupId").stringValue = groupId;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         private static void ConfigurePoint(GameObject pointGo, string pointId,
             string[] actionIds, string[] requiredClueIds, bool requireStep, CaseStep requiredStep)
         {

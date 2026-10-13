@@ -272,13 +272,16 @@ namespace UrbanLegendBureau.Systems
                 best = point;
             }
 
-            // 똑같이 가까운 것들을 모은다. 위아래로 겹쳐 놓인 창문과 그 아래 빈자리가 그렇다.
+            // 함께 가리킬 것들을 모은다. 같은 묶음(GroupId)이거나 똑같이 가까운 것들이다.
+            // 창문과 그 아래 빈자리, CCTV 와 그 아래 문이 그렇다. 아직 꺼져 있는 것(울리기 전의 문)은 빠진다.
             if (best != null)
                 for (int i = 0; i < _points.Length; i++)
                 {
                     var point = _points[i];
                     if (point == null || !point.isActiveAndEnabled) continue;
-                    if (Mathf.Abs(Mathf.Abs(point.transform.position.x - x) - bestDistance) < 0.05f) _nearTies.Add(point);
+                    bool sameGroup = !string.IsNullOrEmpty(best.GroupId) && point.GroupId == best.GroupId;
+                    bool sameDistance = Mathf.Abs(Mathf.Abs(point.transform.position.x - x) - bestDistance) < 0.05f;
+                    if (sameGroup || sameDistance) _nearTies.Add(point);
                 }
 
             return best;
