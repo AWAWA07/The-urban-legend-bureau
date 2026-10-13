@@ -155,6 +155,12 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(window, "point_subway_window",
                 new[] { "action_subway_window_trace", "action_subway_glass_check", "action_subway_photo" }, null, false, CaseStep.Started);
             SetHighlightTargets(intercom, trainInside.transform, "Intercom");
+            // 인터폰 바로 옆 문(왼쪽 문). 인터폰 통화 중에 쾅쾅쾅 울린 뒤에야 나타난다(CaseDirector). 그 전에는 꺼 둔다.
+            var door = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayDoor", new Vector2(-10f, -0.75f),
+                new Vector2(4.2f, 5.3f), new Color(0.36f, 0.34f, 0.40f),
+                "field.subway.door", "field.subway.door", null);
+            ConfigurePoint(door, "point_subway_door", null, null, false, CaseStep.Started);
+            door.SetActive(false);
             // 인터폰으로 역무실에 묻는 것이 역무실 신고 기록을 확인하는 일이다. 대사와 단서는 CaseDirector 가 낸다.
             ConfigurePoint(intercom, "point_subway_intercom",
                 new[] { "action_subway_platform_search" }, null, false, CaseStep.Started);
@@ -718,6 +724,20 @@ namespace UrbanLegendBureau.EditorTools
             BuildTrainDoor(root.transform, "Door_Center", 0f, false);
             BuildTrainDoor(root.transform, "Door_Left", -10.0f, false);
             BuildTrainDoor(root.transform, "Door_Right", 10.0f, false);   // 오른쪽 문도 닫혀 있다. 조사할 것은 없다
+
+            // 인터폰 바로 옆 문(왼쪽 문) 오른쪽 문짝 유리의 손바닥 자국. 문이 쾅쾅쾅 울린 뒤에 생긴다(CaseDirector).
+            {
+                var doorHand = new GameObject("DoorHandprint");
+                doorHand.transform.SetParent(root.transform.Find("Door_Left"), false);
+                doorHand.transform.localPosition = new Vector2(1.0f, 1.05f);
+                doorHand.transform.localRotation = Quaternion.Euler(0f, 0f, -12f);
+                var dhSr = doorHand.AddComponent<SpriteRenderer>();
+                dhSr.sprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+                dhSr.color = new Color(1f, 1f, 1f, 40f / 255f);
+                dhSr.sortingOrder = -3;
+                if (dhSr.sprite != null) doorHand.transform.localScale = Vector3.one * (0.55f / dhSr.sprite.bounds.size.y);
+                doorHand.SetActive(false);
+            }
 
             // 비상 인터폰. 왼쪽 문 바깥쪽 맨 끝 빈 벽에 붙어 있다. 누르면 역무실로 이어진다(CaseDirector).
             {

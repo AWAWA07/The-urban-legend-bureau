@@ -348,6 +348,14 @@ field.subway.intercom.006	……네?	......What?	차지한
 field.subway.intercom.007	…끊겼어요.	...It cut off.	차지한
 field.subway.intercom.008	들을 건 다 들었어. 기록부터 확인해 보자.	We heard what we needed. Let's check the records first.	한영. 겁먹지 않는다
 field.subway.intercom.again	…잡음만 나네요. 다시는 안 받는 것 같아요.	...Just static. I don't think they'll pick up again.	차지한. 인터폰을 다시 눌렀을 때
+field.subway.intercom.ring1	뚜르르…	Ring...	인터폰 신호음(말한 사람 없음)
+field.subway.intercom.ring2	뚜르르… 뚜르르…	Ring... ring...	인터폰 신호음 두 번째
+field.subway.intercom.click	철컥.	*Click.*	역무실이 인터폰을 받는 소리
+field.subway.door.bang	쾅!	BANG!	인터폰 옆 문이 울리는 소리(문 위에 튀어나오는 글자)
+field.subway.door	출입문	The door	인터폰 바로 옆 문(조사 지점 이름). 울린 뒤에 나타난다
+field.subway.door.001	…방금 두드린 거, 이 문이었어요.	...That knocking just now. It was this door.	차지한
+field.subway.door.002	바깥쪽 유리에 손자국이 찍혀 있네. 달리는 열차 밖에서 두드렸다는 거야.	There's a handprint on the outside of the glass. Someone knocked from outside a moving train.	한영. 차분하게
+field.subway.door.003	…다음 역까지는 아직 한참 남았는데요.	...We're nowhere near the next station.	차지한
 field.subway.cctv_look.001	CCTV가 부자연스럽게 돌아가있네요.	The camera's turned at an odd angle.	CCTV 를 처음 눌렀을 때. 차지한
 field.subway.cctv_look.002	그러게? 누군가 못 찍게 하려한거 처럼..	Right? Like someone didn't want it filming..	한영
 field.subway.cctv_react.001	……!	……!	CCTV 가 차지한을 내려다본 직후

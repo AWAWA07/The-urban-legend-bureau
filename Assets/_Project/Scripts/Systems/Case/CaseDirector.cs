@@ -280,6 +280,10 @@ namespace UrbanLegendBureau.Systems
             _cctvTurned = false;
             _windowGhostShown = false;
             _intercomUsed = false;
+            var doorPoint = FindDoorPointAnywhere();
+            if (doorPoint != null) doorPoint.gameObject.SetActive(false);   // 문은 인터폰 통화 중에 울린 뒤에야 나타난다
+            foreach (var t in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (t.name == "DoorHandprint") t.gameObject.SetActive(false);
             foreach (var unease in FindObjectsByType<TrainUnease>(FindObjectsInactive.Include, FindObjectsSortMode.None))
             {
                 unease.ResetUnease();
@@ -2000,7 +2004,148 @@ namespace UrbanLegendBureau.Systems
             string id = IntercomTextIds[index];
             int who = IntercomSpeakers[index];
             string speaker = who == 1 ? HanyoungNameTextId : who == 2 ? IntercomStaffTextId : FieldSpeakerTextId;
-            _fieldHudScreen.ShowLine(speaker, () => _loc.Get(id), () => IntercomLine(index + 1, onDone), id);
+
+            // 첫 말 다음에는 신호가 두 번 가다가 철컥 받는다. 그 뒤에 역무원이 말한다.
+            System.Action next = () => IntercomLine(index + 1, onDone);
+            if (index == 0) next = () => StartCoroutine(IntercomRing(() => IntercomLine(1, onDone)));
+            _fieldHudScreen.ShowLine(speaker, () => _loc.Get(id), next, id);
+
+            // "두 분 말고 한 분 더" 가 뜨고 얼마 안 있어 바로 옆 문이 쾅쾅쾅 울린다.
+            if (index == IntercomBangLine) StartCoroutine(DoorBang());
+        }
+
+        /// <summary>문이 울리는 줄(역무원의 "한 분 더 계시네요?").</summary>
+        private const int IntercomBangLine = 4;
+
+        /// <summary>신호음 두 번과 받는 소리. 말한 사람 없이 띠에 소리만 적는다. 누르지 않아도 저절로 넘어간다.</summary>
+        private System.Collections.IEnumerator IntercomRing(System.Action then)
+        {
+            string[] ids = { "field.subway.intercom.ring1", "field.subway.intercom.ring2", "field.subway.intercom.click" };
+            string[] sounds = { "intercom_ring", "intercom_ring", "intercom_pickup" };
+            float[] waits = { 0.9f, 0.9f, 0.6f };
+            for (int i = 0; i < ids.Length; i++)
+            {
+                string id = ids[i];
+                Sfx.Play(sounds[i]);
+                _fieldHudScreen.ShowLine(string.Empty, () => _loc.Get(id), null, id);
+                yield return new WaitForSeconds(waits[i]);
+            }
+            then?.Invoke();
+        }
+
+        // ------------------------------------------------------------- 쾅쾅쾅 울리는 문
+
+        /// <summary>인터폰 바로 옆 문(왼쪽 문) 조사 지점. 문이 울린 뒤에야 나타난다.</summary>
+        private const string DoorPointId = "point_subway_door";
+
+        private static readonly string[] DoorTextIds = { "field.subway.door.001", "field.subway.door.002", "field.subway.door.003" };
+        private static readonly bool[] DoorIsHanyoung = { false, true, false };
+
+        /// <summary>
+        /// 인터폰 바로 옆 문이 쾅, 쾅, 쾅 울린다. 문 위에 "쾅!" 이 튀어나오고 문짝이 흔들린다(소리 파일이 있으면 소리도 난다).
+        /// 다 울리면 그 문을 조사할 수 있게 된다.
+        /// </summary>
+        private System.Collections.IEnumerator DoorBang()
+        {
+            yield return new WaitForSeconds(0.6f);
+            var door = FindActiveField("Door_Left");
+            var font = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true)?.font : null;
+            // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅. 다섯 번. 사이가 고르지 않아 다급하다.
+            float[] gaps = { 0.17f, 0.15f, 0.4f, 0.14f, 0f };
+            for (int i = 0; i < gaps.Length; i++)
+            {
+                Sfx.Play("door_bang");
+                if (door != null)
+                {
+                    var offset = new Vector2(Random.Range(-1.6f, 1.6f), Random.Range(0.1f, 1.9f));
+                    StartCoroutine(BangText(door.position + (Vector3)offset, font));
+                    StartCoroutine(ShakeDoor(door));
+                }
+                yield return new WaitForSeconds(gaps[i]);
+            }
+            yield return new WaitForSeconds(0.3f);
+
+            var point = FindFieldPoint(DoorPointId);
+            if (point != null) point.gameObject.SetActive(true);
+            var hand = door != null ? door.Find("DoorHandprint") : null;
+            if (hand != null) hand.gameObject.SetActive(true);   // 바깥쪽 유리에 손자국이 남는다
+            Debug.Log("[CaseDirector] 인터폰 옆 문이 울렸다 | 문을 조사할 수 있다");
+        }
+
+        private InvestigationPoint FindDoorPointAnywhere()
+        {
+            foreach (var p in FindObjectsByType<InvestigationPoint>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+                if (p != null && p.PointId == DoorPointId) return p;
+            return null;
+        }
+
+        /// <summary>지금 켜진 현장에서 그 이름의 켜져 있는 것.</summary>
+        private Transform FindActiveField(string name)
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            if (root == null) return null;
+            foreach (var t in root.GetComponentsInChildren<Transform>())
+                if (t.name == name) return t;
+            return null;
+        }
+
+        /// <summary>"쾅!" 한 번. 크게 튀어나왔다가 줄어들며 사라진다. 어둠보다 앞에 그린다.</summary>
+        private System.Collections.IEnumerator BangText(Vector3 position, TMPro.TMP_FontAsset font)
+        {
+            var go = new GameObject("Bang");
+            go.transform.position = position;
+            var text = go.AddComponent<TMPro.TextMeshPro>();
+            if (font != null) text.font = font;
+            text.text = _loc.Get("field.subway.door.bang");
+            text.fontSize = 9f;
+            text.fontStyle = TMPro.FontStyles.Bold;
+            text.alignment = TMPro.TextAlignmentOptions.Center;
+            text.color = new Color(0.95f, 0.9f, 0.82f, 1f);
+            text.rectTransform.sizeDelta = new Vector2(4f, 2f);
+            var mesh = go.GetComponent<MeshRenderer>();
+            if (mesh != null) mesh.sortingOrder = 31;
+            go.transform.localRotation = Quaternion.Euler(0f, 0f, Random.Range(-12f, 12f));
+
+            const float Seconds = 0.55f;
+            for (float e = 0f; e < Seconds; e += Time.deltaTime)
+            {
+                float k = e / Seconds;
+                go.transform.localScale = Vector3.one * Mathf.Lerp(1.5f, 1f, Mathf.Min(1f, k * 4f));
+                var c = text.color;
+                c.a = k < 0.5f ? 1f : 1f - (k - 0.5f) * 2f;
+                text.color = c;
+                yield return null;
+            }
+            Destroy(go);
+        }
+
+        /// <summary>문짝이 짧게 덜컹 흔들린다.</summary>
+        private System.Collections.IEnumerator ShakeDoor(Transform door)
+        {
+            var home = door.localPosition;
+            for (float e = 0f; e < 0.16f; e += Time.deltaTime)
+            {
+                door.localPosition = home + new Vector3(Random.Range(-0.07f, 0.07f), Random.Range(-0.02f, 0.02f), 0f);
+                yield return null;
+            }
+            door.localPosition = home;
+        }
+
+        /// <summary>울린 문을 살핀다. 두 사람이 한마디씩 하고, 현장을 한 번 뒤진 만큼 시간이 흐른다.</summary>
+        private void PlayDoor(InvestigationPoint point)
+        {
+            FieldHudScreen.IsCutscene = true;
+            CctvLines(DoorTextIds, DoorIsHanyoung, 0, () =>
+            {
+                _fieldHudScreen.ClearSpeech();
+                FieldHudScreen.IsCutscene = false;
+                if (!point.IsInvestigated)
+                {
+                    point.MarkInvestigated();
+                    RegisterAction(InvestigationAction.FieldSearch);
+                    if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
+                }
+            });
         }
 
         // ------------------------------------------------------------- 열차 빈자리
@@ -2240,6 +2385,13 @@ namespace UrbanLegendBureau.Systems
             if (point.PointId == WindowPointId && _windowCloseupScreen != null)
             {
                 OpenWindowCloseup();
+                return;
+            }
+
+            // 인터폰 옆 문은 울린 뒤에 살필 수 있다.
+            if (point.PointId == DoorPointId)
+            {
+                PlayDoor(point);
                 return;
             }
 
