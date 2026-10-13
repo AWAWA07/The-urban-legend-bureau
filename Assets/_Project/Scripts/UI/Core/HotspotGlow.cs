@@ -144,7 +144,9 @@ namespace UrbanLegendBureau.UI
                 if (e.glow != null) e.glow.SetActive(show);
                 if (e.outline != null) e.outline.SetActive(show);
                 // 금이나 흠집 같은 가는 선은 하얗게 밝힌다. 스티커나 덮개처럼 면이 있는 그림은 제 색 그대로 둔다.
-                if (IsLine(e.source)) e.source.color = show ? Color.white : e.sourceColor;
+                // 그림으로 그린 선(머리카락)은 외곽선 대신 선 자체가 노란 외곽선 색으로 물든다. 다른 살필 곳의 노란 빛과 맞춘다.
+                if (IsDrawnLine(e.source)) e.source.color = show ? _outlineColor : e.sourceColor;
+                else if (IsLine(e.source)) e.source.color = show ? Color.white : e.sourceColor;
             }
         }
     }
