@@ -655,7 +655,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 승강장에 선 두 사람. 발은 안전선 안쪽, 바닥 위에 놓는다.
             // 가운데 문 앞(x 0)은 타는 자리라 비워 두고 왼쪽에 선다.
-            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 12f);
+            BuildFieldActors(root.transform, -2.78f, -3.2f, 2.4f, -12f, 10.6f);
 
             var arrival = root.AddComponent<TrainArrival>();
             var aso = new SerializedObject(arrival);
@@ -846,8 +846,9 @@ namespace UrbanLegendBureau.EditorTools
                 if (i == 0) continue;   // 가운데 문 위는 비운다
                 AddFieldRect(root.transform, "Strap_" + (i + 4), new Vector2(i * 1.9f, 2.42f),
                     new Vector2(0.1f, 1.0f), new Color(0.30f, 0.31f, 0.36f), -5);
-                AddFieldRect(root.transform, "StrapRing_" + (i + 4), new Vector2(i * 1.9f, 1.82f),
-                    new Vector2(0.44f, 0.44f), new Color(0.34f, 0.31f, 0.24f), -5);
+                // 고리는 속이 빈 둥근 손잡이다. 상아색 플라스틱이라 끈보다 조금 밝다.
+                AddStretched(root.transform, "StrapRing_" + (i + 4), FieldRingSprite(), new Vector2(i * 1.9f, 1.74f),
+                    new Vector2(0.46f, 0.46f), new Color(0.58f, 0.56f, 0.50f), -5, 0f);
             }
 
             // 왼쪽 위 모서리의 CCTV. 천장에 붙은 받침에서 팔이 내려오고, 팔 끝 관절에 몸통이 매달린다.
@@ -937,7 +938,7 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 객실 안에 선 두 사람. 바닥 위에 놓는다. 의자와 봉 사이를 오간다.
-            BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 12f, scale: TrainActorScale);
+            BuildFieldActors(root.transform, -3.86f, -2.0f, 2.4f, -12f, 10.6f, scale: TrainActorScale);
 
             // 달리는 열차. 창밖의 터널이 지나가고 객실이 잔잔히 흔들리며 손잡이 고리가 흔들린다. 조사하지 않을 때도 늘 그렇다.
             var passing = new List<Transform>();
@@ -1564,6 +1565,17 @@ namespace UrbanLegendBureau.EditorTools
                 float d = Mathf.Clamp01(Mathf.Sqrt(dx * dx + dy * dy) * 2f);
                 float a = 1f - d;
                 return a * a * (3f - 2f * a);   // 부드럽게 줄어든다
+            });
+        }
+
+        /// <summary>속이 빈 동그라미(고리). 손잡이 고리에 쓴다. 테두리 가장자리만 살짝 부드럽다.</summary>
+        private static Sprite FieldRingSprite()
+        {
+            return LoadOrPaint("Assets/_Project/Art/Objects/field_ring.png", 128, 128, (u, v) =>
+            {
+                float dx = u - 0.5f, dy = v - 0.5f;
+                float d = Mathf.Sqrt(dx * dx + dy * dy) * 2f;   // 가운데 0, 가장자리 1
+                return Mathf.Clamp01((d - 0.62f) / 0.05f) * Mathf.Clamp01((0.97f - d) / 0.05f);
             });
         }
 
@@ -2729,7 +2741,7 @@ namespace UrbanLegendBureau.EditorTools
                 foreach (float lx in new[] { -1.05f, 1.05f })
                 {
                     R(c, "Leaf", dx + lx, -0.6f, 2.0f, 5.6f, new Color(0.21f, 0.22f, 0.27f));
-                    R(c, "LeafGlass", dx + lx, 0.9f, 1.5f, 2.2f, new Color(0.08f, 0.10f, 0.14f));
+                    // 문 유리는 화면 위로 거의 다 잘려 모서리만 조각처럼 남으므로 그리지 않는다.
                 }
             }
 
@@ -2763,8 +2775,8 @@ namespace UrbanLegendBureau.EditorTools
             }
             for (int i = 0; i < 2; i++)
             {
-                var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(80f, 2.3f * K),
-                    new Color(0f, 0f, 0f, 1f));
+                var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(60f, 2.3f * K),
+                    new Color(0.01f, 0.01f, 0.015f, 0.55f));
                 items.Add(pillar.rectTransform); speeds.Add(2180f);
             }
             R(c, "Mullion", 5f, 0.9f, 0.16f, 2.3f, new Color(0.30f, 0.31f, 0.37f));
@@ -3015,8 +3027,8 @@ namespace UrbanLegendBureau.EditorTools
             }
             for (int i = 0; i < 2; i++)
             {
-                var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(90f, 700f),
-                    new Color(0f, 0f, 0f, 1f));
+                var pillar = CloseupRect(outside, "Pillar_" + i, new Vector2(-500f + i * 900f, 0f), new Vector2(70f, 700f),
+                    new Color(0.01f, 0.01f, 0.015f, 0.55f));
                 items.Add(pillar.rectTransform); speeds.Add(3200f);
             }
 
@@ -3124,7 +3136,7 @@ namespace UrbanLegendBureau.EditorTools
             dark.AddComponent<CloseupDark>();
             dark.SetActive(false);
 
-            var band = CreatePanel(go.transform, "Band", new Color(0.03f, 0.03f, 0.04f, 0.94f));
+            var band = CreatePanel(go.transform, "Band", new Color(0.03f, 0.03f, 0.04f, 1f));
             var bandRt = (RectTransform)band.transform;
             bandRt.anchorMin = new Vector2(0f, 0f);
             bandRt.anchorMax = new Vector2(1f, 0f);
@@ -3143,7 +3155,7 @@ namespace UrbanLegendBureau.EditorTools
             line.raycastTarget = false;
 
             // 띠 위에 붙은 작은 이름표. 평소에는 '조사', 말을 주고받을 때는 말하는 사람이 적힌다.
-            var tab = CreatePanel(go.transform, "Tab", new Color(0.03f, 0.03f, 0.04f, 0.94f));
+            var tab = CreatePanel(go.transform, "Tab", new Color(0.03f, 0.03f, 0.04f, 1f));
             var tabRt = (RectTransform)tab.transform;
             tabRt.anchorMin = tabRt.anchorMax = new Vector2(0f, 0f);
             tabRt.pivot = new Vector2(0f, 0f);
@@ -3353,7 +3365,7 @@ namespace UrbanLegendBureau.EditorTools
             for (int i = 0; i < 3; i++)
             {
                 var pillar = AddFieldRect(root, "PassPillar_" + i, new Vector2(range.x + (i + 0.2f) * span / 3f, 0.9f),
-                    new Vector2(0.45f, 2.6f), new Color(0f, 0f, 0f, 1f), -4);
+                    new Vector2(0.3f, 2.6f), new Color(0.01f, 0.01f, 0.015f, 0.5f), -4);
                 Add(pillar, 40f);
             }
         }
