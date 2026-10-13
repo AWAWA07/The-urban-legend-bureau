@@ -311,7 +311,10 @@ namespace UrbanLegendBureau.Systems
             if (_loc == null && !ServiceRegistry.TryGet(out _loc)) return;
             var names = new List<string>();
             foreach (var p in _nearTies) names.Add(string.IsNullOrEmpty(p.NameTextId) ? p.PointId : _loc.Get(p.NameTextId));
-            _prompt.Show(NearPoint, _loc.Get(PromptTextId, string.Join(" · ", names)));
+            // 겹친 곳들을 감싼 자리의 오른쪽 옆에 띄운다. 어느 하나 위에 띄우면 다른 하나를 가리키지 못한다.
+            var around = _nearTies[0].GetVisualBounds();
+            foreach (var p in _nearTies) around.Encapsulate(p.GetVisualBounds());
+            _prompt.Show(NearPoint, _loc.Get(PromptTextId, string.Join(" · ", names)), around);
         }
 
         private void SetNear(InvestigationPoint point)

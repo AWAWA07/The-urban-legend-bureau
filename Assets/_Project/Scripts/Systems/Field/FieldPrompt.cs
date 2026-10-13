@@ -60,7 +60,7 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>이 지점 위에 이 글로 띄운다.</summary>
-        public void Show(InvestigationPoint point, string text)
+        public void Show(InvestigationPoint point, string text, Bounds? beside = null)
         {
             if (point == null)
             {
@@ -79,23 +79,40 @@ namespace UrbanLegendBureau.Systems
             var sprite = point.GetComponent<SpriteRenderer>();
             if (sprite != null) top = sprite.bounds.max.y;
 
-            // 천장에 달린 것(CCTV)은 그 위가 화면 밖이라, 위에 띄우면 물건을 덮는다. 그럴 때는 물건 그림의 오른쪽 옆에 띄우고 아래 꼬리는 숨긴다.
-            if (top + _lift > _maxY)
+            // 옆에 띄우는 때가 둘이다.
+            //   천장에 달린 것(CCTV) - 그 위가 화면 밖이라 위에 띄우면 물건을 덮는다.
+            //   위아래로 겹친 곳(창문과 그 아래 빈자리) - 둘을 함께 가리켜야 한다(beside 로 둘을 감싼 자리를 받는다).
+            // 그때는 물건 그림의 오른쪽 옆에 띄우고, 꼬리를 말풍선 왼쪽에 붙여 물건을 가리킨다.
+            if (beside.HasValue || top + _lift > _maxY)
             {
-                var art = point.GetVisualBounds();
+                var art = beside ?? point.GetVisualBounds();
                 float half = _plate != null ? _plate.bounds.extents.x : 2.5f;
                 _home = new Vector3(art.max.x + half + 0.3f, Mathf.Min(art.center.y, _maxY), 0f);
-                if (_tail != null) _tail.enabled = false;
+                SetTail(true, half);
             }
             else
             {
                 _home = new Vector3(point.transform.position.x, top + _lift, 0f);
-                if (_tail != null) _tail.enabled = true;
+                SetTail(false, 0f);
             }
             transform.position = _home;
 
             _showing = true;
             gameObject.SetActive(true);
+        }
+
+        private Vector3 _tailBottom, _tailScale;
+        private bool _tailCaptured;
+
+        /// <summary>꼬리를 말풍선 아래(위에 띄울 때)나 왼쪽 가운데(옆에 띄울 때)에 붙인다. 마름모라 반쪽만 바탕 밖으로 삐져나온다.</summary>
+        private void SetTail(bool left, float half)
+        {
+            if (_tail == null) return;
+            if (!_tailCaptured) { _tailBottom = _tail.transform.localPosition; _tailScale = _tail.transform.localScale; _tailCaptured = true; }
+            _tail.enabled = true;
+            _tail.transform.localPosition = left ? new Vector3(-half, 0f, _tailBottom.z) : _tailBottom;
+            // 옆에 붙는 꼬리는 크게 한다. 말풍선이 물건과 떨어져 있어 작은 꼬리로는 무엇을 가리키는지 안 보인다.
+            _tail.transform.localScale = left ? _tailScale * 2.2f : _tailScale;
         }
 
         public void Hide()
