@@ -883,11 +883,12 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(cctvHead.transform, "LensRing", new Vector2(0.98f, -0.16f), new Vector2(0.16f, 0.42f), camDark, 8);
             AddFieldRect(cctvHead.transform, "Lens", new Vector2(1.06f, -0.16f), new Vector2(0.08f, 0.26f),
                 new Color(0.18f, 0.24f, 0.34f), 9);
-            // 녹화 중임을 알리는 빨간 불. 밝게 빛나고 둘레로 붉은 빛이 번진다.
-            var cctvLight = AddFieldRect(cctvHead.transform, "RecLight", new Vector2(0.16f, -0.06f), new Vector2(0.13f, 0.13f),
-                new Color(1f, 0.32f, 0.26f, 1f), 10);
-            var cctvGlow = AddFieldSoft(cctvHead.transform, "RecGlow", new Vector2(0.16f, -0.06f), new Vector2(0.55f, 0.55f),
-                new Color(1f, 0.12f, 0.08f, 0.75f), 11);
+            // 녹화 중임을 알리는 작은 빨간 불(LED). 어두운 받침에 박혀 있고, 둘레로 아주 옅게만 빛이 번진다.
+            AddFieldRect(cctvHead.transform, "RecBezel", new Vector2(0.16f, -0.06f), new Vector2(0.14f, 0.14f), new Color(0.16f, 0.16f, 0.18f), 9);
+            var cctvLight = AddFieldRect(cctvHead.transform, "RecLight", new Vector2(0.16f, -0.06f), new Vector2(0.085f, 0.085f),
+                new Color(0.95f, 0.22f, 0.18f, 1f), 10);
+            var cctvGlow = AddFieldSoft(cctvHead.transform, "RecGlow", new Vector2(0.16f, -0.06f), new Vector2(0.3f, 0.3f),
+                new Color(1f, 0.15f, 0.1f, 0.4f), 11);
 
             var glance = cctvRoot.AddComponent<CctvGlance>();
             var gso = new SerializedObject(glance);
@@ -2876,14 +2877,17 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(head.transform, "LensRing", new Vector2(830f, -90f), new Vector2(100f, 250f), dark);
             CloseupRect(head.transform, "Lens", new Vector2(890f, -90f), new Vector2(46f, 170f), new Color(0.18f, 0.24f, 0.34f));
             CloseupRect(head.transform, "LensGlint", new Vector2(896f, -40f), new Vector2(12f, 40f), new Color(0.55f, 0.65f, 0.8f, 0.8f));
-            // 빨간 불. 밝게 빛나고 둘레로 붉은 빛이 번진다.
-            var recGlow = CloseupRect(head.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(170f, 170f), new Color(1f, 0.12f, 0.08f, 0.6f));
+            // 빨간 불(LED). 몸통에 박힌 어두운 받침 가운데의 작은 불이다. 둘레로 옅게 빛이 번지고 윗부분에 작은 반짝임이 있다.
+            var recBezel = CloseupRect(head.transform, "RecBezel", new Vector2(80f, -30f), new Vector2(44f, 44f), new Color(0.2f, 0.2f, 0.22f));
+            recBezel.sprite = RoundSprite();
+            recBezel.type = Image.Type.Simple;
+            var recGlow = CloseupRect(head.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(84f, 84f), new Color(1f, 0.15f, 0.1f, 0.35f));
             recGlow.sprite = FieldSoftSprite();
             recGlow.type = Image.Type.Simple;
-            var recLight = CloseupRect(head.transform, "RecLight", new Vector2(80f, -30f), new Vector2(46f, 46f), new Color(1f, 0.3f, 0.24f));
+            var recLight = CloseupRect(head.transform, "RecLight", new Vector2(80f, -30f), new Vector2(26f, 26f), new Color(0.95f, 0.22f, 0.18f));
             recLight.sprite = RoundSprite();
             recLight.type = Image.Type.Simple;
-            var recShine = CloseupRect(recLight.transform, "Shine", new Vector2(-8f, 8f), new Vector2(14f, 14f), new Color(1f, 0.8f, 0.75f, 0.85f));
+            var recShine = CloseupRect(recLight.transform, "Shine", new Vector2(-4f, 4f), new Vector2(7f, 7f), new Color(1f, 0.8f, 0.75f, 0.7f));
             recShine.sprite = RoundSprite();
             recShine.type = Image.Type.Simple;
 
@@ -2931,13 +2935,13 @@ namespace UrbanLegendBureau.EditorTools
             headEchoRt.sizeDelta = Vector2.zero;
             headEchoRt.anchoredPosition = headRt.anchoredPosition;
             headEchoRt.localRotation = headRt.localRotation;
-            var echoGlow = CloseupRect(headEcho.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(190f, 190f), new Color(1f, 0.12f, 0.08f, 0.7f));
+            var echoGlow = CloseupRect(headEcho.transform, "RecGlow", new Vector2(80f, -30f), new Vector2(84f, 84f), new Color(1f, 0.15f, 0.1f, 0.45f));
             echoGlow.sprite = FieldSoftSprite();
             echoGlow.type = Image.Type.Simple;
-            var echoLight = CloseupRect(headEcho.transform, "RecLight", new Vector2(80f, -30f), new Vector2(46f, 46f), new Color(1f, 0.3f, 0.24f));
+            var echoLight = CloseupRect(headEcho.transform, "RecLight", new Vector2(80f, -30f), new Vector2(26f, 26f), new Color(0.95f, 0.22f, 0.18f));
             echoLight.sprite = RoundSprite();
             echoLight.type = Image.Type.Simple;
-            var echoShine = CloseupRect(echoLight.transform, "Shine", new Vector2(-8f, 8f), new Vector2(14f, 14f), new Color(1f, 0.8f, 0.75f, 0.85f));
+            var echoShine = CloseupRect(echoLight.transform, "Shine", new Vector2(-4f, 4f), new Vector2(7f, 7f), new Color(1f, 0.8f, 0.75f, 0.7f));
             echoShine.sprite = RoundSprite();
             echoShine.type = Image.Type.Simple;
             headEcho.SetActive(false);

@@ -271,9 +271,9 @@ namespace UrbanLegendBureau.Systems
             }
             if (_cctvDarkLight == null) return;
 
-            float pulse = 0.82f + 0.18f * Mathf.Sin(Time.time * 2.4f);
-            Follow(_cctvDarkLight, _cctvLight, on, new Color(1f, 0.3f, 0.24f, 1f));
-            Follow(_cctvDarkGlow, _cctvGlow, on, new Color(1f, 0.12f, 0.08f, 0.75f * pulse));
+            float pulse = 0.9f + 0.1f * Mathf.Sin(Time.time * 2.4f);
+            Follow(_cctvDarkLight, _cctvLight, on, new Color(0.95f, 0.22f, 0.18f, 1f));
+            Follow(_cctvDarkGlow, _cctvGlow, on, new Color(1f, 0.15f, 0.1f, 0.5f * pulse));
         }
 
         private SpriteRenderer MakeFollower(string name, SpriteRenderer source, int order)
