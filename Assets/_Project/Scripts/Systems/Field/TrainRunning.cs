@@ -51,12 +51,14 @@ namespace UrbanLegendBureau.Systems
         private void OnEnable()
         {
             if (_car != null) _carBase = _car.localPosition;
+            UrbanLegendBureau.Core.Sfx.StartLoop("train", "train_loop", 0.55f, 1.5f);   // 달리는 열차의 웅웅거림과 덜컹거림
             _ringBase = new Vector3[_rings.Length];
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _ringBase[i] = _rings[i].localPosition;
         }
 
         private void OnDisable()
         {
+            UrbanLegendBureau.Core.Sfx.StopLoop("train", 0.8f);
             if (_car != null) _car.localPosition = _carBase;
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _rings[i].localPosition = _ringBase[i];
         }

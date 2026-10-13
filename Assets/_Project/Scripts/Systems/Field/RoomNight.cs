@@ -160,6 +160,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>불을 켜거나 끈다. 끄면 방이 어두워지고 창으로 달빛만 들어온다.</summary>
         public void ToggleLight()
         {
+            UrbanLegendBureau.Core.Sfx.Play("light_switch", 0.6f);
             IsLightOn = !IsLightOn;
             ApplyLight();
             if (_switchToggle != null) StartCoroutine(FlipSwitch(IsLightOn ? _switchOnY : _switchOffY));
@@ -217,6 +218,7 @@ namespace UrbanLegendBureau.Systems
 
         private void SetDoorOpen(bool open)
         {
+            if (_doorOpen != null && _doorOpen.activeSelf != open) UrbanLegendBureau.Core.Sfx.Play("room_door", 0.55f);
             if (_doorClosed != null) _doorClosed.SetActive(!open);
             if (_doorOpen != null) _doorOpen.SetActive(open);
         }
@@ -417,6 +419,7 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator LieDown(Action onDone, bool rotate = true)
         {
+            UrbanLegendBureau.Core.Sfx.Play("cushion_sit", 0.4f, 0.85f);   // 침대에 몸을 누이는 소리
             var t = _chajihan.transform;
             yield return new WaitForSeconds(rotate ? 0.4f : 0f);
             if (rotate)

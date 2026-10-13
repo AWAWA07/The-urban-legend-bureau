@@ -1040,6 +1040,7 @@ namespace UrbanLegendBureau.Systems
 
             // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
             bool ruleShown = false;
+            if (result.GotNewClue) Sfx.Play("clue_get", 0.55f);
             if (result.GotNewClue) ruleShown = NotifyRuleCandidates();
 
             BindActionScreen();
@@ -1523,6 +1524,11 @@ namespace UrbanLegendBureau.Systems
             }, line =>
             {
                 // 대사 한 줄마다 그 줄의 그림으로 바꾼다.
+                // 앉고, 인기척을 느끼고, 방석이 꺼지고, 옆을 보기 직전에 소리가 따라온다.
+                if (line == 0) Sfx.Play("cushion_sit", 0.6f);
+                else if (line == 6) Sfx.Play("heartbeat", 0.6f);
+                else if (line == 7) Sfx.Play("cushion_sink", 0.6f);
+                else if (line == 12) Sfx.Play("heartbeat", 0.45f, 0.95f);
                 string path = "Illustrations/subway_sit_" + SitScript[Mathf.Min(line, SitScript.Length - 1)][2];
                 var sprite = Resources.Load<Sprite>(path);
                 if (sprite == null) Debug.LogWarning("[CaseDirector] 앉은 모습 일러스트 없음 | Resources/" + path);
@@ -1655,6 +1661,7 @@ namespace UrbanLegendBureau.Systems
 
             _terminusDone = true;
             _field.InvestigationAllowed = false;
+            Sfx.Play("train_brake", 0.55f);   // 막차가 끼익 하고 종점에 선다
 
             // 첫 사건에서는 못 푼 채로 끝나지 않게 한영이 모자란 것을 짚어 준다.
             int helped = HelpWithMissingClues();
@@ -1684,6 +1691,8 @@ namespace UrbanLegendBureau.Systems
 
             swap.SetAfter(false);
             _alighted = true;
+            Sfx.Play("door_chime", 0.45f);   // 종점. 문이 열린다
+            Sfx.Play("door_slide", 0.6f);
 
             if (_fieldHudScreen != null) _fieldHudScreen.SetTicker(BuildFieldTicker);
             Debug.Log("[CaseDirector] 종점에서 내렸다 | 열차 안 -> 승강장");
@@ -1981,6 +1990,8 @@ namespace UrbanLegendBureau.Systems
 
             swap.SetAfter(true);
             _boarded = true;
+            Sfx.Play("door_chime", 0.45f);   // 문이 닫히고 떠난다
+            Sfx.Play("door_slide", 0.6f);
 
             // 문이 닫히고 열차가 서서히 출발한다. 한 번만 일어난다.
             var running = _field.ActiveRoot.GetComponentInChildren<TrainRunning>();
@@ -2153,6 +2164,7 @@ namespace UrbanLegendBureau.Systems
 
                 if (result.GotNewClue)
                 {
+                    Sfx.Play("clue_get", 0.55f);
                     string clueId = result.AcquiredClueId;
                     _pendingClueId = clueId;
                     _cluePopupScreen.BindWithBodyProvider(IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId,
@@ -2186,6 +2198,8 @@ namespace UrbanLegendBureau.Systems
         private System.Collections.IEnumerator IntercomRing(System.Action then)
         {
             _fieldHudScreen.ClearSpeech();
+            Sfx.Play("button_press", 0.7f);   // 인터폰 단추를 누른다
+            yield return new WaitForSeconds(0.35f);
             string[] sounds = { "intercom_ring", "intercom_ring", "intercom_pickup" };
             float[] waits = { 1.3f, 1.3f, 0.7f };   // 울리고 잠깐 쉬고, 다시 울리고, 철컥
             for (int i = 0; i < sounds.Length; i++)
@@ -2362,6 +2376,7 @@ namespace UrbanLegendBureau.Systems
                     if (point != null) MarkActionDone(point, action);
                     if (result.GotNewClue)
                     {
+                        Sfx.Play("clue_get", 0.55f);
                         screen.AppendLine("<color=#D9BC7A>" + _loc.Get(CloseupClueTextId, ResolveClueTitle(result.AcquiredClueId) ?? result.AcquiredClueId) + "</color>");
                         NotifyRuleCandidates();
                     }
@@ -2651,6 +2666,7 @@ namespace UrbanLegendBureau.Systems
                 ? (IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId)
                 : ClueDuplicateTextId;
 
+            if (acquired) Sfx.Play("clue_get", 0.55f);
             _cluePopupScreen.BindWithBodyProvider(title, () => BuildClueFinding(clueId));
             _ui.Push(_cluePopupScreen);
 

@@ -211,6 +211,7 @@ namespace UrbanLegendBureau.Systems
                 if (now >= _nextFlicker)
                 {
                     _flickerEnd = now + Random.Range(0.35f, 0.7f);
+                    if (_darkState == DarkState.None) UrbanLegendBureau.Core.Sfx.Play("lamp_flicker", 0.18f, Random.Range(0.9f, 1.1f));   // 지지직
                     _nextFlicker = now + Random.Range(4f, 9f);
                 }
                 if (now < _flickerEnd)
@@ -323,6 +324,7 @@ namespace UrbanLegendBureau.Systems
         private System.Collections.IEnumerator RunBlackout(System.Action onDark)
         {
             _darkState = DarkState.Flicker;
+            UrbanLegendBureau.Core.Sfx.Play("power_down", 0.7f);   // 미친 듯 깜빡이다 쿵 하고 꺼진다
             SetOutsideAboveDark(true);
             const float Seconds = 1.9f;
             float end = Time.time + Seconds;
@@ -362,6 +364,7 @@ namespace UrbanLegendBureau.Systems
             RaisePhone();   // 아직 들지 않았다면 켜기 전에 든다
             EnsurePhone();
             _darkState = DarkState.Phone;
+            UrbanLegendBureau.Core.Sfx.Play("phone_click", 0.6f);
             FollowPhone();
             foreach (float wait in new[] { 0.06f, 0.08f, 0.05f })
             {
@@ -520,10 +523,12 @@ namespace UrbanLegendBureau.Systems
                 if (lit || near || lingered)
                 {
                     _figureGone = true;
+                    UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.35f);
                     _figureGoneAt = now;
                 }
                 else
                 {
+                    if (_figureFade <= 0f) UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.3f);   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
                     if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }

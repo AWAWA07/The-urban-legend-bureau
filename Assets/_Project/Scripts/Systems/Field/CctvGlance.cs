@@ -62,6 +62,7 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator Turn(Transform target, Action onDone)
         {
+            UrbanLegendBureau.Core.Sfx.Play("lamp_flicker", 0.12f);   // 기계가 살아나며 짧게 지직
             // 움찔. 위를 본 채로 두어 번 떨린다. 고장 난 기계가 다시 살아나는 것 같다.
             for (int i = 0; i < 3; i++)
             {
@@ -77,6 +78,7 @@ namespace UrbanLegendBureau.Systems
             float parent = _head.parent != null ? _head.parent.eulerAngles.z : 0f;
             float to = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - parent;
 
+            UrbanLegendBureau.Core.Sfx.Play("cctv_servo", 0.55f);
             // 확 꺾는다. 끝에서 조금 지나쳤다가 돌아와 멈춘다.
             float from = _idleAngle;
             float over = to - 6f;

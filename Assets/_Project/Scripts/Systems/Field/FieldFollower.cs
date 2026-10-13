@@ -43,6 +43,7 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_body == null) _body = transform;
+            if (GetComponent<Footsteps>() == null) gameObject.AddComponent<Footsteps>().Volume = 0.2f;   // 뒤따르는 사람의 발소리는 조금 작다
             _start = transform.localPosition;
             _startScale = _body.localScale;
         }

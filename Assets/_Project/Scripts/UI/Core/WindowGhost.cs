@@ -118,6 +118,7 @@ namespace UrbanLegendBureau.UI
             _image.enabled = true;
 
             // 슬며시. 처음에는 거의 움직이지 않다가 천천히 다가온다. 처음부터 끝까지 보일 듯 말 듯한 진하기다.
+            UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.6f);   // 슬며시 나올 때 낮게 웅
             SetAlpha(_maxAlpha);
             for (float e = 0f; e < _slideSeconds; e += Time.unscaledDeltaTime)
             {
@@ -129,6 +130,7 @@ namespace UrbanLegendBureau.UI
             for (float e = 0f; e < _holdSeconds && !Lit(); e += Time.unscaledDeltaTime) yield return null;
 
             // 갑자기. 한 번 끊겼다가 사라진다.
+            UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.6f);
             _image.enabled = false;
             yield return new WaitForSecondsRealtime(0.05f);
             _image.enabled = true;

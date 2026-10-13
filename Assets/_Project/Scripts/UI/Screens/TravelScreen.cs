@@ -73,6 +73,7 @@ namespace UrbanLegendBureau.UI
         private IEnumerator Run(int minutes, float seconds, Action<int> onMinutes, Action onArrive, Action onDone)
         {
             IsPlaying = true;
+            UrbanLegendBureau.Core.Sfx.StartLoop("travel", "taxi_loop", 0.5f, 0.6f);   // 가는 동안 차 안의 낮은 엔진 소리
             int given = 0;
             Place(0f, 0f);
 
@@ -115,6 +116,7 @@ namespace UrbanLegendBureau.UI
 
             _playing = null;
             IsPlaying = false;
+            UrbanLegendBureau.Core.Sfx.StopLoop("travel", 0.6f);
             onDone?.Invoke();
         }
 
@@ -143,6 +145,7 @@ namespace UrbanLegendBureau.UI
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
             if (_playing != null) { StopCoroutine(_playing); _playing = null; }
             IsPlaying = false;
+            UrbanLegendBureau.Core.Sfx.StopLoop("travel", 0.6f);
         }
 
         private void OnLanguageChanged(LanguageChangedEvent evt)

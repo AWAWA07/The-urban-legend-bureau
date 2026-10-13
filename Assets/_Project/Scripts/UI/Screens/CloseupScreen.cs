@@ -105,9 +105,15 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnOpen()
         {
+            UrbanLegendBureau.Core.Sfx.Play("closeup_open", 0.45f);   // 가까이 다가가는 쉬익
             SetTab(_tabTextId);
             ShowLine(_hintTextId);
             SetInteractable(true);
+        }
+
+        protected override void OnClose()
+        {
+            UrbanLegendBureau.Core.Sfx.Play("closeup_close", 0.35f);
         }
 
         /// <summary>살필 곳을 모두 살폈는가. 나중에 드러나는 자리도 센다.</summary>
@@ -157,6 +163,7 @@ namespace UrbanLegendBureau.UI
             if (index < 0 || index >= _spots.Length || _spots[index] == null) return;
             var s = _spots[index];
             if (s.button != null) s.button.gameObject.SetActive(true);
+            UrbanLegendBureau.Core.Sfx.Play("heartbeat", 0.5f);   // 없던 것이 드러날 때 쿵쿵
             if (s.revealObject == null) return;
             s.revealObject.SetActive(true);
             foreach (var g in s.revealObject.GetComponentsInChildren<Graphic>())
@@ -218,6 +225,7 @@ namespace UrbanLegendBureau.UI
         {
             // 부르는 쪽이 이 누름을 가로채면(앉아 보기를 묻는 것 같은) 평소처럼 살피지 않는다.
             if (SpotIntercept != null && SpotIntercept(index)) return;
+            UrbanLegendBureau.Core.Sfx.PlayVaried("inspect", 0.5f);   // 만져 보고 들춰 보는 소리
             var spot = _spots[index];
             if (spot.hideOnCheck != null) spot.hideOnCheck.SetActive(false);
             if (spot.showOnCheck != null) spot.showOnCheck.SetActive(true);
