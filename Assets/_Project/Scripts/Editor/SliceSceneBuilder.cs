@@ -119,7 +119,7 @@ namespace UrbanLegendBureau.EditorTools
             //   빈자리 - 왼쪽 긴 의자의 한 칸.
             //   창문   - 오른쪽 긴 의자 위의 창.
             //   CCTV   - 왼쪽 위 천장 모서리.
-            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(-5.0f, -1.6f),
+            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(5.0f, -1.6f),
                 new Vector2(1.5f, 2.35f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
             var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
@@ -2629,18 +2629,18 @@ namespace UrbanLegendBureau.EditorTools
             carRt.offsetMin = carRt.offsetMax = Vector2.zero;
             var c = car.transform;
 
-            // 현장 한 단위가 화면 260픽셀. 긴 의자 가운데(x -5)가 화면 가운데, 현장 y -3.1(의자 앞면)이 대사 띠 바로 위다.
+            // 현장 한 단위가 화면 260픽셀. 긴 의자 가운데(x 5)가 화면 가운데, 현장 y -3.1(의자 앞면)이 대사 띠 바로 위다.
             // 의자를 가까이 보느라 창은 아래쪽 띠만 화면에 걸린다. 그 띠 안으로 터널 불빛이 지나간다.
             const float K = 260f;
             const float BaseY = -3.1f;
             Image R(Transform parent, string n, float fx, float fy, float fw, float fh, Color col)
-                => CloseupRect(parent, n, new Vector2((fx + 5f) * K, (fy - BaseY) * K - 260f), new Vector2(fw * K, fh * K), col);
+                => CloseupRect(parent, n, new Vector2((fx - 5f) * K, (fy - BaseY) * K - 260f), new Vector2(fw * K, fh * K), col);
 
             var wall = CreatePanel(c, "Wall", new Color(0.19f, 0.20f, 0.25f, 1f));
             StretchFull(wall);
 
-            // 양옆의 문. 현장의 왼쪽 문(x -10)과 가운데 문(x 0)이 화면 끝에 걸린다.
-            foreach (float dx in new[] { -10f, 0f })
+            // 양옆의 문. 현장의 가운데 문(x 0)과 오른쪽 문(x 10)이 화면 끝에 걸린다.
+            foreach (float dx in new[] { 0f, 10f })
             {
                 R(c, "DoorFrame", dx, -0.6f, 4.6f, 6.0f, new Color(0.24f, 0.25f, 0.31f));
                 foreach (float lx in new[] { -1.05f, 1.05f })
@@ -2651,8 +2651,8 @@ namespace UrbanLegendBureau.EditorTools
             }
 
             // 의자 위의 창. 현장과 같은 틀, 유리, 가운데 창살이다. 유리 안에서 터널이 지나간다.
-            R(c, "WindowFrame", -5f, 0.9f, 5.0f, 2.7f, new Color(0.30f, 0.31f, 0.37f));
-            var glass = R(c, "Glass", -5f, 0.9f, 4.6f, 2.3f, new Color(0.03f, 0.035f, 0.05f));
+            R(c, "WindowFrame", 5f, 0.9f, 5.0f, 2.7f, new Color(0.30f, 0.31f, 0.37f));
+            var glass = R(c, "Glass", 5f, 0.9f, 4.6f, 2.3f, new Color(0.03f, 0.035f, 0.05f));
             glass.gameObject.AddComponent<RectMask2D>();
             var outside = glass.transform;
             // 유리 안쪽 좌표. 화면 위로 잘려 아래쪽 띠만 보인다. 터널 것들은 그 보이는 띠(유리 밑변 위)에 둔다.
@@ -2684,34 +2684,34 @@ namespace UrbanLegendBureau.EditorTools
                     new Color(0f, 0f, 0f, 1f));
                 items.Add(pillar.rectTransform); speeds.Add(2180f);
             }
-            R(c, "Mullion", -5f, 0.9f, 0.16f, 2.3f, new Color(0.30f, 0.31f, 0.37f));
+            R(c, "Mullion", 5f, 0.9f, 0.16f, 2.3f, new Color(0.30f, 0.31f, 0.37f));
 
             // 긴 의자. 현장의 BuildTrainBench 와 같은 짜임과 색이다.
             var fabric = new Color(0.26f, 0.28f, 0.36f);
             var seatColor = Color.Lerp(fabric, Color.white, 0.12f);
             var edgeColor = Color.Lerp(fabric, Color.white, 0.3f);
-            R(c, "Back", -5f, -1.35f, 4.6f, 1.9f, fabric);
-            R(c, "Seat", -5f, -2.45f, 4.6f, 0.6f, seatColor);
-            R(c, "Skirt", -5f, -3.1f, 4.6f, 0.8f, new Color(0.17f, 0.18f, 0.22f));
+            R(c, "Back", 5f, -1.35f, 4.6f, 1.9f, fabric);
+            R(c, "Seat", 5f, -2.45f, 4.6f, 0.6f, seatColor);
+            R(c, "Skirt", 5f, -3.1f, 4.6f, 0.8f, new Color(0.17f, 0.18f, 0.22f));
 
             // 가운데 칸만 따로 한 번 더 깐다. 마우스를 올리면 이 칸 모양만 빛난다.
             const float Slot = 4.6f / 3f;
-            R(c, "MiddleBack", -5f, -1.35f, Slot, 1.9f, fabric);
-            R(c, "MiddleSeat", -5f, -2.45f, Slot, 0.6f, seatColor);
-            R(c, "MiddleSkirt", -5f, -3.1f, Slot, 0.8f, new Color(0.17f, 0.18f, 0.22f));
+            R(c, "MiddleBack", 5f, -1.35f, Slot, 1.9f, fabric);
+            R(c, "MiddleSeat", 5f, -2.45f, Slot, 0.6f, seatColor);
+            R(c, "MiddleSkirt", 5f, -3.1f, Slot, 0.8f, new Color(0.17f, 0.18f, 0.22f));
 
-            var backShade = R(c, "BackShade", -5f, -1.95f, 4.6f, 0.6f, new Color(0f, 0f, 0f, 0.18f));
+            var backShade = R(c, "BackShade", 5f, -1.95f, 4.6f, 0.6f, new Color(0f, 0f, 0f, 0.18f));
             backShade.sprite = FieldGradientSprite();
             backShade.type = Image.Type.Simple;
             backShade.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 180f);
-            R(c, "SeatEdge", -5f, -2.18f, 4.6f, 0.06f, edgeColor);
+            R(c, "SeatEdge", 5f, -2.18f, 4.6f, 0.06f, edgeColor);
             foreach (float lx in new[] { -Slot * 0.5f, Slot * 0.5f })
-                R(c, "SeatLine", -5f + lx, -2.0f, 0.06f, 2.9f, new Color(0.19f, 0.20f, 0.26f));
+                R(c, "SeatLine", 5f + lx, -2.0f, 0.06f, 2.9f, new Color(0.19f, 0.20f, 0.26f));
             foreach (float lx in new[] { -2.5f, 2.5f })
-                R(c, "Divider", -5f + lx, -1.7f, 0.4f, 3.6f, new Color(0.31f, 0.32f, 0.38f));
+                R(c, "Divider", 5f + lx, -1.7f, 0.4f, 3.6f, new Color(0.31f, 0.32f, 0.38f));
 
             // 눌린 자국. 가운데 칸 방석이 누가 앉은 것처럼 오목하다.
-            var dent = R(c, "Dent", -5f, -2.42f, 1.4f, 0.5f, Color.white);
+            var dent = R(c, "Dent", 5f, -2.42f, 1.4f, 0.5f, Color.white);
             dent.sprite = LoadCrispSprite(CloseupArtPath + "seat_dent.png");
             dent.type = Image.Type.Simple;
 
@@ -2720,7 +2720,7 @@ namespace UrbanLegendBureau.EditorTools
             AttachGlow(dentButton, c.Find("MiddleBack").gameObject, c.Find("MiddleSeat").gameObject, c.Find("MiddleSkirt").gameObject);
 
             // 승차권. 왼쪽 칸 등받이와 방석 틈에 비스듬히 끼어 있다.
-            var ticket = R(c, "Ticket", -5f - Slot, -2.12f, 0.5f, 0.24f, new Color(0.88f, 0.86f, 0.78f));
+            var ticket = R(c, "Ticket", 5f - Slot, -2.12f, 0.5f, 0.24f, new Color(0.88f, 0.86f, 0.78f));
             ticket.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 14f);
             CloseupRect(ticket.transform, "Stripe", new Vector2(0f, -0.06f * K), new Vector2(0.5f * K, 0.045f * K), new Color(0.15f, 0.15f, 0.18f));
             CloseupRect(ticket.transform, "Print", new Vector2(-0.07f * K, 0.04f * K), new Vector2(0.27f * K, 0.025f * K), new Color(0.45f, 0.44f, 0.42f));
@@ -2729,7 +2729,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 머리카락. 오른쪽 칸 방석 위에 길고 검은 것 한 올이 부드럽게 굽이져 놓여 있다. 끝으로 갈수록 가늘다.
             // 그림은 흰 선이라 색을 입혀 검게 둔다. 마우스를 올리면 노랗게 물든다(HotspotGlow).
-            var hair = R(c, "Hair", -5f + Slot, -2.44f, 1.3f, 0.36f, new Color(0.05f, 0.05f, 0.06f, 1f));
+            var hair = R(c, "Hair", 5f + Slot, -2.44f, 1.3f, 0.36f, new Color(0.05f, 0.05f, 0.06f, 1f));
             hair.sprite = LoadCrispSprite(CloseupArtPath + "line_hair.png");
             hair.type = Image.Type.Simple;
             hair.preserveAspect = true;
