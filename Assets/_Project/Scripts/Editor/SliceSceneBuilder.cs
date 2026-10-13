@@ -119,8 +119,8 @@ namespace UrbanLegendBureau.EditorTools
             //   빈자리 - 왼쪽 긴 의자의 한 칸.
             //   창문   - 오른쪽 긴 의자 위의 창.
             //   CCTV   - 왼쪽 위 천장 모서리.
-            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(5.0f, -1.6f),
-                new Vector2(1.5f, 2.35f), new Color(0.32f, 0.36f, 0.48f),
+            var seat = BuildPoint(trainInside.transform, "InvestigationPoint_SubwaySeat", new Vector2(5.0f, -1.95f),
+                new Vector2(4.6f / 3f, 3.1f), new Color(0.32f, 0.36f, 0.48f),
                 "field.subway.seat", "field.subway.seat", null);
             var window = BuildPoint(trainInside.transform, "InvestigationPoint_SubwayWindow", new Vector2(5.0f, 0.9f),
                 new Vector2(4.4f, 2.2f), new Color(0.26f, 0.42f, 0.46f),
@@ -134,6 +134,13 @@ namespace UrbanLegendBureau.EditorTools
             // 곁에 서면 네모 칸이 아니라 그 자리의 그림이 밝아진다.
             // 빈자리는 긴 의자의 한 칸이라 따로 떨어진 그림이 없다. 그 칸 크기의 네모를 그대로 쓴다.
             FitHighlightToArt(window, trainInside.transform);
+            // 창문은 아래쪽이 긴 의자 등받이에 가려 모양 외곽선이 끊긴다. 창 전체를 감싼 반듯한 네모 테두리를 쓴다.
+            {
+                var wso = new SerializedObject(window.GetComponent<InvestigationPoint>());
+                wso.Update();
+                wso.FindProperty("_boxOutline").boolValue = true;
+                wso.ApplyModifiedPropertiesWithoutUndo();
+            }
             SetHighlightTargets(cctv, trainInside.transform, "Cctv/Mount", "Cctv/Arm", "Cctv/Joint", "Cctv/Head/Housing",
                 "Cctv/Head/HousingShade", "Cctv/Head/Visor", "Cctv/Head/LensRing");   // 빨간 불은 따로 켜고 끄므로 뺀다
 
@@ -1978,6 +1985,7 @@ namespace UrbanLegendBureau.EditorTools
             sr.sprite = frames.Count > 0 ? frames[0] : null;
             // 두 사람이 겹치면 차지한이 늘 앞에 선다. 같은 순서끼리는 앞뒤가 들쭉날쭉해진다.
             sr.sortingOrder = art == "Chajihan" ? Order + 1 : Order;
+            sprite.AddComponent<OutlineOccluder>();   // 정전 때 어둠 위 노란 외곽선이 사람 뒤로 가게 한다
 
             var animator = go.AddComponent<FieldSpriteAnimator>();
             var aso = new SerializedObject(animator);

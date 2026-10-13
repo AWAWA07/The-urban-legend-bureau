@@ -185,6 +185,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("외곽선 두께(월드 단위).")]
         [SerializeField] private float _outlineWidth = 0.05f;
 
+        [Tooltip("켜면 물건 모양 대신 물건 그림 전체를 감싼 반듯한 네모 테두리를 두른다. 다른 것(긴 의자 등받이)에 가려 외곽선이 끊기는 창문 같은 곳에 쓴다.")]
+        [SerializeField] private bool _boxOutline;
+
         private readonly List<SpriteRenderer> _outlines = new List<SpriteRenderer>();
         private readonly List<SpriteRenderer> _outlineSources = new List<SpriteRenderer>();   // _outlines 와 같은 순서. 네모 테두리는 null
         private bool _outlinesBuilt;
@@ -213,7 +216,8 @@ namespace UrbanLegendBureau.Systems
         private void BuildBoxOutline()
         {
             if (_renderer == null || _renderer.sprite == null) return;
-            var b = _renderer.bounds;
+            // 밝힐 그림이 있으면 그 그림들을 감싼 자리, 없으면 네모 칸의 자리를 두른다.
+            var b = HasTargets ? GetVisualBounds() : _renderer.bounds;
             float w = _outlineWidth;
             var edges = new[]
             {
@@ -236,6 +240,7 @@ namespace UrbanLegendBureau.Systems
                 sr.sortingLayerID = _renderer.sortingLayerID;
                 sr.sortingOrder = _renderer.sortingOrder + 1;
                 sr.color = _outlineColor;
+                sr.maskInteraction = SpriteMaskInteraction.VisibleOutsideMask;   // 정전 때 어둠 위로 올라가도 사람(OutlineOccluder)에 가려진다
                 sr.enabled = false;
                 _outlines.Add(sr);
                 _outlineSources.Add(null);
@@ -248,7 +253,7 @@ namespace UrbanLegendBureau.Systems
             _outlinesBuilt = true;
 
             var targets = new List<SpriteRenderer>();
-            if (HasTargets) { foreach (var t in _highlightTargets) if (t != null) targets.Add(t); }
+            if (HasTargets && !_boxOutline) { foreach (var t in _highlightTargets) if (t != null) targets.Add(t); }
             else
             {
                 // 밝힐 그림이 따로 없는 지점은 네모 칸 둘레에 테두리만 두른다. 칸을 통째로 칠하면 장면이 가려진다.
@@ -321,6 +326,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>어둠(20)과 그 위의 것들(창밖 불빛 21~22, 창 너머 그것 23)보다 앞, 말풍선(30)보다 뒤.</summary>
         private const int OnTopOrder = 26;
 
+        /// <summary>어둠 위 외곽선의 그리기 순서. 사람 모양 가림판(OutlineOccluder)이 이 순서에만 작용한다.</summary>
+        public const int OutlineOnTopOrder = OnTopOrder;
+
         private readonly List<SpriteRenderer> _topOutlines = new List<SpriteRenderer>();
         private readonly List<SpriteMask> _topMasks = new List<SpriteMask>();
         private readonly List<SpriteRenderer> _topSources = new List<SpriteRenderer>();
@@ -370,7 +378,7 @@ namespace UrbanLegendBureau.Systems
         {
             if (_topBuilt) return;
             _topBuilt = true;
-            if (!HasTargets) return;
+            if (!HasTargets || _boxOutline) return;   // 네모 테두리는 그 줄을 그대로 어둠 위로 올린다
 
             foreach (var t in _highlightTargets)
             {
