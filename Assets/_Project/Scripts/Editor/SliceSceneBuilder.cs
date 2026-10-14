@@ -2867,7 +2867,7 @@ namespace UrbanLegendBureau.EditorTools
         /// <summary>
         /// 인터폰 옆 출입문을 가까이서 보는 화면. 두 문짝과 그 유리, 가운데 문틈 고무가 보인다.
         /// 유리 너머로는 달리는 터널이 지나가고, 유리 바깥쪽에 손바닥 자국이 잔뜩 찍혀 있다(현장의 자국과 같은 자리).
-        /// 살필 곳은 셋이다. 왼쪽 유리의 자국, 오른쪽 유리의 자국, 문틈.
+        /// 살필 곳은 둘이다. 왼쪽 유리의 자국, 오른쪽 유리의 자국.
         /// </summary>
         private static CloseupScreen BuildDoorCloseupScreen(string name)
         {
@@ -2968,9 +2968,6 @@ namespace UrbanLegendBureau.EditorTools
             AttachGlow(leftButton, glasses[0].gameObject);
             var rightButton = CloseupHotspot(c, "Hotspot_PrintsRight", glasses[1].rectTransform.anchoredPosition, glasses[1].rectTransform.sizeDelta);
             AttachGlow(rightButton, glasses[1].gameObject);
-            var seal = c.Find("Seal").GetComponent<Image>();
-            var gapButton = CloseupHotspot(c, "Hotspot_Gap", seal.rectTransform.anchoredPosition, new Vector2(0.5f * K, 3.2f * K));
-            AttachGlow(gapButton, seal.gameObject);
 
             var scroll = go.AddComponent<TunnelScroll>();
             var tso = new SerializedObject(scroll);
@@ -2989,8 +2986,8 @@ namespace UrbanLegendBureau.EditorTools
             tso.ApplyModifiedPropertiesWithoutUndo();
 
             FinishCloseup(go, screen, "field.subway.door_close.hint",
-                new[] { leftButton, rightButton, gapButton },
-                new[] { "field.subway.door_close.prints_l", "field.subway.door_close.prints_r", "field.subway.door_close.gap" });
+                new[] { leftButton, rightButton },
+                new[] { "field.subway.door_close.prints_l", "field.subway.door_close.prints_r" });
             return screen;
         }
 
@@ -3632,11 +3629,6 @@ namespace UrbanLegendBureau.EditorTools
 
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
-
-            // 이야기 건너뛰기(스킵) 단추. 처음 이야기 동안만 보인다(StorySkip). 대사 상자 안에는 두지 않는다.
-            // 전신 대화는 화면 오른쪽 위, 상자형(넘기기 판이 상자 크기)은 상자 바깥 바로 위 오른쪽에 붙는다.
-            var skipRt = AddSkipButton(advanceGo.transform, fullScreen ? new Vector2(-64.1f, -51.9f) : new Vector2(-40f, 14f));
-            if (!fullScreen) skipRt.pivot = new Vector2(1f, 0f);
 
             // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
             // 배경만 투명할 뿐 대화 자체는 같은 모습이어야 한다.
@@ -6870,55 +6862,6 @@ namespace UrbanLegendBureau.EditorTools
 
             var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
             if (label != null) label.fontSize = fontSize;
-        }
-
-        /// <summary>
-        /// 대사 넘기기(스킵) 단추. 넘기기 판의 자식이라 판이 켜졌을 때만 보인다.
-        /// offset 은 판의 오른쪽 위 모서리에서 잰 자리다.
-        /// </summary>
-        private static RectTransform AddSkipButton(Transform advance, Vector2 offset)
-        {
-            var go = CreatePanel(advance, "Btn_Skip", new Color(0.05f, 0.05f, 0.07f, 0.72f));
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = new Vector2(1f, 1f);
-            rt.anchorMax = new Vector2(1f, 1f);
-            rt.pivot = new Vector2(1f, 1f);
-            rt.anchoredPosition = offset;
-            rt.sizeDelta = new Vector2(150f, 52f);
-            var image = go.GetComponent<Image>();
-            image.raycastTarget = true;
-
-            var button = go.AddComponent<Button>();
-            button.targetGraphic = image;
-            var colors = button.colors;
-            colors.highlightedColor = new Color(1.3f, 1.3f, 1.3f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-            button.colors = colors;
-
-            var edge = CreatePanel(go.transform, "Edge", new Color(1f, 1f, 1f, 0.18f));
-            StretchFull(edge);
-            edge.GetComponent<Image>().raycastTarget = false;
-            edge.transform.SetAsFirstSibling();
-            var inner = CreatePanel(go.transform, "Fill", new Color(0.05f, 0.05f, 0.07f, 0.9f));
-            StretchInside((RectTransform)inner.transform, 1f, 1f, 1f, 1f);
-            inner.GetComponent<Image>().raycastTarget = false;
-
-            var label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
-                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
-            StretchInside(label.rectTransform, 6f, 6f, 4f, 4f);
-            label.raycastTarget = false;
-            var localized = label.gameObject.AddComponent<LocalizedText>();
-            var lso = new SerializedObject(localized);
-            lso.Update();
-            lso.FindProperty("_textId").stringValue = "ui.dialogue.skip";
-            lso.ApplyModifiedPropertiesWithoutUndo();
-
-            var skip = go.AddComponent<StorySkip>();
-            var sso = new SerializedObject(skip);
-            sso.Update();
-            sso.FindProperty("_button").objectReferenceValue = button;
-            sso.ApplyModifiedPropertiesWithoutUndo();
-            return rt;
         }
 
         private static GameObject CreateButton(Transform parent, string name, string textId)
