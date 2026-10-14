@@ -177,7 +177,7 @@ namespace UrbanLegendBureau.Systems
             CommunityPageScreen.EntryLocked = entry =>
                 entry != null && !entry.Openable && (!PostsUnlocked || (string.IsNullOrEmpty(entry.BodyTextId) && entry.BodyTextIds == null));
             ServiceRegistry.TryGet(out _ui);
-            StorySkip.CanSkip = () => CanSkipIntro;
+            StorySkip.CanSkip = () => CanSkipIntro && _inBriefing;   // 컴퓨터 부분이 끝나고 부서 설명이 시작된 뒤부터 건너뛸 수 있다
             StorySkip.Skip = SkipIntro;
             ServiceRegistry.TryGet(out _loc);
             ServiceRegistry.TryGet(out _internet);

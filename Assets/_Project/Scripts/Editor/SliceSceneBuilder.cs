@@ -3630,6 +3630,10 @@ namespace UrbanLegendBureau.EditorTools
             // CreatePanel은 투명한 판을 클릭 대상에서 빼 둔다. 이 버튼은 투명해도 눌려야 한다.
             advanceImage.raycastTarget = true;
 
+            // 이야기 건너뛰기(스킵) 단추. 전신 대화 화면에만, 화면 오른쪽 위에 둔다(대사 상자 바로 위가 아니다).
+            // 컴퓨터 부분이 끝난 뒤부터 처음 이야기가 끝날 때까지만 보인다(StorySkip, TutorialDirector.CanSkipIntro).
+            if (fullScreen) AddSkipButton(advanceGo.transform, new Vector2(-64.1f, -51.9f));
+
             // 인물 배치는 겹침 대화에서도 처음 튜토리얼과 똑같이 둔다.
             // 배경만 투명할 뿐 대화 자체는 같은 모습이어야 한다.
             var left = CreateCharacterImage(go.transform, "Char_Left", -520f, "placeholder_hanyoung");
@@ -6862,6 +6866,55 @@ namespace UrbanLegendBureau.EditorTools
 
             var label = button.GetComponentInChildren<TextMeshProUGUI>(true);
             if (label != null) label.fontSize = fontSize;
+        }
+
+        /// <summary>
+        /// 대사 넘기기(스킵) 단추. 넘기기 판의 자식이라 판이 켜졌을 때만 보인다.
+        /// offset 은 판의 오른쪽 위 모서리에서 잰 자리다.
+        /// </summary>
+        private static RectTransform AddSkipButton(Transform advance, Vector2 offset)
+        {
+            var go = CreatePanel(advance, "Btn_Skip", new Color(0.05f, 0.05f, 0.07f, 0.72f));
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = new Vector2(1f, 1f);
+            rt.anchorMax = new Vector2(1f, 1f);
+            rt.pivot = new Vector2(1f, 1f);
+            rt.anchoredPosition = offset;
+            rt.sizeDelta = new Vector2(150f, 52f);
+            var image = go.GetComponent<Image>();
+            image.raycastTarget = true;
+
+            var button = go.AddComponent<Button>();
+            button.targetGraphic = image;
+            var colors = button.colors;
+            colors.highlightedColor = new Color(1.3f, 1.3f, 1.3f, 1f);
+            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            button.colors = colors;
+
+            var edge = CreatePanel(go.transform, "Edge", new Color(1f, 1f, 1f, 0.18f));
+            StretchFull(edge);
+            edge.GetComponent<Image>().raycastTarget = false;
+            edge.transform.SetAsFirstSibling();
+            var inner = CreatePanel(go.transform, "Fill", new Color(0.05f, 0.05f, 0.07f, 0.9f));
+            StretchInside((RectTransform)inner.transform, 1f, 1f, 1f, 1f);
+            inner.GetComponent<Image>().raycastTarget = false;
+
+            var label = AddText(go.transform, "Label", 24f, UIFontWeight.Medium, TextColor,
+                Vector2.zero, Vector2.zero, TextAlignmentOptions.Center);
+            StretchInside(label.rectTransform, 6f, 6f, 4f, 4f);
+            label.raycastTarget = false;
+            var localized = label.gameObject.AddComponent<LocalizedText>();
+            var lso = new SerializedObject(localized);
+            lso.Update();
+            lso.FindProperty("_textId").stringValue = "ui.dialogue.skip";
+            lso.ApplyModifiedPropertiesWithoutUndo();
+
+            var skip = go.AddComponent<StorySkip>();
+            var sso = new SerializedObject(skip);
+            sso.Update();
+            sso.FindProperty("_button").objectReferenceValue = button;
+            sso.ApplyModifiedPropertiesWithoutUndo();
+            return rt;
         }
 
         private static GameObject CreateButton(Transform parent, string name, string textId)
