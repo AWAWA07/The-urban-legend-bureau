@@ -1466,14 +1466,14 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 열차 안을 다 살폈는가. 빈자리·창문·CCTV 가까이 보기에서 단서가 나오는 자리, 인터폰 통화, 울린 문까지다.
-        /// 승차권·머리카락 같은 곁가지는 보지 않아도 된다. 다 살피면 한영이 곧바로 직접 앉아 보자고 말을 꺼낸다.
+        /// 열차 안을 다 둘러봤는가. 빈자리·창문·CCTV 는 가까이 보기에서 한 곳이라도 살폈고, 인터폰으로 통화했고, 울린 문을 살폈으면 된다.
+        /// 가까이 보기의 모든 자리를 눌러야 하는 것은 아니다. 다 둘러보면 한영이 곧바로 직접 앉아 보자고 말을 꺼낸다.
         /// </summary>
         private bool IsTrainFullySearched()
         {
-            if (_seatCloseupScreen == null || !_seatCloseupScreen.ActionSpotsChecked) return false;
-            if (_windowCloseupScreen == null || !_windowCloseupScreen.ActionSpotsChecked) return false;
-            if (_cctvCloseupScreen == null || !_cctvCloseupScreen.ActionSpotsChecked) return false;
+            if (_seatCloseupScreen == null || !_seatCloseupScreen.AnyChecked) return false;
+            if (_windowCloseupScreen == null || !_windowCloseupScreen.AnyChecked) return false;
+            if (_cctvCloseupScreen == null || !_cctvCloseupScreen.AnyChecked) return false;
             if (!_intercomUsed) return false;
             var door = FindDoorPointAnywhere();
             return door != null && door.IsInvestigated;
@@ -1682,6 +1682,7 @@ namespace UrbanLegendBureau.Systems
         {
             UpdateTitleAudio();
             UpdateFieldMusic();
+            if (_sitStage == SitStage.None) CheckTrainFullySearched();   // 마지막으로 무엇을 살폈든 놓치지 않게 매 프레임 본다
             if (_terminusDone || _field == null || !_field.IsActive) return;
             // 가까이 보기를 보고 있거나 누가 말하는 중이면 현장으로 돌아와 숨을 돌릴 때까지 미룬다.
             if (!FieldHudScreen.IsFront || FieldHudScreen.IsSpeaking || FieldHudScreen.IsCutscene) return;
