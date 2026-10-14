@@ -121,7 +121,7 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator Run()
         {
-            UrbanLegendBureau.Core.Sfx.Play("train_brake", 0.5f);   // 들어와 서는 동안 끼익
+            UrbanLegendBureau.Core.Sfx.Play("train_arrive", 0.8f);   // 어둠 속에서 웅웅 다가와 덜컹이다 서며 푸쉬익
             // 들어오는 동안. 끝에서 천천히 서게 뒤로 갈수록 느려지는 곡선을 쓴다.
             float t = 0f;
             while (t < 1f)
@@ -136,7 +136,6 @@ namespace UrbanLegendBureau.Systems
 
             // 서고 나서 한 박자 쉰다. 곧바로 열리면 선 것이 눈에 들어오지 않는다.
             yield return new WaitForSeconds(_settleSeconds);
-            UrbanLegendBureau.Core.Sfx.Play("door_chime", 0.45f);
             UrbanLegendBureau.Core.Sfx.Play("door_slide", 0.6f);
 
             float d = 0f;

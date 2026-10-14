@@ -330,6 +330,7 @@ namespace UrbanLegendBureau.Systems
 
             _desktopScreen.Bind(OnAppClicked);
             PushBeliefToTaskbar();
+            _desktopScreen.SetAllowedApps(NetAppId); // 처음 컴퓨터를 켤 때는 괴담넷 하나만 보인다. 다른 앱은 풀릴 때 나타난다
             _desktopScreen.LockAllApps();            // 한영의 안내가 끝나기 전에는 아무것도 못 누른다
 
             // 괴담넷 아이콘에 새 글 개수를 건다.

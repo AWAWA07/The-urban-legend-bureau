@@ -78,7 +78,7 @@ namespace UrbanLegendBureau.Systems
             float parent = _head.parent != null ? _head.parent.eulerAngles.z : 0f;
             float to = Mathf.Atan2(d.y, d.x) * Mathf.Rad2Deg - parent;
 
-            UrbanLegendBureau.Core.Sfx.Play("cctv_servo", 0.55f);
+            UrbanLegendBureau.Core.Sfx.Play("cctv_snap", 0.85f);   // 뿌드득 하고 억지로 꺾인다
             // 확 꺾는다. 끝에서 조금 지나쳤다가 돌아와 멈춘다.
             float from = _idleAngle;
             float over = to - 6f;

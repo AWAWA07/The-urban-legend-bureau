@@ -18,7 +18,7 @@ namespace UrbanLegendBureau.Core
     /// </summary>
     public static class Sfx
     {
-        private const int PoolSize = 10;
+        private const int PoolSize = 16;
 
         private static GameObject _root;
         private static readonly List<AudioSource> _pool = new List<AudioSource>();

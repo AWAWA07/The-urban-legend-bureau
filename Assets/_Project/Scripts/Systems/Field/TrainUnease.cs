@@ -324,7 +324,7 @@ namespace UrbanLegendBureau.Systems
         private System.Collections.IEnumerator RunBlackout(System.Action onDark)
         {
             _darkState = DarkState.Flicker;
-            UrbanLegendBureau.Core.Sfx.Play("power_down", 0.7f);   // 미친 듯 깜빡이다 쿵 하고 꺼진다
+            UrbanLegendBureau.Core.Sfx.Play("power_down", 0.9f);   // 미친 듯 깜빡이다 쿵 하고 꺼진다
             SetOutsideAboveDark(true);
             const float Seconds = 1.9f;
             float end = Time.time + Seconds;
@@ -523,12 +523,12 @@ namespace UrbanLegendBureau.Systems
                 if (lit || near || lingered)
                 {
                     _figureGone = true;
-                    UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.35f);
+                    UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.8f);
                     _figureGoneAt = now;
                 }
                 else
                 {
-                    if (_figureFade <= 0f) UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.3f);   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
+                    if (_figureFade <= 0f) UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.7f);   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
                     if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }

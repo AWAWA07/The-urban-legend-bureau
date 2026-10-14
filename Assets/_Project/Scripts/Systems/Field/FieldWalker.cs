@@ -61,7 +61,7 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             if (_body == null) _body = transform;
-            if (GetComponent<Footsteps>() == null) gameObject.AddComponent<Footsteps>().Volume = 0.32f;   // 발소리
+            if (GetComponent<Footsteps>() == null) gameObject.AddComponent<Footsteps>().Volume = 0.2f;   // 발소리
 
             // 처음 세운 자리와 보는 쪽을 기억한다. 장소에 다시 들어설 때 그 자리로 돌려놓는다.
             _start = transform.localPosition;

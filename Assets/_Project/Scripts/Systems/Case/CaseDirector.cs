@@ -1040,7 +1040,7 @@ namespace UrbanLegendBureau.Systems
 
             // 단서를 새로 얻었다면 규칙을 추론할 수 있는지 확인한다. 기존 현장 조사와 같은 흐름이다.
             bool ruleShown = false;
-            if (result.GotNewClue) Sfx.Play("clue_get", 0.55f);
+            if (result.GotNewClue) AnnounceClue(_activePoint, result.AcquiredClueId);
             if (result.GotNewClue) ruleShown = NotifyRuleCandidates();
 
             BindActionScreen();
@@ -1392,13 +1392,14 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>
-        /// 열차 안을 다 살폈는가. 빈자리·창문·CCTV 가까이 보기의 모든 자리, 인터폰 통화, 울린 문까지다.
+        /// 열차 안을 다 살폈는가. 빈자리·창문·CCTV 가까이 보기에서 단서가 나오는 자리, 인터폰 통화, 울린 문까지다.
+        /// 승차권·머리카락 같은 곁가지는 보지 않아도 된다. 다 살피면 한영이 곧바로 직접 앉아 보자고 말을 꺼낸다.
         /// </summary>
         private bool IsTrainFullySearched()
         {
-            if (_seatCloseupScreen == null || !_seatCloseupScreen.AllChecked) return false;
-            if (_windowCloseupScreen == null || !_windowCloseupScreen.AllChecked) return false;
-            if (_cctvCloseupScreen == null || !_cctvCloseupScreen.AllChecked) return false;
+            if (_seatCloseupScreen == null || !_seatCloseupScreen.ActionSpotsChecked) return false;
+            if (_windowCloseupScreen == null || !_windowCloseupScreen.ActionSpotsChecked) return false;
+            if (_cctvCloseupScreen == null || !_cctvCloseupScreen.ActionSpotsChecked) return false;
             if (!_intercomUsed) return false;
             var door = FindDoorPointAnywhere();
             return door != null && door.IsInvestigated;
@@ -1661,7 +1662,7 @@ namespace UrbanLegendBureau.Systems
 
             _terminusDone = true;
             _field.InvestigationAllowed = false;
-            Sfx.Play("train_brake", 0.55f);   // 막차가 끼익 하고 종점에 선다
+            Sfx.Play("train_stop", 0.8f);   // 막차가 덜컹이며 느려지다 푸쉬익 하고 종점에 선다
 
             // 첫 사건에서는 못 푼 채로 끝나지 않게 한영이 모자란 것을 짚어 준다.
             int helped = HelpWithMissingClues();
@@ -1691,7 +1692,6 @@ namespace UrbanLegendBureau.Systems
 
             swap.SetAfter(false);
             _alighted = true;
-            Sfx.Play("door_chime", 0.45f);   // 종점. 문이 열린다
             Sfx.Play("door_slide", 0.6f);
 
             if (_fieldHudScreen != null) _fieldHudScreen.SetTicker(BuildFieldTicker);
@@ -1990,7 +1990,6 @@ namespace UrbanLegendBureau.Systems
 
             swap.SetAfter(true);
             _boarded = true;
-            Sfx.Play("door_chime", 0.45f);   // 문이 닫히고 떠난다
             Sfx.Play("door_slide", 0.6f);
 
             // 문이 닫히고 열차가 서서히 출발한다. 한 번만 일어난다.
@@ -2164,8 +2163,8 @@ namespace UrbanLegendBureau.Systems
 
                 if (result.GotNewClue)
                 {
-                    Sfx.Play("clue_get", 0.55f);
                     string clueId = result.AcquiredClueId;
+                    AnnounceClue(point, clueId);
                     _pendingClueId = clueId;
                     _cluePopupScreen.BindWithBodyProvider(IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId,
                         () => BuildClueFinding(clueId));
@@ -2232,7 +2231,8 @@ namespace UrbanLegendBureau.Systems
             var prints = door != null ? door.Find("DoorHandprints") : null;
             for (int i = 0; i < gaps.Length; i++)
             {
-                Sfx.Play("door_bang");
+                Sfx.Play("door_bang", 1f);
+                Sfx.Play("door_bang", 0.75f, 0.82f);   // 낮게 한 겹 더 깔아 쾅 소리를 키운다
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
@@ -2376,7 +2376,7 @@ namespace UrbanLegendBureau.Systems
                     if (point != null) MarkActionDone(point, action);
                     if (result.GotNewClue)
                     {
-                        Sfx.Play("clue_get", 0.55f);
+                        AnnounceClue(FindFieldPoint(pointId), result.AcquiredClueId);
                         screen.AppendLine("<color=#D9BC7A>" + _loc.Get(CloseupClueTextId, ResolveClueTitle(result.AcquiredClueId) ?? result.AcquiredClueId) + "</color>");
                         NotifyRuleCandidates();
                     }
@@ -2391,6 +2391,21 @@ namespace UrbanLegendBureau.Systems
             Debug.Log($"[CaseDirector] 가까이 보기 조사 | {pointId} #{index} -> 현장 뒤지기");
             if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
         }
+
+        /// <summary>
+        /// 단서를 새로 얻었다고 알린다. 종소리가 나고, 화면 오른쪽 위에 "{어디} 단서 획득" 네모 알림과 단서 이름이 잠깐 뜬다(ClueToast).
+        /// 조사 화면에 적히는 글이나 단서 창은 그대로 둔다. 이것은 그 위에 덧붙는 알림이다.
+        /// </summary>
+        private void AnnounceClue(InvestigationPoint point, string clueId)
+        {
+            Sfx.Play("clue_get", 0.55f);
+            string place = point != null && !string.IsNullOrEmpty(point.NameTextId) ? _loc.Get(point.NameTextId) : string.Empty;
+            string title = _loc.Get(ClueToastTextId, place).Trim();
+            var label = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
+            ClueToast.Show(title, string.IsNullOrEmpty(clueId) ? null : ResolveClueTitle(clueId), label != null ? label.font : null);
+        }
+
+        private const string ClueToastTextId = "ui.field.clue_toast";
 
         /// <summary>가까이 보기에서 단서를 얻었을 때 붙이는 한 줄. {0} 에 단서 이름이 들어간다.</summary>
         private const string CloseupClueTextId = "field.closeup.clue";
@@ -2666,7 +2681,7 @@ namespace UrbanLegendBureau.Systems
                 ? (IsKeyClue(clueId) ? KeyClueFoundTextId : ClueAcquiredTextId)
                 : ClueDuplicateTextId;
 
-            if (acquired) Sfx.Play("clue_get", 0.55f);
+            if (acquired) AnnounceClue(point, clueId);
             _cluePopupScreen.BindWithBodyProvider(title, () => BuildClueFinding(clueId));
             _ui.Push(_cluePopupScreen);
 

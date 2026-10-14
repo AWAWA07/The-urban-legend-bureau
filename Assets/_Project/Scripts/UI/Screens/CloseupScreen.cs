@@ -127,6 +127,17 @@ namespace UrbanLegendBureau.UI
             }
         }
 
+        /// <summary>조사 행동이 걸린 자리(단서가 나오는 곳)를 모두 살폈는가. 승차권 같은 곁가지는 세지 않는다.</summary>
+        public bool ActionSpotsChecked
+        {
+            get
+            {
+                for (int i = 0; i < _spots.Length; i++)
+                    if (_spots[i] != null && !string.IsNullOrEmpty(_spots[i].actionId) && !_checked.Contains(i)) return false;
+                return true;
+            }
+        }
+
         /// <summary>살핀 기록을 지운다. 사건이 새로 시작될 때 부른다.</summary>
         public void ResetChecked()
         {
