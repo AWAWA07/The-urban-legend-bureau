@@ -119,6 +119,7 @@ namespace UrbanLegendBureau.UI
 
             // 슬며시. 처음에는 거의 움직이지 않다가 천천히 다가온다. 처음부터 끝까지 보일 듯 말 듯한 진하기다.
             UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 1f);   // 슬며시 나올 때 낮게 웅
+            UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_0", 0.55f);   // 창밖에서 속삭임이 새어 든다
             SetAlpha(_maxAlpha);
             for (float e = 0f; e < _slideSeconds; e += Time.unscaledDeltaTime)
             {

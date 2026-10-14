@@ -209,6 +209,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnOpen()
         {
+            UrbanLegendBureau.Core.Sfx.StartLoop("pc_hum", "amb_computer_hum", 0.22f, 1f);   // 컴퓨터 앞에 있는 동안 본체가 웅웅 돈다
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
             Refresh();
             BindSearch();
@@ -218,6 +219,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnClose()
         {
+            UrbanLegendBureau.Core.Sfx.StopLoop("pc_hum", 0.8f);
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
             ClearSearch();
             if (_powerOn != null) { StopCoroutine(_powerOn); _powerOn = null; }

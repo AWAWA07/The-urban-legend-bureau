@@ -686,6 +686,30 @@ namespace UrbanLegendBureau.Systems
         /// <summary>열린 문을 눌러 타는 자리. 현장을 짓는 쪽과 여기가 같은 이름을 써야 한다.</summary>
         public const string BoardingPointId = "point_subway_board";
 
+        /// <summary>타이틀이 떠 있는 동안 트는 소리가 켜져 있는가.</summary>
+        private bool _titleAudio;
+
+        /// <summary>
+        /// 타이틀 화면이 떠 있는 동안(설정이나 도움말을 위에 띄워도) 타이틀 곡과 창밖 빗소리를 튼다.
+        /// 타이틀을 벗어나면 스르르 끈다. 화면이 바뀌는 길이 여럿이라 하나하나 걸지 않고 매 프레임 지켜본다.
+        /// </summary>
+        private void UpdateTitleAudio()
+        {
+            bool onTitle = _titleScreen != null && _ui != null && _ui.Contains(_titleScreen);
+            if (onTitle == _titleAudio) return;
+            _titleAudio = onTitle;
+            if (onTitle)
+            {
+                Bgm.Play("bgm_title", 0.85f, 2f);
+                Sfx.StartLoop("title_rain", "amb_rain", 0.28f, 2.5f);
+            }
+            else
+            {
+                Bgm.Stop(1.8f);
+                Sfx.StopLoop("title_rain", 1.8f);
+            }
+        }
+
         /// <summary>바깥에서 타이틀로 돌려보낼 때. 튜토리얼이 끝나면 이리로 온다.</summary>
         public void ShowTitleScreen()
         {
@@ -1527,7 +1551,7 @@ namespace UrbanLegendBureau.Systems
                 // 대사 한 줄마다 그 줄의 그림으로 바꾼다.
                 // 앉고, 인기척을 느끼고, 방석이 꺼지고, 옆을 보기 직전에 소리가 따라온다.
                 if (line == 0) Sfx.Play("cushion_sit", 0.6f);
-                else if (line == 6) Sfx.Play("heartbeat", 0.6f);
+                else if (line == 6) { Sfx.Play("heartbeat", 0.6f); Sfx.Play("ghost_whisper_1", 0.45f); }
                 else if (line == 7) Sfx.Play("cushion_sink", 0.6f);
                 else if (line == 12) Sfx.Play("heartbeat", 0.45f, 0.95f);
                 string path = "Illustrations/subway_sit_" + SitScript[Mathf.Min(line, SitScript.Length - 1)][2];
@@ -1583,6 +1607,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void Update()
         {
+            UpdateTitleAudio();
             if (_terminusDone || _field == null || !_field.IsActive) return;
             // 가까이 보기를 보고 있거나 누가 말하는 중이면 현장으로 돌아와 숨을 돌릴 때까지 미룬다.
             if (!FieldHudScreen.IsFront || FieldHudScreen.IsSpeaking || FieldHudScreen.IsCutscene) return;

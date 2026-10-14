@@ -427,6 +427,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnOpen()
         {
+            UrbanLegendBureau.Core.Sfx.PlayVaried("paper_" + UnityEngine.Random.Range(0, 2), 0.7f);   // 종이를 넘기는 바스락
             EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
 
             ShowNote();

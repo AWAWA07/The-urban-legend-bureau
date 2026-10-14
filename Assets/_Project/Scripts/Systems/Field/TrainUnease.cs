@@ -528,7 +528,7 @@ namespace UrbanLegendBureau.Systems
                 }
                 else
                 {
-                    if (_figureFade <= 0f) UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.7f);   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
+                    if (_figureFade <= 0f) { UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.7f); UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_1", 0.35f); }   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
                     if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }
