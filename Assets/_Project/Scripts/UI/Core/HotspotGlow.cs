@@ -21,6 +21,9 @@ namespace UrbanLegendBureau.UI
         [SerializeField] private Color _outlineColor = new Color(1f, 0.86f, 0.25f, 1f);
         [SerializeField] private float _outlineWidth = 3f;
 
+        [Tooltip("켜면 외곽선을 그림 뒤에 큰 사본으로 까는 대신, 네 변을 그림 둘레 맨 앞에 그린다. 기둥이나 이음선 같은 것에 외곽선이 가려지는 자리(빈자리 방석)에 쓴다.")]
+        [SerializeField] private bool _frameOnTop;
+
         [Tooltip("바깥 빛. 반투명한 것이 여러 겹 겹치면 얼룩이 져 기본은 끈다(투명도 0).")]
         [SerializeField] private Color _glowColor = new Color(1f, 0.85f, 0.35f, 0f);
         [SerializeField] private float _glowWidth = 7f;
@@ -88,9 +91,44 @@ namespace UrbanLegendBureau.UI
                 if (_glowColor.a > 0f)
                     foreach (var e in entries) e.glow = MakeCopy(e.source, _glowWidth, _glowColor, index++);
                 foreach (var e in entries)
-                    if (!IsDrawnLine(e.source)) e.outline = MakeCopy(e.source, _outlineWidth, _outlineColor, index++);
+                    if (!IsDrawnLine(e.source)) e.outline = _frameOnTop ? MakeFrame(e.source, _outlineWidth, _outlineColor) : MakeCopy(e.source, _outlineWidth, _outlineColor, index++);
                 _entries.AddRange(entries);
             }
+        }
+
+        /// <summary>그림 둘레를 바깥쪽으로 감싸는 네 변. 그 부모의 맨 앞에 그려 다른 그림에 가리지 않는다. 평소에는 꺼 둔다.</summary>
+        private static GameObject MakeFrame(Image source, float width, Color color)
+        {
+            var src = source.rectTransform;
+            var go = new GameObject(source.name + "_Frame", typeof(RectTransform));
+            go.transform.SetParent(src.parent, false);
+            go.transform.SetAsLastSibling();
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = src.anchorMin;
+            rt.anchorMax = src.anchorMax;
+            rt.pivot = src.pivot;
+            rt.anchoredPosition = src.anchoredPosition;
+            rt.localRotation = src.localRotation;
+            rt.localScale = src.localScale;
+            rt.sizeDelta = src.sizeDelta;
+            void Edge(string n, Vector2 min, Vector2 max, Vector2 size, Vector2 pivot)
+            {
+                var e = new GameObject(n, typeof(RectTransform), typeof(Image));
+                e.transform.SetParent(go.transform, false);
+                var ert = (RectTransform)e.transform;
+                ert.anchorMin = min; ert.anchorMax = max; ert.pivot = pivot;
+                ert.anchoredPosition = Vector2.zero;
+                ert.sizeDelta = size;
+                var img = e.GetComponent<Image>();
+                img.color = color;
+                img.raycastTarget = false;
+            }
+            Edge("Top", new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(width * 2f, width), new Vector2(0.5f, 0f));
+            Edge("Bottom", new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(width * 2f, width), new Vector2(0.5f, 1f));
+            Edge("Left", new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(width, 0f), new Vector2(1f, 0.5f));
+            Edge("Right", new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(width, 0f), new Vector2(0f, 0.5f));
+            go.SetActive(false);
+            return go;
         }
 
         /// <summary>그림과 같은 모양을 둘레만큼 크게 만들어 그 부모의 index 자리에 끼운다. 평소에는 꺼 둔다.</summary>
@@ -150,10 +188,9 @@ namespace UrbanLegendBureau.UI
             foreach (var e in _entries)
             {
                 if (e.outline == null) continue;
-                var image = e.outline.GetComponent<Image>();
                 var c = _outlineColor;
                 c.a *= a;
-                image.color = c;
+                foreach (var image in e.outline.GetComponentsInChildren<Image>(true)) image.color = c;
             }
         }
 
@@ -179,7 +216,7 @@ namespace UrbanLegendBureau.UI
                 bool show = on && e.source.gameObject.activeInHierarchy;
                 if (e.glow != null) e.glow.SetActive(show);
                 if (e.outline != null) e.outline.SetActive(show);
-                if (e.outline != null) e.outline.GetComponent<Image>().color = _outlineColor;   // 깜빡이던 것을 진하게 되돌린다
+                if (e.outline != null) foreach (var image in e.outline.GetComponentsInChildren<Image>(true)) image.color = _outlineColor;   // 깜빡이던 것을 진하게 되돌린다
                 // 금이나 흠집 같은 가는 선은 하얗게 밝힌다. 스티커나 덮개처럼 면이 있는 그림은 제 색 그대로 둔다.
                 // 그림으로 그린 선(머리카락)은 외곽선 대신 선 자체가 노란 외곽선 색으로 물든다. 다른 살필 곳의 노란 빛과 맞춘다.
                 if (IsDrawnLine(e.source)) e.source.color = show ? _outlineColor : e.sourceColor;

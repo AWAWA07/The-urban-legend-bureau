@@ -383,10 +383,23 @@ namespace UrbanLegendBureau.UI
             SetPhoneOpen(_phonePanel == null || !_phonePanel.activeSelf);
         }
 
+        /// <summary>
+        /// 휴대폰에 보일 앱을 고른다. 아직 열리지 않는 앱은 아예 숨긴다(컴퓨터 바탕화면과 같다). 비우면 모두 보인다.
+        /// </summary>
+        public static Func<string, bool> PhoneAppVisible;
+
+        private void ApplyPhoneApps()
+        {
+            foreach (var app in _phoneApps)
+                if (app != null && app.button != null)
+                    app.button.gameObject.SetActive(PhoneAppVisible == null || PhoneAppVisible(app.appId));
+        }
+
         /// <summary>휴대폰을 펴고 접는다. 접을 때는 안에 켜 둔 앱도 함께 닫는다.</summary>
         public void SetPhoneOpen(bool open)
         {
             bool wasOpen = _phonePanel != null && _phonePanel.activeSelf;
+            if (open) ApplyPhoneApps();
 
             if (_phonePanel != null) _phonePanel.SetActive(open);
 

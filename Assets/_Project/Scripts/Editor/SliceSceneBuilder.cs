@@ -232,6 +232,7 @@ namespace UrbanLegendBureau.EditorTools
             var cctvCloseup = BuildCctvCloseupScreen("Screen_CctvCloseup");
             var windowCloseup = BuildWindowCloseupScreen("Screen_WindowCloseup", out var windowGhost);
             var seatCloseup = BuildSeatCloseupScreen("Screen_SeatCloseup");
+            var doorCloseup = BuildDoorCloseupScreen("Screen_DoorCloseup");
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -309,6 +310,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_cctvCloseupScreen").objectReferenceValue = cctvCloseup;
             dso.FindProperty("_windowCloseupScreen").objectReferenceValue = windowCloseup;
             dso.FindProperty("_seatCloseupScreen").objectReferenceValue = seatCloseup;
+            dso.FindProperty("_doorCloseupScreen").objectReferenceValue = doorCloseup;
             dso.FindProperty("_windowGhost").objectReferenceValue = windowGhost;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
@@ -2813,6 +2815,14 @@ namespace UrbanLegendBureau.EditorTools
             // 가운데 칸 전체가 누르는 자리다. 그 칸 어디를 눌러도 빈자리를 살핀다.
             var dentButton = CloseupHotspot(c, "Hotspot_Dent", new Vector2(0f, (-1.9f - BaseY) * K - 260f), new Vector2(Slot * K, 2.9f * K));
             AttachGlow(dentButton, c.Find("MiddleSeat").gameObject);   // 누르는 자리는 가운데 칸 전체, 노랗게 빛나는 것은 방석만
+            {
+                // 방석 양옆은 이음선이, 아래는 앞판이 덮어 뒤에 깐 외곽선이 가린다. 네 변을 맨 앞에 그린다.
+                var dso = new SerializedObject(dentButton.GetComponent<HotspotGlow>());
+                dso.Update();
+                dso.FindProperty("_frameOnTop").boolValue = true;
+                dso.FindProperty("_outlineWidth").floatValue = 4f;
+                dso.ApplyModifiedPropertiesWithoutUndo();
+            }
 
             // 승차권. 왼쪽 칸 등받이와 방석 틈에 비스듬히 끼어 있다.
             var ticket = R(c, "Ticket", 5f - Slot, -2.12f, 0.5f, 0.24f, new Color(0.88f, 0.86f, 0.78f));
@@ -2851,6 +2861,136 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { dentButton, ticketButton, hairButton },
                 new[] { "field.subway.seat_close.dent", "field.subway.seat_close.ticket", "field.subway.seat_close.hair" },
                 actionIds: new[] { "action_subway_seat_search", null, null });
+            return screen;
+        }
+
+        /// <summary>
+        /// 인터폰 옆 출입문을 가까이서 보는 화면. 두 문짝과 그 유리, 가운데 문틈 고무가 보인다.
+        /// 유리 너머로는 달리는 터널이 지나가고, 유리 바깥쪽에 손바닥 자국이 잔뜩 찍혀 있다(현장의 자국과 같은 자리).
+        /// 살필 곳은 셋이다. 왼쪽 유리의 자국, 오른쪽 유리의 자국, 문틈.
+        /// </summary>
+        private static CloseupScreen BuildDoorCloseupScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.05f, 0.05f, 0.07f, 1f));
+            StretchFull(go);
+            var screen = go.AddComponent<CloseupScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var car = new GameObject("Car", typeof(RectTransform));
+            car.transform.SetParent(go.transform, false);
+            var carRt = (RectTransform)car.transform;
+            carRt.anchorMin = Vector2.zero;
+            carRt.anchorMax = Vector2.one;
+            carRt.offsetMin = carRt.offsetMax = Vector2.zero;
+            var c = car.transform;
+
+            // 문 가운데가 화면 가운데, 문 유리 가운데(현장 y 0.9)가 대사 띠 위 화면의 한가운데쯤이다. 현장 한 단위가 화면 230픽셀.
+            const float K = 230f;
+            Image R(Transform parent, string n, float fx, float fy, float fw, float fh, Color col)
+                => CloseupRect(parent, n, new Vector2(fx * K, (fy - 0.9f) * K + 150f), new Vector2(fw * K, fh * K), col);
+
+            var wall = CreatePanel(c, "Wall", new Color(0.19f, 0.20f, 0.25f, 1f));
+            StretchFull(wall);
+            R(c, "DoorFrame", 0f, -0.6f, 4.6f, 6.0f, new Color(0.24f, 0.25f, 0.31f));
+
+            var items = new List<RectTransform>();
+            var speeds = new List<float>();
+            var glasses = new Image[2];
+            for (int side = 0; side < 2; side++)
+            {
+                float lx = side == 0 ? -1.05f : 1.05f;
+                R(c, "Leaf_" + side, lx, -0.6f, 2.0f, 5.6f, new Color(0.21f, 0.22f, 0.27f));
+                // 유리 둘레의 고무 테두리
+                R(c, "GlassRim_" + side, lx, 0.9f, 1.62f, 2.32f, new Color(0.12f, 0.12f, 0.15f));
+                var glass = R(c, "Glass_" + side, lx, 0.9f, 1.5f, 2.2f, new Color(0.03f, 0.035f, 0.05f));
+                glass.gameObject.AddComponent<RectMask2D>();
+                glasses[side] = glass;
+
+                // 유리 너머로 지나가는 터널 불빛과 케이블
+                CloseupRect(glass.transform, "Cable", new Vector2(0f, 0.2f * K), new Vector2(1.5f * K, 3f), new Color(0.06f, 0.06f, 0.075f));
+                for (int i = 0; i < 4; i++)
+                {
+                    var lamp = CloseupRect(glass.transform, "Lamp_" + i, new Vector2(-900f + i * 450f + side * 220f, 0.45f * K), new Vector2(110f, 7f),
+                        new Color(1f, 0.8f, 0.5f, 0.34f));
+                    var glow = CreatePanel(lamp.transform, "Glow", new Color(1f, 0.75f, 0.45f, 0.14f));
+                    var glowImage = glow.GetComponent<Image>();
+                    glowImage.sprite = LoadCrispSprite(CloseupArtPath + "tunnel_glow.png");
+                    glowImage.raycastTarget = false;
+                    var glowRt = (RectTransform)glow.transform;
+                    glowRt.anchorMin = glowRt.anchorMax = new Vector2(0.5f, 0.5f);
+                    glowRt.sizeDelta = new Vector2(260f, 84f);
+                    items.Add(lamp.rectTransform); speeds.Add(1200f);
+                    var streak = CloseupRect(glass.transform, "Streak_" + i, new Vector2(-700f + i * 450f + side * 160f, -0.35f * K), new Vector2(180f, 3f),
+                        new Color(0.5f, 0.55f, 0.65f, 0.1f));
+                    items.Add(streak.rectTransform); speeds.Add(1560f);
+                }
+                var pillar = CloseupRect(glass.transform, "Pillar", new Vector2(-400f + side * 500f, 0f), new Vector2(60f, 2.2f * K),
+                    new Color(0.01f, 0.01f, 0.015f, 0.55f));
+                items.Add(pillar.rectTransform); speeds.Add(2180f);
+
+            }
+            // 두 문짝이 맞물리는 고무
+            R(c, "Seal", 0f, -0.6f, 0.1f, 5.6f, new Color(0.08f, 0.08f, 0.1f));
+
+            // 손바닥 자국. 현장의 문 유리와 같은 자리, 같은 기울기다. 유리 바깥쪽이라 유리 안에 잘려 보인다.
+            float[][] prints =
+            {
+                new[] { 0.9f, 1.3f, -12f, 0.46f }, new[] { -1.1f, 0.6f, 8f, 0.46f }, new[] { 1.3f, 0.4f, 20f, 0.44f },
+                new[] { -0.85f, 1.4f, -18f, 0.46f }, new[] { 0.8f, 0.55f, 4f, 0.46f }, new[] { -1.35f, 1.05f, 15f, 0.42f },
+                new[] { 1.3f, 1.55f, -6f, 0.42f }, new[] { -0.95f, 0.3f, -25f, 0.44f }, new[] { 0.95f, 0.95f, 30f, 0.42f },
+                new[] { -1.25f, 1.55f, 2f, 0.42f }, new[] { 1.35f, 0.95f, -30f, 0.4f }, new[] { -0.75f, 0.95f, 24f, 0.44f },
+            };
+            var handSprite = LoadCrispSprite(CloseupArtPath + "handprint.png");
+            var printGroups = new GameObject[2];
+            for (int side = 0; side < 2; side++)
+            {
+                printGroups[side] = new GameObject("Prints_" + side, typeof(RectTransform));
+                printGroups[side].transform.SetParent(glasses[side].transform, false);
+                var gr = (RectTransform)printGroups[side].transform;
+                gr.anchorMin = gr.anchorMax = new Vector2(0.5f, 0.5f);
+                gr.sizeDelta = glasses[side].rectTransform.sizeDelta;
+            }
+            for (int i = 0; i < prints.Length; i++)
+            {
+                var p = prints[i];
+                int side = p[0] < 0f ? 0 : 1;
+                float gx = side == 0 ? -1.05f : 1.05f;
+                var hand = CloseupRect(printGroups[side].transform, "Handprint_" + i, new Vector2((p[0] - gx) * K, (p[1] - 0.9f) * K),
+                    new Vector2(p[3] * K * 0.78f, p[3] * K), new Color(0.85f, 0.88f, 0.95f, (60f + (i % 3) * 14f) / 255f));
+                hand.sprite = handSprite;
+                hand.type = Image.Type.Simple;
+                hand.preserveAspect = true;
+                hand.rectTransform.localRotation = Quaternion.Euler(0f, 0f, p[2]);
+                if (i % 2 == 1) hand.rectTransform.localScale = new Vector3(-1f, 1f, 1f);   // 왼손 오른손이 섞인다
+            }
+
+            var leftButton = CloseupHotspot(c, "Hotspot_PrintsLeft", glasses[0].rectTransform.anchoredPosition, glasses[0].rectTransform.sizeDelta);
+            AttachGlow(leftButton, glasses[0].gameObject);
+            var rightButton = CloseupHotspot(c, "Hotspot_PrintsRight", glasses[1].rectTransform.anchoredPosition, glasses[1].rectTransform.sizeDelta);
+            AttachGlow(rightButton, glasses[1].gameObject);
+            var seal = c.Find("Seal").GetComponent<Image>();
+            var gapButton = CloseupHotspot(c, "Hotspot_Gap", seal.rectTransform.anchoredPosition, new Vector2(0.5f * K, 3.2f * K));
+            AttachGlow(gapButton, seal.gameObject);
+
+            var scroll = go.AddComponent<TunnelScroll>();
+            var tso = new SerializedObject(scroll);
+            tso.Update();
+            var itemsProp = tso.FindProperty("_items");
+            var speedsProp = tso.FindProperty("_speeds");
+            itemsProp.arraySize = items.Count;
+            speedsProp.arraySize = speeds.Count;
+            for (int i = 0; i < items.Count; i++)
+            {
+                itemsProp.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+                speedsProp.GetArrayElementAtIndex(i).floatValue = speeds[i];
+            }
+            tso.FindProperty("_span").floatValue = 1800f;
+            tso.FindProperty("_shake").objectReferenceValue = carRt;
+            tso.ApplyModifiedPropertiesWithoutUndo();
+
+            FinishCloseup(go, screen, "field.subway.door_close.hint",
+                new[] { leftButton, rightButton, gapButton },
+                new[] { "field.subway.door_close.prints_l", "field.subway.door_close.prints_r", "field.subway.door_close.gap" });
             return screen;
         }
 

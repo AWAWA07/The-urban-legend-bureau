@@ -353,6 +353,10 @@ field.subway.door	출입문	The door	인터폰 바로 옆 문(조사 지점 이�
 field.subway.door.001	…방금 두드린 거, 이 문이었어요.	...That knocking just now. It was this door.	차지한
 field.subway.door.002	바깥쪽 유리에 손자국이 찍혀 있네. 달리는 열차 밖에서 두드렸다는 거야.	There's a handprint on the outside of the glass. Someone knocked from outside a moving train.	한영. 차분하게
 field.subway.door.003	…다음 역까지는 아직 한참 남았는데요.	...We're nowhere near the next station.	차지한
+field.subway.door_close.hint	어디를 살펴볼까.	Where to look?	출입문 가까이 보기 화면의 첫 안내
+field.subway.door_close.prints_l	손바닥 자국이 유리 바깥쪽에 겹겹이 찍혀 있다. 안에서 문질러도 지워지지 않는다.	Handprints are layered on the outside of the glass. Rubbing from inside does nothing.	출입문 왼쪽 유리
+field.subway.door_close.prints_r	큰 손, 작은 손이 섞여 있다. 한 사람의 손이 아니다.	Big hands and small hands, mixed together. Not one person's.	출입문 오른쪽 유리
+field.subway.door_close.gap	문틈 고무가 빈틈없이 맞물려 있다. 밖에서 비집고 열려던 흔적은 없다.	The rubber seal is shut tight. No sign anyone tried to pry it open from outside.	출입문 가운데 문틈
 field.subway.sit_ready.001	이제 슬슬 직접 앉아볼까?	Shall we try sitting there ourselves now?	한영. 열차를 다 살핀 뒤 현장으로 돌아오면
 field.subway.sit_ready.002	..어딜요? 곧 종점인데..	...Sit where? We're almost at the last stop...	차지한
 field.subway.sit_ready.003	뭐긴 뭐야. 이제 직접 앉아봐야지.. 너가	Where do you think? Time to sit in it yourself... You, I mean.	한영

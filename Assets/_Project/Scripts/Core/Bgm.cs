@@ -18,6 +18,14 @@ namespace UrbanLegendBureau.Core
         private static int _current = -1;
         private static string _currentName;
         private static float _volume = 1f;
+        private static float _duck = 1f, _duckTarget = 1f, _duckFade = 0.5f;
+
+        /// <summary>음악을 잠깐 줄인다(1 이면 그대로). 큰 소리가 날 때 그 소리가 앞에 나오게 한다. 다시 1 을 주면 돌아온다.</summary>
+        public static void Duck(float factor, float fade = 0.3f)
+        {
+            _duckTarget = Mathf.Clamp01(factor);
+            _duckFade = Mathf.Max(0.01f, fade);
+        }
 
         /// <summary>지금 틀고 있는 곡 이름. 없으면 null.</summary>
         public static string Current => _currentName;
@@ -90,7 +98,8 @@ namespace UrbanLegendBureau.Core
 
         private static void Tick(float dt)
         {
-            float master = Master;
+            _duck = Mathf.MoveTowards(_duck, _duckTarget, dt / _duckFade);
+            float master = Master * _duck;
             for (int i = 0; i < 2; i++)
             {
                 _levels[i] = Mathf.MoveTowards(_levels[i], _targets[i], dt / _fades[i] * Mathf.Max(_volume, 0.01f));
@@ -106,6 +115,7 @@ namespace UrbanLegendBureau.Core
             _sources = null;
             _current = -1;
             _currentName = null;
+            _duck = _duckTarget = 1f;
         }
 
         private class BgmDriver : MonoBehaviour

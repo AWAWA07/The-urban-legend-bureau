@@ -32,6 +32,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("열차의 빈자리를 가까이서 보는 화면.")]
         [SerializeField] private CloseupScreen _seatCloseupScreen;
 
+        [Tooltip("인터폰 옆 출입문을 가까이 보는 화면. 울린 뒤에 열 수 있다.")]
+        [SerializeField] private CloseupScreen _doorCloseupScreen;
+
         [Tooltip("창밖의 그것. 창문에서 두 군데를 살피면 나왔다 사라진다.")]
         [SerializeField] private WindowGhost _windowGhost;
         [SerializeField] private TextPanelScreen _helpScreen;
@@ -294,6 +297,7 @@ namespace UrbanLegendBureau.Systems
             if (_cctvCloseupScreen != null) _cctvCloseupScreen.ResetChecked();
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             if (_seatCloseupScreen != null) _seatCloseupScreen.ResetChecked();
+            if (_doorCloseupScreen != null) _doorCloseupScreen.ResetChecked();
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
@@ -486,6 +490,12 @@ namespace UrbanLegendBureau.Systems
         {
             if (_communityScreen != null && _ui.Contains(_communityScreen)) ClosePhoneNet();
             if (_memoScreen != null && _ui.Contains(_memoScreen)) ClosePhoneMemo();
+        }
+
+        /// <summary>휴대폰에 보일 앱. 괴담넷은 늘, 메모장은 한영이 메모하라고 이른 뒤부터. 나머지는 아직 열리지 않아 숨긴다.</summary>
+        private static bool IsPhoneAppVisible(string appId)
+        {
+            return appId == NetAppId || (appId == MemoAppId && MemoScreen.IsUnlocked);
         }
 
         private void OnPhoneAppClicked(string appId)
@@ -1204,6 +1214,7 @@ namespace UrbanLegendBureau.Systems
             // 말하는 사람이 없으면 아래 띠에는 버튼만 남는다.
             _fieldHudScreen.Bind(BuildFieldTicker);
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
+            FieldHudScreen.PhoneAppVisible = IsPhoneAppVisible;
             _fieldHudScreen.SetButtonsVisible(true);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
@@ -2330,17 +2341,23 @@ namespace UrbanLegendBureau.Systems
             // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅, 또 쾅쾅쾅. 여덟 번. 사이가 고르지 않아 다급하다.
             // 두드릴 때마다 문 유리에 손바닥 자국이 하나씩 늘어난다. 다 두드리고 나면 남은 자국까지 한꺼번에 드러난다.
             float[] gaps = { 0.17f, 0.15f, 0.4f, 0.14f, 0.13f, 0.38f, 0.15f, 0f };
+            // 두드리는 동안 음악과 깔린 소리를 확 줄여 쾅 소리가 귀를 때리게 한다.
+            Bgm.Duck(0.15f, 0.1f);
+            Sfx.DuckLoops(0.25f, 0.1f);
             var prints = door != null ? door.Find("DoorHandprints") : null;
             for (int i = 0; i < gaps.Length; i++)
             {
                 // 첫 번은 묵직하게 크게 쾅, 마지막은 울림이 길게 남는다. 사이에는 주먹 소리 넷을 돌려 쓴다.
                 string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
                 Sfx.Play(bang, 1f, Random.Range(0.96f, 1.04f));
+                Sfx.Play(bang, 0.85f, 0.97f);   // 한 겹 더 겹쳐 더 크게
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
                 yield return new WaitForSeconds(gaps[i]);
             }
+            Bgm.Duck(1f, 2f);
+            Sfx.DuckLoops(1f, 2f);
             yield return new WaitForSeconds(0.3f);
 
             var point = FindFieldPoint(DoorPointId);
@@ -2418,6 +2435,34 @@ namespace UrbanLegendBureau.Systems
         }
 
         /// <summary>울린 문을 살핀다. 두 사람이 한마디씩 하고, 현장을 한 번 뒤진 만큼 시간이 흐른다.</summary>
+        /// <summary>
+        /// 울린 문을 가까이 본다. 다른 가까이 보기처럼 화면 가득 문짝과 유리, 손바닥 자국이 보인다.
+        /// 처음 열 때 두 사람이 한마디씩 하고(현장을 한 번 뒤진 만큼 시간이 흐른다), 그 뒤로 자국과 문틈을 살필 수 있다.
+        /// </summary>
+        private void OpenDoorCloseup(InvestigationPoint point)
+        {
+            var screen = _doorCloseupScreen;
+            screen.Closed = () =>
+            {
+                if (_ui.Contains(screen)) _ui.Close(screen);
+            };
+            screen.SpotIndexChecked = index => PerformCloseupSpot(screen, DoorPointId, index);
+            screen.SetDark(IsTrainDark());
+            _ui.Push(screen);
+            Debug.Log("[CaseDirector] 울린 문을 가까이 들여다본다");
+
+            if (point.IsInvestigated) return;
+            point.MarkInvestigated();
+            var speakers = new string[DoorTextIds.Length];
+            for (int i = 0; i < speakers.Length; i++) speakers[i] = DoorIsHanyoung[i] ? HanyoungNameTextId : FieldSpeakerTextId;
+            screen.Talk(speakers, DoorTextIds, () =>
+            {
+                RegisterTrainStep();
+                CheckTrainFullySearched();
+                if (_fieldHudScreen != null) _fieldHudScreen.Refresh();
+            });
+        }
+
         private void PlayDoor(InvestigationPoint point)
         {
             FieldHudScreen.IsCutscene = true;
@@ -2451,7 +2496,7 @@ namespace UrbanLegendBureau.Systems
             screen.SpotIndexChecked = index => PerformCloseupSpot(screen, SeatPointId, index);
             screen.SpotIntercept = index => AskToSit(screen, index);
             // 앉아 볼 때가 되었으면 가운데 자리를 또렷이 표시한다.
-            screen.PinSpot(SitSpotIndex, _sitStage == SitStage.Ready, _loc.Get(SitMarkTextId));
+            screen.PinSpot(SitSpotIndex, _sitStage == SitStage.Ready);   // 글 없이 방석만 노랗게 깜빡인다
             screen.SetDark(IsTrainDark());
             _ui.Push(screen);
             Debug.Log("[CaseDirector] 빈자리를 가까이 들여다본다");
@@ -2699,7 +2744,8 @@ namespace UrbanLegendBureau.Systems
             // 인터폰 옆 문은 울린 뒤에 살필 수 있다.
             if (point.PointId == DoorPointId)
             {
-                PlayDoor(point);
+                if (_doorCloseupScreen != null) OpenDoorCloseup(point);
+                else PlayDoor(point);
                 return;
             }
 
@@ -3418,6 +3464,7 @@ namespace UrbanLegendBureau.Systems
 
             _fieldHudScreen.Bind(() => _loc.Get(RoomPlaceTextId));
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
+            FieldHudScreen.PhoneAppVisible = IsPhoneAppVisible;
             _fieldHudScreen.SetButtonsVisible(false);
             _fieldHudScreen.SetPhoneButtonVisible(true);
 

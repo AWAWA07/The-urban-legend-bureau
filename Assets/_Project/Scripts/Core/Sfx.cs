@@ -102,6 +102,15 @@ namespace UrbanLegendBureau.Core
         /// </summary>
         public static GameObject HoverRoot;
 
+        private static float _loopDuck = 1f, _loopDuckTarget = 1f, _loopDuckFade = 0.5f;
+
+        /// <summary>이어지는 소리를 모두 잠깐 줄인다(1 이면 그대로). 큰 소리가 앞에 나오게 한다.</summary>
+        public static void DuckLoops(float factor, float fade = 0.3f)
+        {
+            _loopDuckTarget = Mathf.Clamp01(factor);
+            _loopDuckFade = Mathf.Max(0.01f, fade);
+        }
+
         /// <summary>설정의 효과음 크기. 서비스가 없으면 1.</summary>
         private static float Master =>
             ServiceRegistry.TryGet<AudioService>(out var audio) ? audio.SfxVolume : 1f;
@@ -134,7 +143,8 @@ namespace UrbanLegendBureau.Core
         /// <summary>이어지는 소리의 크기를 매 프레임 목표로 옮긴다.</summary>
         internal static void Tick(float dt)
         {
-            float master = Master;
+            _loopDuck = Mathf.MoveTowards(_loopDuck, _loopDuckTarget, dt / _loopDuckFade);
+            float master = Master * _loopDuck;
             List<string> done = null;
             foreach (var kv in _loops)
             {
@@ -156,6 +166,7 @@ namespace UrbanLegendBureau.Core
         private static void Boot()
         {
             _root = null;
+            _loopDuck = _loopDuckTarget = 1f;
             _clips.Clear();
             Ensure();
         }
