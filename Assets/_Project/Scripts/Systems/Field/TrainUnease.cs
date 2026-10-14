@@ -251,10 +251,10 @@ namespace UrbanLegendBureau.Systems
             // 불이 꺼진 동안 이따금 멀리서 열차가 신음하고, 어딘가 긁히고, 차지한의 숨이 가빠진다.
             if (IsDark && !QuietAmbience)
             {
-                // 어두운 객실의 낮은 웅웅거림을 깔고 달리는 소리는 멀어진 듯 줄인다. 객실이 꺼졌다 켜져도(다른 화면) 다시 맞춘다.
-                UrbanLegendBureau.Core.Sfx.StartLoop("dark_tone", "amb_dark_room", 0.35f, 3f);
-                UrbanLegendBureau.Core.Sfx.SetLoopVolume("train", 0.18f, 2f);
-                UrbanLegendBureau.Core.Sfx.SetLoopVolume("wheels", 0.1f, 2f);
+                // 음악이 거의 사라진 어둠 속에서 달리는 열차 소리가 크게 다가온다. 어두운 객실의 웅웅거림을 옅게 깐다. 객실이 꺼졌다 켜져도(다른 화면) 다시 맞춘다.
+                UrbanLegendBureau.Core.Sfx.StartLoop("dark_tone", "amb_dark_room", 0.2f, 3f);
+                UrbanLegendBureau.Core.Sfx.SetLoopVolume("train", 0.6f, 2f);
+                UrbanLegendBureau.Core.Sfx.SetLoopVolume("wheels", 0.45f, 2f);
                 if (now >= _nextDarkSound) PlayDarkSound(now);
             }
 
@@ -560,12 +560,12 @@ namespace UrbanLegendBureau.Systems
                 if (lit || near || lingered)
                 {
                     _figureGone = true;
-                    UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.8f);
+                    UrbanLegendBureau.Core.Sfx.Play("ghost_vanish", 0.15f);
                     _figureGoneAt = now;
                 }
                 else
                 {
-                    if (_figureFade <= 0f) { UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.7f); UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_1", 0.35f); }   // 창 너머에 서서히 드러나기 시작할 때 낮게 웅
+                    if (_figureFade <= 0f) { UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.15f); UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_1", 0.08f); }   // 창 너머에 드러날 때 아주 작게 웅. 눈치챌 듯 말 듯
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
                     if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }

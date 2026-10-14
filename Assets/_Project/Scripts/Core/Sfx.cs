@@ -97,6 +97,11 @@ namespace UrbanLegendBureau.Core
             loop.fade = Mathf.Max(0.01f, fade);
         }
 
+        /// <summary>
+        /// 이 화면 안의 단추에 마우스를 대면 작게 스윽 한다(ui_hover). 타이틀 메뉴처럼 고를 것을 훑어보는 화면에만 건다. 비우면 나지 않는다.
+        /// </summary>
+        public static GameObject HoverRoot;
+
         /// <summary>설정의 효과음 크기. 서비스가 없으면 1.</summary>
         private static float Master =>
             ServiceRegistry.TryGet<AudioService>(out var audio) ? audio.SfxVolume : 1f;
@@ -169,6 +174,25 @@ namespace UrbanLegendBureau.Core
             {
                 Tick(Time.unscaledDeltaTime);
                 ClickSound();
+                HoverSound();
+            }
+
+            private Selectable _hovered;
+
+            private void HoverSound()
+            {
+                if (HoverRoot == null || !HoverRoot.activeInHierarchy) { _hovered = null; return; }
+                var mouse = UnityEngine.InputSystem.Mouse.current;
+                var events = EventSystem.current;
+                if (mouse == null || events == null) return;
+
+                var data = new PointerEventData(events) { position = mouse.position.ReadValue() };
+                _hits.Clear();
+                events.RaycastAll(data, _hits);
+                var over = _hits.Count > 0 ? _hits[0].gameObject.GetComponentInParent<Selectable>() : null;
+                if (over == _hovered) return;
+                _hovered = over;
+                if (over != null && over.IsInteractable() && over.transform.IsChildOf(HoverRoot.transform)) Play("ui_hover", 0.45f);
             }
 
             private void ClickSound()

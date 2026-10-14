@@ -35,6 +35,9 @@ namespace UrbanLegendBureau.UI
 
         private readonly List<Entry> _entries = new List<Entry>();
         private Button _button;
+        /// <summary>빛낼 그림 가운데 첫 번째의 자리. 이 자리를 또렷이 표시할 때(CloseupScreen.PinSpot) 쓴다. 없으면 null.</summary>
+        public RectTransform PrimaryTarget => _targets.Length > 0 && _targets[0] != null ? _targets[0].transform as RectTransform : null;
+
         private bool _hovered;
         private bool _pinned;
 

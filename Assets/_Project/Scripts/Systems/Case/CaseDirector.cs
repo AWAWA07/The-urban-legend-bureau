@@ -694,7 +694,7 @@ namespace UrbanLegendBureau.Systems
         /// 현장의 배경 음악을 지금 장면에 맞춘다. 장면이 바뀌는 길이 여럿이라 매 프레임 지금 상태에서 곡을 고른다.
         ///   승강장(타기 전)     bgm_subway_2  조사 음악. 막차를 기다린다
         ///   열차 안            bgm_subway_1  조사 음악
-        ///   정전 뒤             bgm_dark_1    어둠 속을 더듬는 음악
+        ///   정전 뒤             bgm_dark_1    어둠 속을 더듬는 음악(아주 작게. 달리는 소리가 앞에 나온다)
         ///   빈자리에 앉는 장면   bgm_sit       속삭임 같은 음악
         ///   종점에서 내린 뒤     bgm_dark_2    텅 빈 종점
         ///   숙소               bgm_dorm      씁쓸한 밤
@@ -704,9 +704,22 @@ namespace UrbanLegendBureau.Systems
         {
             string want = DesiredFieldMusic();
             if (want == _fieldMusic) return;
-            if (want != null) Bgm.Play(want, want == "bgm_sit" ? 0.7f : 0.55f, want == "bgm_sit" ? 1.5f : 2.5f);
+            if (want != null) Bgm.Play(want, MusicVolume(want), want == "bgm_sit" ? 1.5f : 2.5f);
             else if (_fieldMusic != null && Bgm.Current == _fieldMusic) Bgm.Stop(2f);
             _fieldMusic = want;
+        }
+
+        /// <summary>
+        /// 곡마다의 크기. 정전 뒤에는 음악을 거의 들리지 않게 낮춰 달리는 열차 소리와 어둠의 기척이 앞으로 나오게 한다.
+        /// </summary>
+        private static float MusicVolume(string name)
+        {
+            switch (name)
+            {
+                case "bgm_dark_1": return 0.1f;
+                case "bgm_sit": return 0.7f;
+                default: return 0.55f;
+            }
         }
 
         private string DesiredFieldMusic()
@@ -732,6 +745,7 @@ namespace UrbanLegendBureau.Systems
         private void UpdateTitleAudio()
         {
             bool onTitle = _titleScreen != null && _ui != null && _ui.Contains(_titleScreen);
+            Sfx.HoverRoot = onTitle ? _titleScreen.gameObject : null;   // 타이틀 메뉴에 마우스를 대면 스윽
             if (onTitle == _titleAudio) return;
             _titleAudio = onTitle;
             if (onTitle)
@@ -1552,6 +1566,12 @@ namespace UrbanLegendBureau.Systems
             {
                 _fieldHudScreen.ClearSpeech();
                 FieldHudScreen.IsCutscene = false;
+                // 말이 끝나면 곧바로 빈자리를 가까이 보고, 정말 앉을지 묻는다. 그만두면 가운데 칸이 표시된 채 남아 나중에 다시 누를 수 있다.
+                if (_seatCloseupScreen != null)
+                {
+                    OpenSeatCloseup();
+                    AskToSit(_seatCloseupScreen, SitSpotIndex);
+                }
             });
             Debug.Log("[CaseDirector] 한영: 이제 직접 앉아 봐");
         }
@@ -2256,7 +2276,7 @@ namespace UrbanLegendBureau.Systems
 
         private void IntercomLine(int index, System.Action onDone)
         {
-            if (index >= IntercomTextIds.Length) { onDone?.Invoke(); return; }
+            if (index >= IntercomTextIds.Length) { Sfx.StopLoop("intercom_line", 0.4f); Sfx.Play("intercom_pickup", 0.4f, 1.15f); onDone?.Invoke(); return; }   // 철컥 끊기고 선 잡음이 사라진다
             string id = IntercomTextIds[index];
             int who = IntercomSpeakers[index];
             string speaker = who == 1 ? HanyoungNameTextId : who == 2 ? IntercomStaffTextId : FieldSpeakerTextId;
@@ -2286,6 +2306,7 @@ namespace UrbanLegendBureau.Systems
                 Sfx.Play(sounds[i]);
                 yield return new WaitForSeconds(waits[i]);
             }
+            Sfx.StartLoop("intercom_line", "intercom_static", 0.3f, 0.3f);   // 이어진 뒤 통화 내내 낡은 선의 지직거림이 깔린다
             then?.Invoke();
         }
 

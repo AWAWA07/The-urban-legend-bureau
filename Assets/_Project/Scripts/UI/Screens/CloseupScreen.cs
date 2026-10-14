@@ -304,7 +304,7 @@ namespace UrbanLegendBureau.UI
                 _pinFill.gameObject.SetActive(on);
                 if (on)
                 {
-                    var src = (RectTransform)button.transform;
+                    var src = glow != null && glow.PrimaryTarget != null ? glow.PrimaryTarget : (RectTransform)button.transform;   // 빛나는 그림(방석)에 맞춘다
                     var frt = _pinFill.rectTransform;
                     frt.anchorMin = src.anchorMin; frt.anchorMax = src.anchorMax; frt.pivot = src.pivot;
                     frt.anchoredPosition = src.anchoredPosition; frt.sizeDelta = src.sizeDelta;
@@ -317,13 +317,13 @@ namespace UrbanLegendBureau.UI
             _pinLabel.gameObject.SetActive(on && !string.IsNullOrEmpty(label));
             if (!on) return;
             _pinLabel.text = label;
-            // 누르는 자리의 위 가장자리 안쪽, 가운데.
-            var b = (RectTransform)button.transform;
+            // 빛나는 그림(방석) 바로 위, 가운데.
+            var b = glow != null && glow.PrimaryTarget != null ? glow.PrimaryTarget : (RectTransform)button.transform;
             var rt = _pinLabel.rectTransform;
             rt.anchorMin = rt.anchorMax = b.anchorMin;
-            rt.pivot = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 0f);
             rt.sizeDelta = new Vector2(600f, 60f);
-            rt.anchoredPosition = b.anchoredPosition + new Vector2(0f, b.sizeDelta.y * (1f - b.pivot.y) - 40f);
+            rt.anchoredPosition = b.anchoredPosition + new Vector2(0f, b.sizeDelta.y * (1f - b.pivot.y) + 18f);
             _pinLabel.transform.SetAsLastSibling();
         }
 

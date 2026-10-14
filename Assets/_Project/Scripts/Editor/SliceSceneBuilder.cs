@@ -2812,7 +2812,7 @@ namespace UrbanLegendBureau.EditorTools
 
             // 가운데 칸 전체가 누르는 자리다. 그 칸 어디를 눌러도 빈자리를 살핀다.
             var dentButton = CloseupHotspot(c, "Hotspot_Dent", new Vector2(0f, (-1.9f - BaseY) * K - 260f), new Vector2(Slot * K, 2.9f * K));
-            AttachGlow(dentButton, c.Find("MiddleBack").gameObject, c.Find("MiddleSeat").gameObject, c.Find("MiddleSkirt").gameObject);
+            AttachGlow(dentButton, c.Find("MiddleSeat").gameObject);   // 누르는 자리는 가운데 칸 전체, 노랗게 빛나는 것은 방석만
 
             // 승차권. 왼쪽 칸 등받이와 방석 틈에 비스듬히 끼어 있다.
             var ticket = R(c, "Ticket", 5f - Slot, -2.12f, 0.5f, 0.24f, new Color(0.88f, 0.86f, 0.78f));
