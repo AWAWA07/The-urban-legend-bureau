@@ -51,7 +51,8 @@ namespace UrbanLegendBureau.Systems
         private void OnEnable()
         {
             if (_car != null) _carBase = _car.localPosition;
-            UrbanLegendBureau.Core.Sfx.StartLoop("train", "train_loop", 0.3f, 1.5f);   // 달리는 열차의 웅웅거림과 덜컹거림
+            UrbanLegendBureau.Core.Sfx.StartLoop("train", "amb_train_car", 0.4f, 1.5f);      // 달리는 객실의 웅웅거림
+            UrbanLegendBureau.Core.Sfx.StartLoop("wheels", "amb_train_wheels", 0.2f, 1.5f);  // 바퀴가 레일을 넘는 덜컹거림
             _ringBase = new Vector3[_rings.Length];
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _ringBase[i] = _rings[i].localPosition;
         }
@@ -59,6 +60,7 @@ namespace UrbanLegendBureau.Systems
         private void OnDisable()
         {
             UrbanLegendBureau.Core.Sfx.StopLoop("train", 0.8f);
+            UrbanLegendBureau.Core.Sfx.StopLoop("wheels", 0.8f);
             if (_car != null) _car.localPosition = _carBase;
             for (int i = 0; i < _rings.Length; i++) if (_rings[i] != null) _rings[i].localPosition = _ringBase[i];
         }

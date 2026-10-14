@@ -81,6 +81,14 @@ namespace UrbanLegendBureau.Core
             loop.fade = Mathf.Max(0.01f, fade);
         }
 
+        /// <summary>켜져 있는 이어지는 소리의 크기만 바꾼다. 꺼져 있으면 아무 일도 없다. 0 으로 줄여도 끄지 않고 숨죽여 둔다.</summary>
+        public static void SetLoopVolume(string key, float volume, float fade = 1f)
+        {
+            if (!_loops.TryGetValue(key, out var loop) || loop.target <= 0f) return;
+            loop.target = Mathf.Clamp(volume, 0.001f, 1f);
+            loop.fade = Mathf.Max(0.01f, fade);
+        }
+
         /// <summary>이어지는 소리를 끈다. fade 초 동안 작아진 뒤 멈춘다.</summary>
         public static void StopLoop(string key, float fade = 1f)
         {

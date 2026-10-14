@@ -94,6 +94,24 @@ namespace UrbanLegendBureau.Systems
         private SpriteRenderer[] _hanyoungRenderers;
         private Color[] _hanyoungColors;
 
+        /// <summary>
+        /// 숙소에 있는 동안 깔리는 소리. 창밖의 옅은 빗소리, 조용한 방의 공기, 벽시계 째깍.
+        /// 불을 끄면 방이 조용해져 빗소리와 시계 소리가 조금 더 또렷해진다(ApplyLight).
+        /// </summary>
+        private void OnEnable()
+        {
+            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_rain", "amb_dorm_rain", 0.35f, 2f);
+            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_room", "amb_dorm_room", 0.4f, 2f);
+            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_clock", "amb_clock", 0.3f, 2f);
+        }
+
+        private void OnDisable()
+        {
+            UrbanLegendBureau.Core.Sfx.StopLoop("dorm_rain", 1f);
+            UrbanLegendBureau.Core.Sfx.StopLoop("dorm_room", 1f);
+            UrbanLegendBureau.Core.Sfx.StopLoop("dorm_clock", 1f);
+        }
+
         private void Awake()
         {
             BuildEyeSprite();
@@ -214,6 +232,8 @@ namespace UrbanLegendBureau.Systems
             }
 
             if (_moonLight != null) _moonLight.gameObject.SetActive(!IsLightOn);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_rain", IsLightOn ? 0.35f : 0.5f, 1.5f);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_clock", IsLightOn ? 0.3f : 0.42f, 1.5f);
         }
 
         private void SetDoorOpen(bool open)

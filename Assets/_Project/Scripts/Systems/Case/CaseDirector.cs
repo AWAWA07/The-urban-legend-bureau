@@ -281,6 +281,7 @@ namespace UrbanLegendBureau.Systems
             _windowGhostShown = false;
             _intercomUsed = false;
             _sitStage = SitStage.None;
+            _sitPlaying = false;
             var doorPoint = FindDoorPointAnywhere();
             if (doorPoint != null) doorPoint.gameObject.SetActive(false);   // 문은 인터폰 통화 중에 울린 뒤에야 나타난다
             foreach (var t in FindObjectsByType<Transform>(FindObjectsInactive.Include, FindObjectsSortMode.None))
@@ -685,6 +686,41 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>열린 문을 눌러 타는 자리. 현장을 짓는 쪽과 여기가 같은 이름을 써야 한다.</summary>
         public const string BoardingPointId = "point_subway_board";
+
+        /// <summary>현장에서 틀고 있는 곡. 현장이 아니면 null.</summary>
+        private string _fieldMusic;
+
+        /// <summary>
+        /// 현장의 배경 음악을 지금 장면에 맞춘다. 장면이 바뀌는 길이 여럿이라 매 프레임 지금 상태에서 곡을 고른다.
+        ///   승강장(타기 전)     bgm_subway_2  조사 음악. 막차를 기다린다
+        ///   열차 안            bgm_subway_1  조사 음악
+        ///   정전 뒤             bgm_dark_1    어둠 속을 더듬는 음악
+        ///   빈자리에 앉는 장면   bgm_sit       속삭임 같은 음악
+        ///   종점에서 내린 뒤     bgm_dark_2    텅 빈 종점
+        ///   숙소               bgm_dorm      씁쓸한 밤
+        /// 현장을 벗어나면(사무실, 이동 중) 음악을 끈다. 타이틀 곡은 UpdateTitleAudio 가 맡는다.
+        /// </summary>
+        private void UpdateFieldMusic()
+        {
+            string want = DesiredFieldMusic();
+            if (want == _fieldMusic) return;
+            if (want != null) Bgm.Play(want, want == "bgm_sit" ? 0.7f : 0.55f, want == "bgm_sit" ? 1.5f : 2.5f);
+            else if (_fieldMusic != null && Bgm.Current == _fieldMusic) Bgm.Stop(2f);
+            _fieldMusic = want;
+        }
+
+        private string DesiredFieldMusic()
+        {
+            if (_titleScreen != null && _ui != null && _ui.Contains(_titleScreen)) return null;
+            var root = _field != null && _field.IsActive ? _field.ActiveRoot : null;
+            if (root == null || TravelScreen.IsPlaying) return null;
+            if (root.GetComponentInChildren<RoomNight>(true) != null) return "bgm_dorm";
+            if (root.GetComponentInChildren<TrainUnease>(true) == null) return null;
+            if (_sitPlaying) return "bgm_sit";
+            if (_alighted) return "bgm_dark_2";
+            if (IsTrainDark()) return "bgm_dark_1";
+            return _boarded ? "bgm_subway_1" : "bgm_subway_2";
+        }
 
         /// <summary>타이틀이 떠 있는 동안 트는 소리가 켜져 있는가.</summary>
         private bool _titleAudio;
@@ -1454,6 +1490,9 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private SitStage _sitStage;
 
+        /// <summary>빈자리에 앉아 있는 장면(일러스트와 대사)이 흐르는 중인가. 음악과 소리를 이 장면의 것으로 바꾼다.</summary>
+        private bool _sitPlaying;
+
         /// <summary>다 살핀 때의 시각. 종점(00:30) 바로 앞이다.</summary>
         private const int SitReadyMinutesOfDay = 25;   // 00:25
 
@@ -1539,10 +1578,20 @@ namespace UrbanLegendBureau.Systems
         {
             Debug.Log("[CaseDirector] 차지한이 빈자리에 앉는다");
             screen.PinSpot(SitSpotIndex, false);
+            // 앉아 있는 동안은 앉은 사람의 귀로 듣는다. 달리는 소리와 어둠의 웅웅거림은 멀어지고, 객실 소리 하나만 가까이 남는다. 음악은 이 장면의 곡으로 바뀐다(UpdateFieldMusic).
+            _sitPlaying = true;
+            TrainUnease.QuietAmbience = true;
+            Sfx.SetLoopVolume("train", 0.05f, 1.5f);
+            Sfx.SetLoopVolume("wheels", 0.04f, 1.5f);
+            Sfx.SetLoopVolume("dark_tone", 0.1f, 1.5f);
+            Sfx.StartLoop("sit_amb", "sit_amb", 0.3f, 2f);
             screen.Talk(SitColumn(1), SitColumn(0), () =>
             {
                 screen.HideIllustration();
                 _sitStage = SitStage.Done;
+                _sitPlaying = false;
+                TrainUnease.QuietAmbience = false;   // 어둠의 소리가 제 크기로 돌아온다
+                Sfx.StopLoop("sit_amb", 2f);
                 if (!IsAfterTerminus()) GameClock.SetExactly(TerminusMinutesOfDay / 60, TerminusMinutesOfDay % 60);
                 PushStatus();
                 screen.Closed?.Invoke();   // 현장으로 돌아가면 종점 알림이 뜬다
@@ -1550,10 +1599,14 @@ namespace UrbanLegendBureau.Systems
             {
                 // 대사 한 줄마다 그 줄의 그림으로 바꾼다.
                 // 앉고, 인기척을 느끼고, 방석이 꺼지고, 옆을 보기 직전에 소리가 따라온다.
-                if (line == 0) Sfx.Play("cushion_sit", 0.6f);
-                else if (line == 6) { Sfx.Play("heartbeat", 0.6f); Sfx.Play("ghost_whisper_1", 0.45f); }
-                else if (line == 7) Sfx.Play("cushion_sink", 0.6f);
-                else if (line == 12) Sfx.Play("heartbeat", 0.45f, 0.95f);
+                // 0 앉음, 3 눈 감고 숨 고름, 6 인기척, 7 방석이 꺼짐, 8 묻는 숨, 12 망설임, 14 옆을 봄(아무것도 없다).
+                if (line == 0) { Sfx.Play("cushion_sit", 0.6f); Sfx.Play("sit_creak_0", 0.5f); }
+                else if (line == 3) Sfx.Play("sit_breath_0", 0.55f);
+                else if (line == 6) { Sfx.Play("presence_0", 0.8f); Sfx.Play("ghost_whisper_1", 0.4f); }
+                else if (line == 7) { Sfx.Play("sit_creak_1", 0.6f); Sfx.Play("cushion_sink", 0.35f); }
+                else if (line == 8) Sfx.Play("sit_breath_1", 0.6f);
+                else if (line == 12) Sfx.Play("heartbeat", 0.5f, 0.95f);
+                else if (line == 14) Sfx.Play("presence_1", 0.7f);
                 string path = "Illustrations/subway_sit_" + SitScript[Mathf.Min(line, SitScript.Length - 1)][2];
                 var sprite = Resources.Load<Sprite>(path);
                 if (sprite == null) Debug.LogWarning("[CaseDirector] 앉은 모습 일러스트 없음 | Resources/" + path);
@@ -1608,6 +1661,7 @@ namespace UrbanLegendBureau.Systems
         private void Update()
         {
             UpdateTitleAudio();
+            UpdateFieldMusic();
             if (_terminusDone || _field == null || !_field.IsActive) return;
             // 가까이 보기를 보고 있거나 누가 말하는 중이면 현장으로 돌아와 숨을 돌릴 때까지 미룬다.
             if (!FieldHudScreen.IsFront || FieldHudScreen.IsSpeaking || FieldHudScreen.IsCutscene) return;
@@ -2016,6 +2070,7 @@ namespace UrbanLegendBureau.Systems
             swap.SetAfter(true);
             _boarded = true;
             Sfx.Play("door_slide", 0.6f);
+            Sfx.Play("air_rush_pass", 0.35f);   // 문이 닫히고 열차가 터널로 빨려 들어간다
 
             // 문이 닫히고 열차가 서서히 출발한다. 한 번만 일어난다.
             var running = _field.ActiveRoot.GetComponentInChildren<TrainRunning>();

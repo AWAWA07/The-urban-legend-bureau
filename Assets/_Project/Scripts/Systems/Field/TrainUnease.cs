@@ -96,6 +96,28 @@ namespace UrbanLegendBureau.Systems
         private float _idleSince = -1f;
         private Color[] _allLampColors;
         private SpriteRenderer _phone;
+        private float _nextDarkSound;
+
+        /// <summary>켜면 어둠 속 기척(신음·긁힘·숨)을 내지 않는다. 빈자리에 앉아 보는 장면처럼 따로 소리를 깔 때 끈다.</summary>
+        public static bool QuietAmbience;
+
+        /// <summary>
+        /// 불이 다 꺼졌다. 차지한이 숨을 한 번 들이쉰다. 어둠의 소리(웅웅거림, 이따금 기척)는 Update 가 맡는다.
+        /// </summary>
+        private void EnterDarkAudio()
+        {
+            UrbanLegendBureau.Core.Sfx.Play("dark_breath_2", 0.6f);
+            _nextDarkSound = Time.time + Random.Range(10f, 18f);
+        }
+
+        private void PlayDarkSound(float now)
+        {
+            float r = Random.value;
+            if (r < 0.45f) UrbanLegendBureau.Core.Sfx.Play("dark_groan_" + Random.Range(0, 3), 0.5f);
+            else if (r < 0.75f) UrbanLegendBureau.Core.Sfx.Play("dark_scrabble_" + Random.Range(0, 3), 0.8f);
+            else UrbanLegendBureau.Core.Sfx.Play("dark_breath_" + Random.Range(0, 3), 0.5f);
+            _nextDarkSound = now + Random.Range(14f, 28f);
+        }
         private int[] _outsideOrders;
 
         private readonly HashSet<string> _looked = new HashSet<string>();
@@ -151,6 +173,7 @@ namespace UrbanLegendBureau.Systems
 
         private void OnDisable()
         {
+            UrbanLegendBureau.Core.Sfx.StopLoop("dark_tone", 0.8f);
             // 열차 밖(승강장, 숙소)에서는 휴대폰에 라이트 표시를 띄우지 않는다.
             UrbanLegendBureau.UI.FieldHudScreen.FlashlightOn = false;
             InvestigationPoint.OutlinesOnTop = false;
@@ -180,6 +203,8 @@ namespace UrbanLegendBureau.Systems
             StopAllCoroutines();
             _darkState = DarkState.None;
             _blackoutAsked = false;
+            UrbanLegendBureau.Core.Sfx.StopLoop("dark_tone", 0.5f);
+            QuietAmbience = false;
             _idleSince = -1f;
             SetLamps(1f);
             SetDark(_dimAlpha);
@@ -221,6 +246,17 @@ namespace UrbanLegendBureau.Systems
                 }
             }
             if (_darkState == DarkState.None) Apply(lampOn);
+
+            // --- 2. 어둠 속 기척 ---
+            // 불이 꺼진 동안 이따금 멀리서 열차가 신음하고, 어딘가 긁히고, 차지한의 숨이 가빠진다.
+            if (IsDark && !QuietAmbience)
+            {
+                // 어두운 객실의 낮은 웅웅거림을 깔고 달리는 소리는 멀어진 듯 줄인다. 객실이 꺼졌다 켜져도(다른 화면) 다시 맞춘다.
+                UrbanLegendBureau.Core.Sfx.StartLoop("dark_tone", "amb_dark_room", 0.35f, 3f);
+                UrbanLegendBureau.Core.Sfx.SetLoopVolume("train", 0.18f, 2f);
+                UrbanLegendBureau.Core.Sfx.SetLoopVolume("wheels", 0.1f, 2f);
+                if (now >= _nextDarkSound) PlayDarkSound(now);
+            }
 
             // --- 3. 정전 ---
             // 처음 한 곳을 살피고 현장으로 돌아와 잠깐 숨을 돌린 뒤에 곧바로 일어난다.
@@ -341,6 +377,7 @@ namespace UrbanLegendBureau.Systems
             SetLamps(0f);
             SetDark(_blackAlpha);
             _darkState = DarkState.Black;
+            EnterDarkAudio();
             yield return new WaitForSeconds(0.8f);
             onDark?.Invoke();
         }

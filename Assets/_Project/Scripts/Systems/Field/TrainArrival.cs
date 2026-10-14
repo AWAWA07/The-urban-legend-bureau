@@ -121,7 +121,8 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator Run()
         {
-            UrbanLegendBureau.Core.Sfx.Play("train_arrive", 0.8f);   // 어둠 속에서 웅웅 다가와 덜컹이다 서며 푸쉬익
+            UrbanLegendBureau.Core.Sfx.Play("air_rush_in", 0.8f);    // 터널에서 바람이 밀려 나오며 열차가 들어온다
+            UrbanLegendBureau.Core.Sfx.Play("train_arrive", 0.4f);   // 어둠 속에서 웅웅 다가와 덜컹이다 서며 푸쉬익
             // 들어오는 동안. 끝에서 천천히 서게 뒤로 갈수록 느려지는 곡선을 쓴다.
             float t = 0f;
             while (t < 1f)
