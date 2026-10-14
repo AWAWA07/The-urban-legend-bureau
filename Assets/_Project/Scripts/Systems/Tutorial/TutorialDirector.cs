@@ -1220,7 +1220,6 @@ namespace UrbanLegendBureau.Systems
 
         private void PostCorrectComment()
         {
-            UrbanLegendBureau.Core.Sfx.Play("typing_0", 0.6f);   // 댓글을 치는 타닥타닥
             var choice = _pendingChoice;
             if (choice == null) return;
 

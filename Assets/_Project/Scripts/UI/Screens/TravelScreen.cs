@@ -73,7 +73,9 @@ namespace UrbanLegendBureau.UI
         private IEnumerator Run(int minutes, float seconds, Action<int> onMinutes, Action onArrive, Action onDone)
         {
             IsPlaying = true;
-            UrbanLegendBureau.Core.Sfx.StartLoop("travel", "taxi_loop", 0.5f, 0.6f);   // 가는 동안 차 안의 낮은 엔진 소리
+            // 시동이 걸리고(car_start) 그 밑으로 달리는 소리가 천천히 커지며 출발한다.
+            UrbanLegendBureau.Core.Sfx.Play("car_start", 0.7f);
+            UrbanLegendBureau.Core.Sfx.StartLoop("travel", "taxi_loop", 0.45f, 4f);
             int given = 0;
             Place(0f, 0f);
 
