@@ -2351,6 +2351,7 @@ namespace UrbanLegendBureau.Systems
                 string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
                 Sfx.Play(bang, 1f, Random.Range(0.96f, 1.04f));
                 Sfx.Play(bang, 0.85f, 0.97f);   // 한 겹 더 겹쳐 더 크게
+                Sfx.Play("door_slam_" + Random.Range(0, 3), 0.5f, Random.Range(0.85f, 0.95f));   // 철문이 울리는 묵직한 쿵을 살짝 섞는다
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
