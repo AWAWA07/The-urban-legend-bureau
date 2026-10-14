@@ -34,7 +34,14 @@ namespace UrbanLegendBureau.EditorTools
             importer.spriteImportMode = SpriteImportMode.Single;
             importer.alphaIsTransparency = true;
             importer.mipmapEnabled = false;
-            if (!field) return;
+            if (!field)
+            {
+                // 대화용 전신 그림과 얼굴 그림은 수가 많고 커서 빌드 크기의 대부분을 차지한다. 화질은 거의 그대로 두고 파일만 작게 눌러 담는다.
+                importer.textureCompression = TextureImporterCompression.Compressed;
+                importer.crunchedCompression = true;
+                importer.compressionQuality = 80;
+                return;
+            }
 
             var settings = new TextureImporterSettings();
             importer.ReadTextureSettings(settings);
