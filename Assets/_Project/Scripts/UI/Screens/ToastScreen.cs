@@ -25,7 +25,7 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         public void Show(string line)
         {
-            UrbanLegendBureau.Core.Sfx.Play("clue_get", 0.3f, 1.25f);   // 알림. 단서 소리보다 작고 높다
+            UrbanLegendBureau.Core.Sfx.Play("notify", 0.4f);   // 알림. 단서 소리보다 작고 옅다
             if (_text != null) _text.text = line;
 
             UiFade.Show(gameObject);

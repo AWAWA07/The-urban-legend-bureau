@@ -2333,8 +2333,9 @@ namespace UrbanLegendBureau.Systems
             var prints = door != null ? door.Find("DoorHandprints") : null;
             for (int i = 0; i < gaps.Length; i++)
             {
-                Sfx.Play("door_bang", 1f);
-                Sfx.Play("door_bang", 0.75f, 0.82f);   // 낮게 한 겹 더 깔아 쾅 소리를 키운다
+                // 첫 번은 묵직하게 크게 쾅, 마지막은 울림이 길게 남는다. 사이에는 주먹 소리 넷을 돌려 쓴다.
+                string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
+                Sfx.Play(bang, 1f, Random.Range(0.96f, 1.04f));
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
