@@ -3780,6 +3780,24 @@ namespace UrbanLegendBureau.Systems
             var sb = new StringBuilder();
             sb.Append(_loc.Get(ReportNoteTitleTextId, _case != null ? _loc.Get(_case.CaseNameTextId) : string.Empty));
 
+            // 빈칸 보고서면 플레이어가 직접 적어 넣은 문장을 그대로 옮겨 적는다.
+            if (Deduction.ReportBlanks.Count > 0)
+            {
+                sb.Append('\n');
+                foreach (var blank in Deduction.ReportBlanks)
+                {
+                    if (blank == null) continue;
+                    string typed = CaseNotebook.GetInput(_save.Current, _caseId, blank.blankId).Trim();
+                    sb.Append('\n').Append(_loc.Get(blank.prefixTextId)).Append(' ').Append(typed);
+                    string suffix = _loc.Get(blank.suffixTextId);
+                    // 뒷말이 마침표나 "인 ..."(반쯤 진짜인 것으로)처럼 앞말에 붙는 꼴이면 띄우지 않는다.
+                    bool attach = suffix.StartsWith(".") || suffix.StartsWith("인");
+                    if (!string.IsNullOrEmpty(suffix)) sb.Append(attach ? string.Empty : " ").Append(suffix);
+                }
+                sb.Append("\n\n").Append(_loc.Get(ReportNoteFooterTextId, BuildTimeLine()));
+                return sb.ToString();
+            }
+
             foreach (var q in Deduction.Questions)
             {
                 if (q == null) continue;

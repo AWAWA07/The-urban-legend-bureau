@@ -138,6 +138,12 @@ namespace UrbanLegendBureau.Save
         public List<string> solvedDeductions = new List<string>();
         public List<string> confirmedReports = new List<string>();
 
+        /// <summary>
+        /// 보고서 빈칸에 적고 있던 글 (v9). "사건ID|빈칸ID|글" 로 적는다. 글 안에 | 가 있어도 앞의 두 칸만 자른다.
+        /// 다 맞혀 확정했는지는 confirmedReports 가 들고 있다.
+        /// </summary>
+        public List<string> reportInputs = new List<string>();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -160,6 +166,7 @@ namespace UrbanLegendBureau.Save
             analysisRecords ??= new List<string>();
             solvedDeductions ??= new List<string>();
             confirmedReports ??= new List<string>();
+            reportInputs ??= new List<string>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

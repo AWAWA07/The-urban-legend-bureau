@@ -292,7 +292,7 @@ namespace UrbanLegendBureau.UI
                 _pinLabel.alignment = TextAlignmentOptions.Center;
                 _pinLabel.color = new Color(1f, 0.86f, 0.25f, 1f);
                 _pinLabel.raycastTarget = false;
-                _pinLabel.enableWordWrapping = false;
+                _pinLabel.textWrappingMode = TextWrappingModes.NoWrap;
             }
             // 누르는 자리 전체를 옅은 노란빛으로 덮는다. 누름은 그대로 아래 단추가 받는다.
             if (_pinFill == null && on)

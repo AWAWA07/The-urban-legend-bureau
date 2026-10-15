@@ -1052,3 +1052,27 @@ ui.casefile.deduce_wrong_hint	오른쪽 근거 확인에서 단서와 분석 기
 ui.casefile.report_summary	종합 판단	Overall assessment	보고서 칸 이름
 ui.casefile.report_scroll	아래로 내리면 관련 단서까지 확인할 수 있다	Scroll down to see the related clues	보고서 스크롤 안내
 deduce.subway.summary	동일 좌석에 대한 반복 신고와 승객 간 진술 차이를 확인하였다. 피해 사례를 비교한 결과, 옆자리의 기척을 고개를 돌려 직접 확인하는 행동이 발동 조건일 가능성이 높은 것으로 판단된다. 창유리로만 확인한 경우와 돌아보지 않은 경우에는 피해가 확인되지 않았다. 다만 인터넷에 퍼진 모든 이야기가 사실로 확인된 것은 아니다.	We confirmed repeated reports about the same seat and conflicting accounts between passengers. Comparing the cases, turning to look directly at the presence in the next seat is most likely the trigger. No harm was found when people only checked the reflection or did not turn around. Not every story spreading online has been confirmed.	보고서 종합 판단
+ui.casefile.report_overview	조사 개요	Investigation Summary	보고서 빈칸 문장 머리
+ui.casefile.report_fill_guide	빈칸을 눌러 조사로 알아낸 내용을 직접 적어 넣으세요. 다 적었으면 보고서 검토를 누릅니다.	Click each blank and type in what the investigation found. When you are done, press Review Report.	보고서 안내
+ui.casefile.report_fill_hint	빈칸을 모두 채우고 보고서를 검토하세요.	Fill every blank, then review the report.	보고서 아래 기본 안내
+ui.casefile.report_review	보고서 검토	Review Report	보고서 단추
+ui.casefile.report_wrong	일부 항목이 조사 결과와 맞지 않습니다.	Some entries do not match the investigation.	보고서 검토 - 틀린 칸이 있음
+ui.casefile.report_empty	아직 비어 있는 칸이 있습니다.	Some blanks are still empty.	보고서 검토 - 빈칸이 있음
+ui.casefile.report_complete	보고서가 완성되었습니다. 조사 결과를 확정하세요.	The report is complete. Confirm your findings.	보고서 검토 - 다 맞음
+ui.casefile.report_done	보고서가 완성되었습니다.	The report is complete.	확정한 뒤
+report.subway.verdict.prefix	본 사건은	This case is judged to be	보고서 빈칸 1 앞말
+report.subway.verdict.suffix	인 것으로 판단된다.	.	보고서 빈칸 1 뒷말
+report.subway.verdict.hint	진위 판정 (진짜 / 가짜 / 반쯤 진짜)	Verdict (real / fake / half true)	보고서 빈칸 1 안내
+report.subway.verdict.answer	반쯤 진짜	Half true	보고서 빈칸 1 대표 정답
+report.subway.rule.prefix	조사 결과, 이 괴담의 핵심 규칙은	The core rule of this legend is that	보고서 빈칸 2 앞말
+report.subway.rule.suffix	이다.	.	보고서 빈칸 2 뒷말
+report.subway.rule.hint	무엇을 하면 현상이 남는가	What makes the phenomenon stay with you	보고서 빈칸 2 안내
+report.subway.rule.answer	옆자리의 현상은 고개를 돌려 직접 확인한 사람에게만 남는다	The thing in the next seat stays only with those who turn and look	보고서 빈칸 2 대표 정답
+report.subway.counter.prefix	따라서 실제 상황에서의 대처 방법은	So in a real situation, the way to respond is to	보고서 빈칸 3 앞말
+report.subway.counter.suffix	이다.	.	보고서 빈칸 3 뒷말
+report.subway.counter.hint	피해를 피하려면 어떻게 해야 하는가	What should you do to stay safe	보고서 빈칸 3 안내
+report.subway.counter.answer	기척이 들어도 소리가 나는 쪽으로 고개를 돌려 직접 확인하지 않는다	Not turn your head toward the sound to check, however clearly you feel it	보고서 빈칸 3 대표 정답
+report.subway.target.prefix	또한 인터넷 확산의 핵심 원인으로 판단되는 검열 대상 게시물은	The post to censor, judged to be the main driver of the spread, is	보고서 빈칸 4 앞말
+report.subway.target.suffix	이다.	.	보고서 빈칸 4 뒷말
+report.subway.target.hint	괴담넷에서 소문을 가장 크게 키운 게시물의 제목	Title of the post that spread the rumor most	보고서 빈칸 4 안내
+report.subway.target.answer	[정리] 막차 괴담 규칙 총정리	[Summary] Last train rules, all in one place	보고서 빈칸 4 대표 정답

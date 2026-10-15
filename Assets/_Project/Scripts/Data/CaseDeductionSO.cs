@@ -67,11 +67,50 @@ namespace UrbanLegendBureau.Data
             public List<string> evidenceAnalysisIds = new List<string>();
         }
 
+        /// <summary>보고서 빈칸이 무엇을 묻는가.</summary>
+        public enum ReportAnswerType { Truth, Rule, Countermeasure, Target }
+
+        /// <summary>
+        /// 보고서 문장 속 빈칸 하나. 문장은 앞말 + [빈칸] + 뒷말로 이어진다.
+        /// 플레이어가 직접 적은 글을 정리한 뒤(공백, 문장부호, 대소문자를 뺀다) 허용 답안과 견준다.
+        /// 허용 답안에 없으면 핵심어 묶음을 본다. 묶음마다 하나 이상이 들어 있고 금지어가 없으면 맞다.
+        /// </summary>
+        [Serializable]
+        public class ReportBlank
+        {
+            public string blankId;
+            public ReportAnswerType answerType;
+
+            [Tooltip("빈칸 앞의 말.")]
+            public string prefixTextId;
+
+            [Tooltip("빈칸 뒤의 말.")]
+            public string suffixTextId;
+
+            [Tooltip("빈칸이 비었을 때 흐리게 보이는 안내. 답을 알려 주지 않는다.")]
+            public string hintTextId;
+
+            [Tooltip("대표 정답. 다 맞힌 뒤 보고서와 메모장에 이 말을 쓰지 않고 플레이어가 적은 글을 쓴다. 검수용이다.")]
+            public string answerTextId;
+
+            [Tooltip("그대로 받아 주는 답(한국어, 영어 섞어 둔다). 정리한 뒤 견준다.")]
+            public List<string> acceptedAnswers = new List<string>();
+
+            [Tooltip("핵심어 묶음. 한 줄이 한 묶음이고 | 로 바꿔 쓸 말을 나눈다. 모든 묶음에서 하나씩은 들어 있어야 한다.")]
+            public List<string> keywordGroups = new List<string>();
+
+            [Tooltip("이 말이 들어 있으면 핵심어가 맞아도 틀린 것으로 본다. 반대 뜻을 거르는 데 쓴다.")]
+            public List<string> rejectKeywords = new List<string>();
+        }
+
         [SerializeField] private string _caseId;
 
         [SerializeField] private List<FieldClue> _fieldClues = new List<FieldClue>();
         [SerializeField] private List<Analysis> _analyses = new List<Analysis>();
         [SerializeField] private List<Question> _questions = new List<Question>();
+
+        [Tooltip("조사 보고서 문장 속 빈칸들. 플레이어가 직접 적어 넣는다. 비워 두면 결론을 늘어놓는 문서만 보인다.")]
+        [SerializeField] private List<ReportBlank> _reportBlanks = new List<ReportBlank>();
 
         [Tooltip("보고서 머리의 문서 번호. 예: ULB-2026-001.")]
         [SerializeField] private string _documentNumber;
@@ -83,6 +122,7 @@ namespace UrbanLegendBureau.Data
         public IReadOnlyList<FieldClue> FieldClues => _fieldClues;
         public IReadOnlyList<Analysis> Analyses => _analyses;
         public IReadOnlyList<Question> Questions => _questions;
+        public IReadOnlyList<ReportBlank> ReportBlanks => _reportBlanks;
         public string DocumentNumber => _documentNumber;
         public string SummaryTextId => _summaryTextId;
 

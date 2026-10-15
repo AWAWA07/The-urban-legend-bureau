@@ -82,5 +82,118 @@ MonoBehaviour:
     - clue_subway_008
     evidenceAnalysisIds:
     - analysis_subway_b
+  _reportBlanks:
+  - blankId: verdict
+    answerType: 0
+    prefixTextId: report.subway.verdict.prefix
+    suffixTextId: report.subway.verdict.suffix
+    hintTextId: report.subway.verdict.hint
+    answerTextId: report.subway.verdict.answer
+    acceptedAnswers:
+    - "\uBC18\uCBE4 \uC9C4\uC9DC"
+    - "\uBC18\uCBE4 \uC9C4\uC9DC\uB2E4"
+    - "\uBC18\uCBE4 \uC9C4\uC9DC\uC774\uB2E4"
+    - "\uBC18\uC740 \uC9C4\uC9DC"
+    - "\uC808\uBC18\uC740 \uC9C4\uC9DC"
+    - "\uD575\uC2EC \uD604\uC0C1\uC740 \uC2E4\uC7AC\uD558\uC9C0\uB9CC \uD37C\uC9C4
+      \uAD34\uB2F4\uC5D0\uB294 \uB098\uC911\uC5D0 \uB367\uBD99\uC740 \uAC70\uC9D3
+      \uC815\uBCF4\uAC00 \uC11E\uC5EC \uC788\uB2E4"
+    - "\uD575\uC2EC \uD604\uC0C1\uC740 \uC2E4\uC7AC\uD558\uC9C0\uB9CC \uD37C\uC9C4
+      \uC774\uC57C\uAE30\uC5D0\uB294 \uAC70\uC9D3\uC774 \uC11E\uC5EC \uC788\uB2E4"
+    - "\uC2E4\uC81C \uD604\uC0C1\uC774 \uC874\uC7AC\uD558\uB294 \uAC83"
+    - "\uC2E4\uC81C \uD604\uC0C1\uC774 \uC874\uC7AC\uD558\uB294 \uAC83\uC73C\uB85C
+      \uBCF4\uC778\uB2E4"
+    - half true
+    - half-true
+    - partly true
+    - partly real
+    keywordGroups:
+    - "\uBC18\uCBE4|\uC808\uBC18|\uBC18\uC740|\uC77C\uBD80|\uBD80\uBD84|half|partly|partial"
+    rejectKeywords:
+    - "\uC5C6\uB2E4"
+    - "\uC544\uB2C8"
+    - "\uAC00\uC9DC\uC77C"
+    - "\uC804\uBD80\uC9C4\uC9DC"
+    - "\uC804\uBD80\uC0AC\uC2E4"
+    - "\uBAA8\uB450\uC0AC\uC2E4"
+    - "\uCC29\uAC01"
+    - fake
+    - notreal
+    - alltrue
+    - nothing
+  - blankId: rule
+    answerType: 1
+    prefixTextId: report.subway.rule.prefix
+    suffixTextId: report.subway.rule.suffix
+    hintTextId: report.subway.rule.hint
+    answerTextId: report.subway.rule.answer
+    acceptedAnswers:
+    - "\uC606\uC790\uB9AC\uC758 \uD604\uC0C1\uC740 \uACE0\uAC1C\uB97C \uB3CC\uB824
+      \uC9C1\uC811 \uD655\uC778\uD55C \uC0AC\uB78C\uC5D0\uAC8C\uB9CC \uB0A8\uB294\uB2E4"
+    - "\uC606\uC790\uB9AC\uC758 \uAE30\uCC99\uC744 \uB290\uB080 \uB4A4 \uACE0\uAC1C\uB97C
+      \uB3CC\uB824 \uC9C1\uC811 \uD655\uC778\uD558\uB294 \uD589\uB3D9"
+    - "\uAE30\uCC99\uC744 \uB290\uB07C\uACE0 \uACE0\uAC1C\uB97C \uB3CC\uB824 \uC9C1\uC811
+      \uD655\uC778\uD558\uB294 \uAC83"
+    - the thing in the next seat stays only with those who turn and look
+    keywordGroups:
+    - "\uACE0\uAC1C|\uB3CC\uC544|\uB3CC\uB824|\uB3CC\uB9AC|\uB4A4\uB3CC|turn|lookback"
+    - "\uD655\uC778|\uBCF4|\uBD24|\uCCD0\uB2E4|look|check|see"
+    rejectKeywords:
+    - "\uD655\uC778\uD558\uC9C0\uC54A"
+    - "\uBCF4\uC9C0\uC54A"
+    - "\uB3CC\uB9AC\uC9C0\uC54A"
+    - "\uB3CC\uC544\uBCF4\uC9C0\uC54A"
+    - "\uC549\uC73C\uBA74"
+    - "\uC549\uB294"
+    - notturn
+    - dontturn
+    - sit
+  - blankId: counter
+    answerType: 2
+    prefixTextId: report.subway.counter.prefix
+    suffixTextId: report.subway.counter.suffix
+    hintTextId: report.subway.counter.hint
+    answerTextId: report.subway.counter.answer
+    acceptedAnswers:
+    - "\uAE30\uCC99\uC774 \uB4E4\uC5B4\uB3C4 \uC18C\uB9AC\uAC00 \uB098\uB294 \uCABD\uC73C\uB85C
+      \uACE0\uAC1C\uB97C \uB3CC\uB824 \uC9C1\uC811 \uD655\uC778\uD558\uC9C0 \uC54A\uB294\uB2E4"
+    - "\uAE30\uCC99\uC774 \uB290\uAEF4\uC838\uB3C4 \uACE0\uAC1C\uB97C \uB3CC\uB824
+      \uC9C1\uC811 \uD655\uC778\uD558\uC9C0 \uC54A\uB294\uB2E4"
+    - "\uACE0\uAC1C\uB97C \uB3CC\uB9AC\uC9C0 \uC54A\uB294\uB2E4"
+    - "\uB3CC\uC544\uBCF4\uC9C0 \uC54A\uB294\uB2E4"
+    - do not turn your head to look
+    - dont turn around
+    - never look
+    keywordGroups:
+    - "\uACE0\uAC1C|\uB3CC\uC544|\uB3CC\uB824|\uB3CC\uB9AC|\uB4A4\uB3CC|\uCCD0\uB2E4|turn|look"
+    - "\uC54A|\uB9D0|\uAE08\uC9C0|\uD558\uC9C0\uB9C8|dont|donot|never|avoid|without"
+    rejectKeywords:
+    - "\uC62E\uAE30"
+    - "\uC62E\uACA8"
+    - "\uC774\uB3D9"
+    - "\uCC3D\uBB38"
+    - "\uAE68"
+    - "\uB208\uC744\uAC10"
+    - "\uC549"
+    - move
+    - window
+    - closeyour
+  - blankId: target
+    answerType: 3
+    prefixTextId: report.subway.target.prefix
+    suffixTextId: report.subway.target.suffix
+    hintTextId: report.subway.target.hint
+    answerTextId: report.subway.target.answer
+    acceptedAnswers:
+    - "[\uC815\uB9AC] \uB9C9\uCC28 \uAD34\uB2F4 \uADDC\uCE59 \uCD1D\uC815\uB9AC"
+    - "\uB9C9\uCC28 \uAD34\uB2F4 \uADDC\uCE59 \uCD1D\uC815\uB9AC"
+    - "\uC815\uB9AC \uB9C9\uCC28 \uAD34\uB2F4 \uADDC\uCE59 \uCD1D\uC815\uB9AC"
+    - '[Summary] Last train rules, all in one place'
+    - Last train rules, all in one place
+    - last train rules all in one place
+    keywordGroups:
+    - "\uCD1D\uC815\uB9AC|summary|allinoneplace"
+    - "\uADDC\uCE59|rule"
+    rejectKeywords: []
   _documentNumber: ULB-2026-001
   _summaryTextId: deduce.subway.summary

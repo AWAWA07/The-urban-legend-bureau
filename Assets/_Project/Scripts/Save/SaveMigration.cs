@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 8;
+        public const int CurrentVersion = 9;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -119,6 +119,14 @@ namespace UrbanLegendBureau.Save
                 data.solvedDeductions ??= new System.Collections.Generic.List<string>();
                 data.confirmedReports ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 8;
+            }
+
+            if (data.saveVersion == 8)
+            {
+                // v9에서 보고서 빈칸에 적던 글(reportInputs)이 추가됐다. 구버전 저장본은 빈칸이 비어 있는 채로 열린다.
+                // 이미 확정한 보고서는 confirmedReports 에 남아 있으니 다시 쓰라고 하지 않는다.
+                data.reportInputs ??= new System.Collections.Generic.List<string>();
+                data.saveVersion = 9;
             }
 
             if (data.saveVersion < CurrentVersion)

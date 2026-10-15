@@ -121,7 +121,7 @@ namespace UrbanLegendBureau.UI
             t.fontStyle = style;
             t.color = color;
             t.alignment = TextAlignmentOptions.TopLeft;
-            t.enableWordWrapping = false;
+            t.textWrappingMode = TextWrappingModes.NoWrap;
             t.overflowMode = TextOverflowModes.Ellipsis;
             t.raycastTarget = false;
             return t;
