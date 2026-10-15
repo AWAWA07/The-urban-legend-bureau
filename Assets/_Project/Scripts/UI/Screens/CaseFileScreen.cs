@@ -29,6 +29,15 @@ namespace UrbanLegendBureau.UI
     {
         public enum Page { Clues, Analyses, Deductions, Analyze, Deduce, Report }
 
+        /// <summary>게시물 기록 한 줄. 제목, 작성자·조회 같은 한 줄, 본문, 이미 열어 본 글인가.</summary>
+        public class PostRecord
+        {
+            public string Title;
+            public string Meta;
+            public string Body;
+            public bool Viewed;
+        }
+
         /// <summary>여는 쪽이 넘겨주는 것들.</summary>
         public class Context
         {
@@ -51,6 +60,9 @@ namespace UrbanLegendBureau.UI
 
             /// <summary>화면이 닫힐 때(닫기 단추, ESC).</summary>
             public Action OnClosed;
+
+            /// <summary>보고서의 게시물 기록 확인에 늘어놓을 글들. 읽기만 한다.</summary>
+            public Func<List<PostRecord>> PostRecords;
         }
 
         [Header("글꼴 (Pretendard)")]
@@ -128,7 +140,7 @@ namespace UrbanLegendBureau.UI
             _detailClueId = null;
             _evidenceKey = null;
             _blankResults.Clear();
-            _reportFeedbackId = null;
+            _reviewed = false;
             if (IsOpen) Refresh();
         }
 
@@ -155,6 +167,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnClose()
         {
+            FlushReportInputs();
             EventBus.Unsubscribe<LanguageChangedEvent>(OnLanguageChanged);
             HideOverlay();
             _save?.AutoSave();
@@ -1248,25 +1261,28 @@ namespace UrbanLegendBureau.UI
 
         // ------------------------------------------------------------- 빈칸 보고서
 
-        /// <summary>빈칸 하나의 화면 조각. 판정 색을 바꿀 때 다시 짓지 않고 이것만 칠한다.</summary>
+        /// <summary>작성란 하나의 화면 조각. 판정 색을 바꿀 때 다시 짓지 않고 이것만 칠한다.</summary>
         private class BlankView
         {
             public CaseDeductionSO.ReportBlank Blank;
+            public RectTransform Section;
             public TMP_InputField Field;
             public Image Back;
             public Image[] Border;
             public TMP_Text Mark;
         }
 
-        private readonly List<BlankView> _blankViews = new List<BlankView>();
+        /// <summary>작성란의 판정. 고쳐 쓰기 시작하면 판정 전으로 돌아간다.</summary>
+        private enum BlankState { Unjudged, Right, Wrong, Empty }
 
-        /// <summary>빈칸마다 마지막 검토 결과. 없으면 아직 검토하지 않았거나 고쳐 쓰는 중이다.</summary>
-        private readonly Dictionary<string, bool> _blankResults = new Dictionary<string, bool>();
+        private readonly List<BlankView> _blankViews = new List<BlankView>();
+        private readonly Dictionary<string, BlankState> _blankResults = new Dictionary<string, BlankState>();
 
         private TMP_Text _reportFeedback;
         private Button _confirmButton;
         private TMP_Text _confirmLabel;
-        private string _reportFeedbackId;
+        private ScrollRect _reportScroll;
+        private bool _reviewed;
 
         private static readonly Color RightColor = Hex("4FA36B");
         private static readonly Color RightBack = Hex("172A1F");
@@ -1275,19 +1291,19 @@ namespace UrbanLegendBureau.UI
         private static readonly Color FieldBack = Hex("141A21");
 
         /// <summary>
-        /// 사건을 정리한 문장들 속 빈칸을 플레이어가 직접 적는 보고서.
+        /// 직접 적어 채우는 조사 보고서.
         ///
-        ///   본 사건의 진위 판정은 [        ] 이다.
-        ///   조사 결과, 이 괴담의 핵심 규칙은 [        ] 이다. ...
+        /// 문서 안의 항목마다 한 섹션이다: 번호와 제목, 설명 한 문장, 그 아래 작성란.
+        /// 작성란 뒤에 말을 잇지 않으므로 답을 명사로 적든 문장으로 적든 문법이 깨지지 않는다.
         ///
-        /// 적는 동안에는 판정하지 않는다. 아래 "보고서 검토"를 누르면 한꺼번에 견주어 맞은 칸은 초록, 틀린 칸은 빨강.
-        /// 정답은 알려 주지 않는다. 다 맞아야 "조사 결과 확정"이 켜진다.
-        /// 적은 글은 칠 때마다 저장본에 남아 껐다 켜도 이어 쓴다.
+        /// 적는 동안에는 판정하지 않는다. "보고서 검토"를 누르면 한꺼번에 견주어
+        /// 맞은 칸은 초록(✓), 틀린 칸은 빨강(×), 비운 칸은 회색(미입력)으로 둔다. 정답은 알려 주지 않는다.
+        /// 다 맞아야 "조사 결과 확정"이 켜진다. 확정하기 전에는 맞은 칸도 고쳐 쓸 수 있다.
+        /// 확정한 뒤에는 작성란 대신 적은 글이 문서 본문처럼 남는다.
         /// </summary>
         private void BuildFillReport(bool confirmed)
         {
             _blankViews.Clear();
-            if (confirmed) foreach (var b in Deduction.ReportBlanks) if (b != null) _blankResults[b.blankId] = true;
 
             var paper = Panel("Paper", _body, PanelColor);
             Place(paper.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(-620f, 150f), new Vector2(620f, 0f));
@@ -1295,8 +1311,11 @@ namespace UrbanLegendBureau.UI
             var band = Box("Band", paper.transform, Bureau);
             Place(band.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -6f), Vector2.zero);
 
-            var scroll = Scroll("Doc", paper.rectTransform, out var doc, 14f, new RectOffset(60, 70, 44, 48));
-            Stretch((RectTransform)scroll.transform);
+            _reportScroll = Scroll("Doc", paper.rectTransform, out var doc, 14f, new RectOffset(60, 74, 44, 56));
+            Stretch((RectTransform)_reportScroll.transform);
+            ((RectTransform)_reportScroll.transform).offsetMax = new Vector2(0f, -6f);   // 위쪽 붉은 띠 아래에서부터 굴러간다
+            EmphasizeScrollbar(_reportScroll);
+            _reportScroll.onValueChanged.AddListener(_ => PaintReportFooter());
 
             var headRow = NewRect("HeadRow", doc);
             Layout(headRow.gameObject, 40f);
@@ -1309,22 +1328,20 @@ namespace UrbanLegendBureau.UI
             stamp.characterSpacing = 3f;
 
             Para(doc, L(T + "report_header"), _bold, 36f, TextMain);
-            Para(doc, L(T + "report_fill_guide"), _regular, 20f, TextSub);
+            if (!confirmed) Para(doc, L(T + "report_fill_guide"), _regular, 20f, TextSub);
             Divider(doc);
 
             ReportSection(doc, L(T + "report_case"), L(_ctx.CaseNameTextId));
 
-            Spacer(doc, 4f);
-            Para(doc, L(T + "report_overview"), _semiBold, 20f, Accent).characterSpacing = 1f;
             for (int i = 0; i < Deduction.ReportBlanks.Count; i++)
             {
                 var blank = Deduction.ReportBlanks[i];
-                if (blank != null) BlankRow(doc, blank, i, confirmed);
+                if (blank == null) continue;
+                if (confirmed) FilledSection(doc, blank, i);
+                else BlankSection(doc, blank, i);
             }
-            Spacer(doc, 6f);
-            Divider(doc);
 
-            // 다 맞혀 확정한 뒤에는 종합 판단을 덧붙인다. 그 전에 보이면 답을 적어 주는 셈이다.
+            // 확정한 뒤에만 종합 판단을 덧붙인다. 그 전에 보이면 답을 적어 주는 셈이다.
             if (confirmed && !string.IsNullOrEmpty(Deduction.SummaryTextId))
             {
                 ReportSection(doc, L(T + "report_summary"), L(Deduction.SummaryTextId), true, _regular, 24f);
@@ -1340,69 +1357,72 @@ namespace UrbanLegendBureau.UI
             }
             ReportSection(doc, L(T + "report_analyses"), analyses.ToString(), true, _medium, 24f);
 
+            // 관련 단서는 번호 순으로 적는다. 자료의 순서(얻는 순서)는 건드리지 않는다.
+            var sorted = CaseNotebook.AcquiredClues(Data, Deduction);
+            sorted.Sort((x, y) => string.CompareOrdinal(ShortId(x.clueId), ShortId(y.clueId)));
             var clues = new StringBuilder();
-            foreach (var clue in CaseNotebook.AcquiredClues(Data, Deduction))
+            foreach (var clue in sorted)
             {
                 if (clues.Length > 0) clues.Append('\n');
                 clues.Append(ShortId(clue.clueId)).Append("   ").Append(_ctx.ClueTitle(clue.clueId));
             }
             ReportSection(doc, L(T + "report_clues"), clues.ToString(), false, _medium, 24f);
 
-            // 아래: 알림 한 줄, 검토 단추와 확정 단추
+            // 아래 고정 줄: 진행 알림 한 줄, 그 아래 단추 셋
             _reportFeedback = Label("Feedback", _body, _semiBold, 21f, TextSub, TextAlignmentOptions.Center);
-            Place(_reportFeedback.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-620f, 100f), new Vector2(620f, 140f));
+            Place(_reportFeedback.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-620f, 100f), new Vector2(620f, 142f));
+            _reportFeedback.overflowMode = TextOverflowModes.Ellipsis;
 
-            var review = MakeButton("Review", _body, Accent, out var reviewLabel, _semiBold, 25f);
-            Place((RectTransform)review.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-370f, 10f), new Vector2(-10f, 86f));
+            var posts = MakeButton("Posts", _body, CardColor, out var postsLabel, _semiBold, 22f);
+            Place((RectTransform)posts.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-560f, 12f), new Vector2(-196f, 86f));
+            postsLabel.text = L(T + "posts_button");
+            Outline(posts.gameObject, Line);
+            posts.onClick.AddListener(ShowPostRecords);
+
+            var review = MakeButton("Review", _body, Accent, out var reviewLabel, _semiBold, 23f);
+            Place((RectTransform)review.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-182f, 12f), new Vector2(182f, 86f));
             reviewLabel.text = L(T + "report_review");
             SetEnabledLook(review, reviewLabel, !confirmed);
             review.onClick.AddListener(ReviewReport);
 
-            _confirmButton = MakeButton("Confirm", _body, Bureau, out _confirmLabel, _semiBold, 25f);
-            Place((RectTransform)_confirmButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(10f, 10f), new Vector2(370f, 86f));
+            _confirmButton = MakeButton("Confirm", _body, Bureau, out _confirmLabel, _semiBold, 23f);
+            Place((RectTransform)_confirmButton.transform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(196f, 12f), new Vector2(560f, 86f));
             _confirmButton.onClick.AddListener(ConfirmFillReport);
 
-            if (confirmed) _reportFeedbackId = T + "report_done";
             PaintReport();
             StartCoroutine(FadeIn(paper.rectTransform, 0.25f));
+            StartCoroutine(RepaintFooterAfterLayout());
+        }
+
+        /// <summary>문서 높이는 배치가 한 번 돈 뒤에야 정해진다. 그때 아래에 칸이 더 남았는지 다시 알린다.</summary>
+        private IEnumerator RepaintFooterAfterLayout()
+        {
+            // 한 프레임으로는 문서 높이가 아직 0 일 때가 있다. 배치가 끝나도록 잠깐 둔다.
+            yield return new WaitForSecondsRealtime(0.1f);
+            PaintReportFooter();
         }
 
         /// <summary>
-        /// 보고서 문장 한 줄. 앞말, 빈칸, 뒷말이 한 줄로 이어진다.
-        /// 빈칸은 남은 폭을 다 쓰고 세 줄까지 줄을 바꾼다. 긴 답이나 영어로 바꿔도 문장 밖으로 넘치지 않는다.
+        /// 작성 중인 섹션 하나. 번호와 제목, 설명 문장, 작성란.
+        /// 작성란은 섹션 폭을 다 쓰고 왼쪽 끝이 늘 같은 자리에서 시작한다.
+        /// 진위와 검열 대상은 한 줄, 규칙과 대처 방법은 여러 줄로 적는다.
         /// </summary>
-        private void BlankRow(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index, bool confirmed)
+        private void BlankSection(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
         {
-            var row = NewRect("Blank_" + blank.blankId, doc);
-            var h = row.gameObject.AddComponent<HorizontalLayoutGroup>();
-            h.spacing = 14f;
-            h.childAlignment = TextAnchor.MiddleLeft;
-            h.childControlWidth = true;
-            h.childControlHeight = true;
-            h.childForceExpandWidth = false;
-            h.childForceExpandHeight = false;
-            h.padding = new RectOffset(0, 0, 6, 6);
+            var section = SectionHead(doc, blank, index);
 
-            var no = Label("No", row, _bold, 19f, Accent, TextAlignmentOptions.MidlineLeft);
-            no.text = (index + 1).ToString("00");
-            Fixed(no.gameObject, 34f);
-
-            SentencePart(row, L(blank.prefixTextId));
-
-            // 빈칸. 어두운 판에 가는 테두리, 오른쪽에 판정 표(✓/×).
-            var fieldRt = NewRect("Field", row);
+            var fieldRt = NewRect("Field", section);
             var back = fieldRt.gameObject.AddComponent<Image>();
             back.color = FieldBack;
             var le = fieldRt.gameObject.AddComponent<LayoutElement>();
-            le.flexibleWidth = 1f;
-            le.minWidth = 260f;
-            le.minHeight = 98f;
-            le.preferredHeight = 98f;
+            float height = blank.multiLine ? 126f : 64f;
+            le.minHeight = height;
+            le.preferredHeight = height;
+
             var border = new Image[4];
-            string[] names = { "Top", "Bottom", "Left", "Right" };
             for (int i = 0; i < 4; i++)
             {
-                border[i] = Box(names[i], fieldRt, Line);
+                border[i] = Box("Edge" + i, fieldRt, Line);
                 var r = border[i].rectTransform;
                 r.anchorMin = i == 0 ? new Vector2(0f, 1f) : i == 3 ? new Vector2(1f, 0f) : Vector2.zero;
                 r.anchorMax = i == 1 ? new Vector2(1f, 0f) : i == 2 ? new Vector2(0f, 1f) : Vector2.one;
@@ -1411,18 +1431,19 @@ namespace UrbanLegendBureau.UI
             }
 
             var area = NewRect("TextArea", fieldRt);
-            Place(area, Vector2.zero, Vector2.one, new Vector2(16f, 8f), new Vector2(-46f, -8f));
+            Place(area, Vector2.zero, Vector2.one, new Vector2(18f, 10f), new Vector2(-96f, -10f));
             area.gameObject.AddComponent<RectMask2D>();
 
-            var placeholder = Label("Placeholder", area, _regular, 21f, TextDim, TextAlignmentOptions.MidlineLeft);
+            var align = blank.multiLine ? TextAlignmentOptions.TopLeft : TextAlignmentOptions.MidlineLeft;
+            var placeholder = Label("Placeholder", area, _regular, 21f, TextDim, align);
             Stretch(placeholder.rectTransform);
             placeholder.text = L(blank.hintTextId);
             placeholder.textWrappingMode = TextWrappingModes.Normal;
             placeholder.fontStyle = FontStyles.Italic;
 
-            var text = Label("Text", area, _medium, 23f, TextMain, TextAlignmentOptions.MidlineLeft);
+            var text = Label("Text", area, _medium, 23f, TextMain, align);
             Stretch(text.rectTransform);
-            text.textWrappingMode = TextWrappingModes.Normal;
+            text.textWrappingMode = blank.multiLine ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
 
             var field = fieldRt.gameObject.AddComponent<TMP_InputField>();
             field.textViewport = area;
@@ -1430,11 +1451,13 @@ namespace UrbanLegendBureau.UI
             field.placeholder = placeholder;
             field.fontAsset = text.font;
             field.pointSize = 23f;
-            field.lineType = TMP_InputField.LineType.MultiLineSubmit;
-            field.characterLimit = 120;
+            // 엔터는 줄을 바꾸지 않고 다음 칸으로 넘긴다. 여러 줄 칸은 폭에 맞춰 저절로 줄을 바꾼다.
+            field.lineType = blank.multiLine ? TMP_InputField.LineType.MultiLineSubmit : TMP_InputField.LineType.SingleLine;
+            field.characterLimit = blank.multiLine ? 120 : 60;
             field.richText = false;
             field.caretColor = Accent;
             field.customCaretColor = true;
+            field.caretWidth = 2;
             field.selectionColor = new Color(Accent.r, Accent.g, Accent.b, 0.35f);
             field.targetGraphic = back;
             var colors = field.colors;
@@ -1444,78 +1467,85 @@ namespace UrbanLegendBureau.UI
             colors.colorMultiplier = 1f;
             field.colors = colors;
             field.SetTextWithoutNotify(CaseNotebook.GetInput(Data, Deduction.CaseId, blank.blankId));
-            field.interactable = !confirmed;
 
-            var mark = Label("Mark", fieldRt, _bold, 24f, TextDim, TextAlignmentOptions.Center);
-            Place(mark.rectTransform, new Vector2(1f, 0.5f), new Vector2(1f, 0.5f), new Vector2(-42f, -18f), new Vector2(-8f, 18f));
+            var mark = Label("Mark", fieldRt, _bold, 20f, TextDim, TextAlignmentOptions.MidlineRight);
+            Place(mark.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-90f, -46f), new Vector2(-16f, -14f));
 
-            var view = new BlankView { Blank = blank, Field = field, Back = back, Border = border, Mark = mark };
+            var view = new BlankView { Blank = blank, Section = section, Field = field, Back = back, Border = border, Mark = mark };
             _blankViews.Add(view);
 
             string id = blank.blankId;
             field.onValueChanged.AddListener(value =>
             {
-                // 적는 대로 저장본에 남긴다. 고쳐 쓰기 시작하면 그 칸의 판정 색은 지운다.
+                // 적는 대로 저장본(메모리)에 옮겨 둔다. 파일로 쓰는 것은 칸을 떠날 때, 화면을 닫을 때, 앱이 멈출 때다.
+                // 고쳐 쓰기 시작하면 그 칸은 판정 전으로 돌아간다.
                 CaseNotebook.SetInput(Data, Deduction.CaseId, id, value);
                 _save?.MarkDirty();
-                if (_blankResults.Remove(id))
-                {
-                    _reportFeedbackId = null;
-                    PaintReport();
-                }
+                if (_blankResults.Remove(id)) PaintReport();
+                else PaintReportFooter();
             });
             field.onEndEdit.AddListener(_ => _save?.AutoSave());
-
-            SentencePart(row, L(blank.suffixTextId));
+            field.onSubmit.AddListener(_ => FocusBlank(_blankViews.IndexOf(view) + 1));
         }
 
-        /// <summary>문장의 앞말·뒷말. 짧으면 한 줄, 길면 정해 둔 폭 안에서 줄을 바꾼다.</summary>
-        private void SentencePart(RectTransform row, string text)
+        /// <summary>섹션 머리: "01  진위 판정" 과 설명 한 문장. 작성란은 이 아래에 붙는다.</summary>
+        private RectTransform SectionHead(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
         {
-            if (string.IsNullOrEmpty(text)) return;
-            var part = Label("Part", row, _medium, 25f, TextMain, TextAlignmentOptions.MidlineLeft);
-            part.text = text;
-            float width = Mathf.Min(part.GetPreferredValues(text, 2000f, 40f).x + 4f, 360f);
-            part.textWrappingMode = TextWrappingModes.Normal;
-            Fixed(part.gameObject, width);
+            var section = NewRect("Section_" + blank.blankId, doc);
+            var v = section.gameObject.AddComponent<VerticalLayoutGroup>();
+            v.spacing = 10f;
+            v.padding = new RectOffset(0, 0, 10, 14);
+            v.childControlHeight = true;
+            v.childControlWidth = true;
+            v.childForceExpandHeight = false;
+
+            Para(section, "<color=#" + ColorUtility.ToHtmlStringRGB(Bureau) + ">" + (index + 1).ToString("00") + "</color>   " + L(blank.titleTextId),
+                _bold, 24f, TextMain).characterSpacing = 1f;
+            Para(section, L(blank.prefixTextId), _regular, 22f, TextSub, 4f);
+            return section;
         }
 
-        private static void Fixed(GameObject go, float width)
+        /// <summary>확정한 뒤의 섹션. 작성란 대신 적은 글이 본문처럼 남고, 끝에 작은 ✓ 만 붙는다.</summary>
+        private void FilledSection(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
         {
-            var le = Ensure<LayoutElement>(go);
-            le.minWidth = width;
-            le.preferredWidth = width;
-            le.flexibleWidth = 0f;
+            var section = SectionHead(doc, blank, index);
+            string typed = CaseNotebook.GetInput(Data, Deduction.CaseId, blank.blankId).Trim();
+            Para(section, typed + "  <size=80%><color=#" + ColorUtility.ToHtmlStringRGB(RightColor) + ">✓</color></size>", _medium, 26f, TextMain, 6f);
+            Divider(doc);
+        }
+
+        /// <summary>보고서 안의 스크롤 막대를 조금 더 굵고 밝게. 아래에 쓸 칸이 남았다는 것이 보여야 한다.</summary>
+        private static void EmphasizeScrollbar(ScrollRect scroll)
+        {
+            var bar = scroll.verticalScrollbar;
+            if (bar == null) return;
+            var rt = (RectTransform)bar.transform;
+            rt.sizeDelta = new Vector2(8f, -16f);
+            ((Image)bar.GetComponent<Image>()).color = new Color(1f, 1f, 1f, 0.07f);
+            if (bar.targetGraphic is Image handle) handle.color = Hex("6E8496");
+            scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
         }
 
         /// <summary>빈칸들의 색과 아래 알림, 확정 단추를 지금 판정대로 칠한다. 다시 짓지 않는다(적고 있는 칸의 커서를 지키려고).</summary>
         private void PaintReport()
         {
-            bool confirmed = CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId);
             foreach (var v in _blankViews)
             {
                 if (v == null || v.Field == null) continue;
-                bool known = _blankResults.TryGetValue(v.Blank.blankId, out bool ok);
-                Color edge = !known ? Line : ok ? RightColor : WrongColor;
-                v.Back.color = !known ? FieldBack : ok ? RightBack : WrongBack;
+                _blankResults.TryGetValue(v.Blank.blankId, out var state);
+                Color edge = state == BlankState.Right ? RightColor : state == BlankState.Wrong ? WrongColor : Line;
+                v.Back.color = state == BlankState.Right ? RightBack : state == BlankState.Wrong ? WrongBack : FieldBack;
                 foreach (var b in v.Border) b.color = edge;
-                v.Mark.text = !known ? string.Empty : ok ? "✓" : "×";
-                v.Mark.color = edge;
+                v.Mark.text = state == BlankState.Right ? "✓" : state == BlankState.Wrong ? "×" : state == BlankState.Empty ? L(T + "report_blank_empty") : string.Empty;
+                v.Mark.color = state == BlankState.Empty ? TextDim : edge;
+                v.Mark.fontSize = state == BlankState.Empty ? 17f : 24f;
             }
 
-            bool allRight = AllBlanksRight();
-            if (_reportFeedback != null)
-            {
-                _reportFeedback.text = string.IsNullOrEmpty(_reportFeedbackId) ? L(T + "report_fill_hint") : L(_reportFeedbackId);
-                _reportFeedback.color = _reportFeedbackId == T + "report_wrong" ? WrongColor
-                    : _reportFeedbackId == T + "report_done" || _reportFeedbackId == T + "report_complete" ? RightColor
-                    : _reportFeedbackId == T + "report_empty" ? Soft : TextDim;
-            }
-
+            bool confirmed = CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId);
             if (_confirmButton != null)
             {
                 _confirmLabel.text = confirmed ? "✓  " + L(T + "confirmed") : L(T + "confirm");
-                if (confirmed || !allRight) SetEnabledLook(_confirmButton, _confirmLabel, false);
+                if (confirmed || !AllBlanksRight()) SetEnabledLook(_confirmButton, _confirmLabel, false);
                 else
                 {
                     _confirmButton.interactable = true;
@@ -1523,51 +1553,272 @@ namespace UrbanLegendBureau.UI
                     _confirmLabel.color = TextMain;
                 }
             }
+            PaintReportFooter();
+        }
+
+        /// <summary>
+        /// 아래 한 줄. 확정 뒤에는 "조사 보고서 확정 완료", 다 맞으면 완성 알림,
+        /// 검토 뒤에는 "정답 2/4 · 수정 필요 1 · 미입력 1", 그 전에는 "작성 3/4" 와 아래에 칸이 남았다는 안내.
+        /// </summary>
+        private void PaintReportFooter()
+        {
+            if (_reportFeedback == null || Deduction == null) return;
+            int total = Deduction.ReportBlanks.Count;
+
+            if (CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId))
+            {
+                _reportFeedback.text = "✓  " + L(T + "report_confirmed_done");
+                _reportFeedback.color = RightColor;
+                return;
+            }
+
+            int right = 0, wrong = 0, empty = 0, written = 0;
+            foreach (var v in _blankViews)
+            {
+                if (v?.Field == null) continue;
+                if (CaseNotebook.Normalize(v.Field.text).Length > 0) written++;
+                _blankResults.TryGetValue(v.Blank.blankId, out var state);
+                if (state == BlankState.Right) right++;
+                else if (state == BlankState.Wrong) wrong++;
+                else if (state == BlankState.Empty) empty++;
+            }
+
+            if (AllBlanksRight())
+            {
+                _reportFeedback.text = L(T + "report_all_right", total);
+                _reportFeedback.color = RightColor;
+                return;
+            }
+
+            if (_reviewed && right + wrong + empty > 0)
+            {
+                _reportFeedback.text = L(T + "report_progress", right, total, wrong, empty);
+                _reportFeedback.color = wrong > 0 ? WrongColor : Soft;
+                return;
+            }
+
+            // 아직 검토하지 않았다. 몇 칸을 적었는지, 아래에 더 있는지만 알린다.
+            bool more = _reportScroll != null && _reportScroll.verticalNormalizedPosition > 0.03f
+                        && _reportScroll.content.rect.height > ((RectTransform)_reportScroll.transform).rect.height;
+            _reportFeedback.text = L(T + "report_written", written, total) + (more ? "   ▼ " + L(T + "report_more_below") : string.Empty);
+            _reportFeedback.color = TextSub;
         }
 
         private bool AllBlanksRight()
         {
+            if (Deduction.ReportBlanks.Count == 0) return false;
             foreach (var b in Deduction.ReportBlanks)
             {
                 if (b == null) continue;
-                if (!_blankResults.TryGetValue(b.blankId, out bool ok) || !ok) return false;
+                if (!_blankResults.TryGetValue(b.blankId, out var state) || state != BlankState.Right) return false;
             }
-            return Deduction.ReportBlanks.Count > 0;
+            return true;
         }
 
-        /// <summary>보고서 검토. 모든 칸을 한꺼번에 견준다. 틀린 칸이 어디인지만 알리고 정답은 말하지 않는다.</summary>
+        /// <summary>
+        /// 보고서 검토. 모든 칸을 한꺼번에 견준다. 틀린 칸이 어디인지만 알리고 정답은 말하지 않는다.
+        /// 고칠 칸이 있으면 그 칸이 보이도록 문서를 굴린다. 적고 있던 칸에서 커서를 빼앗지는 않는다.
+        /// </summary>
         private void ReviewReport()
         {
             if (CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId)) return;
 
-            int empty = 0, wrong = 0;
+            BlankView firstProblem = null;
             foreach (var v in _blankViews)
             {
                 string input = v.Field != null ? v.Field.text : string.Empty;
-                if (CaseNotebook.Normalize(input).Length == 0) { empty++; _blankResults.Remove(v.Blank.blankId); continue; }
-                bool ok = CaseNotebook.CheckAnswer(v.Blank, input);
-                _blankResults[v.Blank.blankId] = ok;
-                if (!ok) wrong++;
+                BlankState state = CaseNotebook.Normalize(input).Length == 0 ? BlankState.Empty
+                    : CaseNotebook.CheckAnswer(v.Blank, input) ? BlankState.Right : BlankState.Wrong;
+                _blankResults[v.Blank.blankId] = state;
+                if (state != BlankState.Right && firstProblem == null) firstProblem = v;
             }
 
-            _reportFeedbackId = wrong > 0 ? T + "report_wrong" : empty > 0 ? T + "report_empty" : T + "report_complete";
+            _reviewed = true;
             _save?.AutoSave();
             Sfx.PlayVaried("paper_" + UnityEngine.Random.Range(0, 2), 0.5f);
-            Debug.Log($"[CaseFile] 보고서 검토 | 틀림 {wrong} 빈칸 {empty} / {_blankViews.Count}");
             PaintReport();
+            if (firstProblem != null) ScrollToSection(firstProblem.Section);
+
+            Debug.Log("[CaseFile] 보고서 검토 | " + _reportFeedback.text);
+        }
+
+        /// <summary>그 섹션이 문서 창 위쪽에 오도록 굴린다.</summary>
+        private void ScrollToSection(RectTransform section)
+        {
+            if (_reportScroll == null || section == null) return;
+            Canvas.ForceUpdateCanvases();
+            var content = _reportScroll.content;
+            float viewport = ((RectTransform)_reportScroll.transform).rect.height;
+            float over = content.rect.height - viewport;
+            if (over <= 0f) return;
+            float top = -section.anchoredPosition.y - section.rect.height * section.pivot.y - 20f;
+            _reportScroll.verticalNormalizedPosition = 1f - Mathf.Clamp01(top / over);
+        }
+
+        /// <summary>n 번째 작성란으로 옮긴다. 마지막 칸 다음이면 아무 칸에도 두지 않는다. Tab, Shift+Tab, Enter 가 이것을 쓴다.</summary>
+        private void FocusBlank(int index)
+        {
+            if (index < 0 || index >= _blankViews.Count)
+            {
+                UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
+                return;
+            }
+            var field = _blankViews[index].Field;
+            if (field == null || !field.interactable) return;
+            field.Select();
+            field.ActivateInputField();
+            ScrollToSection(_blankViews[index].Section);
+        }
+
+        private void Update()
+        {
+            // 작성란 사이를 Tab / Shift+Tab 으로 오간다. TMP 입력란은 스스로 하지 않는다.
+            if (_blankViews.Count == 0) return;
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            if (keyboard == null || !keyboard.tabKey.wasPressedThisFrame) return;
+
+            for (int i = 0; i < _blankViews.Count; i++)
+            {
+                if (_blankViews[i].Field == null || !_blankViews[i].Field.isFocused) continue;
+                bool back = keyboard.shiftKey.isPressed;
+                FocusBlank(back ? Mathf.Max(0, i - 1) : i + 1);
+                return;
+            }
+        }
+
+        /// <summary>
+        /// 적고 있던 글을 빠짐없이 저장본에 옮기고 파일로 쓴다. 화면을 닫을 때, 앱이 멈추거나 가려질 때 부른다.
+        /// 한글을 조합하는 중이면 아직 칸에 들어가지 않은 글자(조합 중인 글자)도 함께 붙여 둔다.
+        /// </summary>
+        private void FlushReportInputs()
+        {
+            if (Deduction == null || _blankViews.Count == 0) return;
+            string composing = null;
+            var module = UnityEngine.EventSystems.EventSystem.current != null ? UnityEngine.EventSystems.EventSystem.current.currentInputModule : null;
+            if (module != null && module.input != null) composing = module.input.compositionString;
+
+            foreach (var v in _blankViews)
+            {
+                if (v?.Field == null) continue;
+                string text = v.Field.text;
+                if (v.Field.isFocused && !string.IsNullOrEmpty(composing)) text += composing;
+                CaseNotebook.SetInput(Data, Deduction.CaseId, v.Blank.blankId, text);
+            }
+            _save?.MarkDirty();
+            _save?.AutoSave();
+        }
+
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused && IsOpen) FlushReportInputs();
+        }
+
+        private void OnApplicationFocus(bool focused)
+        {
+            if (!focused && IsOpen) FlushReportInputs();
         }
 
         private void ConfirmFillReport()
         {
             if (CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId) || !AllBlanksRight()) return;
 
+            FlushReportInputs();
             CaseNotebook.ConfirmReport(Data, Deduction.CaseId);
             _save?.MarkDirty();
             _save?.AutoSave();
-            _reportFeedbackId = T + "report_done";
             Debug.Log("[CaseFile] 조사 결과 확정 | " + Deduction.CaseId);
             Refresh();
             _ctx.OnConfirm?.Invoke();
+        }
+
+        // ------------------------------------------------------------- 게시물 기록
+
+        /// <summary>
+        /// 게시물 기록 확인. 이 괴담에 관한 게시물을 읽기만 하는 창을 보고서 위에 띄운다.
+        /// 글을 새로 쓰거나 검열하지 않고, 시간·믿음도·확산도도 바뀌지 않는다.
+        /// 보고서는 다시 짓지 않으므로 적던 글과 커서 자리는 그대로 남는다.
+        /// </summary>
+        private void ShowPostRecords()
+        {
+            FlushReportInputs();
+            var records = _ctx.PostRecords != null ? _ctx.PostRecords() : new List<PostRecord>();
+            _postIndex = Mathf.Clamp(_postIndex, 0, Mathf.Max(0, records.Count - 1));
+            BuildPostOverlay(records);
+        }
+
+        private int _postIndex;
+
+        private void BuildPostOverlay(List<PostRecord> records)
+        {
+            HideOverlay();
+
+            var dim = NewRect("Posts", (RectTransform)transform);
+            Stretch(dim);
+            dim.gameObject.AddComponent<Image>().color = new Color(0f, 0f, 0f, 0.66f);
+            _overlay = dim.gameObject.AddComponent<CanvasGroup>();
+
+            var panel = Panel("Panel", dim, PanelColor);
+            Place(panel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-760f, -420f), new Vector2(760f, 420f));
+            Outline(panel.gameObject, Line);
+            var top = Box("Top", panel.transform, Accent);
+            Place(top.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -5f), Vector2.zero);
+
+            var head = Label("Head", panel.rectTransform, _bold, 30f, TextMain, TextAlignmentOptions.TopLeft);
+            Place(head.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(40f, -76f), new Vector2(-260f, -30f));
+            head.text = L(T + "posts_title");
+            var sub = Label("Sub", panel.rectTransform, _regular, 19f, TextSub, TextAlignmentOptions.TopLeft);
+            Place(sub.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(40f, -110f), new Vector2(-260f, -78f));
+            sub.text = L(T + "posts_hint");
+
+            var back = MakeButton("Back", panel.rectTransform, CardColor, out var backLabel, _semiBold, 21f);
+            Place((RectTransform)back.transform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-250f, -86f), new Vector2(-30f, -30f));
+            backLabel.text = L(T + "posts_back");
+            Outline(back.gameObject, Line);
+            back.onClick.AddListener(HideOverlay);
+
+            // 왼쪽 목록
+            var listScroll = Scroll("List", panel.rectTransform, out var list, 8f, new RectOffset(0, 18, 0, 10));
+            Place((RectTransform)listScroll.transform, new Vector2(0f, 0f), new Vector2(0f, 1f), new Vector2(30f, 30f), new Vector2(560f, -130f));
+
+            if (records.Count == 0)
+            {
+                Para(list, L(T + "posts_empty"), _regular, 21f, TextDim);
+            }
+
+            for (int i = 0; i < records.Count; i++)
+            {
+                var r = records[i];
+                bool on = i == _postIndex;
+                var item = MakeButton("Post_" + i, list, on ? CardHover : CardColor, out var itemLabel, _semiBold, 21f);
+                Layout(item.gameObject, 84f);
+                if (on) Outline(item.gameObject, Accent);
+                Place(itemLabel.rectTransform, new Vector2(0f, 0.5f), new Vector2(1f, 1f), new Vector2(20f, -2f), new Vector2(-18f, -8f));
+                itemLabel.alignment = TextAlignmentOptions.BottomLeft;
+                itemLabel.text = r.Title;
+                itemLabel.overflowMode = TextOverflowModes.Ellipsis;
+                var meta = Label("Meta", item.transform, _regular, 16f, r.Viewed ? Accent : TextDim, TextAlignmentOptions.TopLeft);
+                Place(meta.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0.5f), new Vector2(20f, 6f), new Vector2(-18f, -4f));
+                meta.text = (r.Viewed ? L(T + "posts_viewed") + "  ·  " : string.Empty) + r.Meta;
+                meta.overflowMode = TextOverflowModes.Ellipsis;
+                int captured = i;
+                item.onClick.AddListener(() => { _postIndex = captured; BuildPostOverlay(records); });
+            }
+
+            // 오른쪽 본문
+            var reader = Panel("Reader", panel.rectTransform, Hex("141A21"));
+            Place(reader.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(586f, 30f), new Vector2(-30f, -130f));
+            if (records.Count > 0)
+            {
+                var r = records[_postIndex];
+                var readScroll = Scroll("Body", reader.rectTransform, out var body, 12f, new RectOffset(32, 40, 28, 28));
+                Stretch((RectTransform)readScroll.transform);
+                Para(body, r.Title, _bold, 28f, TextMain);
+                Para(body, r.Meta, _regular, 18f, TextSub);
+                Divider(body);
+                Para(body, r.Body, _regular, 22f, TextMain, 10f);
+            }
+
+            StartCoroutine(PopIn(panel.rectTransform, _overlay, 0.25f));
         }
 
         private void ReportSection(RectTransform doc, string head, string body, bool divider = true, TMP_FontAsset font = null, float size = 27f)

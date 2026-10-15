@@ -3720,6 +3720,7 @@ namespace UrbanLegendBureau.Systems
                 FieldClosed = FieldClosed,
                 OnAllSolved = OnCaseFileAllSolved,
                 OnConfirm = OnCaseFileConfirmed,
+                PostRecords = BuildPostRecords,
             }, page);
 
             if (_ui.Contains(_caseFileScreen)) _caseFileScreen.Refresh();
@@ -3774,25 +3775,81 @@ namespace UrbanLegendBureau.Systems
 
         private const string ReportConfirmedTextId = "tutorial.field.report_confirmed";
 
+        /// <summary>
+        /// 보고서의 게시물 기록 확인에 늘어놓을 글. 읽기만 한다(열람 기록, 시간, 확산, 믿음 모두 그대로).
+        ///   괴담넷 게시판에 올라와 있던 이 괴담의 글(튜토리얼에서 읽는 그 게시판)
+        ///   이 괴담을 실어 나르는 인터넷 조사 자료(LegendSO.WebPages)
+        /// 이미 열어 본 글을 앞에 둔다. 같은 글은 한 번만 적는다.
+        /// </summary>
+        private List<CaseFileScreen.PostRecord> BuildPostRecords()
+        {
+            var list = new List<CaseFileScreen.PostRecord>();
+            var seen = new HashSet<string>();
+
+            foreach (var entry in GetNetBoard())
+            {
+                if (entry == null || entry.IsPlayerPost) continue;
+                bool hot = _tutorial != null && entry.Page != null && entry.Page == _tutorial.HotPage;
+                if (!hot && entry.LegendId != _legendId) continue;
+
+                string body = entry.Page != null ? _loc.Get(entry.Page.BodyTextId)
+                    : !string.IsNullOrEmpty(entry.BodyTextId) ? _loc.Get(entry.BodyTextId) : string.Empty;
+                string author = !string.IsNullOrEmpty(entry.AuthorTextId) ? _loc.Get(entry.AuthorTextId) : string.Empty;
+                bool viewed = hot || (entry.Page != null && _internet != null && _internet.IsPageViewed(_save.Current, entry.Page.PageId));
+
+                list.Add(new CaseFileScreen.PostRecord
+                {
+                    Title = _loc.Get(entry.TitleTextId),
+                    Meta = _loc.Get(PostMetaBoardTextId, author, entry.Views),
+                    Body = body,
+                    Viewed = viewed,
+                });
+                seen.Add(entry.TitleTextId);
+            }
+
+            if (_legend != null)
+            {
+                foreach (var page in _legend.WebPages)
+                {
+                    if (page == null || seen.Contains(page.TitleTextId)) continue;
+                    list.Add(new CaseFileScreen.PostRecord
+                    {
+                        Title = _loc.Get(page.TitleTextId),
+                        Meta = _loc.Get(PostMetaResearchTextId),
+                        Body = _loc.Get(page.BodyTextId),
+                        Viewed = _internet != null && _internet.IsPageViewed(_save.Current, page.PageId),
+                    });
+                    seen.Add(page.TitleTextId);
+                }
+            }
+
+            // 열어 본 글을 앞으로. 같은 무리 안에서는 원래 순서를 지킨다.
+            var ordered = new List<CaseFileScreen.PostRecord>();
+            ordered.AddRange(list.FindAll(r => r.Viewed));
+            ordered.AddRange(list.FindAll(r => !r.Viewed));
+            return ordered;
+        }
+
+        private const string PostMetaBoardTextId = "ui.casefile.posts_meta_board";
+        private const string PostMetaResearchTextId = "ui.casefile.posts_meta_research";
+
         /// <summary>메모장에 남길 보고서. 확정한 결론을 칸 이름과 함께 적는다.</summary>
         private string BuildCaseFileReportNote()
         {
             var sb = new StringBuilder();
             sb.Append(_loc.Get(ReportNoteTitleTextId, _case != null ? _loc.Get(_case.CaseNameTextId) : string.Empty));
 
-            // 빈칸 보고서면 플레이어가 직접 적어 넣은 문장을 그대로 옮겨 적는다.
+            // 직접 적는 보고서면 항목 제목 아래에 플레이어가 적은 글을 원문 그대로(판정용으로 정리하지 않은 글) 옮긴다.
+            // 제목과 글을 줄로 나눠 적으므로 앞뒤 말과 이어 붙어 문법이 깨지는 일이 없다.
             if (Deduction.ReportBlanks.Count > 0)
             {
-                sb.Append('\n');
-                foreach (var blank in Deduction.ReportBlanks)
+                for (int i = 0; i < Deduction.ReportBlanks.Count; i++)
                 {
+                    var blank = Deduction.ReportBlanks[i];
                     if (blank == null) continue;
                     string typed = CaseNotebook.GetInput(_save.Current, _caseId, blank.blankId).Trim();
-                    sb.Append('\n').Append(_loc.Get(blank.prefixTextId)).Append(' ').Append(typed);
-                    string suffix = _loc.Get(blank.suffixTextId);
-                    // 뒷말이 마침표나 "인 ..."(반쯤 진짜인 것으로)처럼 앞말에 붙는 꼴이면 띄우지 않는다.
-                    bool attach = suffix.StartsWith(".") || suffix.StartsWith("인");
-                    if (!string.IsNullOrEmpty(suffix)) sb.Append(attach ? string.Empty : " ").Append(suffix);
+                    sb.Append("\n\n").Append((i + 1).ToString("00")).Append(' ').Append(_loc.Get(blank.titleTextId));
+                    sb.Append('\n').Append(typed);
                 }
                 sb.Append("\n\n").Append(_loc.Get(ReportNoteFooterTextId, BuildTimeLine()));
                 return sb.ToString();

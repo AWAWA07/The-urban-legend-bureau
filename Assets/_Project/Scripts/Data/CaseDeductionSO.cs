@@ -71,9 +71,11 @@ namespace UrbanLegendBureau.Data
         public enum ReportAnswerType { Truth, Rule, Countermeasure, Target }
 
         /// <summary>
-        /// 보고서 문장 속 빈칸 하나. 문장은 앞말 + [빈칸] + 뒷말로 이어진다.
-        /// 플레이어가 직접 적은 글을 정리한 뒤(공백, 문장부호, 대소문자를 뺀다) 허용 답안과 견준다.
-        /// 허용 답안에 없으면 핵심어 묶음을 본다. 묶음마다 하나 이상이 들어 있고 금지어가 없으면 맞다.
+        /// 보고서의 작성란 하나. 문서 안에서 "01 진위 판정 / 설명 문장 / 작성란" 순서로 한 섹션을 이룬다.
+        /// 작성란 뒤에 말을 잇지 않는다. 답이 명사든 문장이든 문법이 깨지지 않게 하기 위해서다.
+        /// 판정은 정리한 글(공백, 문장부호, 괄호, 따옴표, 대소문자를 뺀다)이 허용 답안 하나와 통째로 같을 때만 맞다.
+        /// 허용 답안이 "~" 로 시작하면 짧은 틀이다. 낱말 사이를 띄어 쓰고 [가|나] 는 그중 하나, 뒤에 ? 가 붙으면 없어도 된다.
+        /// 틀도 글 전체가 처음부터 끝까지 맞아야 한다. 핵심어가 들어 있다는 것만으로는 맞히지 않는다(반대 뜻이 섞여 들어오지 않게).
         /// </summary>
         [Serializable]
         public class ReportBlank
@@ -81,11 +83,14 @@ namespace UrbanLegendBureau.Data
             public string blankId;
             public ReportAnswerType answerType;
 
-            [Tooltip("빈칸 앞의 말.")]
+            [Tooltip("섹션 제목. 예: 진위 판정.")]
+            public string titleTextId;
+
+            [Tooltip("작성란 위의 설명 문장. 작성란은 그 아래에 따로 놓이므로 이 문장이 답과 이어 붙지 않는다.")]
             public string prefixTextId;
 
-            [Tooltip("빈칸 뒤의 말.")]
-            public string suffixTextId;
+            [Tooltip("여러 줄로 적는 작성란인가. 규칙과 대처 방법처럼 문장으로 답하는 칸.")]
+            public bool multiLine;
 
             [Tooltip("빈칸이 비었을 때 흐리게 보이는 안내. 답을 알려 주지 않는다.")]
             public string hintTextId;
@@ -93,14 +98,8 @@ namespace UrbanLegendBureau.Data
             [Tooltip("대표 정답. 다 맞힌 뒤 보고서와 메모장에 이 말을 쓰지 않고 플레이어가 적은 글을 쓴다. 검수용이다.")]
             public string answerTextId;
 
-            [Tooltip("그대로 받아 주는 답(한국어, 영어 섞어 둔다). 정리한 뒤 견준다.")]
+            [Tooltip("받아 주는 답(한국어, 영어). 정리한 뒤 통째로 견준다. ~ 로 시작하면 틀이다(위 설명).")]
             public List<string> acceptedAnswers = new List<string>();
-
-            [Tooltip("핵심어 묶음. 한 줄이 한 묶음이고 | 로 바꿔 쓸 말을 나눈다. 모든 묶음에서 하나씩은 들어 있어야 한다.")]
-            public List<string> keywordGroups = new List<string>();
-
-            [Tooltip("이 말이 들어 있으면 핵심어가 맞아도 틀린 것으로 본다. 반대 뜻을 거르는 데 쓴다.")]
-            public List<string> rejectKeywords = new List<string>();
         }
 
         [SerializeField] private string _caseId;

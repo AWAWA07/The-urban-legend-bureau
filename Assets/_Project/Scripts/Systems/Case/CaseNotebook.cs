@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UrbanLegendBureau.Data;
 using UrbanLegendBureau.Save;
@@ -169,47 +170,88 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 빈칸에 적은 글이 맞는가.
-        ///   1. 정리한 글이 허용 답안 하나와 같으면 맞다.
-        ///   2. 아니면 핵심어 묶음을 본다. 묶음마다 바꿔 쓸 말 가운데 하나라도 들어 있고, 금지어가 하나도 없으면 맞다.
-        /// 복잡한 문장 이해는 하지 않는다. 사건 자료에 적어 둔 말만 본다.
+        ///
+        /// 정리한 글이 허용 답안 하나와 처음부터 끝까지 같을 때만 맞다. 일부가 들어 있다는 것으로는 맞히지 않는다.
+        /// "고개를 돌려 확인해도 아무 일 없다" 처럼 핵심어는 다 들어 있지만 뜻이 반대인 글이 맞게 나오지 않게 하려는 것이다.
+        ///
+        /// 허용 답안이 ~ 로 시작하면 틀이다. 낱말을 띄어 쓰고, [가|나] 는 그중 하나, 뒤에 ? 가 붙은 조각은 없어도 된다.
+        ///   ~[반쯤|일부] [진짜|사실] [다|이다]?   →  반쯤진짜, 일부사실이다 ...
+        /// 틀도 글 전체와 맞춰 본다. 조각마다 들어갈 수 있는 말은 자료에 적어 둔 것뿐이다.
+        /// 판정하기 어려운 글은 무리해서 맞히지 않는다. 틀렸다고 알리면 플레이어가 다시 적는다.
         /// </summary>
         public static bool CheckAnswer(CaseDeductionSO.ReportBlank blank, string input)
         {
-            if (blank == null) return false;
+            if (blank == null || blank.acceptedAnswers == null) return false;
             string text = Normalize(input);
             if (text.Length == 0) return false;
 
-            if (blank.acceptedAnswers != null)
+            foreach (var answer in blank.acceptedAnswers)
             {
-                foreach (var answer in blank.acceptedAnswers)
+                if (string.IsNullOrEmpty(answer)) continue;
+                if (answer[0] == '~')
                 {
-                    if (Normalize(answer) == text) return true;
+                    var regex = Pattern(answer);
+                    if (regex != null && regex.IsMatch(text)) return true;
                 }
+                else if (Normalize(answer) == text) return true;
             }
+            return false;
+        }
 
-            if (blank.keywordGroups == null || blank.keywordGroups.Count == 0) return false;
-
-            if (blank.rejectKeywords != null)
+        /// <summary>틀을 조각으로 나눈다. 공백에서 자르되 [ ] 안의 공백은 자르지 않는다("[do not|dont]" 는 한 조각).</summary>
+        private static List<string> Tokens(string pattern)
+        {
+            var tokens = new List<string>();
+            var sb = new System.Text.StringBuilder();
+            int depth = 0;
+            foreach (char c in pattern)
             {
-                foreach (var word in blank.rejectKeywords)
+                if (c == '[') depth++;
+                else if (c == ']') depth = Math.Max(0, depth - 1);
+                if (c == ' ' && depth == 0)
                 {
-                    string w = Normalize(word);
-                    if (w.Length > 0 && text.Contains(w)) return false;
+                    if (sb.Length > 0) { tokens.Add(sb.ToString()); sb.Clear(); }
+                    continue;
                 }
+                sb.Append(c);
             }
+            if (sb.Length > 0) tokens.Add(sb.ToString());
+            return tokens;
+        }
 
-            foreach (var group in blank.keywordGroups)
+        private static readonly Dictionary<string, System.Text.RegularExpressions.Regex> _patterns =
+            new Dictionary<string, System.Text.RegularExpressions.Regex>();
+
+        /// <summary>틀 하나를 정리한 글과 견줄 정규식으로 바꾼다. 한 번 만든 것은 다시 쓴다.</summary>
+        private static System.Text.RegularExpressions.Regex Pattern(string pattern)
+        {
+            if (_patterns.TryGetValue(pattern, out var cached)) return cached;
+
+            var sb = new System.Text.StringBuilder("^");
+            foreach (var raw in Tokens(pattern.Substring(1)))
             {
-                if (string.IsNullOrEmpty(group)) continue;
-                bool any = false;
-                foreach (var alt in group.Split('|'))
+                string token = raw;
+                bool optional = token.EndsWith("?");
+                if (optional) token = token.Substring(0, token.Length - 1);
+                if (token.StartsWith("[") && token.EndsWith("]")) token = token.Substring(1, token.Length - 2);
+
+                var alts = new List<string>();
+                foreach (var alt in token.Split('|'))
                 {
                     string w = Normalize(alt);
-                    if (w.Length > 0 && text.Contains(w)) { any = true; break; }
+                    if (w.Length > 0) alts.Add(System.Text.RegularExpressions.Regex.Escape(w));
                 }
-                if (!any) return false;
+                if (alts.Count == 0) continue;
+                sb.Append("(?:").Append(string.Join("|", alts)).Append(')');
+                if (optional) sb.Append('?');
             }
-            return true;
+            sb.Append('$');
+
+            System.Text.RegularExpressions.Regex regex = null;
+            try { regex = new System.Text.RegularExpressions.Regex(sb.ToString()); }
+            catch (ArgumentException e) { UnityEngine.Debug.LogWarning("[CaseNotebook] 보고서 답안 틀을 읽지 못했다: " + pattern + " | " + e.Message); }
+            _patterns[pattern] = regex;
+            return regex;
         }
 
         // ------------------------------------------------------------- 처음부터

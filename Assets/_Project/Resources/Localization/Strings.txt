@@ -1051,28 +1051,36 @@ ui.casefile.analyze_done_wait	두 분석 기록이 모두 모였다. 현장 조�
 ui.casefile.deduce_wrong_hint	오른쪽 근거 확인에서 단서와 분석 기록을 다시 읽어 보자.	Reread the clues and analyses under Review Evidence on the right.	추론 오답 안내 아래 줄
 ui.casefile.report_summary	종합 판단	Overall assessment	보고서 칸 이름
 ui.casefile.report_scroll	아래로 내리면 관련 단서까지 확인할 수 있다	Scroll down to see the related clues	보고서 스크롤 안내
-deduce.subway.summary	동일 좌석에 대한 반복 신고와 승객 간 진술 차이를 확인하였다. 피해 사례를 비교한 결과, 옆자리의 기척을 고개를 돌려 직접 확인하는 행동이 발동 조건일 가능성이 높은 것으로 판단된다. 창유리로만 확인한 경우와 돌아보지 않은 경우에는 피해가 확인되지 않았다. 다만 인터넷에 퍼진 모든 이야기가 사실로 확인된 것은 아니다.	We confirmed repeated reports about the same seat and conflicting accounts between passengers. Comparing the cases, turning to look directly at the presence in the next seat is most likely the trigger. No harm was found when people only checked the reflection or did not turn around. Not every story spreading online has been confirmed.	보고서 종합 판단
-ui.casefile.report_overview	조사 개요	Investigation Summary	보고서 빈칸 문장 머리
-ui.casefile.report_fill_guide	빈칸을 눌러 조사로 알아낸 내용을 직접 적어 넣으세요. 다 적었으면 보고서 검토를 누릅니다.	Click each blank and type in what the investigation found. When you are done, press Review Report.	보고서 안내
-ui.casefile.report_fill_hint	빈칸을 모두 채우고 보고서를 검토하세요.	Fill every blank, then review the report.	보고서 아래 기본 안내
+deduce.subway.summary	동일 좌석에 대한 반복 신고와 승객 간 진술 차이를 확인하였다. 피해 사례를 비교한 결과, 옆자리의 기척을 느낀 뒤 고개를 돌려 직접 확인하는 행동이 현상의 발동 조건일 가능성이 높은 것으로 판단된다. 고개를 돌리지 않은 승객과 창유리로만 확인한 승객에게서는 피해가 보고되지 않았다. 다만 인터넷에 확산된 모든 이야기가 사실로 확인된 것은 아니다.	We confirmed repeated reports about the same seat and conflicting accounts between passengers. Comparing the cases, turning to look directly after sensing a presence in the next seat is most likely what triggers the phenomenon. No harm was reported among passengers who did not turn around or who only checked the reflection in the window. Not every story spreading online has been confirmed.	보고서 종합 판단 (근거: 단서 001·005, 002, 008)
 ui.casefile.report_review	보고서 검토	Review Report	보고서 단추
-ui.casefile.report_wrong	일부 항목이 조사 결과와 맞지 않습니다.	Some entries do not match the investigation.	보고서 검토 - 틀린 칸이 있음
-ui.casefile.report_empty	아직 비어 있는 칸이 있습니다.	Some blanks are still empty.	보고서 검토 - 빈칸이 있음
-ui.casefile.report_complete	보고서가 완성되었습니다. 조사 결과를 확정하세요.	The report is complete. Confirm your findings.	보고서 검토 - 다 맞음
-ui.casefile.report_done	보고서가 완성되었습니다.	The report is complete.	확정한 뒤
-report.subway.verdict.prefix	본 사건은	This case is judged to be	보고서 빈칸 1 앞말
-report.subway.verdict.suffix	인 것으로 판단된다.	.	보고서 빈칸 1 뒷말
-report.subway.verdict.hint	진위 판정 (진짜 / 가짜 / 반쯤 진짜)	Verdict (real / fake / half true)	보고서 빈칸 1 안내
-report.subway.verdict.answer	반쯤 진짜	Half true	보고서 빈칸 1 대표 정답
-report.subway.rule.prefix	조사 결과, 이 괴담의 핵심 규칙은	The core rule of this legend is that	보고서 빈칸 2 앞말
-report.subway.rule.suffix	이다.	.	보고서 빈칸 2 뒷말
-report.subway.rule.hint	무엇을 하면 현상이 남는가	What makes the phenomenon stay with you	보고서 빈칸 2 안내
-report.subway.rule.answer	옆자리의 현상은 고개를 돌려 직접 확인한 사람에게만 남는다	The thing in the next seat stays only with those who turn and look	보고서 빈칸 2 대표 정답
-report.subway.counter.prefix	따라서 실제 상황에서의 대처 방법은	So in a real situation, the way to respond is to	보고서 빈칸 3 앞말
-report.subway.counter.suffix	이다.	.	보고서 빈칸 3 뒷말
-report.subway.counter.hint	피해를 피하려면 어떻게 해야 하는가	What should you do to stay safe	보고서 빈칸 3 안내
-report.subway.counter.answer	기척이 들어도 소리가 나는 쪽으로 고개를 돌려 직접 확인하지 않는다	Not turn your head toward the sound to check, however clearly you feel it	보고서 빈칸 3 대표 정답
-report.subway.target.prefix	또한 인터넷 확산의 핵심 원인으로 판단되는 검열 대상 게시물은	The post to censor, judged to be the main driver of the spread, is	보고서 빈칸 4 앞말
-report.subway.target.suffix	이다.	.	보고서 빈칸 4 뒷말
-report.subway.target.hint	괴담넷에서 소문을 가장 크게 키운 게시물의 제목	Title of the post that spread the rumor most	보고서 빈칸 4 안내
-report.subway.target.answer	[정리] 막차 괴담 규칙 총정리	[Summary] Last train rules, all in one place	보고서 빈칸 4 대표 정답
+ui.casefile.report_fill_guide	각 항목의 작성란에 조사로 알아낸 내용을 직접 적어 넣으세요. 다 적었으면 보고서 검토를 누릅니다.	Write what the investigation found in each field. When you are done, press Review Report.	보고서 안내
+ui.casefile.report_blank_empty	미입력	Empty	검토 후 비어 있는 칸 표시
+ui.casefile.report_written	작성 {0}/{1}	Written {0}/{1}	검토 전 진행도
+ui.casefile.report_more_below	아래에 작성할 항목이 더 있습니다	More fields below	보고서 스크롤 안내
+ui.casefile.report_progress	정답 {0}/{1} · 수정 필요 {2} · 미입력 {3}	Correct {0}/{1} · Needs revision {2} · Empty {3}	검토 결과
+ui.casefile.report_all_right	{0}/{0} 확인 완료 — 보고서가 완성되었습니다.	{0}/{0} verified — the report is complete.	검토 - 모두 맞음(확정 전)
+ui.casefile.report_confirmed_done	조사 보고서 확정 완료	Investigation report confirmed	확정 후
+ui.casefile.posts_button	게시물 기록 확인	Review Post Records	보고서 단추
+ui.casefile.posts_title	게시물 기록	Post Records	게시물 기록 창 제목
+ui.casefile.posts_hint	이 괴담과 관련해 확인할 수 있는 게시물입니다. 읽기만 할 수 있으며 시간은 흐르지 않습니다.	Posts related to this legend. Read-only; no time passes.	게시물 기록 창 안내
+ui.casefile.posts_back	보고서로 돌아가기	Back to Report	게시물 기록 창 닫기
+ui.casefile.posts_empty	확인할 수 있는 게시물이 없습니다.	No posts to review.	
+ui.casefile.posts_viewed	열람함	Viewed	게시물 기록 - 이미 본 글
+ui.casefile.posts_meta_board	괴담넷 · {0} · 조회 {1}	Gwedamnet · {0} · {1} views	게시물 기록 - 게시판 글 정보
+ui.casefile.posts_meta_research	인터넷 조사 자료	Internet research	게시물 기록 - 조사 자료
+report.subway.verdict.title	진위 판정	Truth Assessment	보고서 01 제목
+report.subway.verdict.desc	수집한 증거를 종합한 결과, 본 사건의 진위는 다음과 같이 판정한다.	Based on the collected evidence, the case is classified as follows.	보고서 01 설명
+report.subway.verdict.hint	예) 진짜 / 가짜 / 반쯤 진짜	e.g. real / fake / half true	보고서 01 안내
+report.subway.verdict.answer	반쯤 진짜	Half true	보고서 01 대표 답안
+report.subway.rule.title	발동 조건	Activation Condition	보고서 02 제목
+report.subway.rule.desc	피해 사례와 목격담을 비교한 결과, 현상의 발동 조건은 다음과 같다.	Comparison of witness accounts and reported effects suggests the following activation condition.	보고서 02 설명
+report.subway.rule.hint	어떤 행동을 한 사람에게 현상이 남는가	Who does the phenomenon stay with, and after doing what	보고서 02 안내
+report.subway.rule.answer	고개를 돌려 직접 확인한 사람에게만 현상이 남는다.	The phenomenon stays only with those who turn their head and look directly.	보고서 02 대표 답안
+report.subway.counter.title	대처 방법	Recommended Response	보고서 03 제목
+report.subway.counter.desc	위 규칙에 따라 현장에서 적용할 대처 방법을 다음과 같이 정리한다.	Based on the findings, the recommended course of action is as follows.	보고서 03 설명
+report.subway.counter.hint	피해를 피하려면 어떻게 행동해야 하는가	What should a passenger do to stay safe	보고서 03 안내
+report.subway.counter.answer	기척이 들려도 고개를 돌려 직접 확인하지 않는다.	Do not turn your head to look, even when you sense a presence.	보고서 03 대표 답안
+report.subway.target.title	검열 대상	Priority Moderation Target	보고서 04 제목
+report.subway.target.desc	괴담 확산을 억제하기 위한 우선 검열 대상 게시물은 다음과 같다.	The following post has been identified as a priority target for moderation.	보고서 04 설명
+report.subway.target.hint	게시물 제목을 그대로 적으세요	Enter the exact post title	보고서 04 안내
+report.subway.target.answer	[정리] 막차 괴담 규칙 총정리	[Summary] Last train rules, all in one place	보고서 04 대표 답안
