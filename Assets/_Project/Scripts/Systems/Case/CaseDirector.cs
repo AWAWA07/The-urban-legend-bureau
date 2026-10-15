@@ -2340,7 +2340,7 @@ namespace UrbanLegendBureau.Systems
             var door = FindActiveField("Door_Left");
             // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅, 또 쾅쾅쾅. 여덟 번. 사이가 고르지 않아 다급하다.
             // 두드릴 때마다 문 유리에 손바닥 자국이 하나씩 늘어난다. 다 두드리고 나면 남은 자국까지 한꺼번에 드러난다.
-            float[] gaps = { 0.17f, 0.15f, 0.4f, 0.14f, 0.13f, 0.38f, 0.15f, 0f };
+            float[] gaps = { 0.22f, 0.2f, 0.45f, 0.2f, 0.18f, 0.42f, 0.22f, 0f };
             // 두드리는 동안 음악과 깔린 소리를 확 줄여 쾅 소리가 귀를 때리게 한다.
             Bgm.Duck(0.15f, 0.1f);
             Sfx.DuckLoops(0.25f, 0.1f);
@@ -2349,8 +2349,10 @@ namespace UrbanLegendBureau.Systems
             {
                 // 첫 번은 묵직하게 크게 쾅, 마지막은 울림이 길게 남는다. 사이에는 주먹 소리 넷을 돌려 쓴다.
                 string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
-                Sfx.Play(bang, 1f, Random.Range(0.96f, 1.04f));
-                Sfx.Play(bang, 0.85f, 0.97f);   // 한 겹 더 겹쳐 더 크게
+                // 같은 소리를 같은 높이로 두 번 겹쳐 크게 한다. 높이가 다르면 겹친 소리가 일렁여 어색하다.
+                float pitch = Random.Range(0.97f, 1.03f);
+                Sfx.Play(bang, 1f, pitch);
+                Sfx.Play(bang, 0.8f, pitch);
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
