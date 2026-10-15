@@ -72,6 +72,48 @@ namespace UrbanLegendBureau.Save
         public int boardActivityMinute = -1;
     }
 
+    /// <summary>
+    /// 플레이어가 괴담넷에 올린 글 하나 (v10).
+    /// 게시판 목록은 저장하지 않고 매번 새로 짓는다. 플레이어가 쓴 글만 여기에 적어 두었다가, 게시판을 지을 때 되살린다.
+    /// 화면에 걸린 글(CommunityBoardEntry)의 숫자가 바뀌면 PlayerPostStore 가 이쪽으로 옮겨 적는다.
+    /// </summary>
+    [Serializable]
+    public class SavedBoardPost
+    {
+        public string postId;
+        public string caseId;
+        public string postWritingId;
+        public string legendId;
+        public string authorTextId;
+        public string boardTextId;
+
+        /// <summary>고른 문장. 제목 하나와 본문(도입 / 사실 / 행동 안내)의 String ID.</summary>
+        public string titleTextId;
+        public List<string> bodyTextIds = new List<string>();
+
+        /// <summary>올린 시각. 벽시계가 흐른 분으로 적는다.</summary>
+        public int postedAtMinute;
+
+        public int views;
+        public int likes;
+        public int dislikes;
+        public bool likePressed;
+        public bool dislikePressed;
+
+        /// <summary>달린 댓글. "작성자ID|본문ID|플레이어면 1" 로 적는다.</summary>
+        public List<string> comments = new List<string>();
+
+        /// <summary>시간이 흘러 붙는 반응 가운데 1에 못 미친 몫(조회 / 좋아요 / 싫어요 / 댓글)과 그렇게 붙은 댓글 수.</summary>
+        public float[] growthCarry = new float[4];
+        public int growthAddedComments;
+
+        /// <summary>이 글이 이 괴담의 믿음도를 옮긴 몫(%p). 게시판을 새로 지을 때 한 번만 다시 반영한다.</summary>
+        public int beliefShift;
+
+        /// <summary>내린 글인가. 내린 글은 게시판에 되살리지 않는다.</summary>
+        public bool removed;
+    }
+
     /// <summary>플레이어 설정. 진행과 별개지만 같은 파일에 함께 둔다.</summary>
     [Serializable]
     public class SettingsData
@@ -144,6 +186,9 @@ namespace UrbanLegendBureau.Save
         /// </summary>
         public List<string> reportInputs = new List<string>();
 
+        /// <summary>플레이어가 괴담넷에 올린 글 (v10). 내린 글도 removed 로 남는다.</summary>
+        public List<SavedBoardPost> boardPosts = new List<SavedBoardPost>();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -167,6 +212,7 @@ namespace UrbanLegendBureau.Save
             solvedDeductions ??= new List<string>();
             confirmedReports ??= new List<string>();
             reportInputs ??= new List<string>();
+            boardPosts ??= new List<SavedBoardPost>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

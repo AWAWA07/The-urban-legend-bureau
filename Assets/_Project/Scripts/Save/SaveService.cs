@@ -58,6 +58,9 @@ namespace UrbanLegendBureau.Save
             return _backend != null && _backend.Exists(SlotKey);
         }
 
+        /// <summary>저장 직전에 부른다. 화면 쪽 상태를 Current 에 옮겨 적을 기회다.</summary>
+        public event Action BeforeSave;
+
         /// <summary>현재 상태를 저장한다. 성공하면 Flush까지 마친 뒤 true.</summary>
         public bool Save()
         {
@@ -66,6 +69,10 @@ namespace UrbanLegendBureau.Save
                 Debug.LogError("[SaveService] 초기화되지 않았다.");
                 return false;
             }
+
+            // 화면에만 있고 아직 저장본에 옮기지 않은 것(게시판에 걸린 플레이어 글의 숫자 등)을 먼저 옮긴다.
+            try { BeforeSave?.Invoke(); }
+            catch (Exception ex) { Debug.LogError($"[SaveService] 저장 전 정리 실패: {ex.Message}"); }
 
             string json;
             try

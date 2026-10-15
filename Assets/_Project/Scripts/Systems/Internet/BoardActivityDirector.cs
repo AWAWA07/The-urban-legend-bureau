@@ -37,12 +37,6 @@ namespace UrbanLegendBureau.Systems
         /// <summary>반영하고 있는 게시판의 세대. 튜토리얼을 다시 돌려 게시판을 새로 지으면 달라진다.</summary>
         private int _generation = -1;
 
-        /// <summary>글마다 1에 못 미치는 몫을 모아 둔다. 조회 / 좋아요 / 싫어요 / 댓글.</summary>
-        private readonly Dictionary<CommunityBoardEntry, float[]> _carry = new Dictionary<CommunityBoardEntry, float[]>();
-
-        /// <summary>글마다 시간이 흘러 새로 붙은 댓글 수.</summary>
-        private readonly Dictionary<CommunityBoardEntry, int> _added = new Dictionary<CommunityBoardEntry, int>();
-
         private readonly HashSet<string> _posted = new HashSet<string>();
 
         private void Start()
@@ -58,8 +52,6 @@ namespace UrbanLegendBureau.Systems
             if (_generation != _tutorial.BoardGeneration)
             {
                 _generation = _tutorial.BoardGeneration;
-                _carry.Clear();
-                _added.Clear();
                 _posted.Clear();
                 _lastMinute = GameClock.ElapsedMinutes;
                 MarkPostedUpTo(_lastMinute);
@@ -110,6 +102,9 @@ namespace UrbanLegendBureau.Systems
 
             _save.Current.global.boardActivityMinute = now;
             _save.Current.global.clockElapsedMinutes = now;
+
+            // 플레이어가 올린 글의 조회수와 반응을 저장본에 옮긴다. 게시판 목록 자체는 저장하지 않는다.
+            PlayerPostStore.Sync(_save.Current, _tutorial.BoardEntries);
             _save.MarkDirty();
         }
 
@@ -149,11 +144,9 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private bool Grow(CommunityBoardEntry entry, float hours)
         {
-            if (!_carry.TryGetValue(entry, out var carry))
-            {
-                carry = new float[4];
-                _carry[entry] = carry;
-            }
+            // 1에 못 미친 몫은 글이 들고 있다. 플레이어 글은 그대로 저장본에 적혀 불러온 뒤에도 이어진다.
+            if (entry.GrowthCarry == null || entry.GrowthCarry.Length != 4) entry.GrowthCarry = new float[4];
+            var carry = entry.GrowthCarry;
 
             // 플레이어가 올린 글은 제 몫을 들고 있지 않다. 그 괴담의 지금 믿음도로 읽힌다.
             int belief = entry.IsPlayerPost ? 0 : entry.BeliefPercent;
@@ -194,7 +187,7 @@ namespace UrbanLegendBureau.Systems
         {
             if (entry.Comments == null) return;
 
-            _added.TryGetValue(entry, out int count);
+            int count = entry.GrowthAddedComments;
             if (count >= _data.MaxAddedComments) return;
 
             var pool = entry.IsPlayerPost ? _data.PlayerPostComments
@@ -211,7 +204,7 @@ namespace UrbanLegendBureau.Systems
                 if (pick == null || HasComment(entry, pick.bodyTextId)) continue;
 
                 entry.Comments.Add(new CommunityComment { AuthorTextId = pick.authorTextId, BodyTextId = pick.bodyTextId });
-                _added[entry] = count + 1;
+                entry.GrowthAddedComments = count + 1;
                 return;
             }
         }

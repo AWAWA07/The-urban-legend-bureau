@@ -25,6 +25,7 @@ namespace UrbanLegendBureau.UI
         public class Step
         {
             public string Header;           // 게시물 작성 2/4 · 도입
+            public string Notice;           // 글을 내린 직후 한 번 띄우는 알림. 비어 있으면 없다
             public string Account;          // 실화게시판 · 괴담 분석 덕후 (차지한의 부계정)
             public string Goal;             // 목표 — ...
             public string[] StepNames;      // 제목 / 도입 / 사실 전달 / 행동 안내
@@ -67,6 +68,7 @@ namespace UrbanLegendBureau.UI
             public string Effect;
             public int Direction;           // -1 내림, 0 그대로, 1 올림
             public string Review;
+            public string Warning;          // 믿음을 가장 크게 올린 칸에만 붙는 작은 경고
         }
 
         public class Result
@@ -87,8 +89,8 @@ namespace UrbanLegendBureau.UI
         private static readonly Color PageColor = new Color(0.94f, 0.94f, 0.95f, 1f);
         private static readonly Color Paper = Color.white;
         private static readonly Color Ink = new Color(0.12f, 0.12f, 0.14f, 1f);
-        private static readonly Color Dim = new Color(0.42f, 0.44f, 0.48f, 1f);
-        private static readonly Color Faint = new Color(0.62f, 0.64f, 0.68f, 1f);
+        private static readonly Color Dim = new Color(0.33f, 0.35f, 0.39f, 1f);
+        private static readonly Color Faint = new Color(0.47f, 0.49f, 0.53f, 1f);
         private static readonly Color Rule = new Color(0.86f, 0.87f, 0.90f, 1f);
         private static readonly Color Blue = new Color(0.18f, 0.38f, 0.78f, 1f);
         private static readonly Color BlueSoft = new Color(0.92f, 0.95f, 1f, 1f);
@@ -96,14 +98,17 @@ namespace UrbanLegendBureau.UI
         private static readonly Color Pill = new Color(0.88f, 0.89f, 0.92f, 1f);
         private static readonly Color Down = new Color(0.16f, 0.52f, 0.32f, 1f);
         private static readonly Color Up = new Color(0.75f, 0.22f, 0.20f, 1f);
+        private static readonly Color NoticeColor = new Color(1f, 0.97f, 0.88f, 1f);
+        private static readonly Color NoticeEdge = new Color(0.90f, 0.78f, 0.45f, 1f);
+        private static readonly Color NoticeInk = new Color(0.45f, 0.32f, 0.06f, 1f);
 
         private const float TitleBarHeight = 56f;
         private const float BarHeight = 104f;
         private const float StepWidth = 1240f;
         private const float ResultWidth = 1160f;
 
-        /// <summary>결과는 한영이 오른쪽에 서서 말하므로 왼쪽으로 비켜 선다.</summary>
-        private const float ResultShift = -180f;
+        /// <summary>결과 기둥을 옆으로 비켜 세울 거리. 지금은 가운데다.</summary>
+        private const float ResultShift = 0f;
 
         // ------------------------------------------------------------- 짓기
 
@@ -172,14 +177,14 @@ namespace UrbanLegendBureau.UI
             _column.anchorMin = new Vector2(0.5f, 1f);
             _column.anchorMax = new Vector2(0.5f, 1f);
             _column.pivot = new Vector2(0.5f, 1f);
-            _column.anchoredPosition = new Vector2(shift, -26f);
+            _column.anchoredPosition = new Vector2(shift, -34f);
             _column.sizeDelta = new Vector2(width, 0f);
             var layout = _column.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
-            layout.spacing = 12f;
+            layout.spacing = 14f;
             var fit = _column.gameObject.AddComponent<ContentSizeFitter>();
             fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             _spawned.Add(_column.gameObject);
@@ -214,6 +219,14 @@ namespace UrbanLegendBureau.UI
             Stretch(acc.rectTransform);
             acc.text = s.Account;
 
+            // 글을 내린 직후의 알림. 실제로 내린 뒤에만 들어온다.
+            if (!string.IsNullOrEmpty(s.Notice))
+            {
+                var notice = Card("Notice", NoticeColor, 22f, 10f, 0f);
+                Border(notice, NoticeEdge);
+                Para(s.Notice, _bold, 21f, NoticeInk, notice);
+            }
+
             // 네 단계. 지난 것은 ✓, 지금 것은 파랗게.
             var pills = Row("Steps", 42f);
             int n = s.StepNames != null ? s.StepNames.Length : 0;
@@ -233,7 +246,7 @@ namespace UrbanLegendBureau.UI
             // 쓰고 있는 글. 고른 문장이 차례로 쌓이고, 지금 칸은 파란 자리 표시로 선다.
             var draft = Card("Draft", Paper, 22f, 16f, 6f);
             Border(draft, Rule);
-            Para(s.DraftLabel, _regular, 19f, Faint, draft);
+            Para(s.DraftLabel, _regular, 20f, Faint, draft);
             Para(s.DraftTitle, _bold, 27f, s.DraftTitleIsCurrent ? Blue : Ink, draft);
             var sb = new System.Text.StringBuilder();
             for (int i = 0; s.DraftBody != null && i < s.DraftBody.Count; i++)
@@ -245,13 +258,13 @@ namespace UrbanLegendBureau.UI
             }
             if (sb.Length > 0)
             {
-                var body = Para(sb.ToString(), _regular, 22f, Ink, draft);
+                var body = Para(sb.ToString(), _regular, 23f, Ink, draft);
                 body.lineSpacing = 6f;
                 body.paragraphSpacing = 6f;
             }
 
             Spacer(4f);
-            Para(s.Prompt, _bold, 25f, Ink);
+            Para(s.Prompt, _bold, 26f, Ink);
 
             // 후보 셋. 고른 것은 파란 테두리와 ✓.
             for (int i = 0; s.Candidates != null && i < s.Candidates.Count; i++)
@@ -260,7 +273,7 @@ namespace UrbanLegendBureau.UI
                 bool on = i == s.Selected;
                 var card = Card("Candidate" + i, on ? BlueSoft : Paper, 84f, 22f, 0f);
                 card.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(84, 28, 18, 18);   // 왼쪽은 ✓ 칸 자리
-                card.GetComponent<LayoutElement>().minHeight = 84f;
+                card.GetComponent<LayoutElement>().minHeight = 92f;
                 if (on) Border(card, Blue, 3f); else Border(card, Rule);
 
                 var mark = Box("Mark", card, on ? Blue : Paper);
@@ -275,8 +288,9 @@ namespace UrbanLegendBureau.UI
                 Stretch(check.rectTransform);
                 check.text = on ? "✓" : string.Empty;
 
-                var text = Para(s.Candidates[i], on ? _bold : _regular, 25f, Ink, card);
+                var text = Para(s.Candidates[i], on ? _bold : _regular, 26f, Ink, card);
                 text.alignment = TextAlignmentOptions.MidlineLeft;
+                text.lineSpacing = 4f;   // 영어처럼 두 줄로 넘어갈 때 줄이 붙지 않게
 
                 var button = card.gameObject.AddComponent<Button>();
                 var bg = card.GetComponent<Image>();
@@ -367,25 +381,29 @@ namespace UrbanLegendBureau.UI
             var belief = Card("Belief", Paper, 26f, 16f, 4f);
             Border(belief, Rule);
             Para(r.Legend, _bold, 32f, Ink, belief);
-            Para(r.Goal, _regular, 20f, Dim, belief);
-            Para(r.Overall, _regular, 20f, Faint, belief);
+            Para(r.Goal, _regular, 21f, Dim, belief);
+            Para(r.Overall, _regular, 21f, Dim, belief);
 
             for (int i = 0; r.Rows != null && i < r.Rows.Count; i++)
             {
                 var row = r.Rows[i];
                 var card = Card("Row" + i, Paper, 26f, 12f, 3f);
-                Border(card, Rule);
+                bool warn = !string.IsNullOrEmpty(row.Warning);
+                if (warn) Border(card, Up, 2f); else Border(card, Rule);
 
                 var line = Row("Top", 30f, card);
                 var sec = Label("Section", line, _bold, 21f, Dim, TextAlignmentOptions.Left);
                 Stretch(sec.rectTransform);
-                sec.text = row.Section;
+                // 믿음을 가장 크게 올린 칸에는 작은 경고를 붙인다. 이것만 빨간 테두리다.
+                sec.text = warn
+                    ? row.Section + "   <color=#" + ColorUtility.ToHtmlStringRGB(Up) + ">" + row.Warning + "</color>"
+                    : row.Section;
                 var eff = Label("Effect", line, _bold, 21f, row.Direction < 0 ? Down : row.Direction > 0 ? Up : Dim, TextAlignmentOptions.Right);
                 Stretch(eff.rectTransform);
                 eff.text = row.Effect;
 
-                Para(row.Sentence, _regular, 22f, Ink, card);
-                Para(row.Review, _regular, 19f, Dim, card);
+                Para(row.Sentence, _regular, 23f, Ink, card);
+                Para(row.Review, _regular, 21f, Dim, card);
             }
 
             var ok = BarButton("Confirm", r.ConfirmLabel, true, ResultShift + ResultWidth * 0.5f, 1f, 300f);

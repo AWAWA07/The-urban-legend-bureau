@@ -688,6 +688,9 @@ namespace UrbanLegendBureau.Systems
                 Filler("019", views: 210, belief: 0, minutesAgo: 5070, up: 32, down: 4,
                     by: "nick_1|nick_12|anon"),
             };
+
+            // 플레이어가 올렸던 글처럼 저장본에서 되살릴 것이 있으면 이 뒤에 붙는다(PostWritingDirector).
+            BoardRebuilt?.Invoke();
         }
 
         /// <summary>
@@ -808,7 +811,7 @@ namespace UrbanLegendBureau.Systems
             if (_talkScreen == null || _loc == null || string.IsNullOrEmpty(lineTextId)) return false;
 
             _afterTalkCallback = onDone;
-            ShowTalk(lineTextId, AfterTalk.Callback, compact: true);
+            ShowTalk(lineTextId, AfterTalk.Callback);
             return true;
         }
 
@@ -858,6 +861,9 @@ namespace UrbanLegendBureau.Systems
         /// 게시판을 살아 움직이게 하는 쪽이 이 값으로 "처음부터 다시"를 알아챈다.
         /// </summary>
         public int BoardGeneration { get; private set; }
+
+        /// <summary>게시판 목록을 새로 지었을 때. 저장본에 적힌 플레이어 글을 다시 거는 쪽이 받는다.</summary>
+        public event System.Action BoardRebuilt;
 
         /// <summary>
         /// 시간이 흘러 새 글이 올라온다. 게시판을 채우는 다른 글들과 같은 방식(Filler)으로 짓는다.

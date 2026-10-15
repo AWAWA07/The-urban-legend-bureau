@@ -122,9 +122,6 @@ namespace UrbanLegendBureau.Systems
         /// <summary>댓글이 하나씩 달리는 간격(초). 댓글 연습 때와 같은 빠르기다.</summary>
         private const float ReactionInterval = 0.8f;
 
-        /// <summary>마지막 반응을 읽고 평가가 뜨기까지의 뜸(초).</summary>
-        private const float ResultDelay = 1.4f;
-
         /// <summary>글쓰기를 성공으로 마쳤을 때. 사건 쪽이 이것을 받아 다음 흐름(첫날 밤)으로 넘어간다.</summary>
         public event Action<PostWritingSO> Succeeded;
 
@@ -133,6 +130,28 @@ namespace UrbanLegendBureau.Systems
             ServiceRegistry.TryGet(out _loc);
             ServiceRegistry.TryGet(out _save);
             ServiceRegistry.TryGet(out _belief);
+
+            // 올린 글은 저장본에 따로 적힌다. 게시판을 새로 지으면 되살리고, 저장하기 직전에 숫자를 옮겨 적는다.
+            if (_tutorial != null) _tutorial.BoardRebuilt += RestoreSavedPosts;
+            if (_save != null) _save.BeforeSave += SyncSavedPosts;
+        }
+
+        private void OnDestroy()
+        {
+            if (_tutorial != null) _tutorial.BoardRebuilt -= RestoreSavedPosts;
+            if (_save != null) _save.BeforeSave -= SyncSavedPosts;
+        }
+
+        private void RestoreSavedPosts()
+        {
+            if (_save == null || _save.Current == null || _tutorial == null) return;
+            PlayerPostStore.Restore(_save.Current, _tutorial);
+        }
+
+        private void SyncSavedPosts()
+        {
+            if (_save == null || _save.Current == null || _tutorial == null) return;
+            PlayerPostStore.Sync(_save.Current, _tutorial.BoardEntries);
         }
 
         private void OnEnable() => EventBus.Subscribe<LanguageChangedEvent>(OnLanguageChanged);
@@ -177,6 +196,8 @@ namespace UrbanLegendBureau.Systems
             _lastShift = 0;
             _busy = false;
             _introTalked = false;
+            _takenDownNotice = null;
+            _resultBuilder = null;
             ClearPicks();
             HideCompose();
         }
@@ -270,6 +291,7 @@ namespace UrbanLegendBureau.Systems
             _compose.ShowStep(new PostComposeView.Step
             {
                 Header = L(ComposeHeaderTextId, section + 1, PostWritingSO.SectionCount, names[section]),
+                Notice = _takenDownNotice != null ? _takenDownNotice() : null,
                 Account = L(ComposeAccountTextId, L(_data.BoardTextId), L(_data.AuthorTextId)),
                 Goal = before > 0 ? L(GoalTextId, before, success, excellent) : null,
                 StepNames = names,
@@ -320,6 +342,7 @@ namespace UrbanLegendBureau.Systems
         private void OnNext()
         {
             if (_busy || _section >= PostWritingSO.SectionCount || _picks[_section] < 0) return;
+            _takenDownNotice = null;
             _section++;
             if (_section >= PostWritingSO.SectionCount) ShowPreview();
             else ShowStep();
@@ -420,11 +443,19 @@ namespace UrbanLegendBureau.Systems
                 Likes = good ? _data.SuccessLikes : outcome == Outcome.Fail ? _data.FailLikes : _data.WeakLikes,
                 Dislikes = good ? _data.SuccessDislikes : outcome == Outcome.Fail ? _data.FailDislikes : _data.WeakDislikes,
                 IsPlayerPost = true,
+                PostId = _data.PostWritingId + "_" + Guid.NewGuid().ToString("N").Substring(0, 8),
             };
 
             _tutorial.AddBoardPost(entry);
             _attempts++;
             _lastPost = entry;
+
+            // 저장본에도 적는다. 게시판 목록은 저장하지 않으므로 다시 불러오면 이 기록으로 되살린다.
+            if (_save != null && _save.Current != null)
+            {
+                PlayerPostStore.Record(_save.Current, entry, _data.CaseId, _data.PostWritingId, _data.LegendId);
+                _save.MarkDirty();
+            }
 
             // 글쓰기 화면을 걷고 올린 글을 연다. 게시판에 걸린 그 글이다. 반응은 이제부터 보인다.
             HideCompose();
@@ -443,6 +474,10 @@ namespace UrbanLegendBureau.Systems
             _tutorial.ShiftLegendBelief(_data.LegendId, shift);
             _lastShift = shift;
             if (_belief != null && _save != null) _belief.TryAddBelief(_save.Current, shift);
+
+            // 이 글이 옮긴 몫을 기록에 남긴다. 게시판을 새로 지어 되살릴 때 이만큼만 한 번 다시 반영한다.
+            var record = _save != null ? PlayerPostStore.Find(_save.Current, entry.PostId) : null;
+            if (record != null) record.beliefShift = shift;
 
             int after = _tutorial.GetLegendBelief(_data.LegendId);
             int overallAfter = _tutorial.BoardBelief;
@@ -466,20 +501,49 @@ namespace UrbanLegendBureau.Systems
                 yield return new WaitForSecondsRealtime(ReactionInterval);
             }
 
-            yield return new WaitForSecondsRealtime(ResultDelay);
+            yield return new WaitForSecondsRealtime(ResultButtonDelay);
 
             Debug.Log($"[PostWriting] 반응 끝 | 이번 괴담 {before}% -> {after}% | 전체 {overallBefore}% -> {overallAfter}% | {outcome}");
+            SyncSavedPosts();
 
-            // 평가를 띄운다. 확인을 누르면 한영이 말한다.
+            // 결과로 저절로 넘어가지 않는다. 댓글을 다 읽고 플레이어가 누르면 넘어간다.
+            // 댓글 쓰기 칸이 있던 자리에 단추 하나를 세운다. 기존 게시글 화면의 선택지 자리다.
             _resultBuilder = () => BuildResult(before, after, overallBefore, overallAfter, outcome);
+            _resultOpened = false;
+            _communityScreen.SetChoiceHeader(ResultReadyTextId);
+            _communityScreen.BindChoices(new List<TutorialCommentChoice>
+            {
+                new TutorialCommentChoice { ChoiceId = ResultChoiceId, BodyTextId = SeeResultTextId },
+            }, c => c != null ? L(c.BodyTextId) : string.Empty, _ => OpenResult());
+            _communityScreen.SetControlsEnabled(true);
+            _communityScreen.ScrollPostToBottom();
+        }
+
+        /// <summary>"게시 결과 확인"을 눌렀다. 두 번 눌러도 한 번만 연다.</summary>
+        private void OpenResult()
+        {
+            if (_resultOpened || _resultBuilder == null) return;
+            _resultOpened = true;
+
+            _communityScreen.BindChoices(null, null, null);
             _view = View.Result;
             _compose.ShowResult(_resultBuilder());
-            _communityScreen.SetControlsEnabled(true);
         }
+
+        private bool _resultOpened;
+        private const string ResultChoiceId = "post_see_result";
+        private const string SeeResultTextId = "ui.post.btn_see_result";
+        private const string ResultReadyTextId = "ui.post.result_ready";
+
+        /// <summary>마지막 댓글이 달리고 결과 확인 단추가 서기까지의 뜸(초). 짧게 둔다.</summary>
+        private const float ResultButtonDelay = 0.6f;
 
         private PostComposeView.Result BuildResult(int before, int after, int overallBefore, int overallAfter, Outcome outcome)
         {
             Lines(before, out int success, out int excellent);
+
+            // 믿음도를 가장 크게 올린 칸에 작은 경고를 붙인다. 올린 칸이 없으면 붙이지 않는다.
+            int worst = WorstSection();
 
             var rows = new List<PostComposeView.ResultRow>();
             for (int s = 0; s < PostWritingSO.SectionCount; s++)
@@ -494,6 +558,7 @@ namespace UrbanLegendBureau.Systems
                     Direction = Math.Sign(d),
                     Effect = d < 0 ? L(EffectDownTextId, -d) : d > 0 ? L(EffectUpTextId, d) : L(EffectFlatTextId),
                     Review = string.IsNullOrEmpty(c.reviewTextId) ? string.Empty : L(c.reviewTextId),
+                    Warning = s == worst ? L(WorstWarningTextId) : null,
                 });
             }
 
@@ -519,10 +584,61 @@ namespace UrbanLegendBureau.Systems
             {
                 case Outcome.Excellent: Talk(_data.ExcellentLineTextId, OnSucceeded); break;
                 case Outcome.Success: Talk(_data.SuccessLineTextId, OnSucceeded); break;
-                case Outcome.Fail: Talk(_data.FailLineTextId, AfterMiss); break;
-                case Outcome.Flat: Talk(_data.FlatLineTextId, AfterMiss); break;
-                default: Talk(_data.WeakLineTextId, AfterMiss); break;
+                case Outcome.Fail: Talk(_data.FailLineTextId, TalkFixHint); break;
+                case Outcome.Flat: Talk(_data.FlatLineTextId, TalkFixHint); break;
+                default: Talk(_data.WeakLineTextId, TalkFixHint); break;
             }
+        }
+
+        private const string WorstWarningTextId = "ui.post.worst_warning";
+        private static readonly string[] FixHintTextIds =
+        {
+            "post.fix.title",
+            "post.fix.intro",
+            "post.fix.fact",
+            "post.fix.action",
+        };
+
+        /// <summary>믿음도를 가장 크게 올린 칸. 올린 칸이 없으면 -1.</summary>
+        private int WorstSection()
+        {
+            int worst = -1;
+            float max = 0f;
+            for (int s = 0; s < PostWritingSO.SectionCount; s++)
+            {
+                var c = Picked(s);
+                if (c != null && c.beliefDelta > max) { max = c.beliefDelta; worst = s; }
+            }
+            return worst;
+        }
+
+        /// <summary>
+        /// 먼저 고쳐야 할 칸. 덧붙은 거짓을 걷어내지 않았으면 그 칸이 먼저다. 아니면 믿음을 가장 크게 올린 칸,
+        /// 그것도 없으면 가장 적게 내린 칸이다. 어느 문장으로 바꾸라고는 말하지 않는다. 칸만 짚는다.
+        /// </summary>
+        private int SectionToFix()
+        {
+            int rs = _data.RefuteSection;
+            if (rs >= 0 && rs < PostWritingSO.SectionCount && (Picked(rs) == null || Picked(rs).tag != PostTone.Refutation)) return rs;
+
+            int worst = WorstSection();
+            if (worst >= 0) return worst;
+
+            float max = float.MinValue;
+            for (int s = 0; s < PostWritingSO.SectionCount; s++)
+            {
+                var c = Picked(s);
+                if (c != null && c.beliefDelta > max) { max = c.beliefDelta; worst = s; }
+            }
+            return worst;
+        }
+
+        /// <summary>못 미쳤을 때 한영이 한 칸을 짚어 준다. 정답을 골라 주지는 않는다.</summary>
+        private void TalkFixHint()
+        {
+            int s = SectionToFix();
+            if (s < 0) { AfterMiss(); return; }
+            Talk(FixHintTextIds[s], AfterMiss);
         }
 
         /// <summary>한영이 말하게 한다. 말할 수 없으면 곧바로 다음으로 간다.</summary>
@@ -543,6 +659,9 @@ namespace UrbanLegendBureau.Systems
                 string flag = PublishedFlagPrefix + _data.PostWritingId;
                 if (!_save.Current.storyFlags.Contains(flag)) _save.Current.storyFlags.Add(flag);
                 _save.MarkDirty();
+
+                // 성공한 글과 그 반응을 곧바로 저장한다. 성공 표시만 남고 글이 사라지는 일이 없게 한다.
+                _save.AutoSave();
             }
 
             _communityScreen.BindWrite(null);
@@ -553,45 +672,74 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 목표에 못 미쳤다. 다시 쓸 수 있으면 다시 쓰게 한다. 고른 문장은 그대로 두고 첫 칸부터 다시 본다.
-        /// 튜토리얼에서는 한영이 실패한 글을 내리고, 그 글이 옮긴 믿음도 되돌린다.
-        /// 그래야 몇 번을 틀려도 제대로 쓴 글 하나로 목표에 닿을 수 있다.
+        ///
+        /// 튜토리얼에서만 한영이 실패한 글을 내리고, 그 글이 옮긴 믿음도를 그대로 되돌린다.
+        /// 몇 번을 틀려도 제대로 쓴 글 하나로 목표에 닿게 하려는 튜토리얼 규칙이다. 실전 글에는 적용하지 않는다.
+        ///
+        /// 순서: 한영이 내리겠다고 말한다 → 넘기면 실제로 내린다 → 게시판 목록이 갱신된 것을 보여 준다
+        ///       → 믿음도가 돌아온 결과를 알리며 다시 쓰기 화면으로 간다. 내리기 전에 "내렸다"는 말은 보이지 않는다.
         /// </summary>
         private void AfterMiss()
         {
-            _busy = false;
-            HideCompose();
-
             if (!CanWrite(_data))
             {
+                _busy = false;
+                HideCompose();
                 _communityScreen.BindWrite(null);
                 Debug.Log($"[PostWriting] 더 쓸 수 없다 | {_data.PostWritingId} | {_attempts}번 올림");
                 return;
             }
 
-            if (!_data.TakeDownFailedPost || _lastPost == null)
+            bool takeDown = _data.IsTutorial && _data.TakeDownFailedPost && _lastPost != null;
+            if (!takeDown)
             {
+                _busy = false;
                 _section = 0;
                 ShowStep();
                 return;
             }
 
+            // 결과 화면을 띄운 채로 말한다. 뒤에 내릴 글이 보이지 않는다.
+            Talk(_data.TakeDownLineTextId, () => StartCoroutine(TakeDownThenRewrite()));
+        }
+
+        /// <summary>목록이 갱신된 것을 보여 주는 시간(초).</summary>
+        private const float TakenDownBoardSeconds = 1.2f;
+
+        private IEnumerator TakeDownThenRewrite()
+        {
+            _communityScreen.SetControlsEnabled(false);
+
             int before = _tutorial.GetLegendBelief(_data.LegendId);
+            int overallBefore = _tutorial.BoardBelief;
+
             _tutorial.RemoveBoardPost(_lastPost);
+            if (_save != null) PlayerPostStore.MarkRemoved(_save.Current, _lastPost.PostId);
             _tutorial.ShiftLegendBelief(_data.LegendId, -_lastShift);
             if (_belief != null && _save != null) _belief.TryAddBelief(_save.Current, -_lastShift);
-            int after = _tutorial.GetLegendBelief(_data.LegendId);
+            if (_save != null) _save.MarkDirty();
 
+            int after = _tutorial.GetLegendBelief(_data.LegendId);
+            int overallAfter = _tutorial.BoardBelief;
             _lastPost = null;
             _lastShift = 0;
 
-            Debug.Log($"[PostWriting] 실패한 글을 내림 | 이번 괴담 {before}% -> {after}%");
+            Debug.Log($"[PostWriting] 실패한 글을 내림 | 이번 괴담 {before}% -> {after}% | 전체 {overallBefore}% -> {overallAfter}%");
 
-            _communityScreen.ShowNotice(() => L(TakenDownTextId, before, after));
-            Talk(_data.TakeDownLineTextId, () =>
-            {
-                _section = 0;
-                ShowStep();
-            });
+            // 내린 뒤의 게시판 목록. 그 글이 빠진 것을 잠깐 보여 준다.
+            HideCompose();
+            _communityScreen.ShowNotice(null);
+            _communityScreen.ShowBoard(true);
+            yield return new WaitForSecondsRealtime(TakenDownBoardSeconds);
+
+            _communityScreen.SetControlsEnabled(true);
+            _busy = false;
+            _section = 0;
+            _takenDownNotice = () => L(TakenDownTextId, before, after, overallBefore, overallAfter);
+            ShowStep();
         }
+
+        /// <summary>글을 내린 직후 다시 쓰기 화면 맨 위에 한 번 띄우는 알림. 다음 단계로 가면 사라진다.</summary>
+        private Func<string> _takenDownNotice;
     }
 }

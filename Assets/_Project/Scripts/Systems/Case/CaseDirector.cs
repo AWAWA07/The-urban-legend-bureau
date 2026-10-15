@@ -402,6 +402,9 @@ namespace UrbanLegendBureau.Systems
             if (_save.Current?.storyFlags != null && _case != null)
             {
                 if (_case.PostWriting != null) _save.Current.storyFlags.Remove(PostWritingDirector.PublishedFlag(_case.PostWriting));
+
+                // 올린 글의 기록도 지운다. 게시판에 걸려 있으면 내리고, 그 글이 옮긴 믿음도도 되돌린다.
+                PlayerPostStore.RemoveCase(_save.Current, _caseId, _tutorial);
                 if (_caseId == TutorialDirector.TutorialCaseId)
                 {
                     _save.Current.storyFlags.Remove(TutorialNightStartedFlag);

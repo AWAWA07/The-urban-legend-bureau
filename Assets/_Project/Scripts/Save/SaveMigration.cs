@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 9;
+        public const int CurrentVersion = 10;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -127,6 +127,15 @@ namespace UrbanLegendBureau.Save
                 // 이미 확정한 보고서는 confirmedReports 에 남아 있으니 다시 쓰라고 하지 않는다.
                 data.reportInputs ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 9;
+            }
+
+            if (data.saveVersion == 9)
+            {
+                // v10에서 플레이어가 괴담넷에 올린 글(boardPosts)이 추가됐다. 구버전 저장본에는 올린 글의 기록이 없다.
+                // 빈 목록이면 아직 글을 올리지 않은 것으로 읽힌다. 게시 성공 표시만 남아 있으면 글쓰기 단추가 다시 서지 않으므로
+                // 그 사건의 글은 게시판에 없는 채로 이어진다(예전과 같다).
+                data.boardPosts ??= new System.Collections.Generic.List<SavedBoardPost>();
+                data.saveVersion = 10;
             }
 
             if (data.saveVersion < CurrentVersion)

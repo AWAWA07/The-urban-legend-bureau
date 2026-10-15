@@ -73,6 +73,16 @@ namespace UrbanLegendBureau.UI
         public int Dislikes;
         public bool LikePressed;
         public bool DislikePressed;
+
+        /// <summary>플레이어가 올린 글의 고유 ID. 저장본의 기록과 이 줄을 잇는다. 다른 글은 비어 있다.</summary>
+        public string PostId;
+
+        /// <summary>
+        /// 시간이 흘러 붙는 반응 가운데 아직 1에 못 미친 몫(조회 / 좋아요 / 싫어요 / 댓글)과,
+        /// 그렇게 새로 붙은 댓글 수. 게시판 성장(BoardActivityDirector)이 쓰고, 플레이어 글은 저장본에도 적힌다.
+        /// </summary>
+        public float[] GrowthCarry;
+        public int GrowthAddedComments;
     }
 
     /// <summary>화면에 붙는 댓글 한 줄. 판정에 쓰이는 데이터는 들고 있지 않다.</summary>
@@ -884,6 +894,15 @@ namespace UrbanLegendBureau.UI
             _entries = entries;
             _onEntry = onEntry;
             Refresh();
+        }
+
+        /// <summary>글 화면을 맨 아래(댓글과 선택지 자리)까지 내린다. 새로 세운 단추가 화면 밖에 있지 않게 한다.</summary>
+        public void ScrollPostToBottom()
+        {
+            if (_commentScroll == null || _showingBoard) return;
+            Canvas.ForceUpdateCanvases();
+            if (_commentScroll.content != null) LayoutRebuilder.ForceRebuildLayoutImmediate(_commentScroll.content);
+            _commentScroll.verticalNormalizedPosition = 0f;
         }
 
         /// <summary>목록 보기와 글 보기를 바꾼다.</summary>

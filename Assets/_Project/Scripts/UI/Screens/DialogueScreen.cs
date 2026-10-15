@@ -237,6 +237,11 @@ namespace UrbanLegendBureau.UI
         public void SetBandLayout(bool band)
         {
             if (band) SetCompactLayout(false);
+
+            // 숙소에서는 큰 인물 뒤의 방(작은 인물들)을 살짝 어둡게 한다. 누름은 막지 않는다.
+            if (band) ShowDim(BandDimAlpha, false);
+            else if (!_compact) HideDim();
+
             if (!_boxCaptured || _bandLayout == band) return;
             _bandLayout = band;
 
@@ -301,30 +306,50 @@ namespace UrbanLegendBureau.UI
 
         // ------------------------------------------------------------- 컴퓨터 위 작은 대화
 
-        /// <summary>작은 대화일 때 한영의 크기. 그림은 그대로 두고 줄이기만 한다.</summary>
-        private const float CompactScale = 0.66f;
+        // 화면 오른쪽 한 칸(x 240 ~ 940)만 쓴다. 왼쪽은 괴담넷 글과 결과 화면 자리다.
+        // 한영은 그 칸 위쪽에 허리 위만 보이게 세우고, 대사 상자는 그 아래 작업 표시줄(아래 64) 위에 둔다.
 
-        /// <summary>작은 대화일 때 한영이 서는 자리(오른쪽 끝). 글 본문을 가리지 않는다.</summary>
-        private static readonly Vector2 CompactCharacterPosition = new Vector2(700f, -470f);
+        /// <summary>작은 대화의 칸 가운데(x). 한영과 상자가 같은 칸에 선다.</summary>
+        private const float CompactColumnX = 590f;
 
-        /// <summary>작은 대화일 때 대사 상자. 한영 왼쪽에 낮게 깔린다.</summary>
-        private static readonly Vector2 CompactBoxPosition = new Vector2(-150f, -392f);
-        private static readonly Vector2 CompactBoxSize = new Vector2(1300f, 232f);
+        /// <summary>한영의 크기. 그림은 그대로 두고 줄이기만 한다.</summary>
+        private const float CompactScale = 0.5f;
+
+        /// <summary>한영 그림에서 위쪽 몇 할만 보일 것인가. 머리부터 허리까지다. 그 아래는 상자 뒤로 들어간다.</summary>
+        private const float CompactShowAmount = 0.5f;
+
+        /// <summary>한영 그림 맨 위가 오는 높이. 허리가 상자 위끝(-164)에 닿게 내린다.</summary>
+        private const float CompactHeadTop = 372f;
+
+        private static readonly Vector2 CompactBoxPosition = new Vector2(CompactColumnX, -312f);
+        private static readonly Vector2 CompactBoxSize = new Vector2(700f, 296f);
 
         /// <summary>작은 대화일 때 뒤를 덮는 어둠의 진하기. 글은 읽히되 대사로 눈이 가게 한다.</summary>
         private const float CompactDimAlpha = 0.42f;
         private const float CompactFadeSeconds = 0.2f;
 
+        /// <summary>숙소에서 큰 인물이 설 때 방(작은 인물들)을 살짝 어둡게 한다. 두 크기의 인물이 함께 또렷하면 어색하다.</summary>
+        private const float BandDimAlpha = 0.45f;
+
+        private const float CompactLineSize = 27f;
+        private const float CompactNameSize = 30f;
+        private static readonly Color CompactHintColor = new Color(0.82f, 0.82f, 0.86f, 1f);
+
         private bool _compact;
         private Image _dim;
+        private Button _dimButton;
         private Coroutine _fade;
         private Vector3 _leftDesignScale = Vector3.one;
-        private RectState _compactSavedBox, _compactSavedAdvance, _compactSavedName, _compactSavedHint;
+        private RectState _compactSavedBox, _compactSavedAdvance, _compactSavedName, _compactSavedLine, _compactSavedHint;
+        private float _savedLineSize, _savedNameSize;
+        private bool _savedLineAuto;
+        private Color _savedHintColor;
 
         /// <summary>
         /// 컴퓨터 화면 위에서 한영이 짧게 말할 때의 배치.
-        /// 한영을 줄여 오른쪽 끝에 세우고, 뒤를 살짝 어둡게 덮고, 상자는 그 왼쪽 아래에 낮게 둔다.
-        /// 켤 때 서서히 나타난다. 닫을 때는 FadeOutThen 으로 서서히 사라진다.
+        /// 화면 오른쪽 칸에 한영을 줄여 허리 위만 세우고, 그 아래에 상자를 둔다. 뒤는 살짝 어둡게 덮는다.
+        /// 덮개는 누름을 받는다. 말하는 동안 뒤의 단추를 누를 수 없고, 아무 곳이나 누르면 다음으로 넘어간다.
+        /// 켤 때 서서히 나타나고, 닫을 때는 FadeOutThen 으로 서서히 사라진다.
         /// 끄면 원래 타입 1 배치로 돌아간다. 대사를 보이기 전에 불러야 한다.
         /// </summary>
         public void SetCompactLayout(bool compact)
@@ -335,29 +360,60 @@ namespace UrbanLegendBureau.UI
             var group = GetComponent<CanvasGroup>();
             if (_fade != null) { StopCoroutine(_fade); _fade = null; }
 
-            var rt = _left.image.rectTransform;
+            var image = _left.image;
+            var rt = image.rectTransform;
             if (compact && !_compact)
             {
                 _leftDesignScale = rt.localScale;
                 if (_box != null) _compactSavedBox = RectState.Of(_box);
                 if (_advanceRect != null) _compactSavedAdvance = RectState.Of(_advanceRect);
-                if (_nameText != null) _compactSavedName = RectState.Of(_nameText.rectTransform);
-                if (_hintText != null) _compactSavedHint = RectState.Of(_hintText.rectTransform);
+                if (_nameText != null) { _compactSavedName = RectState.Of(_nameText.rectTransform); _savedNameSize = _nameText.fontSize; }
+                if (_lineText != null)
+                {
+                    _compactSavedLine = RectState.Of(_lineText.rectTransform);
+                    _savedLineSize = _lineText.fontSize;
+                    _savedLineAuto = _lineText.enableAutoSizing;
+                }
+                if (_hintText != null) { _compactSavedHint = RectState.Of(_hintText.rectTransform); _savedHintColor = _hintText.color; }
             }
 
             if (compact)
             {
-                EnsureDim();
-                _dim.gameObject.SetActive(true);
+                ShowDim(CompactDimAlpha, true);
+
+                // 위쪽만 그린다. 머리가 잘리지 않고, 다리가 작업 표시줄 위로 삐져나오지 않는다.
+                image.type = Image.Type.Filled;
+                image.fillMethod = Image.FillMethod.Vertical;
+                image.fillOrigin = (int)Image.OriginVertical.Top;
+                image.fillAmount = CompactShowAmount;
                 rt.localScale = _leftDesignScale * CompactScale;
-                rt.anchoredPosition = CompactCharacterPosition;
+                float half = rt.sizeDelta.y * CompactScale * (1f - rt.pivot.y);
+                rt.anchoredPosition = new Vector2(CompactColumnX, CompactHeadTop - half);
+
                 PlaceCompact(_box);
                 if (_advanceRect != null && !_advanceCoversScreen) PlaceCompact(_advanceRect);
 
-                // 이름과 "눌러 계속"은 원래 상자 높이(300)에서 거꾸로 잰 자리라, 낮아진 상자에서는 높이가 음수가 되어 사라진다. 다시 잰다.
-                const float side = 48f, pad = 20f, nameH = 50f, hintH = 28f;
-                if (_nameText != null) Inset(_nameText.rectTransform, side, pad, CompactBoxSize.y - pad - nameH);
-                if (_hintText != null) Inset(_hintText.rectTransform, side, CompactBoxSize.y - pad - hintH + 6f, pad - 6f);
+                // 상자 안쪽. 원래 상자 높이(300)에서 거꾸로 잰 자리라 다시 잰다.
+                const float side = 30f, pad = 18f, nameH = 42f, hintH = 28f;
+                if (_nameText != null)
+                {
+                    Inset(_nameText.rectTransform, side, pad, CompactBoxSize.y - pad - nameH);
+                    _nameText.fontSize = CompactNameSize;
+                }
+                if (_lineText != null)
+                {
+                    Inset(_lineText.rectTransform, side, pad + nameH + 6f, pad + hintH + 4f);
+                    // 줄이 많아도 상자를 넘지 않게 조금까지는 줄여 맞춘다.
+                    _lineText.enableAutoSizing = true;
+                    _lineText.fontSizeMax = CompactLineSize;
+                    _lineText.fontSizeMin = 21f;
+                    _lineText.fontSize = CompactLineSize;
+                }
+                if (_hintText != null)
+                {
+                    Inset(_hintText.rectTransform, side, CompactBoxSize.y - pad - hintH, pad - 4f);
+                    _hintText.color = CompactHintColor;
+                }
 
                 _compact = true;
                 if (group != null)
@@ -370,12 +426,20 @@ namespace UrbanLegendBureau.UI
 
             if (!_compact) return;
             _compact = false;
-            if (_dim != null) _dim.gameObject.SetActive(false);
+            HideDim();
+            image.type = Image.Type.Simple;
+            image.fillAmount = 1f;
             rt.localScale = _leftDesignScale;   // 자리는 뒤따르는 SetSoloLayout 이 정한다
             if (_box != null) _compactSavedBox.ApplyTo(_box);
             if (_advanceRect != null && !_advanceCoversScreen) _compactSavedAdvance.ApplyTo(_advanceRect);
-            if (_nameText != null) _compactSavedName.ApplyTo(_nameText.rectTransform);
-            if (_hintText != null) _compactSavedHint.ApplyTo(_hintText.rectTransform);
+            if (_nameText != null) { _compactSavedName.ApplyTo(_nameText.rectTransform); _nameText.fontSize = _savedNameSize; }
+            if (_lineText != null)
+            {
+                _compactSavedLine.ApplyTo(_lineText.rectTransform);
+                _lineText.enableAutoSizing = _savedLineAuto;
+                _lineText.fontSize = _savedLineSize;
+            }
+            if (_hintText != null) { _compactSavedHint.ApplyTo(_hintText.rectTransform); _hintText.color = _savedHintColor; }
             if (group != null) group.alpha = 1f;
         }
 
@@ -410,20 +474,36 @@ namespace UrbanLegendBureau.UI
             rt.sizeDelta = CompactBoxSize;
         }
 
-        /// <summary>뒤를 덮는 어둠. 처음 쓸 때 만들어 맨 뒤에 둔다. 누름은 받지 않는다.</summary>
-        private void EnsureDim()
+        /// <summary>
+        /// 뒤를 덮는 어둠. 처음 쓸 때 만들어 맨 뒤(인물보다 뒤)에 둔다.
+        /// modal 이면 누름을 받아 뒤의 단추를 막고, 누르면 다음 대사로 넘긴다.
+        /// </summary>
+        private void ShowDim(float alpha, bool modal)
         {
-            if (_dim != null) return;
-            var go = new GameObject("CompactDim", typeof(RectTransform), typeof(Image));
-            go.transform.SetParent(transform, false);
-            go.transform.SetAsFirstSibling();
-            var rt = (RectTransform)go.transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
-            _dim = go.GetComponent<Image>();
-            _dim.color = new Color(0f, 0f, 0f, CompactDimAlpha);
-            _dim.raycastTarget = false;
+            if (_dim == null)
+            {
+                var go = new GameObject("Dim", typeof(RectTransform), typeof(Image), typeof(Button));
+                go.transform.SetParent(transform, false);
+                var drt = (RectTransform)go.transform;
+                drt.anchorMin = Vector2.zero;
+                drt.anchorMax = Vector2.one;
+                drt.offsetMin = drt.offsetMax = Vector2.zero;
+                _dim = go.GetComponent<Image>();
+                _dimButton = go.GetComponent<Button>();
+                _dimButton.transition = Selectable.Transition.None;
+                _dimButton.onClick.AddListener(() => { if (_compact) OnAdvanceClicked(); });
+            }
+
+            _dim.transform.SetAsFirstSibling();
+            _dim.color = new Color(0f, 0f, 0f, alpha);
+            _dim.raycastTarget = modal;
+            _dimButton.enabled = modal;
+            _dim.gameObject.SetActive(true);
+        }
+
+        private void HideDim()
+        {
+            if (_dim != null) _dim.gameObject.SetActive(false);
         }
 
         /// <summary>
