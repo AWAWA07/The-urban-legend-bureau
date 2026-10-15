@@ -17,8 +17,11 @@ namespace UrbanLegendBureau.Systems
         private float _lastX;
         private float _travelled;
 
+        private bool _indoor;   // 숙소 방 안. 구두 대신 실내에서 걷는 부드러운 발소리(step_soft_0~3)를 낸다
+
         private void OnEnable()
         {
+            _indoor = GetComponentInParent<RoomNight>(true) != null;
             _lastX = transform.localPosition.x;
             _travelled = Stride * 0.6f;
         }
@@ -39,7 +42,8 @@ namespace UrbanLegendBureau.Systems
             _travelled += moved;
             if (_travelled < Stride) return;
             _travelled -= Stride;
-            Sfx.Play("step_" + Random.Range(0, 4), Volume, Random.Range(0.93f, 1.07f));
+            if (_indoor) Sfx.Play("step_soft_" + Random.Range(0, 4), Volume * 0.8f, Random.Range(0.95f, 1.05f));
+            else Sfx.Play("step_" + Random.Range(0, 4), Volume, Random.Range(0.93f, 1.07f));
         }
     }
 }
