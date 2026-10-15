@@ -68,38 +68,45 @@ namespace UrbanLegendBureau.Data
         }
 
         /// <summary>보고서 빈칸이 무엇을 묻는가.</summary>
-        public enum ReportAnswerType { Truth, Rule, Countermeasure, Target }
+        public enum ReportAnswerType { None, Truth, Rule, Countermeasure, Target }
 
         /// <summary>
-        /// 보고서의 작성란 하나. 문서 안에서 "01 진위 판정 / 설명 문장 / 작성란" 순서로 한 섹션을 이룬다.
-        /// 작성란 뒤에 말을 잇지 않는다. 답이 명사든 문장이든 문법이 깨지지 않게 하기 위해서다.
-        /// 판정은 정리한 글(공백, 문장부호, 괄호, 따옴표, 대소문자를 뺀다)이 허용 답안 하나와 통째로 같을 때만 맞다.
-        /// 허용 답안이 "~" 로 시작하면 짧은 틀이다. 낱말 사이를 띄어 쓰고 [가|나] 는 그중 하나, 뒤에 ? 가 붙으면 없어도 된다.
-        /// 틀도 글 전체가 처음부터 끝까지 맞아야 한다. 핵심어가 들어 있다는 것만으로는 맞히지 않는다(반대 뜻이 섞여 들어오지 않게).
+        /// 보고서의 한 섹션(문단). 이미 적혀 있는 사건 보고서 문단이고, 그 안에 핵심 낱말 하나를 비워 둘 수 있다.
+        ///
+        /// 문단 글에 {_} 를 적은 자리가 빈칸이다. 빈칸은 문장 사이의 밑줄로 보이고 플레이어가 짧은 낱말을 적는다.
+        /// 빈칸 앞뒤 말은 어떤 허용 답이 들어가도 문법이 맞게 짓는다(조사가 답에 따라 바뀌지 않게).
+        /// blankId 가 비어 있으면 빈칸 없는 설명 문단이다.
+        ///
+        /// 판정은 정리한 글(공백, 문장부호, 괄호, 따옴표, 대소문자를 뺀다)이 허용 답 하나와 통째로 같을 때만 맞다.
+        /// 허용 답이 "~" 로 시작하면 짧은 틀이다. 낱말 사이를 띄어 쓰고 [가|나] 는 그중 하나, 뒤에 ? 가 붙으면 없어도 된다.
+        /// 정답 낱말이 들어 있다는 것만으로는 맞히지 않는다("돌려" 가 답이면 "돌리지" 는 틀리다).
         /// </summary>
         [Serializable]
         public class ReportBlank
         {
+            [Tooltip("빈칸 ID. 비우면 빈칸 없는 설명 문단이다.")]
             public string blankId;
             public ReportAnswerType answerType;
 
-            [Tooltip("섹션 제목. 예: 진위 판정.")]
+            [Tooltip("섹션 제목. 예: 사건 개요.")]
             public string titleTextId;
 
-            [Tooltip("작성란 위의 설명 문장. 작성란은 그 아래에 따로 놓이므로 이 문장이 답과 이어 붙지 않는다.")]
-            public string prefixTextId;
+            [Tooltip("문단 글. {_} 자리가 빈칸이다.")]
+            public string bodyTextId;
 
-            [Tooltip("여러 줄로 적는 작성란인가. 규칙과 대처 방법처럼 문장으로 답하는 칸.")]
-            public bool multiLine;
+            [Tooltip("빈칸 밑줄의 폭(1920 기준). 가장 긴 허용 답이 들어갈 만큼.")]
+            public float blankWidth = 180f;
 
-            [Tooltip("빈칸이 비었을 때 흐리게 보이는 안내. 답을 알려 주지 않는다.")]
-            public string hintTextId;
-
-            [Tooltip("대표 정답. 다 맞힌 뒤 보고서와 메모장에 이 말을 쓰지 않고 플레이어가 적은 글을 쓴다. 검수용이다.")]
+            [Tooltip("대표 정답. 검수와 메모장 확인용이다. 메모장에는 플레이어가 적은 글이 들어간다.")]
             public string answerTextId;
+
+            [Tooltip("검열 대상 빈칸이 가리키는 게시물 ID. 빈칸에는 제목의 핵심 낱말만 적지만 실제 대상은 이 글이다.")]
+            public string targetPageId;
 
             [Tooltip("받아 주는 답(한국어, 영어). 정리한 뒤 통째로 견준다. ~ 로 시작하면 틀이다(위 설명).")]
             public List<string> acceptedAnswers = new List<string>();
+
+            public bool HasBlank => !string.IsNullOrEmpty(blankId);
         }
 
         [SerializeField] private string _caseId;
@@ -122,6 +129,17 @@ namespace UrbanLegendBureau.Data
         public IReadOnlyList<Analysis> Analyses => _analyses;
         public IReadOnlyList<Question> Questions => _questions;
         public IReadOnlyList<ReportBlank> ReportBlanks => _reportBlanks;
+
+        /// <summary>보고서 섹션 가운데 빈칸이 있는 것의 수.</summary>
+        public int BlankCount
+        {
+            get
+            {
+                int n = 0;
+                foreach (var b in _reportBlanks) if (b != null && b.HasBlank) n++;
+                return n;
+            }
+        }
         public string DocumentNumber => _documentNumber;
         public string SummaryTextId => _summaryTextId;
 

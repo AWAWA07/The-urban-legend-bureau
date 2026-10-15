@@ -1171,7 +1171,7 @@ namespace UrbanLegendBureau.UI
             bool confirmed = CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId);
 
             // 빈칸 자료가 있는 사건은 문장 속 빈칸을 직접 적어 채우는 보고서다.
-            if (Deduction.ReportBlanks.Count > 0)
+            if (Deduction.BlankCount > 0)
             {
                 BuildFillReport(confirmed);
                 return;
@@ -1261,18 +1261,18 @@ namespace UrbanLegendBureau.UI
 
         // ------------------------------------------------------------- 빈칸 보고서
 
-        /// <summary>작성란 하나의 화면 조각. 판정 색을 바꿀 때 다시 짓지 않고 이것만 칠한다.</summary>
+        /// <summary>문단 속 빈칸 하나의 화면 조각. 판정 색을 바꿀 때 다시 짓지 않고 이것만 칠한다.</summary>
         private class BlankView
         {
             public CaseDeductionSO.ReportBlank Blank;
             public RectTransform Section;
             public TMP_InputField Field;
-            public Image Back;
-            public Image[] Border;
+            public Image Underline;
             public TMP_Text Mark;
+            public int LastLength;
         }
 
-        /// <summary>작성란의 판정. 고쳐 쓰기 시작하면 판정 전으로 돌아간다.</summary>
+        /// <summary>빈칸의 판정. 고쳐 쓰기 시작하면 판정 전으로 돌아간다.</summary>
         private enum BlankState { Unjudged, Right, Wrong, Empty }
 
         private readonly List<BlankView> _blankViews = new List<BlankView>();
@@ -1282,80 +1282,112 @@ namespace UrbanLegendBureau.UI
         private Button _confirmButton;
         private TMP_Text _confirmLabel;
         private ScrollRect _reportScroll;
+        private TMP_Text _measure;
         private bool _reviewed;
+        private float _lastKeySound;
+        private string _lastComposition = string.Empty;
 
-        private static readonly Color RightColor = Hex("4FA36B");
-        private static readonly Color RightBack = Hex("172A1F");
-        private static readonly Color WrongColor = Hex("C0565C");
-        private static readonly Color WrongBack = Hex("2C181B");
-        private static readonly Color FieldBack = Hex("141A21");
+        // 종이 색. 새하얗지 않은 오래된 문서 빛. 글은 먹색, 빈칸 글씨는 짙은 남색 잉크.
+        private static readonly Color PaperColor = Hex("D9D4C8");
+        private static readonly Color PaperRule = Hex("B3AC9C");
+        private static readonly Color Ink = Hex("24272C");
+        private static readonly Color InkSub = Hex("575B62");
+        private static readonly Color InkRed = Hex("8E3237");
+        private static readonly Color BlankInk = Hex("1C3D66");
+        private static readonly Color Under = Hex("857F70");
+        private static readonly Color UnderFocus = Hex("2F6E9C");
+        private static readonly Color RightColor = Hex("2E7D4B");
+        private static readonly Color WrongColor = Hex("B1363C");
+
+        // 화면 아래(어두운 판 위) 알림 줄의 초록과 빨강. 어두운 바탕에서 읽히도록 밝게.
+        private static readonly Color RightOnDark = Hex("5DB97C");
+        private static readonly Color WrongOnDark = Hex("D9666C");
+
+        private const float PaperWidth = 1240f;
+        private const float PaperPadLeft = 72f;
+        private const float PaperPadRight = 86f;
+        private const float BodySize = 25f;
+        private const float LineHeight = 50f;
 
         /// <summary>
-        /// 직접 적어 채우는 조사 보고서.
+        /// 핵심 낱말만 채우는 사건 보고서.
         ///
-        /// 문서 안의 항목마다 한 섹션이다: 번호와 제목, 설명 한 문장, 그 아래 작성란.
-        /// 작성란 뒤에 말을 잇지 않으므로 답을 명사로 적든 문장으로 적든 문법이 깨지지 않는다.
-        ///
+        /// 이미 적혀 있는 보고서 문단을 읽어 내려가다가, 문장 사이의 밑줄 빈칸에 짧은 낱말을 적는다.
         /// 적는 동안에는 판정하지 않는다. "보고서 검토"를 누르면 한꺼번에 견주어
-        /// 맞은 칸은 초록(✓), 틀린 칸은 빨강(×), 비운 칸은 회색(미입력)으로 둔다. 정답은 알려 주지 않는다.
-        /// 다 맞아야 "조사 결과 확정"이 켜진다. 확정하기 전에는 맞은 칸도 고쳐 쓸 수 있다.
-        /// 확정한 뒤에는 작성란 대신 적은 글이 문서 본문처럼 남는다.
+        /// 맞은 빈칸은 초록 밑줄(✓), 틀린 빈칸은 빨간 밑줄(×), 비운 빈칸은 회색으로 둔다. 정답은 알려 주지 않는다.
+        /// 맞은 칸은 그대로 두고 틀린 칸만 고치면 된다. 다 맞아야 "조사 결과 확정"이 켜진다.
+        /// 확정한 뒤에는 빈칸을 고칠 수 없고 적은 낱말이 초록 밑줄 위에 남는다.
         /// </summary>
         private void BuildFillReport(bool confirmed)
         {
             _blankViews.Clear();
+            if (confirmed)
+            {
+                foreach (var b in Deduction.ReportBlanks) if (b != null && b.HasBlank) _blankResults[b.blankId] = BlankState.Right;
+            }
 
-            var paper = Panel("Paper", _body, PanelColor);
-            Place(paper.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(-620f, 150f), new Vector2(620f, 0f));
-            Outline(paper.gameObject, Line);
-            var band = Box("Band", paper.transform, Bureau);
+            var paper = Panel("Paper", _body, PaperColor);
+            Place(paper.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 1f), new Vector2(-PaperWidth / 2f, 150f), new Vector2(PaperWidth / 2f, 0f));
+            var band = Box("Band", paper.transform, InkRed);
             Place(band.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -6f), Vector2.zero);
 
-            _reportScroll = Scroll("Doc", paper.rectTransform, out var doc, 14f, new RectOffset(60, 74, 44, 56));
+            _reportScroll = Scroll("Doc", paper.rectTransform, out var doc, 10f, new RectOffset((int)PaperPadLeft, (int)PaperPadRight, 40, 60));
             Stretch((RectTransform)_reportScroll.transform);
             ((RectTransform)_reportScroll.transform).offsetMax = new Vector2(0f, -6f);   // 위쪽 붉은 띠 아래에서부터 굴러간다
-            EmphasizeScrollbar(_reportScroll);
+            PaperScrollbar(_reportScroll);
             _reportScroll.onValueChanged.AddListener(_ => PaintReportFooter());
 
+            // 낱말 폭을 재는 데만 쓰는 글. 화면에는 보이지 않는다.
+            _measure = Label("Measure", paper.rectTransform, _medium, BodySize, Ink, TextAlignmentOptions.TopLeft);
+            _measure.color = new Color(0f, 0f, 0f, 0f);
+
+            // 문서 머리: 기관과 문서 종류, 기밀 표시, 사건 번호와 사건명
             var headRow = NewRect("HeadRow", doc);
-            Layout(headRow.gameObject, 40f);
-            var org = Label("Org", headRow, _medium, 20f, TextSub, TextAlignmentOptions.MidlineLeft);
+            Layout(headRow.gameObject, 34f);
+            var org = Label("Org", headRow, _bold, 21f, Ink, TextAlignmentOptions.MidlineLeft);
             Stretch(org.rectTransform);
-            org.text = L(T + "report_doc", Deduction.DocumentNumber);
-            var stamp = Label("Stamp", headRow, _bold, 20f, Bureau, TextAlignmentOptions.MidlineRight);
+            org.text = L(T + "paper_org");
+            org.characterSpacing = 2f;
+            var stamp = Label("Stamp", headRow, _bold, 20f, InkRed, TextAlignmentOptions.MidlineRight);
             Stretch(stamp.rectTransform);
-            stamp.text = L(T + "report_stamp");
-            stamp.characterSpacing = 3f;
+            stamp.text = "CONFIDENTIAL";
+            stamp.characterSpacing = 6f;
 
-            Para(doc, L(T + "report_header"), _bold, 36f, TextMain);
-            if (!confirmed) Para(doc, L(T + "report_fill_guide"), _regular, 20f, TextSub);
-            Divider(doc);
+            Para(doc, L(T + "paper_title"), _bold, 38f, Ink);
+            Para(doc, L(T + "paper_meta", Deduction.DocumentNumber, L(_ctx.CaseNameTextId)), _medium, 21f, InkSub);
+            PaperDivider(doc, 2f);
+            if (!confirmed) Para(doc, L(T + "paper_guide"), _regular, 20f, InkSub, 4f);
 
-            ReportSection(doc, L(T + "report_case"), L(_ctx.CaseNameTextId));
-
-            for (int i = 0; i < Deduction.ReportBlanks.Count; i++)
+            int no = 0;
+            foreach (var section in Deduction.ReportBlanks)
             {
-                var blank = Deduction.ReportBlanks[i];
-                if (blank == null) continue;
-                if (confirmed) FilledSection(doc, blank, i);
-                else BlankSection(doc, blank, i);
+                if (section == null) continue;
+                no++;
+                Spacer(doc, 8f);
+                Para(doc, "<color=#" + ColorUtility.ToHtmlStringRGB(InkRed) + ">" + no + ".</color>  " + L(section.titleTextId), _bold, 24f, Ink);
+                FlowParagraph(doc, section, confirmed);
             }
 
             // 확정한 뒤에만 종합 판단을 덧붙인다. 그 전에 보이면 답을 적어 주는 셈이다.
             if (confirmed && !string.IsNullOrEmpty(Deduction.SummaryTextId))
             {
-                ReportSection(doc, L(T + "report_summary"), L(Deduction.SummaryTextId), true, _regular, 24f);
+                Spacer(doc, 8f);
+                PaperDivider(doc, 1f);
+                Para(doc, L(T + "report_summary"), _bold, 22f, Ink);
+                Para(doc, L(Deduction.SummaryTextId), _regular, 23f, Ink, 10f);
             }
 
-            var analyses = new StringBuilder();
+            Spacer(doc, 8f);
+            PaperDivider(doc, 1f);
+            var refs = new StringBuilder();
             for (int i = 0; i < Deduction.Analyses.Count; i++)
             {
                 var a = Deduction.Analyses[i];
                 if (a == null || !CaseNotebook.HasAnalysis(Data, Deduction, a.analysisId)) continue;
-                if (analyses.Length > 0) analyses.Append('\n');
-                analyses.Append(AnalysisNo(i)).Append("   ").Append(L(a.titleTextId));
+                refs.Append(refs.Length > 0 ? "\n" : string.Empty).Append(AnalysisNo(i)).Append("   ").Append(L(a.titleTextId));
             }
-            ReportSection(doc, L(T + "report_analyses"), analyses.ToString(), true, _medium, 24f);
+            Para(doc, L(T + "report_analyses"), _bold, 20f, InkSub);
+            Para(doc, refs.Length > 0 ? refs.ToString() : "—", _regular, 21f, InkSub, 6f);
 
             // 관련 단서는 번호 순으로 적는다. 자료의 순서(얻는 순서)는 건드리지 않는다.
             var sorted = CaseNotebook.AcquiredClues(Data, Deduction);
@@ -1363,12 +1395,13 @@ namespace UrbanLegendBureau.UI
             var clues = new StringBuilder();
             foreach (var clue in sorted)
             {
-                if (clues.Length > 0) clues.Append('\n');
-                clues.Append(ShortId(clue.clueId)).Append("   ").Append(_ctx.ClueTitle(clue.clueId));
+                clues.Append(clues.Length > 0 ? "\n" : string.Empty).Append(ShortId(clue.clueId)).Append("   ").Append(_ctx.ClueTitle(clue.clueId));
             }
-            ReportSection(doc, L(T + "report_clues"), clues.ToString(), false, _medium, 24f);
+            Spacer(doc, 4f);
+            Para(doc, L(T + "report_clues"), _bold, 20f, InkSub);
+            Para(doc, clues.Length > 0 ? clues.ToString() : "—", _regular, 21f, InkSub, 6f);
 
-            // 아래 고정 줄: 진행 알림 한 줄, 그 아래 단추 셋
+            // 아래 고정 줄(어두운 판 위): 진행 알림 한 줄, 그 아래 단추 셋
             _reportFeedback = Label("Feedback", _body, _semiBold, 21f, TextSub, TextAlignmentOptions.Center);
             Place(_reportFeedback.rectTransform, new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(-620f, 100f), new Vector2(620f, 142f));
             _reportFeedback.overflowMode = TextOverflowModes.Ellipsis;
@@ -1403,84 +1436,171 @@ namespace UrbanLegendBureau.UI
         }
 
         /// <summary>
-        /// 작성 중인 섹션 하나. 번호와 제목, 설명 문장, 작성란.
-        /// 작성란은 섹션 폭을 다 쓰고 왼쪽 끝이 늘 같은 자리에서 시작한다.
-        /// 진위와 검열 대상은 한 줄, 규칙과 대처 방법은 여러 줄로 적는다.
+        /// 문단 하나를 종이 위에 흘려 쓴다. 낱말 폭을 재어 줄을 바꾸고, {_} 자리에 밑줄 빈칸을 끼운다.
+        /// Unity 의 글 상자는 글 사이에 입력칸을 끼우지 못하므로 줄을 직접 나눈다.
+        /// 빈칸이 줄 끝에 걸리면 통째로 다음 줄로 넘긴다. 문단 높이는 줄 수만큼 잡는다.
         /// </summary>
-        private void BlankSection(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
+        private void FlowParagraph(RectTransform doc, CaseDeductionSO.ReportBlank section, bool confirmed)
         {
-            var section = SectionHead(doc, blank, index);
+            var box = NewRect("Paragraph_" + (section.HasBlank ? section.blankId : section.titleTextId), doc);
+            float width = PaperWidth - PaperPadLeft - PaperPadRight - 10f;
 
-            var fieldRt = NewRect("Field", section);
-            var back = fieldRt.gameObject.AddComponent<Image>();
-            back.color = FieldBack;
-            var le = fieldRt.gameObject.AddComponent<LayoutElement>();
-            float height = blank.multiLine ? 126f : 64f;
-            le.minHeight = height;
-            le.preferredHeight = height;
+            string text = L(section.bodyTextId);
+            int at = section.HasBlank ? text.IndexOf("{_}", StringComparison.Ordinal) : -1;
+            string before = at >= 0 ? text.Substring(0, at) : text;
+            string after = at >= 0 ? text.Substring(at + 3) : string.Empty;
 
-            var border = new Image[4];
-            for (int i = 0; i < 4; i++)
+            _measure.font = _medium;
+            _measure.fontSize = BodySize;
+            float space = Mathf.Max(6f, _measure.GetPreferredValues("가 가").x - _measure.GetPreferredValues("가가").x);
+
+            float x = 0f, y = 0f;
+            var seg = new StringBuilder();
+            float segX = 0f;
+
+            void Flush()
             {
-                border[i] = Box("Edge" + i, fieldRt, Line);
-                var r = border[i].rectTransform;
-                r.anchorMin = i == 0 ? new Vector2(0f, 1f) : i == 3 ? new Vector2(1f, 0f) : Vector2.zero;
-                r.anchorMax = i == 1 ? new Vector2(1f, 0f) : i == 2 ? new Vector2(0f, 1f) : Vector2.one;
-                r.offsetMin = i == 0 ? new Vector2(0f, -2f) : i == 3 ? new Vector2(-2f, 0f) : Vector2.zero;
-                r.offsetMax = i == 1 ? new Vector2(0f, 2f) : i == 2 ? new Vector2(2f, 0f) : Vector2.zero;
+                if (seg.Length == 0) return;
+                var label = Label("Line", box, _medium, BodySize, Ink, TextAlignmentOptions.MidlineLeft);
+                label.text = seg.ToString();
+                var rt = label.rectTransform;
+                rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0f, 1f);
+                rt.sizeDelta = new Vector2(_measure.GetPreferredValues(label.text).x + 8f, LineHeight);
+                rt.anchoredPosition = new Vector2(segX, -y);
+                seg.Clear();
             }
 
+            void Words(string part)
+            {
+                if (string.IsNullOrEmpty(part)) return;
+                var words = part.Split(' ');
+                for (int i = 0; i < words.Length; i++)
+                {
+                    string word = words[i];
+                    bool spaceAfter = i < words.Length - 1;
+                    if (word.Length == 0)
+                    {
+                        if (spaceAfter) { if (seg.Length == 0) segX = x + space; else seg.Append(' '); x += space; }
+                        continue;
+                    }
+                    float w = _measure.GetPreferredValues(word).x;
+                    if (x + w > width && x > 0f)
+                    {
+                        Flush();
+                        x = 0f;
+                        y += LineHeight;
+                    }
+                    if (seg.Length == 0) segX = x;
+                    seg.Append(word);
+                    x += w;
+                    if (spaceAfter) { seg.Append(' '); x += space; }
+                }
+            }
+
+            Words(before);
+
+            if (at >= 0)
+            {
+                float w = Mathf.Max(80f, section.blankWidth);
+                if (x + w > width && x > 0f)
+                {
+                    Flush();
+                    x = 0f;
+                    y += LineHeight;
+                }
+                Flush();
+                BlankField(box, section, x, y, w, confirmed);
+                x += w + 2f;
+                segX = x;
+                Words(after);
+            }
+            Flush();
+
+            Layout(box.gameObject, y + LineHeight + 6f);
+        }
+
+        /// <summary>
+        /// 문장 사이의 밑줄 빈칸. 클릭하면 깜빡이는 세로 커서가 들어오고(입력란이 갖춘 캐럿을 쓴다) 짧은 낱말을 적는다.
+        /// 고르면 밑줄이 파랗게 짙어지고, 검토하면 초록·빨강으로 바뀐다. 오른쪽 위 작은 표가 ✓·× 다.
+        /// </summary>
+        private void BlankField(RectTransform box, CaseDeductionSO.ReportBlank section, float x, float y, float width, bool confirmed)
+        {
+            var fieldRt = NewRect("Blank_" + section.blankId, box);
+            fieldRt.anchorMin = fieldRt.anchorMax = fieldRt.pivot = new Vector2(0f, 1f);
+            fieldRt.sizeDelta = new Vector2(width, LineHeight);
+            fieldRt.anchoredPosition = new Vector2(x, -y);
+
+            // 눌리는 판. 거의 보이지 않는 옅은 빛만 깔아 빈칸 자리를 드러낸다.
+            var hit = fieldRt.gameObject.AddComponent<Image>();
+            hit.color = new Color(1f, 1f, 1f, 0.16f);
+
+            var underline = Box("Underline", fieldRt, Under);
+            var ur = underline.rectTransform;
+            ur.anchorMin = new Vector2(0f, 0f);
+            ur.anchorMax = new Vector2(1f, 0f);
+            ur.pivot = new Vector2(0.5f, 0f);
+            ur.sizeDelta = new Vector2(0f, 2f);
+            ur.anchoredPosition = new Vector2(0f, 4f);
+
             var area = NewRect("TextArea", fieldRt);
-            Place(area, Vector2.zero, Vector2.one, new Vector2(18f, 10f), new Vector2(-96f, -10f));
+            Place(area, Vector2.zero, Vector2.one, new Vector2(8f, 2f), new Vector2(-24f, -2f));   // 글 줄 높이와 같은 한가운데에 놓여 앞뒤 문장과 나란하다
             area.gameObject.AddComponent<RectMask2D>();
 
-            var align = blank.multiLine ? TextAlignmentOptions.TopLeft : TextAlignmentOptions.MidlineLeft;
-            var placeholder = Label("Placeholder", area, _regular, 21f, TextDim, align);
+            var placeholder = Label("Placeholder", area, _regular, BodySize - 2f, new Color(InkSub.r, InkSub.g, InkSub.b, 0.0f), TextAlignmentOptions.MidlineLeft);
             Stretch(placeholder.rectTransform);
-            placeholder.text = L(blank.hintTextId);
-            placeholder.textWrappingMode = TextWrappingModes.Normal;
-            placeholder.fontStyle = FontStyles.Italic;
+            placeholder.text = string.Empty;
 
-            var text = Label("Text", area, _medium, 23f, TextMain, align);
+            var text = Label("Text", area, _semiBold, BodySize, BlankInk, TextAlignmentOptions.MidlineLeft);
             Stretch(text.rectTransform);
-            text.textWrappingMode = blank.multiLine ? TextWrappingModes.Normal : TextWrappingModes.NoWrap;
+            text.textWrappingMode = TextWrappingModes.NoWrap;
 
             var field = fieldRt.gameObject.AddComponent<TMP_InputField>();
             field.textViewport = area;
             field.textComponent = text;
             field.placeholder = placeholder;
             field.fontAsset = text.font;
-            field.pointSize = 23f;
-            // 엔터는 줄을 바꾸지 않고 다음 칸으로 넘긴다. 여러 줄 칸은 폭에 맞춰 저절로 줄을 바꾼다.
-            field.lineType = blank.multiLine ? TMP_InputField.LineType.MultiLineSubmit : TMP_InputField.LineType.SingleLine;
-            field.characterLimit = blank.multiLine ? 120 : 60;
+            field.pointSize = BodySize;
+            field.lineType = TMP_InputField.LineType.SingleLine;
+            field.characterLimit = 24;
             field.richText = false;
-            field.caretColor = Accent;
+            field.onFocusSelectAll = false;
+            field.resetOnDeActivation = true;
+            // 깜빡이는 세로 커서: 입력란이 갖춘 캐럿을 쓴다. 잉크 빛으로, 조금 굵게.
             field.customCaretColor = true;
+            field.caretColor = BlankInk;
             field.caretWidth = 2;
-            field.selectionColor = new Color(Accent.r, Accent.g, Accent.b, 0.35f);
-            field.targetGraphic = back;
+            field.caretBlinkRate = 1.0f;
+            field.selectionColor = new Color(UnderFocus.r, UnderFocus.g, UnderFocus.b, 0.3f);
+            field.targetGraphic = hit;
             var colors = field.colors;
             colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-            colors.selectedColor = new Color(1.2f, 1.2f, 1.2f, 1f);
+            colors.highlightedColor = new Color(1f, 1f, 1f, 1.6f);
+            colors.selectedColor = new Color(1f, 1f, 1f, 1.8f);
+            colors.disabledColor = new Color(1f, 1f, 1f, 0.5f);
             colors.colorMultiplier = 1f;
             field.colors = colors;
-            field.SetTextWithoutNotify(CaseNotebook.GetInput(Data, Deduction.CaseId, blank.blankId));
+            field.SetTextWithoutNotify(CaseNotebook.GetInput(Data, Deduction.CaseId, section.blankId));
+            field.interactable = !confirmed;
 
-            var mark = Label("Mark", fieldRt, _bold, 20f, TextDim, TextAlignmentOptions.MidlineRight);
-            Place(mark.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-90f, -46f), new Vector2(-16f, -14f));
+            var mark = Label("Mark", fieldRt, _bold, 18f, Under, TextAlignmentOptions.TopRight);
+            Place(mark.rectTransform, new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-24f, -24f), new Vector2(-2f, 0f));
 
-            var view = new BlankView { Blank = blank, Section = section, Field = field, Back = back, Border = border, Mark = mark };
+            var view = new BlankView { Blank = section, Section = box, Field = field, Underline = underline, Mark = mark, LastLength = field.text.Length };
             _blankViews.Add(view);
 
-            string id = blank.blankId;
+            string id = section.blankId;
             field.onValueChanged.AddListener(value =>
             {
                 // 적는 대로 저장본(메모리)에 옮겨 둔다. 파일로 쓰는 것은 칸을 떠날 때, 화면을 닫을 때, 앱이 멈출 때다.
-                // 고쳐 쓰기 시작하면 그 칸은 판정 전으로 돌아간다.
                 CaseNotebook.SetInput(Data, Deduction.CaseId, id, value);
                 _save?.MarkDirty();
+
+                // 실제로 글자가 늘거나 줄었을 때만 타건음. 붙여넣기처럼 한꺼번에 늘어도 한 번이다.
+                int delta = value.Length - view.LastLength;
+                view.LastLength = value.Length;
+                if (delta != 0) KeySound(delta < 0);
+
+                // 고쳐 쓰기 시작하면 그 칸은 판정 전으로 돌아간다. 맞은 칸을 건드리지 않으면 그대로 맞은 채다.
                 if (_blankResults.Remove(id)) PaintReport();
                 else PaintReportFooter();
             });
@@ -1488,58 +1608,44 @@ namespace UrbanLegendBureau.UI
             field.onSubmit.AddListener(_ => FocusBlank(_blankViews.IndexOf(view) + 1));
         }
 
-        /// <summary>섹션 머리: "01  진위 판정" 과 설명 한 문장. 작성란은 이 아래에 붙는다.</summary>
-        private RectTransform SectionHead(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
+        /// <summary>
+        /// 타건음 한 번. 오래된 단말기의 낮은 키 소리를 작게. 지울 때는 더 작고 낮게.
+        /// 빠르게 치거나 한글 조합으로 한 번에 여러 번 불려도 0.045초에 한 번만 낸다.
+        /// 크기는 Sfx 가 설정의 효과음 크기를 곱해 내므로 효과음을 끄면 나지 않는다.
+        /// </summary>
+        private void KeySound(bool erase)
         {
-            var section = NewRect("Section_" + blank.blankId, doc);
-            var v = section.gameObject.AddComponent<VerticalLayoutGroup>();
-            v.spacing = 10f;
-            v.padding = new RectOffset(0, 0, 10, 14);
-            v.childControlHeight = true;
-            v.childControlWidth = true;
-            v.childForceExpandHeight = false;
-
-            Para(section, "<color=#" + ColorUtility.ToHtmlStringRGB(Bureau) + ">" + (index + 1).ToString("00") + "</color>   " + L(blank.titleTextId),
-                _bold, 24f, TextMain).characterSpacing = 1f;
-            Para(section, L(blank.prefixTextId), _regular, 22f, TextSub, 4f);
-            return section;
+            float now = Time.unscaledTime;
+            if (now - _lastKeySound < 0.045f) return;
+            _lastKeySound = now;
+            string clip = "key_" + UnityEngine.Random.Range(0, 4);
+            if (erase) Sfx.Play(clip, 0.14f, 0.82f);
+            else Sfx.Play(clip, 0.26f, UnityEngine.Random.Range(0.94f, 1.08f));
         }
 
-        /// <summary>확정한 뒤의 섹션. 작성란 대신 적은 글이 본문처럼 남고, 끝에 작은 ✓ 만 붙는다.</summary>
-        private void FilledSection(RectTransform doc, CaseDeductionSO.ReportBlank blank, int index)
+        private void PaperDivider(RectTransform parent, float thickness)
         {
-            var section = SectionHead(doc, blank, index);
-            string typed = CaseNotebook.GetInput(Data, Deduction.CaseId, blank.blankId).Trim();
-            Para(section, typed + "  <size=80%><color=#" + ColorUtility.ToHtmlStringRGB(RightColor) + ">✓</color></size>", _medium, 26f, TextMain, 6f);
-            Divider(doc);
+            var line = Box("Rule", parent, PaperRule);
+            Layout(line.gameObject, thickness);
         }
 
-        /// <summary>보고서 안의 스크롤 막대를 조금 더 굵고 밝게. 아래에 쓸 칸이 남았다는 것이 보여야 한다.</summary>
-        private static void EmphasizeScrollbar(ScrollRect scroll)
+        /// <summary>종이 위 스크롤 막대. 늘 보이게, 종이 빛에 맞춘 회색으로. 아래에 더 있다는 것이 보여야 한다.</summary>
+        private static void PaperScrollbar(ScrollRect scroll)
         {
             var bar = scroll.verticalScrollbar;
             if (bar == null) return;
             var rt = (RectTransform)bar.transform;
             rt.sizeDelta = new Vector2(8f, -16f);
-            ((Image)bar.GetComponent<Image>()).color = new Color(1f, 1f, 1f, 0.07f);
-            if (bar.targetGraphic is Image handle) handle.color = Hex("6E8496");
+            rt.anchoredPosition = new Vector2(-10f, 0f);
+            bar.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0.08f);
+            if (bar.targetGraphic is Image handle) handle.color = Hex("8C8574");
             scroll.verticalScrollbarVisibility = ScrollRect.ScrollbarVisibility.Permanent;
         }
 
-        /// <summary>빈칸들의 색과 아래 알림, 확정 단추를 지금 판정대로 칠한다. 다시 짓지 않는다(적고 있는 칸의 커서를 지키려고).</summary>
+        /// <summary>빈칸들의 밑줄 색과 표, 아래 알림, 확정 단추를 지금 판정대로 칠한다. 다시 짓지 않는다(적고 있는 칸의 커서를 지키려고).</summary>
         private void PaintReport()
         {
-            foreach (var v in _blankViews)
-            {
-                if (v == null || v.Field == null) continue;
-                _blankResults.TryGetValue(v.Blank.blankId, out var state);
-                Color edge = state == BlankState.Right ? RightColor : state == BlankState.Wrong ? WrongColor : Line;
-                v.Back.color = state == BlankState.Right ? RightBack : state == BlankState.Wrong ? WrongBack : FieldBack;
-                foreach (var b in v.Border) b.color = edge;
-                v.Mark.text = state == BlankState.Right ? "✓" : state == BlankState.Wrong ? "×" : state == BlankState.Empty ? L(T + "report_blank_empty") : string.Empty;
-                v.Mark.color = state == BlankState.Empty ? TextDim : edge;
-                v.Mark.fontSize = state == BlankState.Empty ? 17f : 24f;
-            }
+            foreach (var v in _blankViews) PaintBlank(v);
 
             bool confirmed = CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId);
             if (_confirmButton != null)
@@ -1556,6 +1662,18 @@ namespace UrbanLegendBureau.UI
             PaintReportFooter();
         }
 
+        private void PaintBlank(BlankView v)
+        {
+            if (v == null || v.Field == null) return;
+            _blankResults.TryGetValue(v.Blank.blankId, out var state);
+            bool focused = v.Field.isFocused;
+            Color line = state == BlankState.Right ? RightColor : state == BlankState.Wrong ? WrongColor : focused ? UnderFocus : Under;
+            v.Underline.color = line;
+            v.Underline.rectTransform.sizeDelta = new Vector2(0f, state != BlankState.Unjudged && state != BlankState.Empty || focused ? 3f : 2f);
+            v.Mark.text = state == BlankState.Right ? "✓" : state == BlankState.Wrong ? "×" : string.Empty;
+            v.Mark.color = line;
+        }
+
         /// <summary>
         /// 아래 한 줄. 확정 뒤에는 "조사 보고서 확정 완료", 다 맞으면 완성 알림,
         /// 검토 뒤에는 "정답 2/4 · 수정 필요 1 · 미입력 1", 그 전에는 "작성 3/4" 와 아래에 칸이 남았다는 안내.
@@ -1563,12 +1681,12 @@ namespace UrbanLegendBureau.UI
         private void PaintReportFooter()
         {
             if (_reportFeedback == null || Deduction == null) return;
-            int total = Deduction.ReportBlanks.Count;
+            int total = Deduction.BlankCount;
 
             if (CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId))
             {
                 _reportFeedback.text = "✓  " + L(T + "report_confirmed_done");
-                _reportFeedback.color = RightColor;
+                _reportFeedback.color = RightOnDark;
                 return;
             }
 
@@ -1586,14 +1704,14 @@ namespace UrbanLegendBureau.UI
             if (AllBlanksRight())
             {
                 _reportFeedback.text = L(T + "report_all_right", total);
-                _reportFeedback.color = RightColor;
+                _reportFeedback.color = RightOnDark;
                 return;
             }
 
             if (_reviewed && right + wrong + empty > 0)
             {
                 _reportFeedback.text = L(T + "report_progress", right, total, wrong, empty);
-                _reportFeedback.color = wrong > 0 ? WrongColor : Soft;
+                _reportFeedback.color = wrong > 0 ? WrongOnDark : Soft;
                 return;
             }
 
@@ -1606,18 +1724,18 @@ namespace UrbanLegendBureau.UI
 
         private bool AllBlanksRight()
         {
-            if (Deduction.ReportBlanks.Count == 0) return false;
+            if (Deduction.BlankCount == 0) return false;
             foreach (var b in Deduction.ReportBlanks)
             {
-                if (b == null) continue;
+                if (b == null || !b.HasBlank) continue;
                 if (!_blankResults.TryGetValue(b.blankId, out var state) || state != BlankState.Right) return false;
             }
             return true;
         }
 
         /// <summary>
-        /// 보고서 검토. 모든 칸을 한꺼번에 견준다. 틀린 칸이 어디인지만 알리고 정답은 말하지 않는다.
-        /// 고칠 칸이 있으면 그 칸이 보이도록 문서를 굴린다. 적고 있던 칸에서 커서를 빼앗지는 않는다.
+        /// 보고서 검토. 모든 빈칸을 한꺼번에 견준다. 틀린 칸이 어디인지만 알리고 정답은 말하지 않는다.
+        /// 고칠 칸이 있으면 그 문단이 보이도록 문서를 굴린다. 적고 있던 칸에서 커서를 빼앗지는 않는다.
         /// </summary>
         private void ReviewReport()
         {
@@ -1642,7 +1760,7 @@ namespace UrbanLegendBureau.UI
             Debug.Log("[CaseFile] 보고서 검토 | " + _reportFeedback.text);
         }
 
-        /// <summary>그 섹션이 문서 창 위쪽에 오도록 굴린다.</summary>
+        /// <summary>그 문단이 문서 창 위쪽에 오도록 굴린다.</summary>
         private void ScrollToSection(RectTransform section)
         {
             if (_reportScroll == null || section == null) return;
@@ -1651,11 +1769,11 @@ namespace UrbanLegendBureau.UI
             float viewport = ((RectTransform)_reportScroll.transform).rect.height;
             float over = content.rect.height - viewport;
             if (over <= 0f) return;
-            float top = -section.anchoredPosition.y - section.rect.height * section.pivot.y - 20f;
+            float top = -section.anchoredPosition.y - section.rect.height * section.pivot.y - 80f;
             _reportScroll.verticalNormalizedPosition = 1f - Mathf.Clamp01(top / over);
         }
 
-        /// <summary>n 번째 작성란으로 옮긴다. 마지막 칸 다음이면 아무 칸에도 두지 않는다. Tab, Shift+Tab, Enter 가 이것을 쓴다.</summary>
+        /// <summary>n 번째 빈칸으로 옮긴다. 마지막 칸 다음이면 아무 칸에도 두지 않는다. Tab, Shift+Tab, Enter 가 이것을 쓴다.</summary>
         private void FocusBlank(int index)
         {
             if (index < 0 || index >= _blankViews.Count)
@@ -1672,18 +1790,32 @@ namespace UrbanLegendBureau.UI
 
         private void Update()
         {
-            // 작성란 사이를 Tab / Shift+Tab 으로 오간다. TMP 입력란은 스스로 하지 않는다.
             if (_blankViews.Count == 0) return;
+
+            // 고른 빈칸은 밑줄이 짙어진다. 판정 색이 있으면 그 색을 지킨다.
+            BlankView focused = null;
+            foreach (var v in _blankViews)
+            {
+                if (v?.Field == null) continue;
+                if (v.Field.isFocused) focused = v;
+                PaintBlank(v);
+            }
+            if (focused == null) { _lastComposition = string.Empty; return; }
+
+            // 한글을 조합하는 동안에는 글이 칸에 들어가기 전이라 값이 바뀌지 않는다. 조합 글자가 늘 때도 타건음을 낸다.
+            var module = UnityEngine.EventSystems.EventSystem.current != null ? UnityEngine.EventSystems.EventSystem.current.currentInputModule : null;
+            string composing = module != null && module.input != null ? module.input.compositionString ?? string.Empty : string.Empty;
+            if (composing != _lastComposition)
+            {
+                if (composing.Length > 0) KeySound(composing.Length < _lastComposition.Length);
+                _lastComposition = composing;
+            }
+
+            // 빈칸 사이를 Tab / Shift+Tab 으로 오간다. TMP 입력란은 스스로 하지 않는다.
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
             if (keyboard == null || !keyboard.tabKey.wasPressedThisFrame) return;
-
-            for (int i = 0; i < _blankViews.Count; i++)
-            {
-                if (_blankViews[i].Field == null || !_blankViews[i].Field.isFocused) continue;
-                bool back = keyboard.shiftKey.isPressed;
-                FocusBlank(back ? Mathf.Max(0, i - 1) : i + 1);
-                return;
-            }
+            int i = _blankViews.IndexOf(focused);
+            FocusBlank(keyboard.shiftKey.isPressed ? Mathf.Max(0, i - 1) : i + 1);
         }
 
         /// <summary>

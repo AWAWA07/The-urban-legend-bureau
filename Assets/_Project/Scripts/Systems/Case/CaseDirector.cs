@@ -3839,17 +3839,21 @@ namespace UrbanLegendBureau.Systems
             var sb = new StringBuilder();
             sb.Append(_loc.Get(ReportNoteTitleTextId, _case != null ? _loc.Get(_case.CaseNameTextId) : string.Empty));
 
-            // 직접 적는 보고서면 항목 제목 아래에 플레이어가 적은 글을 원문 그대로(판정용으로 정리하지 않은 글) 옮긴다.
-            // 제목과 글을 줄로 나눠 적으므로 앞뒤 말과 이어 붙어 문법이 깨지는 일이 없다.
-            if (Deduction.ReportBlanks.Count > 0)
+            // 빈칸 보고서면 문단을 그대로 옮기고, 빈칸 자리에 플레이어가 적은 낱말을 원문 그대로 넣는다.
+            // 문단의 앞뒤 말은 어떤 허용 답이 들어가도 문법이 맞도록 지어 두었다.
+            if (Deduction.BlankCount > 0)
             {
-                for (int i = 0; i < Deduction.ReportBlanks.Count; i++)
+                foreach (var section in Deduction.ReportBlanks)
                 {
-                    var blank = Deduction.ReportBlanks[i];
-                    if (blank == null) continue;
-                    string typed = CaseNotebook.GetInput(_save.Current, _caseId, blank.blankId).Trim();
-                    sb.Append("\n\n").Append((i + 1).ToString("00")).Append(' ').Append(_loc.Get(blank.titleTextId));
-                    sb.Append('\n').Append(typed);
+                    if (section == null) continue;
+                    string body = _loc.Get(section.bodyTextId);
+                    if (section.HasBlank)
+                    {
+                        string typed = CaseNotebook.GetInput(_save.Current, _caseId, section.blankId).Trim();
+                        body = body.Replace("{_}", typed);
+                    }
+                    sb.Append("\n\n").Append(_loc.Get(section.titleTextId));
+                    sb.Append('\n').Append(body);
                 }
                 sb.Append("\n\n").Append(_loc.Get(ReportNoteFooterTextId, BuildTimeLine()));
                 return sb.ToString();
