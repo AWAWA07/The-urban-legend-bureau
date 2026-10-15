@@ -296,7 +296,8 @@ namespace UrbanLegendBureau.Systems
                 Goal = before > 0 ? L(GoalTextId, before, success, excellent) : null,
                 StepNames = names,
                 StepIndex = section,
-                DraftLabel = L(DraftLabelTextId),
+                // 정정글이면 무엇을 바로잡는 글인지 쓰고 있는 글 맨 위에 밝힌다.
+                DraftLabel = string.IsNullOrEmpty(_data.ReplyLineTextId) ? L(DraftLabelTextId) : L(DraftLabelTextId) + "   ·   " + L(_data.ReplyLineTextId),
                 DraftTitle = _picks[0] >= 0 ? L(Picked(0).textId) : L(TitlePlaceholderTextId),
                 DraftTitleIsCurrent = section == 0,
                 DraftBody = body,
@@ -355,6 +356,7 @@ namespace UrbanLegendBureau.Systems
             _section = PostWritingSO.SectionCount;
 
             var body = new List<string>();
+            if (!string.IsNullOrEmpty(_data.ReplyLineTextId)) body.Add(L(_data.ReplyLineTextId));
             for (int s = 1; s < PostWritingSO.SectionCount; s++) body.Add(L(Picked(s).textId));
 
             _compose.ShowPreview(new PostComposeView.Preview
@@ -429,6 +431,8 @@ namespace UrbanLegendBureau.Systems
             bool good = outcome == Outcome.Excellent || outcome == Outcome.Success;
 
             var body = new List<string>();
+            // 정정글이면 본문 맨 위에 원글을 밝히는 한 줄이 붙는다. 게시판에 걸린 글에도, 저장본에도 그대로 남는다.
+            if (!string.IsNullOrEmpty(_data.ReplyLineTextId)) body.Add(_data.ReplyLineTextId);
             for (int s = 1; s < PostWritingSO.SectionCount; s++) body.Add(Picked(s).textId);
 
             var entry = new CommunityBoardEntry

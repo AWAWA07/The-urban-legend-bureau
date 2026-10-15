@@ -90,6 +90,7 @@ MonoBehaviour:
   _takeDownFailedPost: 1
   _authorTextId: ui.net.author_alias
   _boardTextId: ui.net.board_free
+  _replyLineTextId: post.subway.reply_to
   _views: 37
   _successLikes: 14
   _successDislikes: 2

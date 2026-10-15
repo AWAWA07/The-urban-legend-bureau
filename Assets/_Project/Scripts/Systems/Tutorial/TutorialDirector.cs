@@ -689,6 +689,16 @@ namespace UrbanLegendBureau.Systems
                     by: "nick_1|nick_12|anon"),
             };
 
+            // 이 사건의 검열 대상 글. 오늘 낮에 올라와 거짓 규칙을 퍼뜨리는 중이다.
+            // 보고서에 이 글을 검열 대상으로 적고, 게시물은 이 글을 바로잡는 정정글로 쓴다. 게시판에서 직접 찾아 읽을 수 있어야 한다.
+            var summary = PageEntry(SubwaySummaryPageId, views: 268, belief: 31, minutesAgo: 300, up: 21, down: 6,
+                author: "ui.net.author_summary", legendId: SubwayLegendId);
+            if (summary != null)
+            {
+                int at = _boardEntries.FindIndex(e => e != null && e.TitleTextId == "board.filler.005");
+                _boardEntries.Insert(at >= 0 ? at + 1 : _boardEntries.Count, summary);
+            }
+
             // 플레이어가 올렸던 글처럼 저장본에서 되살릴 것이 있으면 이 뒤에 붙는다(PostWritingDirector).
             BoardRebuilt?.Invoke();
         }
@@ -735,6 +745,44 @@ namespace UrbanLegendBureau.Systems
                 Comments = list,
                 Views = views,
                 IsHot = hot,
+                BeliefPercent = belief,
+                LegendId = legendId,
+                PostedMinutesAgo = minutesAgo,
+                Likes = up,
+                Dislikes = down,
+            };
+        }
+
+        /// <summary>막차 사건의 검열 대상 글. "[정리] 막차 괴담 규칙 총정리".</summary>
+        private const string SubwaySummaryPageId = "web_subway_003";
+
+        /// <summary>
+        /// 인터넷 조사용 페이지(WebPageSO) 하나를 게시판 글로 건다. 제목 / 본문 / 댓글은 그 페이지의 것을 그대로 쓴다.
+        /// 게시판을 채우는 글(Filler)과 같이 열리고 읽기만 한다. 페이지를 찾지 못하면 null.
+        /// </summary>
+        private CommunityBoardEntry PageEntry(string pageId, int views, int belief, int minutesAgo,
+            int up, int down, string author, string legendId)
+        {
+            if (_internet == null) ServiceRegistry.TryGet(out _internet);
+            var page = _internet != null && _internet.HasPage(pageId) ? _internet.GetPage(pageId) : null;
+            if (page == null) return null;
+
+            var comments = new List<CommunityComment>();
+            foreach (var c in page.Comments)
+            {
+                if (c == null) continue;
+                comments.Add(new CommunityComment { AuthorTextId = c.IsAuthor ? author : c.AuthorTextId, BodyTextId = c.BodyTextId });
+            }
+
+            return new CommunityBoardEntry
+            {
+                TitleTextId = page.TitleTextId,
+                BodyTextId = page.BodyTextId,
+                AuthorTextId = author,
+                BoardTextId = BoardLegendTextId,
+                Page = page,
+                Comments = comments,
+                Views = views,
                 BeliefPercent = belief,
                 LegendId = legendId,
                 PostedMinutesAgo = minutesAgo,

@@ -124,6 +124,9 @@ namespace UrbanLegendBureau.Data
         [Tooltip("글이 걸리는 게시판 이름의 String ID.")]
         [SerializeField] private string _boardTextId;
 
+        [Tooltip("이 글이 바로잡는 원글을 밝히는 한 줄의 String ID. 예: \"원글: [정리] 막차 괴담 규칙 총정리\". 본문 맨 위에 붙는다. 비우면 없다.")]
+        [SerializeField] private string _replyLineTextId;
+
         [SerializeField] private int _views = 37;
 
         [Header("게시 뒤 반응 - 성공")]
@@ -172,6 +175,7 @@ namespace UrbanLegendBureau.Data
 
         public string AuthorTextId => _authorTextId;
         public string BoardTextId => _boardTextId;
+        public string ReplyLineTextId => _replyLineTextId;
         public int Views => _views;
 
         public int SuccessLikes => _successLikes;
