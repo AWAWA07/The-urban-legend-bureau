@@ -3287,6 +3287,7 @@ namespace UrbanLegendBureau.Systems
             if (_inRoom)
             {
                 if (_tutorial != null) _tutorial.ShowPostCue(null);
+                UpdateRoomComputerBeckon();
                 return;
             }
 
@@ -3644,6 +3645,8 @@ namespace UrbanLegendBureau.Systems
                 _field.SetFieldVisible(true, RoomFieldId);
                 _field.InvestigationAllowed = true;
             }
+
+            UpdateRoomComputerBeckon();
         }
 
         /// <summary>
@@ -3707,6 +3710,26 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
         }
 
+        /// <summary>보고서를 확정했고 아직 게시물을 올리지 않았는가. 다음 할 일이 컴퓨터로 가는 것뿐인 때다.</summary>
+        private bool IsPostPending()
+        {
+            var data = _case != null ? _case.PostWriting : null;
+            if (data == null || _postWriting == null || _save == null || _save.Current == null) return false;
+            bool filed = _reportFiled || CaseNotebook.IsReportConfirmed(_save.Current, _caseId);
+            return filed && _postWriting.CanWrite(data);
+        }
+
+        /// <summary>숙소의 컴퓨터가 게시물을 쓸 때만 숨 쉬듯 외곽선을 드러낸다. 다른 때는 평소처럼 곁에 가야 보인다.</summary>
+        private void UpdateRoomComputerBeckon()
+        {
+            if (_field == null || _field.ActiveRoot == null) return;
+            bool on = _inRoom && IsPostPending();
+            foreach (var point in _field.ActiveRoot.GetComponentsInChildren<InvestigationPoint>(true))
+            {
+                if (point.PointId == RoomComputerPointId) point.SetBeckon(on);
+            }
+        }
+
         /// <summary>
         /// 숙소의 컴퓨터를 켠다. 튜토리얼 처음에 앉았던 그 바탕화면이다. 새 화면을 만들지 않는다.
         ///
@@ -3728,8 +3751,10 @@ namespace UrbanLegendBureau.Systems
 
             _desktopScreen.Bind(OnRoomAppClicked);
             _desktopScreen.SetAllowedApps(NetAppId, MemoAppId);
-            _desktopScreen.SetHintApp(null);
-            _desktopScreen.SetAppBadge(NetAppId, 0);
+            // 게시물을 써야 할 때는 괴담넷 아이콘을 가리키고 알림 점을 붙인다. 그 안에서는 글쓰기 단추가 가리켜진다.
+            bool postPending = IsPostPending();
+            _desktopScreen.SetHintApp(postPending ? NetAppId : null);
+            _desktopScreen.SetAppBadge(NetAppId, postPending ? 1 : 0);
             if (_tutorial != null) _desktopScreen.SetBelief(_tutorial.BoardBelief);
             _desktopScreen.Closed = OnRoomComputerClosed;
 
@@ -3740,6 +3765,7 @@ namespace UrbanLegendBureau.Systems
         private void OnRoomComputerClosed()
         {
             GamePointer.SetVisible(false);
+            UpdateRoomComputerBeckon();
             Debug.Log("[CaseDirector] 숙소 | 컴퓨터를 껐다");
         }
 

@@ -501,7 +501,7 @@ tutorial.line.006	미안한데 바로 일 좀 시켜도 될까?	Sorry, but can I
 ui.desktop.clock	{0} {1}:{2}	{1}:{2} {0}	바탕화면 시계. {0}=오전/오후
 ui.desktop.am	오전	AM	
 ui.desktop.pm	오후	PM	
-ui.desktop.belief	전체 믿음도 {0}%	Belief {0}%	작업 표시줄 왼쪽
+ui.desktop.belief	전체 괴담 믿음도 {0}%	Overall belief {0}%	작업 표시줄 왼쪽. 게시판 괴담 글 전체의 평균
 ui.desktop.app_net	괴담넷	LegendNet	
 ui.desktop.app_memo	메모장	Notepad	컴퓨터와 휴대폰에서 여는 메모장
 ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 비어 있을 때
@@ -826,44 +826,79 @@ tutorial.room.003	그렇지? 그럼 오늘 조사한 것부터 수사 노트에 
 ui.net.board_meta	{0}    조회 {1}    댓글 {2}	{0}    views {1}    comments {2}	곁가지 문구를 따로 두지 않은 글의 목록 줄
 ui.post.btn_write	글쓰기	Write	괴담넷 목록의 글쓰기 단추
 ui.post.title_placeholder	(제목을 골라 주세요)	(Pick a title)	쓰고 있는 글 - 아직 고르지 않은 제목
-ui.post.placeholder_intro	(첫 문단을 골라 주세요)	(Pick the opening)	쓰고 있는 글 - 아직 고르지 않은 도입
-ui.post.placeholder_fact	(사실을 전할 문단을 골라 주세요)	(Pick what you say about the facts)	쓰고 있는 글 - 아직 고르지 않은 사실 전달
-ui.post.placeholder_action	(읽는 사람이 할 일을 골라 주세요)	(Pick what readers should do)	쓰고 있는 글 - 아직 고르지 않은 행동 지침
-ui.post.header_title	글쓰기 1/4 · 제목 고르기	Writing 1/4 · Title	
-ui.post.header_intro	글쓰기 2/4 · 도입	Writing 2/4 · Opening	
-ui.post.header_fact	글쓰기 3/4 · 사실 전달	Writing 3/4 · The facts	
-ui.post.header_action	글쓰기 4/4 · 행동 지침	Writing 4/4 · What to do	
-ui.post.header_preview	미리보기 · 아직 게시판에 올라가지 않았습니다	Preview · Not on the board yet	
+ui.post.placeholder_intro	(첫 문장을 골라 주세요)	(Pick the opening)	쓰고 있는 글 - 아직 고르지 않은 도입
+ui.post.placeholder_fact	(사실을 전할 문장을 골라 주세요)	(Pick how to put the facts)	쓰고 있는 글 - 아직 고르지 않은 사실 전달
+ui.post.placeholder_action	(읽는 사람이 할 일을 골라 주세요)	(Pick what readers should do)	쓰고 있는 글 - 아직 고르지 않은 행동 안내
+ui.post.header_preview	게시물 미리보기	Preview	
 ui.post.section_title	제목	Title	
 ui.post.section_intro	도입	Opening	
-ui.post.section_fact	사실 전달	Facts	
-ui.post.section_action	행동 지침	What to do	
-ui.post.feedback_down	{0} — 괴담에 대한 믿음 ▼	{0} — belief in the legend ▼	후보를 골랐을 때, {0} 칸 이름
-ui.post.feedback_up	{0} — 괴담에 대한 믿음 ▲	{0} — belief in the legend ▲	후보를 골랐을 때, {0} 칸 이름
-ui.post.feedback_flat	{0} — 괴담에 대한 믿음 변화 없음	{0} — no change in belief	후보를 골랐을 때, {0} 칸 이름
-ui.post.btn_publish	게시하기	Post it	
-ui.post.btn_rewrite	다시 작성	Start over	
-ui.post.result_down	이 괴담의 믿음도 {0}% → {1}% ▼	Belief in this legend {0}% → {1}% ▼	게시 뒤
-ui.post.result_up	이 괴담의 믿음도 {0}% → {1}% ▲	Belief in this legend {0}% → {1}% ▲	게시 뒤
-ui.post.result_flat	이 괴담의 믿음도 {0}% → {1}% (변화 없음)	Belief in this legend {0}% → {1}% (no change)	게시 뒤
-ui.post.taken_down	실패한 글을 내렸다. 이 괴담의 믿음도 {0}% → {1}%	The failed post is down. Belief in this legend {0}% → {1}%	다시 쓰기 전
-post.subway.title.fear	[주의] 막차에서 이상한 사람을 보면 절대 돌아보지 마세요	[Warning] If you see someone strange on the last train, never look back	제목 - 공포 조장
-post.subway.title.refute	막차 괴담, 확인되지 않은 이야기가 퍼지고 있습니다	The last-train story: unverified details are spreading	제목 - 반박
+ui.post.section_fact	사실 전달	The facts	
+ui.post.section_action	행동 안내	What to do	
+ui.post.btn_publish	올리기	Post	
+ui.post.btn_rewrite	다시 쓰기	Rewrite	고른 문장은 그대로 두고 첫 칸으로
+ui.post.result_down	이번 괴담 믿음도 {0}% → {1}% ▼    전체 괴담 믿음도 {2}% → {3}%	This legend {0}% → {1}% ▼    Overall {2}% → {3}%	게시 뒤
+ui.post.result_up	이번 괴담 믿음도 {0}% → {1}% ▲    전체 괴담 믿음도 {2}% → {3}%	This legend {0}% → {1}% ▲    Overall {2}% → {3}%	게시 뒤
+ui.post.result_flat	이번 괴담 믿음도 {0}% → {1}% (변화 없음)    전체 괴담 믿음도 {2}% → {3}%	This legend {0}% → {1}% (no change)    Overall {2}% → {3}%	게시 뒤
+ui.post.taken_down	실패한 글을 내렸다. 이번 괴담 믿음도 {0}% → {1}%	The failed post is down. Belief in this legend {0}% → {1}%	다시 쓰기 전
+ui.post.compose_header	게시물 작성 {0}/{1} · {2}	New post {0}/{1} · {2}	글쓰기 화면 머리말
+ui.post.compose_account	{0} · 작성자 {1} (차지한의 부계정)	{0} · posting as {1} (Chajihan's alt account)	글쓰기 화면 오른쪽 위. 우리만 보는 안내
+ui.post.goal	목표 · 이번 괴담 믿음도 {0}% → {1}% 이하  (우수 {2}% 이하)	Goal · belief in this legend {0}% → {1}% or lower  (excellent: {2}% or lower)	글쓰기 화면. 올리기 전에는 방향을 알려 주지 않는다
+ui.post.draft_label	쓰고 있는 글	Your draft	
+ui.post.prompt_title	제목으로 쓸 문장을 하나 고르세요.	Pick a title.	
+ui.post.prompt_intro	글을 여는 첫 문장을 고르세요.	Pick the opening line.	
+ui.post.prompt_fact	조사로 확인한 사실을 어떻게 전할지 고르세요.	Pick how to put what the investigation confirmed.	
+ui.post.prompt_action	읽는 사람에게 무엇을 하라고 할지 고르세요.	Pick what readers should do.	
+ui.post.btn_prev	‹ 이전 단계	‹ Back	
+ui.post.btn_next	다음 단계 ›	Next ›	
+ui.post.btn_to_preview	미리보기 ›	Preview ›	
+ui.post.preview_sub	아직 게시판에 올라가지 않았습니다. 올리기 전에 마지막으로 확인하세요.	Not on the board yet. Give it one last look before you post.	
+ui.post.preview_board	괴담넷 › {0}	LegendNet › {0}	
+ui.post.preview_meta	작성자 {0}    조회 0    방금	by {0}    views 0    just now	
+ui.post.preview_note	※ 차지한의 부계정으로 올라갑니다. 게시판에는 닉네임 '{0}'만 보입니다.	※ This goes up on Chajihan's alt account. The board only shows the nickname "{0}".	우리만 보는 안내
+ui.post.result_header	게시 결과	Post results	
+ui.post.result_legend	이번 괴담 믿음도 {0}% → {1}%  ({2:+0;-0;0}%p)	Belief in this legend {0}% → {1}%  ({2:+0;-0;0} pts)	
+ui.post.result_goal	성공 {0}% 이하 · 우수 {1}% 이하 · 글을 올린 것만으로 {2}%p	Success: {0}% or lower · Excellent: {1}% or lower · Posting itself: {2} pts	
+ui.post.result_overall	전체 괴담 믿음도 {0}% → {1}%  (작업 표시줄 숫자 · 게시판 괴담 글 전체의 평균)	Overall belief {0}% → {1}%  (the taskbar number · average of every legend post on the board)	
+ui.post.effect_down	믿음 ▼ {0}%p	Belief ▼ {0} pts	
+ui.post.effect_up	믿음 ▲ {0}%p	Belief ▲ {0} pts	
+ui.post.effect_flat	변화 없음	No change	
+ui.post.btn_result_ok	확인	OK	
+ui.post.grade_excellent	우수	Excellent	
+ui.post.grade_success	성공	Success	
+ui.post.grade_weak	부족	Not enough	
+ui.post.grade_flat	효과 없음	No effect	
+ui.post.grade_fail	역효과	Backfired	
+post.subway.title.fear	[주의] 막차 옆자리에서 기척이 느껴져도 절대 돌아보지 마세요	[Warning] If you sense someone beside you on the last train, never look	제목 - 공포 조장
+post.subway.title.refute	막차 괴담, 확인되지 않은 이야기가 덧붙어 퍼지고 있습니다	The last-train story: unverified details are being added as it spreads	제목 - 반박
 post.subway.title.calm	막차 이용할 때 이것만 기억하세요	Taking the last train? Just remember this	제목 - 안심
-post.subway.intro.rumor	최근 막차에서 이상한 사람이 보인다는 이야기가 퍼지고 있습니다.	A story about a strange person on the last train has been going around.	도입 - 중립
-post.subway.intro.witness	최근 막차를 이용한 승객들 사이에서 이상한 목격담이 돌고 있습니다.	Riders of the last train have been trading strange sightings lately.	도입 - 확인 쪽
-post.subway.intro.hook	막차를 타면 옆자리에 누군가 앉는다는 이야기를 들어본 적 있나요?	Have you heard that someone sits beside you on the last train?	도입 - 괴담을 되풀이
-post.subway.fact.refute	확인된 기록에서는 '얼굴을 보면 따라온다'는 내용은 확인되지 않았습니다.	Nothing in the records confirms that "it follows you if you see its face."	사실 - 반박
-post.subway.fact.reports	실제로 막차에서 이상한 현상을 목격했다는 신고가 여러 차례 있었습니다.	There really have been several reports of something strange on the last train.	사실 - 확인
+post.subway.intro.rumor	최근 막차 옆자리에서 누군가의 기척이 느껴진다는 이야기가 퍼지고 있습니다.	Lately there's a story going around about sensing someone in the next seat on the last train.	도입 - 중립
+post.subway.intro.witness	최근 막차 승객들 사이에서, 빈 옆자리에 누가 앉은 것 같았다는 경험담이 돌고 있습니다.	Last-train riders have been sharing stories of feeling someone sit in the empty seat beside them.	도입 - 확인 쪽
+post.subway.intro.hook	막차를 타면 빈 옆자리에 누군가 앉는다는 이야기, 들어 보셨나요?	Have you heard that on the last train, someone sits in the empty seat beside you?	도입 - 괴담을 되풀이
+post.subway.fact.refute	다만 '얼굴을 보면 집까지 따라온다'는 이야기는 처음 목격담에는 없던 내용으로, 나중에 덧붙은 것입니다.	But the part about it "following you home if you see its face" was never in the first accounts. It was added later.	사실 - 반박(덧붙은 거짓을 걷어냄)
+post.subway.fact.reports	실제로 막차에서 옆자리의 기척을 느꼈다는 신고가 여러 차례 접수됐습니다.	There really have been several reports of sensing someone in the next seat on the last train.	사실 - 확인(사실이지만 존재를 강조)
 post.subway.fact.real	실제로 존재하는 현상이니 막차를 탈 때는 각별히 주의해야 합니다.	It is a real phenomenon, so be very careful on the last train.	사실 - 확인 + 공포
-post.subway.action.calm	막차에서는 주변을 일부러 확인하기보다 평소처럼 이동하세요.	On the last train, just ride as usual instead of checking around you.	행동 - 안심
-post.subway.action.counter	이상한 기척이 느껴져도 소리가 나는 쪽으로 고개를 돌리지 마세요.	Even if you sense something odd, do not turn toward the sound.	행동 - 파훼법 그대로
+post.subway.action.calm	기척이 느껴지더라도 일부러 고개를 돌려 확인하지 말고, 평소처럼 이동하세요.	Even if you sense something, don't turn your head to check. Just ride as you normally would.	행동 - 대처를 평소 습관처럼
+post.subway.action.counter	이상한 기척이 느껴져도 절대 그쪽으로 고개를 돌리지 마세요.	If you sense something strange, never turn your head toward it.	행동 - 대처는 맞지만 겁을 떠올리게 함
 post.subway.action.fear	절대 뒤를 돌아보지 마세요. 돌아보는 순간 그것이 따라옵니다.	Never look back. The moment you do, it follows you.	행동 - 공포 조장
-post.subway.line_intro	보고서를 그대로 올리면 안 돼.\n사람들이 읽고 괜찮다고 생각하게 써야 해.	Don't just post the report.\nWrite it so people come away thinking they're fine.	글쓰기 시작 - 한영
-post.subway.line_success	그래. 이 정도면 사람들이 괜히 겁먹지는 않겠네.	Good. With this, nobody will get scared for nothing.	게시 성공 - 한영
-post.subway.line_fail	잠깐. 이건 오히려 괴담을 더 퍼뜨리는 글이야.	Wait. This spreads the legend even further.	믿음이 올랐을 때 - 한영
-post.subway.line_weak	나쁘진 않은데, 아직 믿는 사람이 많아. 덧붙은 거짓은 확실히 걷어내 줘야 해.	Not bad, but a lot of people still believe it. You need to clear out the parts that were made up.	내려갔지만 모자랄 때 - 한영
-post.subway.line_takedown	이 글은 내가 내려 둘게. 다시 써 보자.	I'll take this one down. Let's write it again.	다시 쓰기 전 - 한영
+post.subway.line_intro	보고서를 그대로 올리면 안 돼.\n읽는 사람이 괜히 겁먹지 않게, 무엇이 사실이 아닌지부터 알려 줘.	Don't just post the report.\nWrite it so nobody gets scared for nothing. Start with what isn't true.	글쓰기 시작 - 한영
+post.subway.line_success	됐어. 이 정도면 사람들이 괜히 겁먹지는 않겠네.\n'집까지 따라온다'는 거짓을 걷어낸 게 컸어.	That'll do. Nobody's getting scared for nothing now.\nClearing out the "follows you home" lie is what did it.	게시 성공 - 한영
+post.subway.line_fail	이건 오히려 괴담을 키우는 글이야. 경고를 세게 할수록 사람들은 더 믿어.\n덧붙은 거짓은 걷어내고, 할 일은 담담하게 알려 줘.	This one feeds the legend. The harder you warn, the more people believe.\nClear out the made-up part and keep the advice plain.	믿음이 올랐을 때 - 한영
+post.subway.line_weak	내려가긴 했는데 모자라. 진짜라는 걸 강조하면 사람들은 오히려 더 믿어.\n걷어내야 하는 건 '얼굴을 보면 집까지 따라온다' 같은 덧붙은 거짓이야.	It went down, but not enough. Stress that it's real and people believe it more.\nWhat we need to clear out is the made-up part, like "it follows you home if you see its face."	내려갔지만 모자랄 때 - 한영
+post.subway.line_takedown	이 글은 내가 내려 둘게. 고른 문장은 그대로 있으니까, 고칠 칸만 바꿔 보자.	I'll take this one down. Your picks are still there, so just change the parts that need it.	다시 쓰기 전 - 한영
+post.subway.review.title.fear	'절대 돌아보지 마세요'라는 경고가 오히려 괴담을 진짜처럼 느끼게 합니다.	A "never look" warning only makes the legend feel real.	평가 - 제목 공포
+post.subway.review.title.refute	퍼진 이야기 중에 확인되지 않은 것이 있다고 먼저 알려, 읽는 사람이 의심부터 하게 합니다.	Saying up front that some of it is unverified makes readers start with doubt.	평가 - 제목 반박
+post.subway.review.title.calm	겁주지 않는 실용적인 안내라 마음을 놓게 합니다. 다만 무엇이 거짓인지는 짚지 않습니다.	Practical and calm, so readers relax. It just doesn't say what's false.	평가 - 제목 안심
+post.subway.review.intro.rumor	퍼진 이야기를 그대로 소개할 뿐이라 믿음을 키우지도 줄이지도 않습니다.	It only names the story, so belief neither grows nor shrinks.	평가 - 도입 중립
+post.subway.review.intro.witness	'경험담'이라는 말이 실제로 겪은 사람이 있다는 인상을 줘 조금 더 믿게 됩니다.	Calling them firsthand stories suggests real witnesses, so belief edges up.	평가 - 도입 확인
+post.subway.review.intro.hook	괴담을 들려주듯 물어서, 읽는 사람이 그 장면을 떠올리게 합니다.	Asking it like a ghost story makes readers picture the scene.	평가 - 도입 되풀이
+post.subway.review.fact.refute	현상은 부정하지 않고 덧붙은 거짓만 걷어냅니다. 겁의 핵심이던 '집까지 따라온다'가 빠져 믿음이 크게 내려갑니다.	It doesn't deny the phenomenon; it only strips the added lie. With "it follows you home" gone, belief drops sharply.	평가 - 사실 반박
+post.subway.review.fact.reports	사실이지만 '신고가 여러 번 있었다'는 말은 정말 있다는 확신만 키웁니다. 덧붙은 거짓도 그대로 남습니다.	True, but "many reports" only convinces people it's real, and the added lie stays.	평가 - 사실 확인
+post.subway.review.fact.real	실재를 강조하고 경고까지 붙여 공포를 키웁니다.	Stressing that it's real and adding a warning feeds the fear.	평가 - 사실 공포
+post.subway.review.action.calm	조사한 대처(고개를 돌려 확인하지 않기)를 평소 습관처럼 전해, 겁먹지 않고 지키게 합니다.	It turns the counter we found (don't turn to check) into an everyday habit, so people follow it without fear.	평가 - 행동 안심
+post.subway.review.action.counter	대처는 맞지만 '이상한 기척', '절대'라는 말이 공포를 떠올리게 해 효과가 약합니다.	The advice is right, but "strange" and "never" bring the fear back, so it barely helps.	평가 - 행동 대처
+post.subway.review.action.fear	'돌아보는 순간 따라온다'는 거짓을 그대로 되풀이합니다.	It repeats the lie that it follows you the moment you look.	평가 - 행동 공포
+post.subway.line_excellent	깔끔하네. 덧붙은 거짓은 걷어내고, 할 일은 평소 습관처럼 알려 줬어.\n이 정도면 괜히 겁먹는 사람은 없겠다.	Clean work. You cleared out the made-up part and put the advice like an everyday habit.\nNobody's getting scared for nothing after this.	게시 우수 - 한영
+post.subway.line_flat	하나도 안 움직였어. 겁을 주지도 않았지만 거짓을 걷어내지도 않았지.\n사실 칸에서 덧붙은 이야기를 짚어 줘야 믿음이 내려가.	Nothing moved. You didn't scare anyone, but you didn't clear out the lie either.\nBelief only drops once the facts part calls out what was added.	믿음도가 그대로일 때 - 한영
 post.subway.react.ok_1	기록을 근거로 적어 주셔서 좋네요. '얼굴을 보면 따라온다'는 대목은 원래 출처가 없었습니다.	Good to see records cited. The "follows you if you see its face" part never had a source.	성공 반응 - 회의주의자
 post.subway.react.ok_2	ㅇㅇ 걍 폰 보면서 가면 되는 거네	yeah so just look at your phone and ride	성공 반응 - ㅇㅇ
 post.subway.react.ok_3	헐 다행이다ㅠㅠ 저 이번 주에 막차 타야 되는데 이제 좀 덜 무서워요	phew thank god ㅠㅠ I have to take the last train this week, less scared now	성공 반응 - 겁많은고3
@@ -878,7 +913,7 @@ post.subway.react.weak_3	애매하네 ㅇㅇ	kinda vague yeah	모자람 반응 -
 ui.travel.to_room	숙소로 가는 중	Heading back to the quarters	종점에서 숙소로 옮기는 화면
 ui.travel.duration	종점에서 숙소까지 {0}분	{0} minutes from the terminus to the quarters	옮기는 화면 - {0} 걸리는 분
 ui.field.terminus_platform	종점 승강장	Terminus platform	종점에서 내린 뒤 위쪽 한 줄
-ui.net.author_alias	괴담 분석 덕후	LegendAnalysisNerd	차지한이 괴담넷에서 쓰는 부계정 닉네임. 표시될 때 (차지한)이 붙는다
+ui.net.author_alias	괴담 분석 덕후	LegendAnalysisNerd	차지한이 괴담넷에서 쓰는 부계정 닉네임. 공개된 글에는 닉네임만 보인다
 ui.field.prompt_press	[E] {0} 누르기	[E] Press {0}	숙소 스위치의 말풍선
 field.room.switch	방 조명 스위치	Light switch	
 field.room.computer.result	책상 위의 컴퓨터다.	The computer on the desk.	

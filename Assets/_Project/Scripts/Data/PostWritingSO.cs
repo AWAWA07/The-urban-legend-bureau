@@ -44,6 +44,9 @@ namespace UrbanLegendBureau.Data
 
         [Tooltip("이 문장이 괴담 믿음도를 얼마나 움직이는가(%). 음수면 내려간다.")]
         public float beliefDelta;
+
+        [Tooltip("올린 뒤 평가에서 이 문장이 왜 그런 영향을 줬는지 설명하는 String ID. 올리기 전에는 보이지 않는다.")]
+        public string reviewTextId;
     }
 
     /// <summary>게시 뒤에 달리는 댓글 한 줄. 기존 괴담넷 닉네임과 말투를 그대로 쓴다.</summary>
@@ -98,6 +101,12 @@ namespace UrbanLegendBureau.Data
                  "시작 믿음도는 조사를 얼마나 했는지에 따라 달라진다. 목표만 보면 잘 쓴 글도 떨어질 수 있다.")]
         [SerializeField] private int _requiredDrop = 7;
 
+        [Tooltip("이만큼(%p) 이상 끌어내리면 우수다. 성공(RequiredDrop)보다 커야 한다.")]
+        [SerializeField] private int _excellentDrop = 11;
+
+        [Tooltip("성공하려면 이 칸에서 덧붙은 거짓을 걷어내는(Refutation) 문장을 골라야 한다. -1 이면 보지 않는다.")]
+        [SerializeField] private int _refuteSection = 2;
+
         [Header("다시 쓰기")]
         [Tooltip("실패했을 때 다시 쓸 수 있는가. 실전에서는 끈다.")]
         [SerializeField] private bool _allowRewrite = true;
@@ -134,9 +143,12 @@ namespace UrbanLegendBureau.Data
 
         [Header("한영의 말 (String ID)")]
         [SerializeField] private string _introLineTextId;
+        [SerializeField] private string _excellentLineTextId;
         [SerializeField] private string _successLineTextId;
         [SerializeField] private string _failLineTextId;
         [SerializeField] private string _weakLineTextId;
+        [Tooltip("믿음도가 그대로일 때. 비우면 weak 를 쓴다.")]
+        [SerializeField] private string _flatLineTextId;
         [SerializeField] private string _takeDownLineTextId;
 
         public string PostWritingId => _postWritingId;
@@ -152,6 +164,8 @@ namespace UrbanLegendBureau.Data
         public float PostModifier => _postModifier;
         public int TutorialTargetBelief => _tutorialTargetBelief;
         public int RequiredDrop => _requiredDrop;
+        public int ExcellentDrop => _excellentDrop;
+        public int RefuteSection => _refuteSection;
         public bool AllowRewrite => _allowRewrite;
         public int MaxAttempts => _maxAttempts;
         public bool TakeDownFailedPost => _takeDownFailedPost;
@@ -171,9 +185,11 @@ namespace UrbanLegendBureau.Data
         public IReadOnlyList<PostWritingReaction> WeakReactions => _weakReactions;
 
         public string IntroLineTextId => _introLineTextId;
+        public string ExcellentLineTextId => string.IsNullOrEmpty(_excellentLineTextId) ? _successLineTextId : _excellentLineTextId;
         public string SuccessLineTextId => _successLineTextId;
         public string FailLineTextId => _failLineTextId;
         public string WeakLineTextId => _weakLineTextId;
+        public string FlatLineTextId => string.IsNullOrEmpty(_flatLineTextId) ? _weakLineTextId : _flatLineTextId;
         public string TakeDownLineTextId => _takeDownLineTextId;
 
         /// <summary>칸 순서대로 후보 목록. 0 제목, 1 도입, 2 사실, 3 행동 지침.</summary>

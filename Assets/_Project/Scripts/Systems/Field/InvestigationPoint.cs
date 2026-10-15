@@ -207,13 +207,50 @@ namespace UrbanLegendBureau.Systems
             if (_hovered == on) return;
             _hovered = on;
             if (on) BuildOutlines();
+            SetOutlineAlpha(1f);
             // 꺼져 있는 그림(아직 생기지 않은 자국 같은 것)에는 외곽선도 두르지 않는다.
             for (int i = 0; i < _outlines.Count; i++)
             {
                 var o = _outlines[i];
                 if (o == null) continue;
                 var src = _outlineSources[i];
-                o.enabled = on && (src == null || (src.enabled && src.gameObject.activeInHierarchy));
+                o.enabled = (on || _beckon) && (src == null || (src.enabled && src.gameObject.activeInHierarchy));
+            }
+        }
+
+        // ------------------------------------------------------- 가리킬 때
+
+        private bool _beckon;
+
+        /// <summary>
+        /// 지금 꼭 가야 할 곳이면 외곽선이 숨 쉬듯 옅어졌다 짙어진다. 마우스를 올리면 평소처럼 또렷해진다.
+        /// 보고서를 확정하고 게시물을 쓰러 컴퓨터로 가야 할 때처럼, 다음 할 일이 한 곳뿐일 때만 켠다.
+        /// </summary>
+        public void SetBeckon(bool on)
+        {
+            if (_beckon == on) return;
+            _beckon = on;
+            if (on) BuildOutlines();
+
+            bool hovered = _hovered;
+            _hovered = !hovered;    // 같은 값이면 SetHovered 가 아무것도 하지 않는다
+            SetHovered(hovered);
+        }
+
+        private void Update()
+        {
+            if (!_beckon || _hovered) return;
+            SetOutlineAlpha(0.25f + 0.55f * (0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 3.2f)));
+        }
+
+        private void SetOutlineAlpha(float alpha)
+        {
+            foreach (var o in _outlines)
+            {
+                if (o == null) continue;
+                var c = _outlineColor;
+                c.a *= alpha;
+                o.color = c;
             }
         }
 

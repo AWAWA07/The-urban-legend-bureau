@@ -236,6 +236,7 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         public void SetBandLayout(bool band)
         {
+            if (band) SetCompactLayout(false);
             if (!_boxCaptured || _bandLayout == band) return;
             _bandLayout = band;
 
@@ -296,6 +297,133 @@ namespace UrbanLegendBureau.UI
             rt.anchoredPosition = solo
                 ? new Vector2(0f, _rightDesignPosition.y)
                 : _rightDesignPosition;
+        }
+
+        // ------------------------------------------------------------- 컴퓨터 위 작은 대화
+
+        /// <summary>작은 대화일 때 한영의 크기. 그림은 그대로 두고 줄이기만 한다.</summary>
+        private const float CompactScale = 0.66f;
+
+        /// <summary>작은 대화일 때 한영이 서는 자리(오른쪽 끝). 글 본문을 가리지 않는다.</summary>
+        private static readonly Vector2 CompactCharacterPosition = new Vector2(700f, -470f);
+
+        /// <summary>작은 대화일 때 대사 상자. 한영 왼쪽에 낮게 깔린다.</summary>
+        private static readonly Vector2 CompactBoxPosition = new Vector2(-150f, -392f);
+        private static readonly Vector2 CompactBoxSize = new Vector2(1300f, 232f);
+
+        /// <summary>작은 대화일 때 뒤를 덮는 어둠의 진하기. 글은 읽히되 대사로 눈이 가게 한다.</summary>
+        private const float CompactDimAlpha = 0.42f;
+        private const float CompactFadeSeconds = 0.2f;
+
+        private bool _compact;
+        private Image _dim;
+        private Coroutine _fade;
+        private Vector3 _leftDesignScale = Vector3.one;
+        private RectState _compactSavedBox, _compactSavedAdvance, _compactSavedName, _compactSavedHint;
+
+        /// <summary>
+        /// 컴퓨터 화면 위에서 한영이 짧게 말할 때의 배치.
+        /// 한영을 줄여 오른쪽 끝에 세우고, 뒤를 살짝 어둡게 덮고, 상자는 그 왼쪽 아래에 낮게 둔다.
+        /// 켤 때 서서히 나타난다. 닫을 때는 FadeOutThen 으로 서서히 사라진다.
+        /// 끄면 원래 타입 1 배치로 돌아간다. 대사를 보이기 전에 불러야 한다.
+        /// </summary>
+        public void SetCompactLayout(bool compact)
+        {
+            if (!_homesCaptured || _left == null || _left.image == null) return;
+            StopMotion();
+
+            var group = GetComponent<CanvasGroup>();
+            if (_fade != null) { StopCoroutine(_fade); _fade = null; }
+
+            var rt = _left.image.rectTransform;
+            if (compact && !_compact)
+            {
+                _leftDesignScale = rt.localScale;
+                if (_box != null) _compactSavedBox = RectState.Of(_box);
+                if (_advanceRect != null) _compactSavedAdvance = RectState.Of(_advanceRect);
+                if (_nameText != null) _compactSavedName = RectState.Of(_nameText.rectTransform);
+                if (_hintText != null) _compactSavedHint = RectState.Of(_hintText.rectTransform);
+            }
+
+            if (compact)
+            {
+                EnsureDim();
+                _dim.gameObject.SetActive(true);
+                rt.localScale = _leftDesignScale * CompactScale;
+                rt.anchoredPosition = CompactCharacterPosition;
+                PlaceCompact(_box);
+                if (_advanceRect != null && !_advanceCoversScreen) PlaceCompact(_advanceRect);
+
+                // 이름과 "눌러 계속"은 원래 상자 높이(300)에서 거꾸로 잰 자리라, 낮아진 상자에서는 높이가 음수가 되어 사라진다. 다시 잰다.
+                const float side = 48f, pad = 20f, nameH = 50f, hintH = 28f;
+                if (_nameText != null) Inset(_nameText.rectTransform, side, pad, CompactBoxSize.y - pad - nameH);
+                if (_hintText != null) Inset(_hintText.rectTransform, side, CompactBoxSize.y - pad - hintH + 6f, pad - 6f);
+
+                _compact = true;
+                if (group != null)
+                {
+                    if (isActiveAndEnabled) _fade = StartCoroutine(FadeGroup(group, 0f, 1f, CompactFadeSeconds, null));
+                    else group.alpha = 1f;
+                }
+                return;
+            }
+
+            if (!_compact) return;
+            _compact = false;
+            if (_dim != null) _dim.gameObject.SetActive(false);
+            rt.localScale = _leftDesignScale;   // 자리는 뒤따르는 SetSoloLayout 이 정한다
+            if (_box != null) _compactSavedBox.ApplyTo(_box);
+            if (_advanceRect != null && !_advanceCoversScreen) _compactSavedAdvance.ApplyTo(_advanceRect);
+            if (_nameText != null) _compactSavedName.ApplyTo(_nameText.rectTransform);
+            if (_hintText != null) _compactSavedHint.ApplyTo(_hintText.rectTransform);
+            if (group != null) group.alpha = 1f;
+        }
+
+        /// <summary>작은 대화면 서서히 사라진 뒤 done 을 부른다. 아니면 곧바로 부른다.</summary>
+        public void FadeOutThen(Action done)
+        {
+            var group = GetComponent<CanvasGroup>();
+            if (!_compact || group == null || !isActiveAndEnabled) { done?.Invoke(); return; }
+
+            if (_fade != null) StopCoroutine(_fade);
+            _fade = StartCoroutine(FadeGroup(group, group.alpha, 0f, CompactFadeSeconds, done));
+        }
+
+        private IEnumerator FadeGroup(CanvasGroup group, float from, float to, float seconds, Action done)
+        {
+            for (float t = 0f; t < seconds; t += Time.unscaledDeltaTime)
+            {
+                group.alpha = Mathf.Lerp(from, to, Mathf.SmoothStep(0f, 1f, t / seconds));
+                yield return null;
+            }
+            group.alpha = to;
+            _fade = null;
+            done?.Invoke();
+        }
+
+        private static void PlaceCompact(RectTransform rt)
+        {
+            if (rt == null) return;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+            rt.pivot = new Vector2(0.5f, 0.5f);
+            rt.anchoredPosition = CompactBoxPosition;
+            rt.sizeDelta = CompactBoxSize;
+        }
+
+        /// <summary>뒤를 덮는 어둠. 처음 쓸 때 만들어 맨 뒤에 둔다. 누름은 받지 않는다.</summary>
+        private void EnsureDim()
+        {
+            if (_dim != null) return;
+            var go = new GameObject("CompactDim", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            go.transform.SetAsFirstSibling();
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero;
+            rt.anchorMax = Vector2.one;
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            _dim = go.GetComponent<Image>();
+            _dim.color = new Color(0f, 0f, 0f, CompactDimAlpha);
+            _dim.raycastTarget = false;
         }
 
         /// <summary>

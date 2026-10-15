@@ -808,7 +808,7 @@ namespace UrbanLegendBureau.Systems
             if (_talkScreen == null || _loc == null || string.IsNullOrEmpty(lineTextId)) return false;
 
             _afterTalkCallback = onDone;
-            ShowTalk(lineTextId, AfterTalk.Callback);
+            ShowTalk(lineTextId, AfterTalk.Callback, compact: true);
             return true;
         }
 
@@ -954,7 +954,7 @@ namespace UrbanLegendBureau.Systems
         /// 이 화면은 아래를 가리지 않는 팝업이라 커뮤니티가 그대로 보이고,
         /// 화면 전체를 덮는 진행 버튼이 있어 말하는 동안에는 선택지를 누를 수 없다.
         /// </summary>
-        private void ShowTalk(string lineTextId, AfterTalk after, bool showCharacter = true)
+        private void ShowTalk(string lineTextId, AfterTalk after, bool showCharacter = true, bool compact = false)
         {
             if (_talkScreen == null)
             {
@@ -974,7 +974,10 @@ namespace UrbanLegendBureau.Systems
 
             // 겹침 대화에는 한영 혼자 나온다. 처음 대화에서처럼 화면 가운데에 세운다.
             _talkScreen.SetBandLayout(false);   // 컴퓨터 화면 위에서는 원래 상자(타입 1)
-            _talkScreen.SetSoloLayout(showCharacter);
+            // 게시물 작성처럼 글을 보며 듣는 말은 한영을 줄여 옆에 세우고 뒤를 살짝 어둡게 한다(SetCompactLayout).
+            _compactTalk = compact && showCharacter;
+            _talkScreen.SetCompactLayout(_compactTalk);
+            if (!_compactTalk) _talkScreen.SetSoloLayout(showCharacter);
             _talkScreen.SetRightSoloLayout(false);
             _talkScreen.SetCharacterSprite(true, CharacterArt.HanyoungBody(lineTextId));
             _talkScreen.ShowLine(true,
@@ -1003,6 +1006,7 @@ namespace UrbanLegendBureau.Systems
             // 나레이션 동안에도 아무것도 고를 수 없다.
             if (_communityScreen != null) _communityScreen.SetControlsEnabled(false);
 
+            _talkScreen.SetCompactLayout(false);
             _talkScreen.SetBandLayout(false);
             // 나레이션에는 인물을 세우지 않는다. 대사 상자만 남는다.
             _talkScreen.ShowNarration(() => _loc.Get(lineTextId), leftVisible: false, rightVisible: false);
@@ -1012,6 +1016,22 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>한영의 말을 넘겼을 때. 말이 끝나야 다음 상태로 간다.</summary>
         private void OnTalkAdvanced()
+        {
+            // 작은 대화는 서서히 사라진 뒤에 닫는다. 그 사이에 다시 눌러도 두 번 넘어가지 않는다.
+            if (_compactTalk)
+            {
+                _compactTalk = false;
+                _talkScreen.SetAdvanceHandler(null);
+                _talkScreen.FadeOutThen(FinishTalk);
+                return;
+            }
+            FinishTalk();
+        }
+
+        /// <summary>작은 대화인가. 닫을 때 서서히 사라지게 한다.</summary>
+        private bool _compactTalk;
+
+        private void FinishTalk()
         {
             if (_ui.Contains(_talkScreen)) _ui.Close(_talkScreen);
 

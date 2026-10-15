@@ -252,7 +252,10 @@ namespace UrbanLegendBureau.UI
         /// <summary>댓글 쓰기 칸의 머리말을 이 글에서만 바꿔 적는다. 비어 있으면 원래대로 "댓글 쓰기"다.</summary>
         private string _choiceHeaderId;
 
-        /// <summary>글쓴이가 플레이어의 부계정인가. 그러면 "닉네임(차지한)" 으로 적는다. 댓글과 같은 표기다.</summary>
+        /// <summary>
+        /// 글쓴이가 플레이어의 부계정인가.
+        /// 공개된 글에는 남들이 보는 그대로 닉네임만 적는다. 차지한의 계정이라는 것은 글쓰기 화면에서만 알린다.
+        /// </summary>
         private bool _authorIsPlayer;
 
         /// <summary>
@@ -260,6 +263,16 @@ namespace UrbanLegendBureau.UI
         /// 시간이 흘러 조회수와 반응이 늘면 이 줄의 값을 다시 읽어 화면에 옮긴다.
         /// </summary>
         public CommunityBoardEntry CurrentEntry { get; set; }
+
+        /// <summary>괴담넷 창. 글쓰기 화면(PostComposeView)이 이 안, 제목 표시줄 아래에 들어선다.</summary>
+        public RectTransform Window => _window;
+
+        /// <summary>글쓰기 화면이 괴담넷과 같은 글꼴을 쓰게 한다.</summary>
+        public TMP_FontAsset BodyFont => _bodyText != null ? _bodyText.font : null;
+        public TMP_FontAsset TitleFont => _titleText != null ? _titleText.font : null;
+
+        /// <summary>창 안에 지어 둔 글쓰기 화면. 아직 글을 쓴 적이 없으면 null.</summary>
+        private PostComposeView Compose => _window != null ? _window.GetComponentInChildren<PostComposeView>(true) : null;
 
         /// <summary>열려 있는 글의 조회수와 좋아요 / 싫어요를 그 목록 줄의 값으로 다시 맞춘다. 스크롤은 건드리지 않는다.</summary>
         public void RefreshCounts()
@@ -839,6 +852,7 @@ namespace UrbanLegendBureau.UI
 
             Apply(_postControls, enabled);
             Apply(_boardControls, enabled);
+            if (Compose != null) Compose.SetInteractable(enabled);
             if (_closeButton != null) _closeButton.interactable = enabled && _onClose != null;
 
             void Apply(CanvasGroup group, bool on)
@@ -876,6 +890,9 @@ namespace UrbanLegendBureau.UI
         public void ShowBoard(bool showBoard)
         {
             _showingBoard = showBoard;
+
+            // 목록으로 돌아오면 쓰던 글은 접어 둔다. 글쓰기 단추를 다시 누르면 고르던 칸에서 이어진다.
+            if (showBoard && Compose != null) Compose.Hide();
 
             if (_boardView != null) _boardView.SetActive(showBoard);
             if (_postView != null) _postView.SetActive(!showBoard);
@@ -1227,7 +1244,7 @@ namespace UrbanLegendBureau.UI
             {
                 string meta = string.IsNullOrEmpty(_titleId)
                     ? string.Empty
-                    : loc.Get(MetaTextId, AuthorName(loc, _authorId, _authorIsPlayer),
+                    : loc.Get(MetaTextId, AuthorName(loc, _authorId, false),
                         _views, _comments.Count, BuildPostedText(loc, _postedMinutesAgo));
 
                 // 좁은 화면에서는 한 줄에 다 들어가지 않는다. 다음 줄에 오른쪽으로 붙여 세운다.
@@ -1358,7 +1375,7 @@ namespace UrbanLegendBureau.UI
             }
 
             int comments = entry.Comments != null ? entry.Comments.Count : 0;
-            string who = loc.Get(BoardMetaTextId, AuthorName(loc, entry.AuthorTextId, entry.IsPlayerPost), entry.Views, comments);
+            string who = loc.Get(BoardMetaTextId, AuthorName(loc, entry.AuthorTextId, false), entry.Views, comments);
             return who + "    " + BuildPostedText(loc, entry.PostedMinutesAgo);
         }
 

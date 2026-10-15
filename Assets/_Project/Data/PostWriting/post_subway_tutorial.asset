@@ -21,56 +21,70 @@ MonoBehaviour:
     textId: post.subway.title.fear
     tag: 4
     beliefDelta: 3
+    reviewTextId: post.subway.review.title.fear
   - candidateId: title_refute
     textId: post.subway.title.refute
     tag: 1
     beliefDelta: -3
+    reviewTextId: post.subway.review.title.refute
   - candidateId: title_calm
     textId: post.subway.title.calm
     tag: 2
     beliefDelta: -2
+    reviewTextId: post.subway.review.title.calm
   _introCandidates:
   - candidateId: intro_rumor
     textId: post.subway.intro.rumor
     tag: 0
     beliefDelta: 0
+    reviewTextId: post.subway.review.intro.rumor
   - candidateId: intro_witness
     textId: post.subway.intro.witness
     tag: 3
     beliefDelta: 1
+    reviewTextId: post.subway.review.intro.witness
   - candidateId: intro_hook
     textId: post.subway.intro.hook
     tag: 3
     beliefDelta: 2
+    reviewTextId: post.subway.review.intro.hook
   _factCandidates:
   - candidateId: fact_refute
     textId: post.subway.fact.refute
     tag: 1
     beliefDelta: -4
+    reviewTextId: post.subway.review.fact.refute
   - candidateId: fact_reports
     textId: post.subway.fact.reports
     tag: 3
     beliefDelta: 5
+    reviewTextId: post.subway.review.fact.reports
   - candidateId: fact_real
     textId: post.subway.fact.real
     tag: 4
     beliefDelta: 6
+    reviewTextId: post.subway.review.fact.real
   _actionCandidates:
   - candidateId: action_calm
     textId: post.subway.action.calm
     tag: 2
-    beliefDelta: -3
+    beliefDelta: -4
+    reviewTextId: post.subway.review.action.calm
   - candidateId: action_counter
     textId: post.subway.action.counter
     tag: 0
     beliefDelta: -1
+    reviewTextId: post.subway.review.action.counter
   - candidateId: action_fear
     textId: post.subway.action.fear
     tag: 4
     beliefDelta: 4
+    reviewTextId: post.subway.review.action.fear
   _postModifier: -1
   _tutorialTargetBelief: 20
   _requiredDrop: 7
+  _excellentDrop: 11
+  _refuteSection: 2
   _allowRewrite: 1
   _maxAttempts: 0
   _takeDownFailedPost: 1
@@ -109,7 +123,9 @@ MonoBehaviour:
   - authorTextId: ui.net.author_nick_6
     bodyTextId: post.subway.react.weak_3
   _introLineTextId: post.subway.line_intro
+  _excellentLineTextId: post.subway.line_excellent
   _successLineTextId: post.subway.line_success
   _failLineTextId: post.subway.line_fail
   _weakLineTextId: post.subway.line_weak
+  _flatLineTextId: post.subway.line_flat
   _takeDownLineTextId: post.subway.line_takedown
