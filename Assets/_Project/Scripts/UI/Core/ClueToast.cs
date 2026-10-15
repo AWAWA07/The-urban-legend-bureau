@@ -8,7 +8,8 @@ namespace UrbanLegendBureau.UI
     /// <summary>
     /// 단서를 얻으면 화면 오른쪽 위에 잠깐 뜨는 네모난 알림. "차내 CCTV 단서 획득" 처럼 어디서 얻었는지 적고, 그 아래에 단서 이름을 작게 적는다.
     /// 오른쪽에서 살짝 밀려 들어와 몇 초 머문 뒤 옅어지며 사라진다. 어느 화면 위에서든(가까이 보기 포함) 맨 앞에 뜬다.
-    /// 누를 것이 없으므로 아래 화면을 막지 않는다. 연달아 얻으면 새 알림으로 갈아 끼운다.
+    /// 누를 것이 없으므로 아래 화면을 막지 않는다. 연달아 얻으면 겹치지 않게 차례로 하나씩 띄운다.
+    /// 단서를 얻었을 때는 세 줄이다: 작은 머리(단서 획득), 단서 이름, 수사 노트에 적혔다는 안내.
     /// 처음 부를 때 스스로 만든다. 글꼴은 부르는 쪽이 넘긴 것을 쓴다(한글이 들어 있는 것).
     /// </summary>
     public class ClueToast : MonoBehaviour
@@ -19,15 +20,25 @@ namespace UrbanLegendBureau.UI
         private CanvasGroup _group;
         private TextMeshProUGUI _title;
         private TextMeshProUGUI _detail;
+        private TextMeshProUGUI _footer;
+        private RectTransform _icon;
         private Coroutine _running;
+        private readonly System.Collections.Generic.Queue<string[]> _queue = new System.Collections.Generic.Queue<string[]>();
 
         private const float Hold = 2.6f;
 
         /// <summary>알림을 띄운다. detail 이 비어 있으면 한 줄만 쓴다.</summary>
         public static void Show(string title, string detail, TMP_FontAsset font)
         {
+            Show(title, detail, null, font);
+        }
+
+        /// <summary>세 줄 알림. 머리, 이름, 아래 안내. 이미 떠 있으면 그 뒤에 줄을 세운다.</summary>
+        public static void Show(string title, string detail, string footer, TMP_FontAsset font)
+        {
             if (_instance == null) _instance = Create(font);
-            _instance.Play(title, detail);
+            _instance._queue.Enqueue(new[] { title, detail, footer });
+            if (_instance._running == null) _instance._running = _instance.StartCoroutine(_instance.Run());
         }
 
         private static ClueToast Create(TMP_FontAsset font)
@@ -64,6 +75,18 @@ namespace UrbanLegendBureau.UI
 
             toast._title = Text(box.transform, "Title", font, 30f, FontStyles.Bold, new Color(0.96f, 0.93f, 0.86f), new Vector2(28f, -16f));
             toast._detail = Text(box.transform, "Detail", font, 22f, FontStyles.Normal, new Color(0.85f, 0.70f, 0.38f), new Vector2(28f, -60f));
+            toast._footer = Text(box.transform, "Footer", font, 19f, FontStyles.Normal, new Color(0.62f, 0.66f, 0.72f), new Vector2(28f, -100f));
+
+            // 머리 앞의 작은 마름모. 단서 알림이라는 것을 한눈에 보인다.
+            var icon = new GameObject("Icon", typeof(RectTransform), typeof(Image));
+            icon.transform.SetParent(box.transform, false);
+            toast._icon = (RectTransform)icon.transform;
+            toast._icon.anchorMin = toast._icon.anchorMax = new Vector2(0f, 1f);
+            toast._icon.sizeDelta = new Vector2(11f, 11f);
+            toast._icon.anchoredPosition = new Vector2(34f, -29f);
+            toast._icon.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            icon.GetComponent<Image>().color = new Color(0.85f, 0.70f, 0.38f);
+            icon.GetComponent<Image>().raycastTarget = false;
 
             box.SetActive(false);
             return toast;
@@ -104,19 +127,60 @@ namespace UrbanLegendBureau.UI
             return t;
         }
 
-        private void Play(string title, string detail)
+        /// <summary>
+        /// 줄 선 알림을 하나씩 띄운다.
+        /// 세 줄짜리(머리, 이름, 안내)는 머리를 작게 금빛으로, 이름을 크게, 안내를 흐리게 적는다.
+        /// 두 줄짜리는 예전 모양(크게 제목, 아래 금빛 한 줄)이다.
+        /// </summary>
+        private IEnumerator Run()
         {
-            _title.text = title;
-            bool two = !string.IsNullOrEmpty(detail);
-            _detail.text = two ? detail : string.Empty;
-            _detail.gameObject.SetActive(two);
-            _box.sizeDelta = new Vector2(460f, two ? 104f : 68f);
-            if (_running != null) StopCoroutine(_running);
             _box.gameObject.SetActive(true);
-            _running = StartCoroutine(Run());
+            while (_queue.Count > 0)
+            {
+                var item = _queue.Dequeue();
+                Apply(item[0], item[1], item[2]);
+                // 뒤에 기다리는 것이 있으면 조금 짧게 머문다. 한꺼번에 얻어도 오래 밀리지 않는다.
+                yield return Cycle(_queue.Count > 0 ? Hold * 0.75f : Hold);
+            }
+            _box.gameObject.SetActive(false);
+            _running = null;
         }
 
-        private IEnumerator Run()
+        private void Apply(string title, string detail, string footer)
+        {
+            bool three = !string.IsNullOrEmpty(footer);
+            bool two = !string.IsNullOrEmpty(detail);
+
+            if (three)
+            {
+                Set(_title, title, 20f, FontStyles.Bold, new Color(0.85f, 0.70f, 0.38f), new Vector2(54f, -16f));
+                Set(_detail, detail, 28f, FontStyles.Bold, new Color(0.96f, 0.93f, 0.86f), new Vector2(28f, -48f));
+                _footer.text = footer;
+                _footer.gameObject.SetActive(true);
+                _icon.gameObject.SetActive(true);
+                _box.sizeDelta = new Vector2(480f, 136f);
+                return;
+            }
+
+            Set(_title, title, 30f, FontStyles.Bold, new Color(0.96f, 0.93f, 0.86f), new Vector2(28f, -16f));
+            Set(_detail, two ? detail : string.Empty, 22f, FontStyles.Normal, new Color(0.85f, 0.70f, 0.38f), new Vector2(28f, -60f));
+            _detail.gameObject.SetActive(two);
+            _footer.gameObject.SetActive(false);
+            _icon.gameObject.SetActive(false);
+            _box.sizeDelta = new Vector2(460f, two ? 104f : 68f);
+        }
+
+        private static void Set(TextMeshProUGUI t, string text, float size, FontStyles style, Color color, Vector2 pos)
+        {
+            t.text = text;
+            t.fontSize = size;
+            t.fontStyle = style;
+            t.color = color;
+            t.rectTransform.anchoredPosition = pos;
+            t.gameObject.SetActive(true);
+        }
+
+        private IEnumerator Cycle(float hold)
         {
             // 화면 오른쪽 위. 맨 위 줄(경과 시간)과 가까이 보기의 돌아가기 단추 아래에 둔다.
             var rest = new Vector2(-40f, -140f);
@@ -131,15 +195,14 @@ namespace UrbanLegendBureau.UI
             _box.anchoredPosition = rest;
             _group.alpha = 1f;
 
-            yield return new WaitForSecondsRealtime(Hold);
+            yield return new WaitForSecondsRealtime(hold);
 
-            for (float e = 0f; e < 0.5f; e += Time.unscaledDeltaTime)
+            for (float e = 0f; e < 0.45f; e += Time.unscaledDeltaTime)
             {
-                _group.alpha = 1f - e / 0.5f;
+                _group.alpha = 1f - e / 0.45f;
                 yield return null;
             }
-            _box.gameObject.SetActive(false);
-            _running = null;
+            _group.alpha = 0f;
         }
     }
 }

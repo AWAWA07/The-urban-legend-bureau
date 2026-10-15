@@ -243,7 +243,7 @@ ui.rule.conclusion_title	조사 결론	Conclusion	규칙을 맞힌 뒤 뜨는 �
 ui.rule.verdict_label	이 괴담은 진짜인가?	Is this legend real?	결론 - 첫 번째 물음
 ui.rule.counter_label	실제 상황에서는 어떻게 해야 하는가?	What should you actually do?	결론 - 두 번째 물음
 ui.field.clue_match	이 증언과 맞물리는 것	This lines up with	단서를 찾았을 때 - 같은 규칙을 가리키는 증언들
-ui.rule.btn_deduce	규칙 추론	Deduce	현장 HUD 버튼
+ui.rule.btn_deduce	수사 노트	Case File	현장 HUD 버튼
 ui.rule.btn_back	현장으로	Back to site	
 
 # --- 조정: 보고서 작성 ---
@@ -292,7 +292,7 @@ legend.subway.counter_opt_avoid	막차를 아예 타지 않는다.	Do not take t
 clue.subway.001.title	같은 칸의 엇갈린 진술	Conflicting accounts in the car	단서 제목
 clue.subway.001.text	목격자는 옆자리에 사람이 앉는 기척을 분명히 느꼈다고 진술했다. 그러나 같은 칸 승객들은 그 자리가 계속 비어 있었다고 말한다.	The witness clearly felt someone settle into the next seat. Everyone else in the car says it stayed empty.	
 clue.subway.002.title	다른 칸 승객들의 진술	Passengers in the other car	단서 제목
-clue.subway.002.text	그날 다른 칸 승객들의 진술을 모아 확인했다. 고개를 돌려 그 자리를 직접 확인한 사람들은 하나같이 무엇을 봤는지 기억하지 못하고, 그날 이후로 어깨가 무겁고 되는 일이 없다고 말한다.	We gathered and checked statements from the other car that night. Everyone who turned their head and looked at the seat cannot recall what they saw, and each says that since that night their shoulders feel heavy and nothing goes right.	
+clue.subway.002.text	그날 다른 칸 승객들의 진술을 모아 확인했다. 고개를 돌려 그 자리를 직접 확인한 사람들은 하나같이 무엇을 봤는지 기억하지 못하고, 그날 이후로 어깨가 무겁고 되는 일이 없다고 말한다. 고개를 돌리지 않고 그대로 앉아 있던 사람들은 그런 일을 겪지 않았다고 한다.	We gathered and checked statements from the other car that night. Everyone who turned their head and looked at the seat cannot recall what they saw, and each says that since that night their shoulders feel heavy and nothing goes right. Those who stayed seated without turning around say nothing like that happened to them.	
 clue.subway.003.title	차내 CCTV 기록	Onboard camera footage	단서 제목
 clue.subway.003.text	CCTV에는 해당 좌석 주변의 움직임이 전혀 잡히지 않는다. 앉은 사람도, 일어난 사람도 없다.	The camera shows no movement around that seat at all. Nobody sat down, nobody got up.	
 clue.subway.004.title	목격담 대조 결과	Accounts compared	단서 제목
@@ -936,3 +936,95 @@ ui.travel.to_field	현장으로 가는 중	Heading to the scene	사무실에서 
 ui.travel.duration_field	사무실에서 9-4 승강장까지 {0}분	{0} minutes from the office to platform 9-4	옮기는 화면 - {0} 걸리는 분
 ui.desktop.search	검색하려면 여기에 입력하세요	Type here to search	
 ui.desktop.search_none	"{0}" 에 맞는 앱이 없어요	No apps match "{0}"	
+# --- 수사 노트 / 단서 분석 / 최종 추론 / 조사 보고서 ---
+ui.clue_toast.header	단서 획득	Clue found	단서를 얻으면 오른쪽 위 알림의 머리
+ui.clue_toast.saved	수사 노트에 기록되었습니다.	Logged in your case file.	단서 알림의 아래 안내
+ui.casefile.bureau	괴담 검열국 · 사건 파일	URBAN LEGEND BUREAU · CASE FILE	수사 노트 머리
+ui.casefile.bureau_name	괴담 검열국	Urban Legend Bureau	보고서 머리 왼쪽
+ui.casefile.close	닫기	Close	
+ui.casefile.group_records	기록	RECORDS	왼쪽 줄 묶음
+ui.casefile.group_work	수사	INVESTIGATION	왼쪽 줄 묶음
+ui.casefile.tab_clues	수집한 단서	Collected Clues	
+ui.casefile.tab_analyses	분석 기록	Analysis Records	
+ui.casefile.tab_deductions	추론 기록	Deduction Records	
+ui.casefile.tab_analyze	단서 분석	Clue Analysis	
+ui.casefile.tab_deduce	최종 추론	Final Deduction	
+ui.casefile.tab_report	조사 보고서	Investigation Report	
+ui.casefile.locked	잠김	Locked	왼쪽 줄 오른쪽 표시
+ui.casefile.stat_clues	단서 {0}/{1}	Clues {0}/{1}	
+ui.casefile.stat_analyses	분석 기록 {0}/{1}	Analyses {0}/{1}	
+ui.casefile.stat_deductions	추론 {0}/{1}	Deductions {0}/{1}	
+ui.casefile.place	획득 장소 · {0}	Found at · {0}	
+ui.casefile.state_found	획득 완료	Collected	
+ui.casefile.undiscovered_clue	미발견 단서	Undiscovered clue	
+ui.casefile.undiscovered	미발견	Not found	
+ui.casefile.detail_empty	단서를 고르면 내용이 여기에 표시된다.	Select a clue to read it here.	
+ui.casefile.detail_number	단서 {0}	Clue {0}	
+ui.casefile.detail_case	사건명 · {0}	Case · {0}	
+ui.casefile.detail_related	관련 분석 기록	Related analyses	
+ui.casefile.detail_no_related	아직 이 단서로 찾아낸 분석 기록이 없다.	No analysis has come from this clue yet.	
+ui.casefile.analysis_used	사용한 단서 · {0}	Clues used · {0}	
+ui.casefile.analysis_locked	아직 찾지 못한 분석 기록	An analysis not yet found	
+ui.casefile.deduction_pending	미확정	Unresolved	
+ui.casefile.analyze_hint	단서 두 개를 골라 맞대어 보자. 서로 이어지는 단서라면 새로운 사실이 드러난다.	Pick two clues and set them side by side. If they connect, something new comes to light.	
+ui.casefile.analyze_pick	왼쪽 목록에서 단서를 고르세요	Pick a clue from the list	
+ui.casefile.slot	단서 {0}	Clue {0}	
+ui.casefile.clear	해제	Clear	
+ui.casefile.compare	비교하기	Compare	
+ui.casefile.compare_wrong	이 두 단서만으로는 새로운 사실을 발견하기 어려워.	These two clues alone don't reveal anything new.	
+ui.casefile.compare_known	이미 찾아낸 분석 기록이야.	We've already found that one.	
+ui.casefile.found_records	발견한 분석 기록	Analyses found	
+ui.casefile.found_title	분석 기록 발견	Analysis record found	
+ui.casefile.to_deduce	최종 추론으로	Go to final deduction	
+ui.casefile.deduce_locked_analysis	분석 기록을 모두 찾아야 최종 추론을 시작할 수 있다.	You need every analysis record before the final deduction.	
+ui.casefile.deduce_locked_field	현장 조사가 끝난 뒤에 최종 추론을 시작할 수 있다.	The final deduction opens once the field investigation is over.	
+ui.casefile.deduce_step	추론 {0} · {1}	Deduction {0} · {1}	
+ui.casefile.decide	이 답으로 결정	Lock in this answer	
+ui.casefile.deduce_wrong	근거를 다시 살펴보자.	Let's look at the evidence again.	
+ui.casefile.deduce_hit	추론 성공	Deduction confirmed	
+ui.casefile.next	다음 추론	Next deduction	
+ui.casefile.to_report	조사 보고서 작성	Write the report	
+ui.casefile.deduce_done	세 가지 추론을 모두 마쳤다. 조사 보고서를 정리하자.	All three deductions are done. Let's put the report together.	
+ui.casefile.evidence	근거 확인	Review Evidence	
+ui.casefile.evidence_hint	단서나 분석 기록을 누르면 내용을 다시 읽을 수 있다.	Tap a clue or analysis to read it again.	
+ui.casefile.evidence_clues	단서	CLUES	
+ui.casefile.evidence_analyses	분석 기록	ANALYSES	
+ui.casefile.report_locked	최종 추론을 모두 마치면 보고서가 완성된다.	The report is complete once every deduction is done.	
+ui.casefile.report_header	괴담 검열국 — 최종 조사 보고서	Urban Legend Bureau — Final Investigation Report	
+ui.casefile.report_stamp	CONFIDENTIAL / 조사 보고서	CONFIDENTIAL / INVESTIGATION REPORT	
+ui.casefile.report_doc	문서 번호 · {0}	Document No. · {0}	
+ui.casefile.report_case	사건명	Case	
+ui.casefile.report_analyses	분석 기록	Analysis records	
+ui.casefile.report_clues	관련 단서	Related clues	
+ui.casefile.confirm	조사 결과 확정	Confirm Findings	
+ui.casefile.confirmed	확정 완료	Confirmed	
+ui.casefile.place_seat	빈자리 (가운데 자리)	The empty seat (middle)	단서 얻은 자리
+ui.casefile.place_window	창문	Window	단서 얻은 자리
+ui.casefile.place_cctv	CCTV	CCTV	단서 얻은 자리
+ui.casefile.place_intercom	비상 인터폰	Emergency intercom	단서 얻은 자리
+analysis.subway.a.title	반복되는 동일 좌석의 신고	Repeated reports about the same seat	분석 기록 A
+analysis.subway.a.body	같은 좌석과 관련된 신고가 반복되고 있다. 단순히 한 사람의 착각으로 보기에는 설명하기 어려운 부분이 존재한다.	Reports keep coming back to the same seat. It is hard to write this off as one person's mistake.	분석 기록 A (001 + 005)
+analysis.subway.b.title	직접 확인과 간접 확인의 차이	Looking directly versus looking indirectly	분석 기록 B
+analysis.subway.b.body	기척을 직접 확인한 사람과 창유리를 통해 간접적으로 확인한 사람의 결과가 다르다. 피해가 발생하는 조건은 단순히 무언가를 보는 행위만은 아닐 수 있다.	Those who turned to check the presence and those who only saw it in the glass ended up differently. The harm may come from more than simply seeing something.	분석 기록 B (002 + 008)
+deduce.subway.q1.label	괴담의 진위	Is it real	추론 1
+deduce.subway.q1.question	이 괴담은 실제로 존재하는 현상일까?	Is this legend an actual phenomenon?	
+deduce.subway.q1.opt0	전부 거짓이다.	It is all made up.	
+deduce.subway.q1.opt1	실제 현상이 존재하는 것으로 보인다.	There appears to be a real phenomenon.	정답
+deduce.subway.q1.opt2	아직 아무것도 알 수 없다.	We can't tell anything yet.	
+deduce.subway.q1.explain	반복되는 신고와 목격담은 실제 현상의 존재 가능성을 뒷받침한다. 하지만 인터넷에 퍼진 모든 이야기가 사실이라는 의미는 아니다.	The repeated reports and accounts support a real phenomenon. That does not mean every story spreading online is true.	
+deduce.subway.q1.report	실제 현상이 존재하는 것으로 판단됨.	Judged to be a real phenomenon.	
+deduce.subway.q2.label	발동 조건	Trigger	추론 2
+deduce.subway.q2.question	피해가 발생하는 조건은 무엇일까?	What triggers the harm?	
+deduce.subway.q2.opt0	빈자리에 앉는 것	Sitting in the empty seat	
+deduce.subway.q2.opt1	기척을 느끼는 것 자체	Simply feeling the presence	
+deduce.subway.q2.opt2	기척을 느끼고 고개를 돌려 직접 확인하는 것	Feeling the presence and turning to look directly	정답
+deduce.subway.q2.explain	피해를 겪은 사람과 창유리를 통해 간접 확인한 사람의 결과가 다르다. 직접 돌아보는 행동이 핵심 조건일 가능성이 높다.	Those who were harmed and those who only checked in the glass ended up differently. Turning to look is most likely the key.	
+deduce.subway.q2.report	옆자리의 기척을 느낀 뒤 고개를 돌려 직접 확인하는 행동.	Feeling a presence in the next seat, then turning your head to look directly.	
+deduce.subway.q3.label	대처 방법	Countermeasure	추론 3
+deduce.subway.q3.question	피해를 피하기 위해서는 어떻게 행동해야 할까?	What should you do to avoid the harm?	
+deduce.subway.q3.opt0	기척이 느껴져도 고개를 돌려 직접 확인하지 않는다.	Even if you feel a presence, don't turn your head to look.	정답
+deduce.subway.q3.opt1	창문을 깨뜨린다.	Break the window.	
+deduce.subway.q3.opt2	지하철에서 눈을 감고 기다린다.	Close your eyes on the train and wait.	
+deduce.subway.q3.explain	조사한 사례를 종합하면, 옆자리의 기척을 느끼더라도 직접 고개를 돌려 확인하지 않는 것이 가장 안전한 대처 방법으로 판단된다.	Putting the cases together, the safest response is not to turn and look, even when you feel a presence beside you.	
+deduce.subway.q3.report	기척이 느껴져도 고개를 돌려 직접 확인하지 않는다.	Even if you feel a presence, do not turn your head to look.	
+tutorial.field.report_confirmed	좋아, 조사 결과 확정이야. 보고서는 네 메모장에도 넣어 뒀어.	Good, the findings are confirmed. I put the report in your notepad too.	조사 결과를 확정했을 때 - 한영

@@ -1,0 +1,129 @@
+using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace UrbanLegendBureau.Data
+{
+    /// <summary>
+    /// 한 사건의 추리 자료. 수사 노트, 단서 분석, 최종 추론, 조사 보고서가 이것을 읽는다.
+    ///
+    ///   현장 단서 - 이 사건 현장에서 얻을 수 있는 단서와 얻은 자리. 수사 노트의 "수집한 단서" 칸이 된다.
+    ///   분석      - 단서 두 개를 맞대어 새로 알아내는 것(분석 기록). 순서는 상관없다.
+    ///   추론      - 진위, 발동 조건, 대처법처럼 차례로 답하는 물음. 보기 셋 중 하나가 답이다.
+    ///
+    /// 글은 전부 문구 ID 로만 든다. 사건마다 한 장씩 두므로 다른 사건의 보기나 기록이 섞이지 않는다.
+    /// 사건(CaseSO)이 이것을 들고 있지 않으면 예전 흐름(규칙 추론 화면, 빈칸 보고서)을 그대로 쓴다.
+    /// </summary>
+    [CreateAssetMenu(fileName = "deduction_", menuName = "UrbanLegendBureau/Case Deduction", order = 32)]
+    public class CaseDeductionSO : ScriptableObject
+    {
+        [Serializable]
+        public class FieldClue
+        {
+            [Tooltip("단서 ID. ClueSO 의 clueId 와 같다.")]
+            public string clueId;
+
+            [Tooltip("얻은 자리 이름의 문구 ID. 예: 빈자리, 창문.")]
+            public string placeTextId;
+        }
+
+        [Serializable]
+        public class Analysis
+        {
+            public string analysisId;
+
+            [Tooltip("맞대어 볼 단서 둘. 어느 쪽을 먼저 골라도 같다.")]
+            public string clueA;
+            public string clueB;
+
+            public string titleTextId;
+            public string bodyTextId;
+        }
+
+        [Serializable]
+        public class Question
+        {
+            public string questionId;
+
+            [Tooltip("이 물음이 무엇을 정하는지. 예: 괴담의 진위. 추론 기록과 보고서의 칸 이름이 된다.")]
+            public string labelTextId;
+
+            public string questionTextId;
+
+            [Tooltip("보기 셋의 문구 ID.")]
+            public List<string> optionTextIds = new List<string>();
+
+            [Tooltip("맞는 보기의 번호(0부터).")]
+            public int correctIndex;
+
+            [Tooltip("맞혔을 때 보여 주는 짧은 해설.")]
+            public string explanationTextId;
+
+            [Tooltip("보고서에 적히는 결론 한 줄.")]
+            public string reportTextId;
+
+            [Tooltip("이 물음의 근거. 근거 확인 칸에 함께 세운다. 정답을 알려 주는 표시는 하지 않는다.")]
+            public List<string> evidenceClueIds = new List<string>();
+            public List<string> evidenceAnalysisIds = new List<string>();
+        }
+
+        [SerializeField] private string _caseId;
+
+        [SerializeField] private List<FieldClue> _fieldClues = new List<FieldClue>();
+        [SerializeField] private List<Analysis> _analyses = new List<Analysis>();
+        [SerializeField] private List<Question> _questions = new List<Question>();
+
+        [Tooltip("보고서 머리의 문서 번호. 예: ULB-2026-001.")]
+        [SerializeField] private string _documentNumber;
+
+        public string CaseId => _caseId;
+        public IReadOnlyList<FieldClue> FieldClues => _fieldClues;
+        public IReadOnlyList<Analysis> Analyses => _analyses;
+        public IReadOnlyList<Question> Questions => _questions;
+        public string DocumentNumber => _documentNumber;
+
+        /// <summary>두 단서로 찾을 수 있는 분석. 순서는 가리지 않는다. 없으면 null.</summary>
+        public Analysis FindAnalysis(string a, string b)
+        {
+            if (string.IsNullOrEmpty(a) || string.IsNullOrEmpty(b) || a == b) return null;
+
+            foreach (var analysis in _analyses)
+            {
+                if (analysis == null) continue;
+                if ((analysis.clueA == a && analysis.clueB == b) || (analysis.clueA == b && analysis.clueB == a)) return analysis;
+            }
+            return null;
+        }
+
+        public Analysis GetAnalysis(string analysisId)
+        {
+            foreach (var analysis in _analyses)
+            {
+                if (analysis != null && analysis.analysisId == analysisId) return analysis;
+            }
+            return null;
+        }
+
+        public FieldClue GetFieldClue(string clueId)
+        {
+            foreach (var clue in _fieldClues)
+            {
+                if (clue != null && clue.clueId == clueId) return clue;
+            }
+            return null;
+        }
+
+        /// <summary>이 사건 현장에서 얻는 단서인가.</summary>
+        public bool IsFieldClue(string clueId) => GetFieldClue(clueId) != null;
+
+        private void OnValidate()
+        {
+            _caseId = _caseId?.Trim();
+            foreach (var q in _questions)
+            {
+                if (q == null || q.optionTextIds == null) continue;
+                q.correctIndex = Mathf.Clamp(q.correctIndex, 0, Mathf.Max(0, q.optionTextIds.Count - 1));
+            }
+        }
+    }
+}

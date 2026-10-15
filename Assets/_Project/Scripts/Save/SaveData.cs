@@ -127,6 +127,17 @@ namespace UrbanLegendBureau.Save
         /// </summary>
         public List<string> memos = new List<string>();
 
+        /// <summary>
+        /// 수사 노트 (v8). 사건이 섞이지 않게 모두 "사건ID|ID" 로 적는다.
+        ///   analysisRecords  - 단서 둘을 맞대어 찾아낸 분석 기록
+        ///   solvedDeductions - 맞힌 최종 추론 물음
+        ///   confirmedReports - 조사 결과를 확정한 사건(ID 만)
+        /// 얻은 단서는 예전처럼 acquiredClueIds 가 들고 있다. 따로 두지 않는다.
+        /// </summary>
+        public List<string> analysisRecords = new List<string>();
+        public List<string> solvedDeductions = new List<string>();
+        public List<string> confirmedReports = new List<string>();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -146,6 +157,9 @@ namespace UrbanLegendBureau.Save
             currentCaseId ??= string.Empty;
             memos ??= new List<string>();
             doneActions ??= new List<string>();
+            analysisRecords ??= new List<string>();
+            solvedDeductions ??= new List<string>();
+            confirmedReports ??= new List<string>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

@@ -58,6 +58,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("보고서 작성 화면.")]
         [SerializeField] private ReportScreen _reportScreen;
 
+        [Tooltip("수사 노트. 수집한 단서, 단서 분석, 최종 추론, 조사 보고서를 한 화면에서 넘겨 본다. 사건에 추리 자료가 있을 때 쓴다.")]
+        [SerializeField] private CaseFileScreen _caseFileScreen;
+
         [Tooltip("잠깐 떴다 사라지는 알림 띠.")]
         [SerializeField] private ToastScreen _toastScreen;
 
@@ -307,6 +310,8 @@ namespace UrbanLegendBureau.Systems
 
             _case = caseData;
             _legend = _legends.GetLegend(caseData.LegendId);
+            // 저장본에서 조사 결과를 이미 확정한 사건이면 그대로 이어 간다. 게시물 쓰기 단추가 이 값을 본다.
+            _reportFiled = _save != null && CaseNotebook.IsReportConfirmed(_save.Current, caseData.CaseId);
 
             if (_legend == null)
             {
@@ -413,6 +418,9 @@ namespace UrbanLegendBureau.Systems
             _triedAnswers.Clear();
             _misjudgeCount = 0;
             _givenClueIds.Clear();
+
+            // 수사 노트의 분석 기록, 맞힌 추론, 확정한 보고서도 이 사건 몫만 지운다.
+            CaseNotebook.ResetCase(_save.Current, _caseId);
 
             if (_spread != null && _legend != null)
             {
@@ -1207,6 +1215,7 @@ namespace UrbanLegendBureau.Systems
             // Replace는 최상단만 바꾸므로, 위에 팝업이 떠 있으면 아래 화면이 스택에 남는다.
             if (_ui.Contains(_actionListScreen)) _ui.Close(_actionListScreen);
             if (_ui.Contains(_ruleListScreen)) _ui.Close(_ruleListScreen);
+            if (_caseFileScreen != null && _ui.Contains(_caseFileScreen)) _ui.Close(_caseFileScreen);
 
             // 구석에 뜰 숫자를 먼저 맞춘다. 위쪽 한 줄이 그 값을 읽어 한 번에 그려지기 때문이다.
             PushStatus();
@@ -1741,6 +1750,8 @@ namespace UrbanLegendBureau.Systems
             {
                 if (clue == null || string.IsNullOrEmpty(clue.ClueId)) continue;
                 if (CaseFlow.HasClue(_save, clue.ClueId)) continue;
+                // 수사 노트를 쓰는 사건은 현장에서 얻는 단서만 채운다. 인터넷 쪽 단서는 현장 기록이 아니다.
+                if (Deduction != null && !Deduction.IsFieldClue(clue.ClueId)) continue;
 
                 CaseFlow.AcquireClue(_save, clue.ClueId);
                 _givenClueIds.Add(clue.ClueId);
@@ -2552,13 +2563,25 @@ namespace UrbanLegendBureau.Systems
         private void AnnounceClue(InvestigationPoint point, string clueId)
         {
             Sfx.Play("clue_get", 0.55f);
+            var label = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
+            var font = label != null ? label.font : null;
+
+            // 수사 노트를 쓰는 사건: [단서 획득] / 단서 이름 / 수사 노트에 기록되었습니다.
+            if (Deduction != null && !string.IsNullOrEmpty(clueId))
+            {
+                ClueToast.Show(_loc.Get(ClueToastHeaderTextId), ResolveClueTitle(clueId) ?? ResolveClueText(clueId),
+                    _loc.Get(ClueToastSavedTextId), font);
+                return;
+            }
+
             string place = point != null && !string.IsNullOrEmpty(point.NameTextId) ? _loc.Get(point.NameTextId) : string.Empty;
             string title = _loc.Get(ClueToastTextId, place).Trim();
-            var label = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
-            ClueToast.Show(title, string.IsNullOrEmpty(clueId) ? null : ResolveClueTitle(clueId), label != null ? label.font : null);
+            ClueToast.Show(title, string.IsNullOrEmpty(clueId) ? null : ResolveClueTitle(clueId), font);
         }
 
         private const string ClueToastTextId = "ui.field.clue_toast";
+        private const string ClueToastHeaderTextId = "ui.clue_toast.header";
+        private const string ClueToastSavedTextId = "ui.clue_toast.saved";
 
         /// <summary>가까이 보기에서 단서를 얻었을 때 붙이는 한 줄. {0} 에 단서 이름이 들어간다.</summary>
         private const string CloseupClueTextId = "field.closeup.clue";
@@ -3138,6 +3161,7 @@ namespace UrbanLegendBureau.Systems
 
             // 저장 알림이 아직 떠 있으면 먼저 거둔다. 맨 위에 남으면 화면을 바꿀 때 그것이 바뀐다.
             if (_toastScreen != null && _ui.Contains(_toastScreen)) _ui.Close(_toastScreen);
+            if (_caseFileScreen != null && _ui.Contains(_caseFileScreen)) _ui.Close(_caseFileScreen);
 
             ShowFieldHud();
 
@@ -3619,7 +3643,8 @@ namespace UrbanLegendBureau.Systems
         private void BindWriteButton()
         {
             var data = _case != null ? _case.PostWriting : null;
-            bool open = data != null && _postWriting != null && _reportFiled && _postWriting.CanWrite(data);
+            bool filed = _reportFiled || CaseNotebook.IsReportConfirmed(_save.Current, _caseId);
+            bool open = data != null && _postWriting != null && filed && _postWriting.CanWrite(data);
 
             _communityScreen.BindWrite(open ? () => _postWriting.Begin(data) : (System.Action)null,
                 open && data.IsTutorial);
@@ -3661,11 +3686,124 @@ namespace UrbanLegendBureau.Systems
         /// <summary>보고서를 이미 냈는가. 내고 나면 고쳐 쓰지 않는다.</summary>
         private bool _reportFiled;
 
+        // ------------------------------------------------------------- 수사 노트
+
+        /// <summary>이 사건의 추리 자료. 없으면 예전 규칙 추론 흐름이다.</summary>
+        private CaseDeductionSO Deduction => _case != null ? _case.Deduction : null;
+
+        /// <summary>현장 조사가 닫혔는가(막차가 종점에 닿았다). 최종 추론은 그 뒤에 연다.</summary>
+        private bool FieldClosed() => _terminusDone || _alighted || IsAfterTerminus();
+
+        /// <summary>조사가 닫힌 뒤 수사 노트를 열 때 펼칠 쪽. 아직 할 일이 남은 첫 쪽이다.</summary>
+        private CaseFileScreen.Page NextCaseFilePage()
+        {
+            var data = _save.Current;
+            if (!CaseNotebook.AllAnalysesFound(data, Deduction)) return CaseFileScreen.Page.Analyze;
+            if (!CaseNotebook.AllSolved(data, Deduction)) return CaseFileScreen.Page.Deduce;
+            return CaseFileScreen.Page.Report;
+        }
+
+        /// <summary>
+        /// 수사 노트를 연다. 현장 화면 위에 얹으므로 닫거나 ESC 를 누르면 현장으로 돌아간다.
+        /// 이미 열려 있으면 쪽만 바꾼다. 시간은 흐르지 않는다.
+        /// </summary>
+        private void OpenCaseFile(CaseFileScreen.Page page)
+        {
+            if (_caseFileScreen == null || Deduction == null) return;
+
+            _caseFileScreen.Bind(new CaseFileScreen.Context
+            {
+                Data = Deduction,
+                CaseNameTextId = _case != null ? _case.CaseNameTextId : null,
+                ClueTitle = id => ResolveClueTitle(id) ?? id,
+                ClueText = ResolveClueText,
+                FieldClosed = FieldClosed,
+                OnAllSolved = OnCaseFileAllSolved,
+                OnConfirm = OnCaseFileConfirmed,
+            }, page);
+
+            if (_ui.Contains(_caseFileScreen)) _caseFileScreen.Refresh();
+            else _ui.Push(_caseFileScreen);
+
+            Debug.Log($"[CaseDirector] 수사 노트 | {page} | 단서 {CaseNotebook.AcquiredClues(_save.Current, Deduction).Count}/{Deduction.FieldClues.Count}" +
+                      $" 분석 {CaseNotebook.AnalysisCount(_save.Current, Deduction)}/{Deduction.Analyses.Count}" +
+                      $" 추론 {CaseNotebook.SolvedCount(_save.Current, Deduction)}/{Deduction.Questions.Count}");
+        }
+
+        /// <summary>
+        /// 세 추론을 다 맞혔다. 보고서 쪽으로 넘어가고 한영이 한마디 한다.
+        /// 예전 흐름과 맞물리도록 이 괴담의 참 규칙도 세운 것으로 적어 둔다(봉인, 결과 화면이 그것을 읽는다).
+        /// </summary>
+        private void OnCaseFileAllSolved()
+        {
+            CaseFlow.SetStep(_save, CaseStep.RuleDeduction);
+            if (_legend != null)
+            {
+                foreach (var rule in _legend.Rules)
+                {
+                    if (rule != null && rule.IsTrue && !_save.Current.deducedRuleIds.Contains(rule.RuleId))
+                        _save.Current.deducedRuleIds.Add(rule.RuleId);
+                }
+            }
+            _save.MarkDirty();
+
+            if (_tutorial != null) _tutorial.ShowComputerTalk(ReportCueTextId, null);
+        }
+
+        /// <summary>
+        /// 조사 결과 확정. 예전 보고서를 다 맞혔을 때와 같은 길로 간다.
+        /// 보고서가 메모장에 남고, 한영이 한마디 하고, 첫 사건이면 숙소로 가서 게시물을 쓴다.
+        /// </summary>
+        private void OnCaseFileConfirmed()
+        {
+            if (_reportFiled) return;
+            _reportFiled = true;
+
+            bool saved = MemoScreen.AddNote(BuildCaseFileReportNote());
+            bool talked = _tutorial != null && _tutorial.ShowComputerTalk(ReportConfirmedTextId, OnReportPraiseDone);
+            if (_toastScreen != null) ShowToast(saved ? ReportSavedTextId : ReportAlreadySavedTextId);
+
+            Debug.Log($"[CaseDirector] 조사 결과 확정 | 메모장에 적음={saved}");
+
+            if (_caseId == TutorialDirector.TutorialCaseId)
+            {
+                _postCuePending = true;
+                if (!talked) StartCoroutine(PostCueAfterPraise());
+            }
+        }
+
+        private const string ReportConfirmedTextId = "tutorial.field.report_confirmed";
+
+        /// <summary>메모장에 남길 보고서. 확정한 결론을 칸 이름과 함께 적는다.</summary>
+        private string BuildCaseFileReportNote()
+        {
+            var sb = new StringBuilder();
+            sb.Append(_loc.Get(ReportNoteTitleTextId, _case != null ? _loc.Get(_case.CaseNameTextId) : string.Empty));
+
+            foreach (var q in Deduction.Questions)
+            {
+                if (q == null) continue;
+                sb.Append("\n\n").Append(_loc.Get(q.labelTextId));
+                sb.Append('\n').Append(_loc.Get(q.reportTextId));
+            }
+
+            sb.Append("\n\n").Append(_loc.Get(ReportNoteFooterTextId, BuildTimeLine()));
+            return sb.ToString();
+        }
+
         // ------------------------------------------------------------- 규칙 추론 화면
 
         /// <summary>현장 화면의 규칙 추론 버튼. 확보한 단서와 규칙 후보를 보여준다.</summary>
         public void OnOpenRulesClicked()
         {
+            // 추리 자료가 있는 사건은 수사 노트를 연다. 현장에 있는 동안에는 단서 칸부터,
+            // 조사가 닫힌 뒤에는 지금 해야 할 쪽(분석 → 추론 → 보고서)부터 펼친다.
+            if (Deduction != null && _caseFileScreen != null)
+            {
+                OpenCaseFile(FieldClosed() ? NextCaseFilePage() : CaseFileScreen.Page.Clues);
+                return;
+            }
+
             if (_rules == null || _ruleListScreen == null) return;
 
             BindRuleScreen();

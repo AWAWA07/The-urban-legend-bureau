@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 7;
+        public const int CurrentVersion = 8;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -108,6 +108,17 @@ namespace UrbanLegendBureau.Save
                     data.global.boardActivityMinute = -1;
                 }
                 data.saveVersion = 7;
+            }
+
+            if (data.saveVersion == 7)
+            {
+                // v8에서 수사 노트(분석 기록, 맞힌 추론, 확정한 보고서)가 추가됐다.
+                // 구버전 저장본에는 그 기록이 없다. 빈 목록이면 아직 분석도 추론도 하지 않은 것으로 읽힌다.
+                // 얻은 단서는 예전 그대로 남으니 수사 노트의 단서 칸은 그대로 채워진다.
+                data.analysisRecords ??= new System.Collections.Generic.List<string>();
+                data.solvedDeductions ??= new System.Collections.Generic.List<string>();
+                data.confirmedReports ??= new System.Collections.Generic.List<string>();
+                data.saveVersion = 8;
             }
 
             if (data.saveVersion < CurrentVersion)

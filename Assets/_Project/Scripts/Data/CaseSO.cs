@@ -41,6 +41,10 @@ namespace UrbanLegendBureau.Data
         [Tooltip("조사를 마친 뒤 괴담넷에 올릴 글의 데이터. 비워 두면 이 사건에는 글쓰기가 없다.")]
         [SerializeField] private PostWritingSO _postWriting;
 
+        [Header("추리")]
+        [Tooltip("수사 노트, 단서 분석, 최종 추론, 조사 보고서가 읽는 이 사건의 추리 자료. 비워 두면 예전 규칙 추론 흐름을 쓴다.")]
+        [SerializeField] private CaseDeductionSO _deduction;
+
         public string Id => _caseId;
         public string CaseId => _caseId;
         public string CaseNameTextId => _caseNameTextId;
@@ -51,6 +55,9 @@ namespace UrbanLegendBureau.Data
 
         /// <summary>이 사건의 게시물 작성 데이터. 없으면 null.</summary>
         public PostWritingSO PostWriting => _postWriting;
+
+        /// <summary>이 사건의 추리 자료. 없으면 null.</summary>
+        public CaseDeductionSO Deduction => _deduction;
 
         private void OnValidate()
         {

@@ -19,3 +19,4 @@ MonoBehaviour:
   _startingStep: 1
   _isPlayable: 1
   _postWriting: {fileID: 11400000, guid: 66d93594c733a604ca3b7af61bc2b2dd, type: 2}
+  _deduction: {fileID: 11400000, guid: 094bbeac1b17050428638b8903785031, type: 2}

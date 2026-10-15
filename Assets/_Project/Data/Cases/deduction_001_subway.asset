@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdec0e17650c6246a78d2846b48c4fa, type: 3}
+  m_Name: deduction_001_subway
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.CaseDeductionSO
+  _caseId: case_001_subway
+  _fieldClues:
+  - clueId: clue_subway_001
+    placeTextId: ui.casefile.place_seat
+  - clueId: clue_subway_002
+    placeTextId: ui.casefile.place_window
+  - clueId: clue_subway_008
+    placeTextId: ui.casefile.place_window
+  - clueId: clue_subway_003
+    placeTextId: ui.casefile.place_cctv
+  - clueId: clue_subway_005
+    placeTextId: ui.casefile.place_intercom
+  _analyses:
+  - analysisId: analysis_subway_a
+    clueA: clue_subway_001
+    clueB: clue_subway_005
+    titleTextId: analysis.subway.a.title
+    bodyTextId: analysis.subway.a.body
+  - analysisId: analysis_subway_b
+    clueA: clue_subway_002
+    clueB: clue_subway_008
+    titleTextId: analysis.subway.b.title
+    bodyTextId: analysis.subway.b.body
+  _questions:
+  - questionId: q1
+    labelTextId: deduce.subway.q1.label
+    questionTextId: deduce.subway.q1.question
+    optionTextIds:
+    - deduce.subway.q1.opt0
+    - deduce.subway.q1.opt1
+    - deduce.subway.q1.opt2
+    correctIndex: 1
+    explanationTextId: deduce.subway.q1.explain
+    reportTextId: deduce.subway.q1.report
+    evidenceClueIds:
+    - clue_subway_001
+    - clue_subway_005
+    - clue_subway_003
+    evidenceAnalysisIds:
+    - analysis_subway_a
+  - questionId: q2
+    labelTextId: deduce.subway.q2.label
+    questionTextId: deduce.subway.q2.question
+    optionTextIds:
+    - deduce.subway.q2.opt0
+    - deduce.subway.q2.opt1
+    - deduce.subway.q2.opt2
+    correctIndex: 2
+    explanationTextId: deduce.subway.q2.explain
+    reportTextId: deduce.subway.q2.report
+    evidenceClueIds:
+    - clue_subway_002
+    - clue_subway_008
+    evidenceAnalysisIds:
+    - analysis_subway_b
+  - questionId: q3
+    labelTextId: deduce.subway.q3.label
+    questionTextId: deduce.subway.q3.question
+    optionTextIds:
+    - deduce.subway.q3.opt0
+    - deduce.subway.q3.opt1
+    - deduce.subway.q3.opt2
+    correctIndex: 0
+    explanationTextId: deduce.subway.q3.explain
+    reportTextId: deduce.subway.q3.report
+    evidenceClueIds:
+    - clue_subway_002
+    - clue_subway_008
+    evidenceAnalysisIds:
+    - analysis_subway_b
+  _documentNumber: ULB-2026-001

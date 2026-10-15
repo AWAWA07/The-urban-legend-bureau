@@ -216,6 +216,7 @@ namespace UrbanLegendBureau.EditorTools
             var actionList = BuildActionListScreen("Screen_Actions", out var actionButtons);
             var ruleList = BuildRuleListScreen("Screen_Rules", out var ruleScreenButtons);
             var report = BuildReportScreen("Screen_Report", out var reportButtons);
+            var caseFile = BuildCaseFileScreen("Screen_CaseFile");
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -294,6 +295,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_sealConfirmButton").objectReferenceValue = btnSealOk;
             dso.FindProperty("_withdrawButton").objectReferenceValue = btnWithdraw;
             dso.FindProperty("_reportScreen").objectReferenceValue = report;
+            dso.FindProperty("_caseFileScreen").objectReferenceValue = caseFile;
             dso.FindProperty("_toastScreen").objectReferenceValue = toast;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
@@ -5674,6 +5676,28 @@ namespace UrbanLegendBureau.EditorTools
         /// 왼쪽이 종이고 오른쪽이 넣을 말이다. 종이의 한 줄을 고르면 오른쪽이 그 줄의 후보로 바뀐다.
         /// 규칙 추론 화면과 같은 두 칸 짜임을 쓴다. 조사 끝에 이어지는 화면이라 모습이 이어져야 한다.
         /// </summary>
+        /// <summary>
+        /// 수사 노트. 빈 판에 화면 컴포넌트와 글꼴만 건다. 안의 것들은 화면이 처음 열릴 때 스스로 짓는다.
+        /// 검열국 단말기처럼 어두운 판을 화면 가득 깐다. ESC 로 닫으면 현장으로 돌아간다.
+        /// </summary>
+        private static CaseFileScreen BuildCaseFileScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.063f, 0.075f, 0.094f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<CaseFileScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
+            so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
+            so.FindProperty("_semiBold").objectReferenceValue = LoadFont(UIFontWeight.SemiBold);
+            so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
         private static ReportScreen BuildReportScreen(string name, out Transform buttonRow)
         {
             var go = CreatePanel(null, name, PanelColor);
