@@ -102,7 +102,7 @@ namespace UrbanLegendBureau.Systems
         {
             UrbanLegendBureau.Core.Sfx.StartLoop("dorm_rain", "amb_dorm_rain", 0.35f, 2f);
             UrbanLegendBureau.Core.Sfx.StartLoop("dorm_room", "amb_dorm_room", 0.4f, 2f);
-            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_clock", "amb_clock", 0.3f, 2f);
+            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_clock", "amb_clock", 0.5f, 1f);
         }
 
         private void OnDisable()
@@ -233,7 +233,7 @@ namespace UrbanLegendBureau.Systems
 
             if (_moonLight != null) _moonLight.gameObject.SetActive(!IsLightOn);
             UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_rain", IsLightOn ? 0.35f : 0.5f, 1.5f);
-            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_clock", IsLightOn ? 0.3f : 0.42f, 1.5f);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_clock", IsLightOn ? 0.5f : 0.65f, 1.5f);
         }
 
         private void SetDoorOpen(bool open)
