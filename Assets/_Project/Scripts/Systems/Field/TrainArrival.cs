@@ -119,6 +119,49 @@ namespace UrbanLegendBureau.Systems
             Opened?.Invoke();
         }
 
+        /// <summary>
+        /// 내린 뒤 열차가 떠난다. 문이 닫히고 한 박자 뒤 왼쪽으로 천천히 움직이기 시작해 점점 빨라지며 빠져나간다.
+        /// 들어올 때의 거꾸로다. 다 빠져나가면 done 을 부른다.
+        /// </summary>
+        public void Leave(Action done = null)
+        {
+            if (_running != null || !isActiveAndEnabled) { done?.Invoke(); return; }
+            _running = StartCoroutine(RunLeave(done));
+        }
+
+        private IEnumerator RunLeave(Action done)
+        {
+            if (_boardingPoint != null) _boardingPoint.SetActive(false);
+            UrbanLegendBureau.Core.Sfx.Play("door_slide", 0.5f, 0.95f);
+
+            float d = 0f;
+            while (d < 1f)
+            {
+                d += Time.deltaTime / Mathf.Max(0.01f, _doorSeconds);
+                ApplyDoors(1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(d)));
+                yield return null;
+            }
+            ApplyDoors(0f);
+            IsOpen = false;
+
+            yield return new WaitForSeconds(0.6f);
+            UrbanLegendBureau.Core.Sfx.Play("air_rush_pass", 0.4f);
+
+            // 떠날 때는 처음이 느리고 갈수록 빨라진다.
+            float t = 0f;
+            float seconds = _enterSeconds * 1.3f;
+            while (t < 1f)
+            {
+                t += Time.deltaTime / Mathf.Max(0.01f, seconds);
+                float eased = Mathf.Pow(Mathf.Clamp01(t), 2.4f);
+                if (_train != null) _train.localPosition = new Vector3(Mathf.Lerp(0f, -_enterFrom, eased), 0f, 0f);
+                yield return null;
+            }
+
+            _running = null;
+            done?.Invoke();
+        }
+
         private IEnumerator Run()
         {
             UrbanLegendBureau.Core.Sfx.Play("air_rush_in", 0.45f);   // 터널에서 바람이 밀려 나오며 열차가 들어온다

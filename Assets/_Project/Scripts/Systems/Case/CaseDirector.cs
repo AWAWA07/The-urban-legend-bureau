@@ -301,6 +301,8 @@ namespace UrbanLegendBureau.Systems
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             if (_seatCloseupScreen != null) _seatCloseupScreen.ResetChecked();
             if (_doorCloseupScreen != null) _doorCloseupScreen.ResetChecked();
+            // 지난번 종점에서 열어 둔 객실 문을 닫아 둔다.
+            foreach (var opener in FindObjectsByType<TrainDoorOpener>(FindObjectsInactive.Include, FindObjectsSortMode.None)) opener.Close();
             _terminusDone = false;
             _inRoom = false;
             _postCuePending = false;
@@ -1226,6 +1228,7 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
             FieldHudScreen.PhoneAppVisible = IsPhoneAppVisible;
             _fieldHudScreen.SetButtonsVisible(true);
+            _fieldHudScreen.SetDoneButtonVisible(true);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);
             else _ui.Replace(_fieldHudScreen);
@@ -1793,6 +1796,18 @@ namespace UrbanLegendBureau.Systems
             Debug.Log("[CaseDirector] 막차 종점 | 현장 조사를 닫는다" +
                       (helped > 0 ? " | 모자란 단서 " + helped + "개를 채웠다" : string.Empty));
 
+            // 열차가 서서히 선다. 창밖이 느려지고 달리는 소리가 잦아든다.
+            var running = _field.ActiveRoot != null ? _field.ActiveRoot.GetComponentInChildren<TrainRunning>() : null;
+            if (running != null) running.Stop(2.4f);
+
+            // 수사 노트를 쓰는 사건은 여기서 정리하지 않는다. 열차에서 내려 숙소로 간 뒤에 정리한다.
+            if (Deduction != null)
+            {
+                if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, null, () => StartCoroutine(PlayAlight()))) return;
+                StartCoroutine(PlayAlight());
+                return;
+            }
+
             // 한영이 한 마디 하고 나서 취합으로 넘어간다. 걸 자리가 없으면 곧바로 넘어간다.
             if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, AlightAtTerminus, OnOpenRulesClicked)) return;
             AlightAtTerminus();
@@ -1823,6 +1838,109 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>종점에서 내려 승강장에 서 있는가.</summary>
         private bool _alighted;
+
+        /// <summary>객실 가운데 문. 종점에서 이 문으로 내린다.</summary>
+        private const float ExitDoorX = 0f;
+
+        private const string AlightRoomTextId = "tutorial.field.alight_room";
+
+        /// <summary>
+        /// 종점에서 내리는 연출.
+        ///   1. 열차가 다 서면 객실 가운데 문이 열린다.
+        ///   2. 두 사람이 문까지 걸어간다.
+        ///   3. 화면이 잠깐 까매졌다가 승강장으로 바뀐다. 두 사람은 열차 문 앞에 서 있다.
+        ///   4. 승강장 쪽으로 몇 걸음 걸어 나오고, 뒤에서 문이 닫히며 열차가 떠난다.
+        ///   5. 한영이 숙소로 가서 정리하자고 하고, 숙소로 옮겨 간다.
+        /// 이 동안에는 걷거나 조사할 수 없다.
+        /// </summary>
+        private System.Collections.IEnumerator PlayAlight()
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            if (root == null) { TravelToRoom(); yield break; }
+
+            if (_fieldHudScreen != null) _fieldHudScreen.SetButtonsVisible(false);   // 내리는 동안 조사 종료를 누르지 못하게
+            FieldHudScreen.IsCutscene = true;
+            _field.InvestigationAllowed = false;
+            var walker = root.GetComponentInChildren<FieldWalker>();
+            var follower = root.GetComponentInChildren<FieldFollower>();
+            if (walker != null) walker.Locked = true;
+
+            // 1. 열차가 다 설 때까지 기다렸다가 문이 열린다.
+            var running = root.GetComponentInChildren<TrainRunning>();
+            for (float waited = 0f; running != null && !running.IsStopped && waited < 3f; waited += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.3f);
+
+            var door = FindActiveField("Door_Center");
+            if (door != null)
+            {
+                var opener = door.GetComponent<TrainDoorOpener>();
+                if (opener == null) opener = door.gameObject.AddComponent<TrainDoorOpener>();
+                opener.Open(0.8f);
+            }
+            yield return new WaitForSeconds(1.1f);
+
+            // 2. 문 앞까지 걸어간다. 차지한이 앞서고 한영이 뒤따른다.
+            bool leadDone = walker == null, followDone = follower == null;
+            if (walker != null) walker.WalkTo(ExitDoorX + 0.3f, () => leadDone = true, 0.6f);
+            if (follower != null)
+            {
+                follower.Following = false;
+                follower.WalkTo(ExitDoorX - 2.3f, 3.6f, () => followDone = true);
+            }
+            for (float waited = 0f; (!leadDone || !followDone) && waited < 5f; waited += Time.deltaTime) yield return null;
+            yield return new WaitForSeconds(0.5f);
+
+            // 3. 문을 나서는 사이 화면을 잠깐 덮고 승강장으로 바꾼다.
+            bool dark = false;
+            ScreenCurtain.Fade(1f, 0.45f, () => dark = true);
+            while (!dark) yield return null;
+
+            AlightAtTerminus();
+            // 승강장에는 승강장의 두 사람이 따로 있다(열차 안의 두 사람은 열차와 함께 꺼진다). 그 둘을 열차 문 앞에 세운다.
+            if (walker != null) walker.Locked = false;
+            walker = root.GetComponentInChildren<FieldWalker>();
+            follower = root.GetComponentInChildren<FieldFollower>();
+            if (walker != null) { walker.Locked = true; SetLocalX(walker.transform, ExitDoorX + 0.4f); }
+            if (follower != null) { follower.Following = false; SetLocalX(follower.transform, ExitDoorX + 2.4f); }
+            yield return new WaitForSeconds(0.2f);
+
+            bool light = false;
+            ScreenCurtain.Fade(0f, 0.45f, () => light = true);
+            while (!light) yield return null;
+
+            // 4. 승강장 쪽으로 걸어 나오고, 열차가 떠난다.
+            leadDone = walker == null;
+            if (walker != null) walker.WalkTo(ExitDoorX - 3.6f, () => leadDone = true, 0.65f);
+            if (follower != null) follower.Following = true;   // 한영은 뒤따라 나온다
+            yield return new WaitForSeconds(0.7f);
+            var arrival = GetArrival();
+            bool gone = arrival == null;
+            if (arrival != null) arrival.Leave(() => gone = true);
+            for (float waited = 0f; !leadDone && waited < 4f; waited += Time.deltaTime) yield return null;
+            for (float waited = 0f; !gone && waited < 4f; waited += Time.deltaTime) yield return null;
+
+            // 5. 숙소로 가서 정리하자.
+            if (walker != null) walker.Locked = false;
+            FieldHudScreen.IsCutscene = false;
+            Debug.Log("[CaseDirector] 종점에서 내렸다 | 열차가 떠났다 | 숙소로 간다");
+
+            if (_fieldHudScreen != null)
+            {
+                _fieldHudScreen.ShowLine(HanyoungNameTextId, () => _loc.Get(AlightRoomTextId), () =>
+                {
+                    _fieldHudScreen.ClearSpeech();
+                    TravelToRoom();
+                }, AlightRoomTextId);
+            }
+            else TravelToRoom();
+        }
+
+        private static void SetLocalX(Transform t, float x)
+        {
+            var p = t.localPosition;
+            p.x = x;
+            t.localPosition = p;
+        }
 
         private const string TerminusPlatformTextId = "ui.field.terminus_platform";
 
@@ -3165,6 +3283,13 @@ namespace UrbanLegendBureau.Systems
 
             ShowFieldHud();
 
+            // 숙소에서 보고서를 썼으면 이미 숙소다. 옮겨 가지 않고 그 자리에서 컴퓨터로 가 게시물을 쓰라고 한다.
+            if (_inRoom)
+            {
+                if (_tutorial != null) _tutorial.ShowPostCue(null);
+                return;
+            }
+
             if (_tutorial == null || !_tutorial.ShowPostCue(TravelToRoom)) TravelToRoom();
         }
 
@@ -3282,7 +3407,18 @@ namespace UrbanLegendBureau.Systems
         /// <summary>첫 사건이면 한영이 방을 소개한다.</summary>
         private void StartRoomIntro()
         {
-            if (_caseId == TutorialDirector.TutorialCaseId && _tutorial != null) _tutorial.ShowRoomIntro(null);
+            if (_caseId == TutorialDirector.TutorialCaseId && _tutorial != null && _tutorial.ShowRoomIntro(OnRoomIntroDone)) return;
+            OnRoomIntroDone();
+        }
+
+        /// <summary>
+        /// 숙소에 들어와 한영과 한두 마디 나눈 뒤. 수사 노트를 쓰는 사건이면 여기서 오늘 조사한 것을 정리한다.
+        /// 아직 할 일이 남은 쪽(단서 분석 → 최종 추론 → 조사 보고서)부터 펼친다. 보고서를 확정했으면 열지 않는다.
+        /// </summary>
+        private void OnRoomIntroDone()
+        {
+            if (Deduction == null || CaseNotebook.IsReportConfirmed(_save.Current, _caseId)) return;
+            OpenCaseFile(NextCaseFilePage());
         }
 
         // ------------------------------------------------------------- 첫날 밤
@@ -3494,7 +3630,10 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.Bind(() => _loc.Get(RoomPlaceTextId));
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
             FieldHudScreen.PhoneAppVisible = IsPhoneAppVisible;
-            _fieldHudScreen.SetButtonsVisible(false);
+            // 숙소에는 조사 종료가 없다. 보고서를 확정하기 전까지는 수사 노트 단추만 남겨 언제든 다시 열게 한다.
+            bool noteOpen = Deduction != null && !CaseNotebook.IsReportConfirmed(_save.Current, _caseId);
+            _fieldHudScreen.SetButtonsVisible(noteOpen);
+            _fieldHudScreen.SetDoneButtonVisible(false);
             _fieldHudScreen.SetPhoneButtonVisible(true);
 
             if (_ui.Count == 0) _ui.Push(_fieldHudScreen);

@@ -277,6 +277,13 @@ namespace UrbanLegendBureau.UI
             if (_buttonRow != null) _buttonRow.SetActive(on);
         }
 
+        /// <summary>조사 마침 단추만 세우거나 거둔다. 숙소에서는 수사 노트 단추만 남긴다.</summary>
+        public void SetDoneButtonVisible(bool on)
+        {
+            var done = _buttonRow != null ? _buttonRow.transform.Find("Btn_FieldDone") : null;
+            if (done != null) done.gameObject.SetActive(on);
+        }
+
         /// <summary>
         /// 장면 오른쪽의 휴대폰 단추를 거두거나 다시 세운다.
         /// 숙소에서는 이 단추가 방문 앞에 걸린다. 한영이 문으로 나가는 동안에는 거둬 가리지 않게 한다.

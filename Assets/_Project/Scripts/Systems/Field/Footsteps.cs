@@ -22,6 +22,15 @@ namespace UrbanLegendBureau.Systems
         private void OnEnable()
         {
             _indoor = GetComponentInParent<RoomNight>(true) != null;
+
+            // 걷기 그림이 한 바퀴에 두 걸음을 딛으니 발소리도 그 반 거리마다 낸다. 그림보다 소리가 잦으면 종종걸음처럼 들린다.
+            // 그림은 월드 거리로, 발소리는 부모 기준 거리로 재므로 부모의 크기로 나눠 맞춘다.
+            var look = GetComponent<FieldSpriteAnimator>();
+            if (look != null)
+            {
+                float scale = transform.parent != null ? Mathf.Abs(transform.parent.lossyScale.x) : 1f;
+                Stride = look.CycleDistance * 0.5f / Mathf.Max(0.01f, scale);
+            }
             _lastX = transform.localPosition.x;
             _travelled = Stride * 0.6f;
         }

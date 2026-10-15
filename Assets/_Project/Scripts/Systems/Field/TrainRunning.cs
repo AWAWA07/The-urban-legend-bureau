@@ -43,7 +43,26 @@ namespace UrbanLegendBureau.Systems
         {
             _startedAt = Time.time;
             _pace = 0f;
+            _stopAt = -1f;
         }
+
+        /// <summary>
+        /// 종점에 닿아 선다. 창밖이 점점 느려지다 멈추고, 달리는 소리와 바퀴 소리가 잦아든다. 객실은 마지막에 한 번 앞으로 쏠렸다 선다.
+        /// </summary>
+        public void Stop(float seconds)
+        {
+            if (_stopAt >= 0f) return;
+            _stopAt = Time.time;
+            _stopSeconds = Mathf.Max(0.1f, seconds);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("train", 0.08f, _stopSeconds);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("wheels", 0f, _stopSeconds * 0.8f);
+        }
+
+        /// <summary>섰는가. 다시 출발하기 전까지 그대로 서 있다.</summary>
+        public bool IsStopped => _stopAt >= 0f && Time.time - _stopAt >= _stopSeconds;
+
+        private float _stopAt = -1f;
+        private float _stopSeconds = 1f;
 
         private Vector3 _carBase;
         private Vector3[] _ringBase;
@@ -71,6 +90,12 @@ namespace UrbanLegendBureau.Systems
             float since = Time.time - _startedAt;
             float k = _startSeconds > 0f ? Mathf.Clamp01(since / _startSeconds) : 1f;
             _pace = k * k;
+            if (_stopAt >= 0f)
+            {
+                // 서는 중. 처음엔 천천히, 끝에서 빨리 줄어 덜컹 하고 선다.
+                float s = Mathf.Clamp01((Time.time - _stopAt) / _stopSeconds);
+                _pace *= 1f - s * s;
+            }
             float dt = Time.deltaTime * _pace;
             for (int i = 0; i < _passing.Length; i++)
             {

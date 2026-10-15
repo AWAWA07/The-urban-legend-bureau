@@ -106,6 +106,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("걷기 한 바퀴(모든 칸)에 걷는 거리(월드 단위). 작을수록 발이 빨라진다.")]
         [SerializeField] private float _cycleDistance = 3.6f;
 
+        /// <summary>걷기 그림 한 바퀴(두 걸음)에 걷는 거리(월드). 발소리가 이 간격에 맞춰 난다.</summary>
+        public float CycleDistance => _cycleDistance;
+
         [Tooltip("한 걸음마다 몸이 위로 튀는 높이(그림 자리 단위). 걷기 그림에 오르내림이 이미 들어 있어 살짝만 더한다.")]
         [SerializeField] private float _stepBob = 0.02f;
 

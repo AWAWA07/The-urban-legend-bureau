@@ -91,22 +91,18 @@ MonoBehaviour:
     answerTextId: report.subway.overview.answer
     targetPageId: 
     acceptedAnswers:
-    - "\uBC18\uCBE4 \uC9C4\uC9DC"
-    - "\uC77C\uBD80\uB9CC \uC0AC\uC2E4"
-    - "\uC77C\uBD80 \uC0AC\uC2E4"
-    - "\uBC18\uCBE4 \uC0AC\uC2E4"
-    - "\uBC18\uC740 \uC9C4\uC9DC"
-    - "\uC808\uBC18\uC740 \uC9C4\uC9DC"
-    - "\uC808\uBC18\uB9CC \uC9C4\uC9DC"
-    - half true
-    - partly true
-    - partially true
-    - half real
-    - "~[\uBC18\uCBE4|\uBC18\uC740|\uC808\uBC18\uC740|\uC808\uBC18\uB9CC|\uBC18\uCBE4\uC740]
-      [\uC9C4\uC9DC|\uC0AC\uC2E4] [\uB85C|\uC73C\uB85C]?"
-    - "~[\uC77C\uBD80|\uC77C\uBD80\uB9CC|\uC77C\uBD80\uB294] [\uC0AC\uC2E4|\uC9C4\uC9DC]
-      [\uB85C|\uC73C\uB85C]?"
-    - '~[half|partly|partially] [true|real]'
+    - "\uC9C4\uC9DC"
+    - "\uC9C4\uC9DC\uB2E4"
+    - "\uC2E4\uC81C"
+    - "\uC2E4\uC7AC"
+    - "\uC0AC\uC2E4"
+    - "\uC2E4\uC81C \uD604\uC0C1"
+    - real
+    - true
+    - genuine
+    - "~[\uC9C4\uC9DC|\uC2E4\uC81C|\uC2E4\uC7AC|\uC0AC\uC2E4|\uC2E4\uC81C\uD604\uC0C1]
+      [\uB85C|\uC73C\uB85C|\uB2E4|\uC774\uB2E4|\uC784]?"
+    - '~[real|true|genuine]'
   - blankId: 
     answerType: 0
     titleTextId: report.subway.findings.title
