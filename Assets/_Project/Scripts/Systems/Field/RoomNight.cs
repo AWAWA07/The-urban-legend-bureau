@@ -244,7 +244,7 @@ namespace UrbanLegendBureau.Systems
 
         private void SetDoorOpen(bool open)
         {
-            if (_doorOpen != null && _doorOpen.activeSelf != open) UrbanLegendBureau.Core.Sfx.Play("room_door", 0.55f);
+            if (_doorOpen != null && _doorOpen.activeSelf != open) Sfx.Play(open ? "room_door_open" : "room_door", 0.55f);   // 열 때는 문고리 딸깍과 경첩 삐걱
             if (_doorClosed != null) _doorClosed.SetActive(!open);
             if (_doorOpen != null) _doorOpen.SetActive(open);
         }
