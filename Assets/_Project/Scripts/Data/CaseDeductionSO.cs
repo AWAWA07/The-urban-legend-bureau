@@ -76,11 +76,15 @@ namespace UrbanLegendBureau.Data
         [Tooltip("보고서 머리의 문서 번호. 예: ULB-2026-001.")]
         [SerializeField] private string _documentNumber;
 
+        [Tooltip("보고서의 종합 판단 한 문단. 결론을 되풀이하지 않고 무엇을 근거로 그렇게 봤는지 적는다.")]
+        [SerializeField] private string _summaryTextId;
+
         public string CaseId => _caseId;
         public IReadOnlyList<FieldClue> FieldClues => _fieldClues;
         public IReadOnlyList<Analysis> Analyses => _analyses;
         public IReadOnlyList<Question> Questions => _questions;
         public string DocumentNumber => _documentNumber;
+        public string SummaryTextId => _summaryTextId;
 
         /// <summary>두 단서로 찾을 수 있는 분석. 순서는 가리지 않는다. 없으면 null.</summary>
         public Analysis FindAnalysis(string a, string b)

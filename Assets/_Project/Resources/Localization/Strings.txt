@@ -1008,7 +1008,7 @@ analysis.subway.b.title	직접 확인과 간접 확인의 차이	Looking directl
 analysis.subway.b.body	기척을 직접 확인한 사람과 창유리를 통해 간접적으로 확인한 사람의 결과가 다르다. 피해가 발생하는 조건은 단순히 무언가를 보는 행위만은 아닐 수 있다.	Those who turned to check the presence and those who only saw it in the glass ended up differently. The harm may come from more than simply seeing something.	분석 기록 B (002 + 008)
 deduce.subway.q1.label	괴담의 진위	Is it real	추론 1
 deduce.subway.q1.question	이 괴담은 실제로 존재하는 현상일까?	Is this legend an actual phenomenon?	
-deduce.subway.q1.opt0	전부 거짓이다.	It is all made up.	
+deduce.subway.q1.opt0	승객들의 집단 착각일 뿐, 실제 현상은 없다.	It is only a shared delusion among passengers; nothing real is happening.	
 deduce.subway.q1.opt1	실제 현상이 존재하는 것으로 보인다.	There appears to be a real phenomenon.	정답
 deduce.subway.q1.opt2	아직 아무것도 알 수 없다.	We can't tell anything yet.	
 deduce.subway.q1.explain	반복되는 신고와 목격담은 실제 현상의 존재 가능성을 뒷받침한다. 하지만 인터넷에 퍼진 모든 이야기가 사실이라는 의미는 아니다.	The repeated reports and accounts support a real phenomenon. That does not mean every story spreading online is true.	
@@ -1023,8 +1023,32 @@ deduce.subway.q2.report	옆자리의 기척을 느낀 뒤 고개를 돌려 직�
 deduce.subway.q3.label	대처 방법	Countermeasure	추론 3
 deduce.subway.q3.question	피해를 피하기 위해서는 어떻게 행동해야 할까?	What should you do to avoid the harm?	
 deduce.subway.q3.opt0	기척이 느껴져도 고개를 돌려 직접 확인하지 않는다.	Even if you feel a presence, don't turn your head to look.	정답
-deduce.subway.q3.opt1	창문을 깨뜨린다.	Break the window.	
+deduce.subway.q3.opt1	기척이 느껴지면 곧바로 다른 자리로 옮겨 앉는다.	Move to another seat as soon as you feel a presence.	
 deduce.subway.q3.opt2	지하철에서 눈을 감고 기다린다.	Close your eyes on the train and wait.	
 deduce.subway.q3.explain	조사한 사례를 종합하면, 옆자리의 기척을 느끼더라도 직접 고개를 돌려 확인하지 않는 것이 가장 안전한 대처 방법으로 판단된다.	Putting the cases together, the safest response is not to turn and look, even when you feel a presence beside you.	
 deduce.subway.q3.report	기척이 느껴져도 고개를 돌려 직접 확인하지 않는다.	Even if you feel a presence, do not turn your head to look.	
 tutorial.field.report_confirmed	좋아, 조사 결과 확정이야. 보고서는 네 메모장에도 넣어 뒀어.	Good, the findings are confirmed. I put the report in your notepad too.	조사 결과를 확정했을 때 - 한영
+ui.casefile.place_window_trace	창문 · 흔적 살피기	Window · traces	단서 얻은 자리
+ui.casefile.place_window_glass	창문 · 유리 확인	Window · glass check	단서 얻은 자리
+ui.casefile.place_unknown	아직 조사하지 않은 곳	Not investigated yet	미발견 단서 카드
+ui.casefile.meta_place	획득 장소	Found at	단서 상세
+ui.casefile.meta_case	사건	Case	단서 상세
+ui.casefile.analysis_no	분석 {0}	ANALYSIS {0}	분석 기록 번호
+ui.casefile.analysis_locked_hint	수집한 단서 두 개를 맞대어 보면 새로운 사실이 드러날 수 있다.	Comparing two collected clues may bring something new to light.	
+ui.casefile.nav_clues	{0}/{1} 수집	{0}/{1} collected	왼쪽 줄 상태
+ui.casefile.nav_analyses	{0}/{1} 발견	{0}/{1} found	왼쪽 줄 상태
+ui.casefile.nav_deductions	{0}/{1} 확정	{0}/{1} resolved	왼쪽 줄 상태
+ui.casefile.nav_analyze	단서 두 개를 맞대어 본다	Compare two clues	왼쪽 줄 상태
+ui.casefile.nav_analyze_done	분석 완료	Analysis complete	왼쪽 줄 상태
+ui.casefile.nav_deduce_need	분석 기록 {0}개 더 필요	Needs {0} more analysis	왼쪽 줄 잠김 이유
+ui.casefile.nav_deduce_field	현장 조사가 끝난 뒤 열림	Opens after the field work	왼쪽 줄 잠김 이유
+ui.casefile.nav_report_need	추론을 모두 마치면 열림	Opens after all deductions	왼쪽 줄 잠김 이유
+ui.casefile.nav_report_ready	확정 대기	Awaiting confirmation	왼쪽 줄 상태
+ui.casefile.compare_retry	다른 단서끼리 다시 맞대어 보자.	Try pairing different clues.	분석 오답 안내 아래 줄
+ui.casefile.analyze_done	분석 완료	Analysis complete	
+ui.casefile.analyze_done_go	두 분석 기록이 모두 모였다. 이제 최종 추론으로 결론을 내리자.	Both analysis records are in. Time to draw conclusions in the final deduction.	
+ui.casefile.analyze_done_wait	두 분석 기록이 모두 모였다. 현장 조사가 끝나면 최종 추론을 시작할 수 있다.	Both analysis records are in. The final deduction opens once the field investigation is over.	
+ui.casefile.deduce_wrong_hint	오른쪽 근거 확인에서 단서와 분석 기록을 다시 읽어 보자.	Reread the clues and analyses under Review Evidence on the right.	추론 오답 안내 아래 줄
+ui.casefile.report_summary	종합 판단	Overall assessment	보고서 칸 이름
+ui.casefile.report_scroll	아래로 내리면 관련 단서까지 확인할 수 있다	Scroll down to see the related clues	보고서 스크롤 안내
+deduce.subway.summary	동일 좌석에 대한 반복 신고와 승객 간 진술 차이를 확인하였다. 피해 사례를 비교한 결과, 옆자리의 기척을 고개를 돌려 직접 확인하는 행동이 발동 조건일 가능성이 높은 것으로 판단된다. 창유리로만 확인한 경우와 돌아보지 않은 경우에는 피해가 확인되지 않았다. 다만 인터넷에 퍼진 모든 이야기가 사실로 확인된 것은 아니다.	We confirmed repeated reports about the same seat and conflicting accounts between passengers. Comparing the cases, turning to look directly at the presence in the next seat is most likely the trigger. No harm was found when people only checked the reflection or did not turn around. Not every story spreading online has been confirmed.	보고서 종합 판단

@@ -17,9 +17,9 @@ MonoBehaviour:
   - clueId: clue_subway_001
     placeTextId: ui.casefile.place_seat
   - clueId: clue_subway_002
-    placeTextId: ui.casefile.place_window
+    placeTextId: ui.casefile.place_window_trace
   - clueId: clue_subway_008
-    placeTextId: ui.casefile.place_window
+    placeTextId: ui.casefile.place_window_glass
   - clueId: clue_subway_003
     placeTextId: ui.casefile.place_cctv
   - clueId: clue_subway_005
@@ -83,3 +83,4 @@ MonoBehaviour:
     evidenceAnalysisIds:
     - analysis_subway_b
   _documentNumber: ULB-2026-001
+  _summaryTextId: deduce.subway.summary
