@@ -17,7 +17,7 @@ namespace UrbanLegendBureau.Systems
         private float _lastX;
         private float _travelled;
 
-        private bool _indoor;   // 숙소 방 안. 구두 대신 실내에서 걷는 부드러운 발소리(step_soft_0~3)를 낸다
+        private bool _indoor;   // 숙소 방 안. 구두 대신 실내에서 걷는 부드러운 발소리(step_soft_0~3)를 낸다. 뒤따르는 사람도 같은 크기로 들린다
 
         private void OnEnable()
         {
@@ -42,7 +42,7 @@ namespace UrbanLegendBureau.Systems
             _travelled += moved;
             if (_travelled < Stride) return;
             _travelled -= Stride;
-            if (_indoor) Sfx.Play("step_soft_" + Random.Range(0, 4), Volume * 0.8f, Random.Range(0.95f, 1.05f));
+            if (_indoor) Sfx.Play("step_soft_" + Random.Range(0, 4), Mathf.Max(Volume, 0.2f) * 1.15f, Random.Range(0.95f, 1.05f));
             else Sfx.Play("step_" + Random.Range(0, 4), Volume, Random.Range(0.93f, 1.07f));
         }
     }

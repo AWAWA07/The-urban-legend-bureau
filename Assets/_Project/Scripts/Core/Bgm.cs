@@ -76,7 +76,7 @@ namespace UrbanLegendBureau.Core
         }
 
         /// <summary>모든 곡에 공통으로 곱하는 크기. 효과음과 대사가 묻히지 않게 음악을 전체적으로 조금 낮춘다.</summary>
-        private const float Trim = 0.7f;
+        private const float Trim = 0.55f;
 
         private static float Master =>
             (ServiceRegistry.TryGet<AudioService>(out var audio) ? audio.BgmVolume : 1f) * Trim;

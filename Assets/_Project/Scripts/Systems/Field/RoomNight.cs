@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
+using UrbanLegendBureau.Core;
 
 namespace UrbanLegendBureau.Systems
 {
@@ -107,6 +108,7 @@ namespace UrbanLegendBureau.Systems
 
         private void OnDisable()
         {
+            UrbanLegendBureau.Core.Bgm.Duck(1f, 1f);   // 잠들며 줄인 음악을 되돌린다
             UrbanLegendBureau.Core.Sfx.StopLoop("dorm_rain", 1f);
             UrbanLegendBureau.Core.Sfx.StopLoop("dorm_room", 1f);
             UrbanLegendBureau.Core.Sfx.StopLoop("dorm_clock", 1f);
@@ -115,6 +117,8 @@ namespace UrbanLegendBureau.Systems
         private void Awake()
         {
             BuildEyeSprite();
+            var window = transform.Find("Window");   // 창밖에 비가 내린다
+            if (window != null && window.GetComponent<WindowRain>() == null) window.gameObject.AddComponent<WindowRain>();
             if (_eyes != null)
             {
                 _eyeScales = new Vector3[_eyes.Length];
@@ -171,6 +175,8 @@ namespace UrbanLegendBureau.Systems
             _lidsFollowEyes = false;
             SetLids(0f);
             SetShadow(true);
+            UrbanLegendBureau.Core.Bgm.Duck(1f, 1f);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_room", 0.4f, 1f);
         }
 
         // ------------------------------------------------------------- 조명
@@ -276,6 +282,7 @@ namespace UrbanLegendBureau.Systems
             Vector3 toPos = fromPos + new Vector3(0f, _doorStepUp, 0f);
             Vector3 fromScale = t.localScale;
             const float Duration = 0.5f;
+            StartCoroutine(StepsAway());   // 문간을 지나며 발소리가 멀어진다
             for (float e = 0f; e < Duration; e += Time.deltaTime)
             {
                 float k = Mathf.SmoothStep(0f, 1f, e / Duration);
@@ -298,6 +305,17 @@ namespace UrbanLegendBureau.Systems
             if (_chajihan != null) _chajihan.Locked = false;
             Debug.Log("[RoomNight] 한영이 방을 나갔다");
             onDone?.Invoke();
+        }
+
+        /// <summary>한영이 문간을 지나 복도로 멀어지는 발소리. 갈수록 작아진다.</summary>
+        private IEnumerator StepsAway()
+        {
+            float[] volumes = { 0.26f, 0.18f, 0.11f, 0.06f };
+            foreach (var v in volumes)
+            {
+                UrbanLegendBureau.Core.Sfx.Play("step_soft_" + UnityEngine.Random.Range(0, 4), v, UnityEngine.Random.Range(0.95f, 1.05f));
+                yield return new WaitForSeconds(0.3f);
+            }
         }
 
         private void SetHanyoungAlpha(float alpha)
@@ -346,17 +364,21 @@ namespace UrbanLegendBureau.Systems
         {
             yield return new WaitForSeconds(0.3f);
 
+            Sfx.Play("cloth_0", 0.35f);   // 코트를 벗는 옷자락 소리
             yield return PlayClip(look, "coatoff", _undressFrameSeconds, null);
 
             // 마지막 칸에서 손을 뗀다. 그 순간 코트가 옷걸이에 걸린다.
             int hangLast = look.FrameCount("coathang") - 1;
+            Sfx.Play("cloth_1", 0.22f, 1.05f);
             yield return PlayClip(look, "coathang", _undressFrameSeconds * 1.2f, i =>
             {
                 if (i == hangLast && _coatHung != null) _coatHung.SetActive(true);
+                if (i == hangLast) Sfx.Play("hanger", 0.4f);   // 옷걸이 고리에 딸깍 걸린다
             });
             if (_coatHung != null) _coatHung.SetActive(true);
 
             yield return new WaitForSeconds(0.2f);
+            Sfx.Play("tie_slide", 0.3f);   // 넥타이가 스르륵 풀린다
             yield return PlayClip(look, "tie", _undressFrameSeconds * 1.4f, null);
             yield return new WaitForSeconds(0.3f);
 
@@ -377,6 +399,7 @@ namespace UrbanLegendBureau.Systems
 
                 if (sitCount > 1) look.Hold("sit", 1);
                 SetShadow(false);
+                Sfx.Play("cloth_1", 0.18f, 0.9f);
                 const float RiseSeconds = 0.32f;
                 for (float e = 0f; e < RiseSeconds; e += Time.deltaTime)
                 {
@@ -391,6 +414,8 @@ namespace UrbanLegendBureau.Systems
                 look.Hold("sit", sitCount - 1);
                 yield return new WaitForSeconds(0.08f);
                 t.localPosition = to;                                             // 털썩
+                Sfx.Play("cushion_sit", 0.45f, 0.8f);                             // 침대 매트리스가 꺼진다
+                Sfx.Play("sit_creak_0", 0.2f, 0.85f);                             // 침대 틀이 삐걱
                 yield return new WaitForSeconds(0.9f);
             }
 
@@ -402,6 +427,8 @@ namespace UrbanLegendBureau.Systems
                 t.localScale = new Vector3(Mathf.Abs(_chajihanScale.x), _chajihanScale.y, _chajihanScale.z);
                 Vector3 from = t.localPosition;
                 Vector3 to = new Vector3(_lyingArtPosition.x, _lyingArtPosition.y, from.z);
+                Sfx.Play("sheet_rustle", 0.35f);   // 이불 위로 몸을 뉘며 사락거린다
+                Sfx.Play("sit_creak_1", 0.15f, 0.8f);
                 for (int i = 0; i < lieCount; i++)
                 {
                     look.Hold("lie", i);
@@ -439,7 +466,7 @@ namespace UrbanLegendBureau.Systems
 
         private IEnumerator LieDown(Action onDone, bool rotate = true)
         {
-            UrbanLegendBureau.Core.Sfx.Play("cushion_sit", 0.4f, 0.85f);   // 침대에 몸을 누이는 소리
+            if (rotate) Sfx.Play("cushion_sit", 0.4f, 0.85f);   // 침대에 몸을 누이는 소리(눕는 그림으로 누울 때는 앞에서 이미 났다)
             var t = _chajihan.transform;
             yield return new WaitForSeconds(rotate ? 0.4f : 0f);
             if (rotate)
@@ -475,6 +502,12 @@ namespace UrbanLegendBureau.Systems
             yield return new WaitForSeconds(0.9f);
             yield return Blink(0.18f, 0.3f);           // 한 번 느리게. 졸음이 오기 시작한다
             _lidsFollowEyes = true;                    // 여기서부터 화면도 함께 감긴다
+            // 졸음이 오면 음악이 천천히 멀어지고 창밖 빗소리만 또렷하게 남는다. 방 공기와 시계도 조금 가라앉는다.
+            Bgm.Duck(0f, 6f);
+            Sfx.SetLoopVolume("dorm_rain", 0.8f, 5f);
+            Sfx.SetLoopVolume("dorm_room", 0.15f, 5f);
+            Sfx.SetLoopVolume("dorm_clock", 0.35f, 5f);
+            Sfx.Play("sit_breath_1", 0.25f, 0.9f);   // 길게 내쉬는 숨
             yield return EyesTo(0.5f, 0.6f);           // 반쯤 감긴다
             yield return new WaitForSeconds(0.9f);
             yield return EyesTo(0.85f, 0.35f);          // 억지로 한 번 뜬다

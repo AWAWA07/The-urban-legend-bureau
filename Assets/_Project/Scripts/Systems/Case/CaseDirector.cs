@@ -728,6 +728,7 @@ namespace UrbanLegendBureau.Systems
             {
                 case "bgm_dark_1": return 0.1f;
                 case "bgm_sit": return 0.7f;
+                case "bgm_dorm": return 0.3f;   // 숙소는 조용한 방이라 음악을 더 낮게 깐다
                 default: return 0.55f;
             }
         }
@@ -2338,9 +2339,10 @@ namespace UrbanLegendBureau.Systems
         {
             yield return new WaitForSeconds(0.6f);
             var door = FindActiveField("Door_Left");
-            // 누가 주먹으로 두드린다. 쾅쾅쾅, 잠깐 멈췄다가 쾅쾅, 또 쾅쾅쾅. 여덟 번. 사이가 고르지 않아 다급하다.
+            // 누가 주먹으로 두드린다. 여섯 번. 사이도 세기도 매번 조금씩 달라 사람이 다급하게 두드리는 것처럼 들린다.
             // 두드릴 때마다 문 유리에 손바닥 자국이 하나씩 늘어난다. 다 두드리고 나면 남은 자국까지 한꺼번에 드러난다.
-            float[] gaps = { 0.22f, 0.2f, 0.45f, 0.2f, 0.18f, 0.42f, 0.22f, 0f };
+            float[] gaps = { 0.16f, 0.29f, 0.2f, 0.46f, 0.13f, 0f };
+            for (int g = 0; g < gaps.Length - 1; g++) gaps[g] += Random.Range(-0.04f, 0.05f);
             // 두드리는 동안 음악과 깔린 소리를 확 줄여 쾅 소리가 귀를 때리게 한다.
             Bgm.Duck(0.15f, 0.1f);
             Sfx.DuckLoops(0.25f, 0.1f);
@@ -2350,9 +2352,10 @@ namespace UrbanLegendBureau.Systems
                 // 첫 번은 묵직하게 크게 쾅, 마지막은 울림이 길게 남는다. 사이에는 주먹 소리 넷을 돌려 쓴다.
                 string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
                 // 같은 소리를 같은 높이로 두 번 겹쳐 크게 한다. 높이가 다르면 겹친 소리가 일렁여 어색하다.
-                float pitch = Random.Range(0.97f, 1.03f);
-                Sfx.Play(bang, 1f, pitch);
-                Sfx.Play(bang, 0.8f, pitch);
+                float pitch = Random.Range(0.95f, 1.05f);
+                float hit = i == 0 || i == gaps.Length - 1 ? 1f : Random.Range(0.72f, 1f);   // 주먹이 들어가는 힘이 매번 다르다
+                Sfx.Play(bang, hit, pitch);
+                Sfx.Play(bang, hit * 0.8f, pitch);
                 if (door != null) StartCoroutine(ShakeDoor(door));
                 if (i == 0) StartCoroutine(ReactToDoor(door));
                 if (prints != null && i < prints.childCount) prints.GetChild(i).gameObject.SetActive(true);
