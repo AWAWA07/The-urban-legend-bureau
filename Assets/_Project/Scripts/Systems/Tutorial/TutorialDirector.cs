@@ -589,6 +589,7 @@ namespace UrbanLegendBureau.Systems
             {
                 if (entry == null || entry.BeliefPercent <= 0 || entry.BeliefPercent >= 100) continue;
                 if (!match(entry)) continue;
+                if (IsRiseBlocked(entry.LegendId)) continue;   // 해결한 괴담의 글은 오르지 않는다
 
                 entry.BeliefPercent = Mathf.Min(100, entry.BeliefPercent + step);
                 raised++;
@@ -915,9 +916,23 @@ namespace UrbanLegendBureau.Systems
         /// 몫이 0 이 되면 괴담과 무관한 글로 빠져 평균에서 사라지므로 1 아래로는 내리지 않는다.
         /// 작업 표시줄과 휴대폰 숫자도 함께 바뀐다. 바뀐 글 수를 돌려준다.
         /// </summary>
+        /// <summary>
+        /// 이 괴담의 글이 더 믿기면 안 되는가. 본편에서 해결한 괴담이면 true 다(WorkdayDirector 가 정해 준다).
+        /// 글은 그대로 남고 해결 당시의 믿음도를 지킨다. 오르는 길(확산, 조사, 게시 반응, 시간)은 모두 여기를 지난다.
+        /// </summary>
+        public System.Func<string, bool> RiseBlocked;
+
+        private bool IsRiseBlocked(string legendId) => !string.IsNullOrEmpty(legendId) && RiseBlocked != null && RiseBlocked(legendId);
+
         public int ShiftLegendBelief(string legendId, int delta)
         {
             if (string.IsNullOrEmpty(legendId) || delta == 0) return 0;
+            // 해결한 괴담의 글은 더 믿기지 않는다. 내려가는 것(정정)은 그대로 받는다.
+            if (delta > 0 && IsRiseBlocked(legendId))
+            {
+                Debug.Log($"[TutorialDirector] 해결한 괴담이라 오르지 않는다 | {legendId} {delta:+0}% 막음");
+                return 0;
+            }
             if (_boardEntries == null) BuildBoardEntries();
 
             int moved = 0;

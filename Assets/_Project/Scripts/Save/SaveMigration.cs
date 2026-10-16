@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 12;
+        public const int CurrentVersion = 13;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -158,6 +158,15 @@ namespace UrbanLegendBureau.Save
                     foreach (var id in data.work.activeCaseIds)
                         if (!data.work.postedCaseIds.Contains(id)) data.work.postedCaseIds.Add(id);
                 data.saveVersion = 12;
+            }
+
+            if (data.saveVersion == 12)
+            {
+                // v13에서 해결한 괴담(work.resolvedLegendIds)이 추가됐다. 사건과 괴담의 짝은 사건 데이터에 있어 여기서는 알 수 없다.
+                // 빈 목록으로 두고, 불러온 뒤 WorkdayDirector 가 해결한 사건(completedCaseIds)으로 채운다.
+                data.work ??= new WorkState();
+                data.work.resolvedLegendIds ??= new System.Collections.Generic.List<string>();
+                data.saveVersion = 13;
             }
 
             if (data.saveVersion < CurrentVersion)

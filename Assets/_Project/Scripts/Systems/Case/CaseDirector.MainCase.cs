@@ -181,7 +181,7 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 정정글이 성공했다. 보고서를 확정한 본편 사건이면 해결로 적는다. 같은 사건은 한 번만 센다.
-        /// 해결한 사건은 활성에서 빠지고 자연 확산이 멈춘다(CaseSO.SpreadsAfterSolved 를 켠 사건만 계속 퍼진다).
+        /// 해결한 사건은 활성에서 빠지고, 그 괴담에 묶인 글은 모두 믿음도가 더 오르지 않는다(WorkdayDirector.IsLegendResolved).
         /// 게시판의 글과 올린 정정글은 그대로 남는다.
         /// </summary>
         private bool TryResolveMainCase(PostWritingSO data)

@@ -55,15 +55,11 @@ namespace UrbanLegendBureau.Data
         [Tooltip("이 근무 일차부터 등장할 수 있다. 동시 활성 상한이 차 있으면 자리가 날 때까지 기다린다.")]
         [SerializeField] private int _appearWorkday = 2;
 
-        [Tooltip("해결한 뒤에도 자연 확산으로 믿음도가 오르는가. 대부분 끈다.")]
-        [SerializeField] private bool _spreadsAfterSolved;
-
         public string Id => _caseId;
         public string CaseId => _caseId;
         public bool MainStory => _mainStory;
         public int StartBelief => _startBelief;
         public int AppearWorkday => _appearWorkday;
-        public bool SpreadsAfterSolved => _spreadsAfterSolved;
         public string CaseNameTextId => _caseNameTextId;
         public string CaseDescriptionTextId => _caseDescriptionTextId;
         public string LegendId => _legendId;

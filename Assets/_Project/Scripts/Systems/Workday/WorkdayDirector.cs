@@ -73,6 +73,7 @@ namespace UrbanLegendBureau.Systems
             _balance = WorkdayBalanceSO.Load();
 
             if (_tutorial != null) _tutorial.BoardRebuilt += OnBoardRebuilt;
+            if (_tutorial != null) _tutorial.RiseBlocked = IsLegendResolved;
             if (_save != null) _save.BeforeSave += SyncToSave;
         }
 
@@ -149,6 +150,8 @@ namespace UrbanLegendBureau.Systems
         public void ResetForNewRun()
         {
             if (_save == null || _save.Current == null) return;
+            // 상승 차단부터 푼다. 지난 판의 글을 걷으며 되돌리는 몫이 막히지 않게 한다.
+            _save.Current.work.resolvedLegendIds?.Clear();
             ResetMainCaseProgress();
             _save.Current.work = new WorkState();
             _save.Current.boardStates.Clear();
@@ -199,6 +202,7 @@ namespace UrbanLegendBureau.Systems
 
             GameClock.SetRealTimeFlow(false);
             if (w.elapsedMinutes >= 0) GameClock.RestoreElapsed(w.elapsedMinutes);
+            RepairResolvedLegends();
             GameClock.SetRealTimeFlow(false);
             Debug.Log($"[Workday] 본편 저장본 | {CalendarDay}일째 {FormatClock24()} | 근무 {Workday}일차");
         }
@@ -232,7 +236,34 @@ namespace UrbanLegendBureau.Systems
             var list = _save.Current.completedCaseIds;
             if (!list.Contains(caseId)) list.Add(caseId);
             W?.activeCaseIds.Remove(caseId);
+            ResolveLegendOf(caseId);
             _save.MarkDirty();
+        }
+
+        /// <summary>
+        /// 사건이 다루는 괴담을 해결한 괴담으로 적는다. 그 괴담에 묶인 글(처음 글, 목격담, 소문, 나중에 올라온 같은 괴담 글)은
+        /// 이때부터 믿음도가 더 오르지 않는다. 글은 지우지 않고, 해결 전에 오른 몫(실패한 정정글의 몫 포함)도 되돌리지 않는다.
+        /// </summary>
+        private void ResolveLegendOf(string caseId)
+        {
+            var c = FindCase(caseId);
+            var w = W;
+            if (c == null || w == null || string.IsNullOrEmpty(c.LegendId) || w.resolvedLegendIds.Contains(c.LegendId)) return;
+            w.resolvedLegendIds.Add(c.LegendId);
+            Debug.Log($"[Workday] 괴담 해결 | {c.LegendId} 글은 더 오르지 않는다 (믿음도 {LegendBelief(c.LegendId):0.00}% 그대로)");
+        }
+
+        /// <summary>본편에서 해결한 괴담인가. 게시판이 오르는 몫을 막을 때 묻는다. 튜토리얼에서는 늘 false 다.</summary>
+        public bool IsLegendResolved(string legendId)
+        {
+            var w = W;
+            return w != null && w.mainStarted && !string.IsNullOrEmpty(legendId) && w.resolvedLegendIds.Contains(legendId);
+        }
+
+        /// <summary>v12 이전 저장본처럼 해결한 사건은 있는데 해결한 괴담이 비어 있으면 채운다. 몇 번 불러도 같다.</summary>
+        private void RepairResolvedLegends()
+        {
+            foreach (var id in _save.Current.completedCaseIds) ResolveLegendOf(id);
         }
 
         public bool IsSolved(string caseId) => _save != null && _save.Current != null && _save.Current.completedCaseIds.Contains(caseId);
@@ -267,6 +298,8 @@ namespace UrbanLegendBureau.Systems
                 if (w.activeCaseIds.Count >= limit) break;
                 if (c == null || !c.MainStory || !c.IsPlayable) continue;
                 if (w.activeCaseIds.Contains(c.CaseId) || IsSolved(c.CaseId)) continue;
+                // 이미 해결한 괴담을 다루는 사건은 열지 않는다. 다시 퍼지게 하는 재발 규칙은 아직 정하지 않았다.
+                if (IsLegendResolved(c.LegendId)) { Debug.Log($"[Workday] {c.CaseId} 는 이미 해결한 괴담({c.LegendId})이라 열지 않는다"); continue; }
                 if (Workday < c.AppearWorkday) continue;
 
                 w.activeCaseIds.Add(c.CaseId);
@@ -283,7 +316,7 @@ namespace UrbanLegendBureau.Systems
             return opened;
         }
 
-        /// <summary>자연 확산을 받는 괴담. 활성 사건의 괴담과, 해결 뒤에도 퍼지게 둔 사건의 괴담.</summary>
+        /// <summary>자연 확산을 받는 괴담. 활성 사건의 괴담뿐이다. 해결한 괴담은 들지 않는다.</summary>
         private List<string> SpreadingLegends()
         {
             var ids = new List<string>();
@@ -292,8 +325,7 @@ namespace UrbanLegendBureau.Systems
             {
                 if (c == null || string.IsNullOrEmpty(c.LegendId) || ids.Contains(c.LegendId)) continue;
                 bool active = W != null && W.activeCaseIds.Contains(c.CaseId);
-                bool solvedButSpreading = IsSolved(c.CaseId) && c.SpreadsAfterSolved;
-                if (active || solvedButSpreading) ids.Add(c.LegendId);
+                if (active && !IsLegendResolved(c.LegendId)) ids.Add(c.LegendId);
             }
             return ids;
         }

@@ -117,6 +117,12 @@ namespace UrbanLegendBureau.Save
         /// 괴담 글을 게시판에 건 사건 (v12). 활성 사건과 따로 센다. 해결해 활성에서 빠져도 그 글은 게시판에 남는다.
         /// </summary>
         public List<string> postedCaseIds = new List<string>();
+
+        /// <summary>
+        /// 해결한 괴담 (v13). 여기 든 괴담에 묶인 글은 모두 믿음도가 더 오르지 않는다(자연 확산, 취침, 조사, 게시 반응 모두).
+        /// 글은 지우지 않고 해결 당시의 믿음도를 지킨다. 다시 퍼지게 하는 재발 규칙은 아직 없다.
+        /// </summary>
+        public List<string> resolvedLegendIds = new List<string>();
     }
 
     /// <summary>
@@ -299,6 +305,7 @@ namespace UrbanLegendBureau.Save
             work.prevDayBeliefs ??= new List<string>();
             work.warned ??= new List<string>();
             work.postedCaseIds ??= new List<string>();
+            work.resolvedLegendIds ??= new List<string>();
             boardStates ??= new List<BoardEntryState>();
             foreach (var b in boardStates)
             {
