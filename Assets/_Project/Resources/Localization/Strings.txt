@@ -955,7 +955,7 @@ tutorial.night.after_1	수고했어.	Good work.	게시물을 다 올린 뒤 숙�
 tutorial.night.after_2	근데 이러면 저한테도 귀신이 붙은 거 아닌가요..?	But wait... doesn't that mean a ghost is attached to me now..?	차지한
 tutorial.night.after_3	아, 이제 믿나 보네?	Oh, so you believe now?	한영
 tutorial.night.after_4	진작 떼어 놨으니 걱정하지 마.	I got rid of it a while ago. Don't worry.	한영
-tutorial.night.001	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.	It's already {2} in the morning. That's enough for today, get some rest.	게시물을 마친 뒤 - 한영, {0} 시 {1} 분 {2} 2:12 꼴
+tutorial.night.001	벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.	It's already {2} in the morning. That's enough for today, get some rest.	게시물을 마친 뒤 - 한영, {0} 시 {1} 분 {2} 2:12 꼴
 tutorial.night.002	감사합니다. 안녕히 주무세요.	Thank you. Good night.	차지한
 tutorial.night.003	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.	Right. See you at six tomorrow. That's when the real work starts.	한영
 tutorial.night.mono_1	...다사다난한 하루였다..	...What a day that was..	한영이 나간 뒤 - 차지한

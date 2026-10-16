@@ -109,7 +109,7 @@ post.subway.line_takedown	arms_crossed	이 글은 내가 내려 둘게. 다시 �
 tutorial.night.after_1	standingsmail	수고했어.
 tutorial.night.after_3	thinksmail	아, 이제 믿나 보네?
 tutorial.night.after_4	arms_crossed	진작 떼어 놨으니 걱정하지 마.
-tutorial.night.001	standingsmail	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.
+tutorial.night.001	standingsmail	벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.
 tutorial.night.003	standing	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.
 
 # 규칙 추론 · 보고서
