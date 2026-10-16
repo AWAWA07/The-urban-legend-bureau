@@ -94,9 +94,12 @@ namespace UrbanLegendBureau.Systems
         private const int TutorialPostLikes = 17;
         private const int TutorialPostDislikes = 3;
 
-        /// <summary>튜토리얼 글이 괴담의 믿음에 보태고 있는 몫(%). 정답 댓글을 달면 절반쯤으로 내려간다.</summary>
+        /// <summary>
+        /// 튜토리얼 글(어제 막차에서 있었던 일)이 괴담의 믿음에 보태고 있는 몫(%). 정답 댓글을 달면 조금 내려간다.
+        /// 조사하는 동안 이 글은 42% 다. 막차 괴담의 원글이라 다른 막차 글보다 높다.
+        /// </summary>
         private const int TutorialPostBelief = 46;
-        private const int TutorialPostBeliefAfter = 23;
+        private const int TutorialPostBeliefAfter = 42;
 
         /// <summary>지금 이 글이 들고 있는 몫. 댓글을 단 뒤에 바뀐다.</summary>
         private int _postBelief = TutorialPostBelief;
@@ -633,7 +636,7 @@ namespace UrbanLegendBureau.Systems
                     IsHot = true,
                     Openable = true,
                     Page = _tutorialPage,
-                    BeliefPercent = TutorialPostBelief,
+                    BeliefPercent = _postBelief,             // 정답 댓글을 단 뒤에 다시 지어도 내려간 값 그대로
                     LegendId = SubwayLegendId,
                     PostedMinutesAgo = 2697,                 // 어제 01:33
                     Likes = TutorialPostLikes,
@@ -697,7 +700,7 @@ namespace UrbanLegendBureau.Systems
 
             // 이 사건의 검열 대상 글. 오늘 낮에 올라와 거짓 규칙을 퍼뜨리는 중이다.
             // 보고서에 이 글을 검열 대상으로 적고, 게시물은 이 글을 바로잡는 정정글로 쓴다. 게시판에서 직접 찾아 읽을 수 있어야 한다.
-            var summary = PageEntry(SubwaySummaryPageId, views: 268, belief: 31, minutesAgo: 300, up: 21, down: 6,
+            var summary = PageEntry(SubwaySummaryPageId, views: 268, belief: 38, minutesAgo: 300, up: 21, down: 6,
                 author: "ui.net.author_summary", legendId: SubwayLegendId);
             if (summary != null)
             {
