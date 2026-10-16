@@ -46,6 +46,17 @@ namespace UrbanLegendBureau.UI
         /// <summary>시간이 다 됐다. 화면 스택을 아는 쪽이 닫는다.</summary>
         public System.Action<ToastScreen> Closed;
 
+        /// <summary>
+        /// 떠 있는 동안 다른 화면(컴퓨터 등)이 덮으면 사라지는 시계가 멈춘다.
+        /// 덮개가 걷혔을 때 그대로 남아 있지 않게, 다시 잠깐 보였다가 사라지게 한다.
+        /// </summary>
+        protected override void OnCoveredChanged(bool covered)
+        {
+            if (covered || !isActiveAndEnabled) return;
+            if (_timer != null) StopCoroutine(_timer);
+            _timer = StartCoroutine(HideLater());
+        }
+
         protected override void OnClose()
         {
             if (_timer != null)

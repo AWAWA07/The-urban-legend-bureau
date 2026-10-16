@@ -217,6 +217,7 @@ namespace UrbanLegendBureau.EditorTools
             var ruleList = BuildRuleListScreen("Screen_Rules", out var ruleScreenButtons);
             var report = BuildReportScreen("Screen_Report", out var reportButtons);
             var caseFile = BuildCaseFileScreen("Screen_CaseFile");
+            var caseArchive = BuildCaseArchiveScreen("Screen_CaseArchive");
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -296,6 +297,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_withdrawButton").objectReferenceValue = btnWithdraw;
             dso.FindProperty("_reportScreen").objectReferenceValue = report;
             dso.FindProperty("_caseFileScreen").objectReferenceValue = caseFile;
+            dso.FindProperty("_caseArchiveScreen").objectReferenceValue = caseArchive;
             dso.FindProperty("_toastScreen").objectReferenceValue = toast;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
@@ -5694,6 +5696,24 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
             so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
             so.FindProperty("_semiBold").objectReferenceValue = LoadFont(UIFontWeight.SemiBold);
+            so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
+        /// <summary>숙소 컴퓨터 수사 노트 앱의 첫 화면(사건 기록부). 카드는 화면이 스스로 짓는다.</summary>
+        private static CaseArchiveScreen BuildCaseArchiveScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.063f, 0.075f, 0.094f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<CaseArchiveScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
+            so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
             so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
             so.ApplyModifiedPropertiesWithoutUndo();
             return screen;

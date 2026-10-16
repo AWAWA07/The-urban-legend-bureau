@@ -61,6 +61,9 @@ namespace UrbanLegendBureau.Systems
         [Tooltip("수사 노트. 수집한 단서, 단서 분석, 최종 추론, 조사 보고서를 한 화면에서 넘겨 본다. 사건에 추리 자료가 있을 때 쓴다.")]
         [SerializeField] private CaseFileScreen _caseFileScreen;
 
+        [Tooltip("숙소 컴퓨터 수사 노트 앱의 첫 화면. 맡았던 사건이 카드로 남는다.")]
+        [SerializeField] private CaseArchiveScreen _caseArchiveScreen;
+
         [Tooltip("잠깐 떴다 사라지는 알림 띠.")]
         [SerializeField] private ToastScreen _toastScreen;
 
@@ -3295,6 +3298,7 @@ namespace UrbanLegendBureau.Systems
             // 저장 알림이 아직 떠 있으면 먼저 거둔다. 맨 위에 남으면 화면을 바꿀 때 그것이 바뀐다.
             if (_toastScreen != null && _ui.Contains(_toastScreen)) _ui.Close(_toastScreen);
             if (_caseFileScreen != null && _ui.Contains(_caseFileScreen)) _ui.Close(_caseFileScreen);
+            if (_caseArchiveScreen != null && _ui.Contains(_caseArchiveScreen)) _ui.Close(_caseArchiveScreen);
 
             // 숙소 컴퓨터에서 수사 노트를 마쳤다. 컴퓨터를 끄지 않고 그 자리에서 괴담넷으로 가 게시물을 쓰라고 한다.
             if (_inRoom && _desktopScreen != null && _ui.Contains(_desktopScreen))
@@ -3814,6 +3818,8 @@ namespace UrbanLegendBureau.Systems
 
             // 앞서 튜토리얼이 쓰던 채로 스택 어딘가에 남아 있으면 걷어 내고 다시 올린다.
             if (_ui.Contains(_desktopScreen)) _ui.Close(_desktopScreen);
+            // 방에 떠 있던 알림(수사 노트가 열렸다 등)은 걷는다. 컴퓨터 밑에 깔려 있다가 끈 뒤에 다시 보이지 않게 한다.
+            if (_toastScreen != null && _ui.Contains(_toastScreen)) _ui.Close(_toastScreen);
 
             GamePointer.SetVisible(true);
 
@@ -3839,8 +3845,7 @@ namespace UrbanLegendBureau.Systems
             // 수사 노트. 지금 할 쪽(단서 분석 → 최종 추론 → 조사 보고서)부터 펼친다. 확정한 뒤에도 다시 읽을 수 있다.
             if (appId == CaseFileAppId)
             {
-                if (Deduction == null) return;
-                OpenCaseFile(IsNotePending() ? NextCaseFilePage() : CaseFileScreen.Page.Report);
+                OpenCaseArchive();
                 return;
             }
 
@@ -3944,6 +3949,93 @@ namespace UrbanLegendBureau.Systems
         /// 수사 노트를 연다. 현장 화면 위에 얹으므로 닫거나 ESC 를 누르면 현장으로 돌아간다.
         /// 이미 열려 있으면 쪽만 바꾼다. 시간은 흐르지 않는다.
         /// </summary>
+        // ------------------------------------------------------------- 사건 기록부 (수사 노트 앱)
+
+        private const string ArchiveProgressTextId = "ui.archive.progress";
+        private const string ArchiveVerdictTextId = "ui.archive.verdict";
+        private const string ArchivePendingTextId = "ui.archive.report_pending";
+        private const string ArchiveLegendTextId = "ui.archive.legend";
+
+        /// <summary>
+        /// 숙소 컴퓨터의 수사 노트 앱을 연다. 먼저 맡았던 사건들이 카드로 늘어선 기록부가 뜬다.
+        /// 카드를 누르면 그 사건의 수사 노트가 펼쳐지고, 닫으면 기록부로 돌아온다.
+        /// </summary>
+        private void OpenCaseArchive()
+        {
+            if (_caseArchiveScreen == null)
+            {
+                // 기록부가 없는 씬이면 예전처럼 곧바로 지금 사건의 수사 노트를 연다.
+                if (Deduction != null) OpenCaseFile(IsNotePending() ? NextCaseFilePage() : CaseFileScreen.Page.Report);
+                return;
+            }
+
+            _caseArchiveScreen.Bind(BuildArchiveEntries, OnArchiveCaseOpened,
+                () => { if (_ui.Contains(_caseArchiveScreen)) _ui.Close(_caseArchiveScreen); });
+            if (!_ui.Contains(_caseArchiveScreen)) _ui.Push(_caseArchiveScreen);
+            else _caseArchiveScreen.Refresh();
+            Debug.Log("[CaseDirector] 수사 노트 앱 | 사건 기록부를 연다");
+        }
+
+        /// <summary>
+        /// 기록부에 올릴 사건. 수사 노트를 쓰는 사건 가운데 지금 맡고 있거나 이미 보고서를 확정한 것만 올린다.
+        /// 아직 맡지 않은 사건은 화면이 ??? 자리로 남겨 둔다. 기록은 저장본(수사 노트 기록)에서 읽는다.
+        /// </summary>
+        private List<CaseArchiveScreen.Entry> BuildArchiveEntries()
+        {
+            var list = new List<CaseArchiveScreen.Entry>();
+            if (_cases == null || _save == null || _save.Current == null) return list;
+
+            foreach (var c in _cases.GetAllCases())
+            {
+                var data = c != null ? c.Deduction : null;
+                if (data == null) continue;
+
+                bool solved = CaseNotebook.IsReportConfirmed(_save.Current, c.CaseId);
+                bool active = c.CaseId == _caseId;
+                if (!solved && !active) continue;
+
+                var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
+                string verdict = null;
+                if (solved)
+                {
+                    string truth = null;
+                    foreach (var b in data.ReportBlanks)
+                    {
+                        if (b != null && b.answerType == CaseDeductionSO.ReportAnswerType.Truth)
+                            truth = CaseNotebook.GetInput(_save.Current, c.CaseId, b.blankId);
+                    }
+                    verdict = _loc.Get(ArchiveVerdictTextId, string.IsNullOrEmpty(truth) ? "-" : truth.Trim());
+                }
+
+                list.Add(new CaseArchiveScreen.Entry
+                {
+                    CaseId = c.CaseId,
+                    Number = data.DocumentNumber,
+                    Name = _loc.Get(c.CaseNameTextId),
+                    Legend = legend != null ? _loc.Get(ArchiveLegendTextId, _loc.Get(legend.NameTextId)) : string.Empty,
+                    Progress = _loc.Get(ArchiveProgressTextId,
+                        CaseNotebook.AcquiredClues(_save.Current, data).Count, data.FieldClues.Count,
+                        CaseNotebook.AnalysisCount(_save.Current, data), data.Analyses.Count,
+                        CaseNotebook.SolvedCount(_save.Current, data), data.Questions.Count),
+                    Verdict = solved ? verdict : _loc.Get(ArchivePendingTextId),
+                    Solved = solved,
+                    Active = active,
+                });
+            }
+            return list;
+        }
+
+        /// <summary>기록부에서 사건 하나를 골랐다. 할 일이 남았으면 그쪽부터, 끝났으면 보고서를 펼친다.</summary>
+        private void OnArchiveCaseOpened(string caseId)
+        {
+            if (caseId != _caseId || Deduction == null)
+            {
+                Debug.Log($"[CaseDirector] 사건 기록부 | {caseId} 는 지금 맡은 사건이 아니라 펼치지 않는다");
+                return;
+            }
+            OpenCaseFile(IsNotePending() ? NextCaseFilePage() : CaseFileScreen.Page.Report);
+        }
+
         private void OpenCaseFile(CaseFileScreen.Page page)
         {
             if (_caseFileScreen == null || Deduction == null) return;

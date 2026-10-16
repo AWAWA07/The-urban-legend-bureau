@@ -512,6 +512,20 @@ ui.memo.new	+ 새 메모	+ New note	메모를 한 장 더 만드는 단추
 ui.memo.default_grade	[위험 등급표]  — 한영이 설명해 준 것	[Risk grades] - as Hanyoung explained	기본으로 들어 있는 메모의 첫 줄
 ui.memo.unlocked	메모장 기능이 열렸습니다!	The notepad is now available.	메모장이 열렸다는 알림
 ui.casefile.unlocked	수사 노트 기능이 열렸습니다!	The case file is now available.	숙소에 도착하면 뜨는 위쪽 알림
+ui.archive.bureau	괴담 검열국 · 수사 노트	URBAN LEGEND BUREAU · CASE FILES	수사 노트 앱 첫 화면 머리
+ui.archive.title	사건 기록	Case Records	수사 노트 앱 첫 화면 제목
+ui.archive.sub	맡은 사건이 여기에 차례로 기록됩니다. 사건을 누르면 수사 노트가 펼쳐집니다.	Every case you take is recorded here. Select one to open its case file.	
+ui.archive.count	해결 {0} / {1}	Solved {0} / {1}	
+ui.archive.solved	해결	Solved	카드 오른쪽 위 상태
+ui.archive.active	조사 중	In progress	카드 오른쪽 위 상태
+ui.archive.stamp	해결	CLOSED	해결한 사건 카드의 붉은 도장
+ui.archive.open	열어 보기 ›	Open ›	
+ui.archive.locked_name	? ? ?	? ? ?	아직 맡지 않은 사건 자리
+ui.archive.locked_desc	아직 맡지 않은 사건	A case you have not taken yet	
+ui.archive.progress	단서 {0}/{1}  ·  분석 {2}/{3}  ·  추론 {4}/{5}	Clues {0}/{1}  ·  Analyses {2}/{3}  ·  Deductions {4}/{5}	
+ui.archive.verdict	판정: {0}  ·  보고서 확정	Verdict: {0}  ·  Report filed	
+ui.archive.report_pending	보고서 미확정	Report not filed yet	
+ui.archive.legend	괴담 · {0}	Legend · {0}	
 ui.net.posts_unlocked	괴담넷의 다른 글도 읽을 수 있습니다!	You can now read the other posts on LegendNet.	게시판이 열렸다는 알림
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
