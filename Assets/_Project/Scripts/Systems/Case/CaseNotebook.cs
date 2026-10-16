@@ -54,8 +54,19 @@ namespace UrbanLegendBureau.Systems
             return n;
         }
 
-        public static bool AllAnalysesFound(SaveData save, CaseDeductionSO data) =>
-            data != null && data.Analyses.Count > 0 && AnalysisCount(save, data) >= data.Analyses.Count;
+        /// <summary>최종 추론을 여는 데 필요한 분석(추가 분석이 아닌 것)을 모두 찾았는가.</summary>
+        public static bool AllAnalysesFound(SaveData save, CaseDeductionSO data)
+        {
+            if (data == null) return false;
+            int required = 0;
+            foreach (var a in data.Analyses)
+            {
+                if (a == null || a.optional) continue;
+                required++;
+                if (!HasAnalysis(save, data, a.analysisId)) return false;
+            }
+            return required > 0;
+        }
 
         /// <summary>
         /// 두 단서를 맞대어 본다. 둘 다 얻은 단서여야 한다.

@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 14;
+        public const int CurrentVersion = 15;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -178,6 +178,16 @@ namespace UrbanLegendBureau.Save
                 data.work.reopenedCaseIds ??= new System.Collections.Generic.List<string>();
                 data.work.needsResolveAudit = data.work.mainStarted;
                 data.saveVersion = 14;
+            }
+
+            if (data.saveVersion == 14)
+            {
+                // v15에서 근무일마다 올라오는 질문 글(work.questionPosts)과 본편 댓글 기록(work.commentLog)이 추가됐다.
+                // 구버전 저장본은 질문 글도 단 댓글도 없는 것으로 읽힌다. 다음 근무가 시작될 때부터 질문 글이 올라온다.
+                data.work ??= new WorkState();
+                data.work.questionPosts ??= new System.Collections.Generic.List<string>();
+                data.work.commentLog ??= new System.Collections.Generic.List<string>();
+                data.saveVersion = 15;
             }
 
             if (data.saveVersion < CurrentVersion)

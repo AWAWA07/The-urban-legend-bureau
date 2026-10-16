@@ -51,6 +51,9 @@ namespace UrbanLegendBureau.Data
         [Tooltip("본편에서 글이나 댓글 하나를 실제로 올릴 때 흐르는 시간(분). 올리기를 확정한 순간 한 번만 흐른다.")]
         [SerializeField] private int _postMinutes = 20;
 
+        [Tooltip("본편에서 댓글 하나를 실제로 달 때 흐르는 시간(분).")]
+        [SerializeField] private int _commentMinutes = 10;
+
         public int ShiftStartHour => _shiftStartHour;
         public int ShiftEndHour => _shiftEndHour;
         public DateTime StartDate => new DateTime(_startYear, _startMonth, _startDay);
@@ -59,6 +62,7 @@ namespace UrbanLegendBureau.Data
         public int[] WarningThresholds => _warningThresholds;
         public int DefaultResolveBelief => _defaultResolveBelief;
         public int PostMinutes => _postMinutes;
+        public int CommentMinutes => _commentMinutes;
 
         /// <summary>등급(1 관측 ~ 5 멸망)과 상태에 맞는 시간당 상승(%p).</summary>
         public float RisePerHour(int grade, bool sleeping)

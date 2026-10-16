@@ -35,6 +35,13 @@ MonoBehaviour:
     beliefDelta: -1
     reviewTextId: post.test.001.review.title_calm
     requiredEvidenceIds: []
+  - candidateId: title_record
+    textId: post.test.001.title_record
+    tag: 1
+    beliefDelta: -3
+    reviewTextId: post.test.001.review.title_record
+    requiredEvidenceIds:
+    - analysis_test_001_b
   - candidateId: title_refute2
     textId: post.test.001.title_refute2
     tag: 1
@@ -72,6 +79,13 @@ MonoBehaviour:
     beliefDelta: 1
     reviewTextId: post.test.001.review.intro_hook
     requiredEvidenceIds: []
+  - candidateId: intro_record
+    textId: post.test.001.intro_record
+    tag: 2
+    beliefDelta: -1
+    reviewTextId: post.test.001.review.intro_record
+    requiredEvidenceIds:
+    - analysis_test_001_b
   - candidateId: intro_facts
     textId: post.test.001.intro_facts
     tag: 2
@@ -109,6 +123,13 @@ MonoBehaviour:
     beliefDelta: 3
     reviewTextId: post.test.001.review.fact_real
     requiredEvidenceIds: []
+  - candidateId: fact_record
+    textId: post.test.001.fact_record
+    tag: 1
+    beliefDelta: -5
+    reviewTextId: post.test.001.review.fact_record
+    requiredEvidenceIds:
+    - analysis_test_001_b
   - candidateId: fact_refute2
     textId: post.test.001.fact_refute2
     tag: 1
@@ -147,6 +168,13 @@ MonoBehaviour:
     beliefDelta: 2
     reviewTextId: post.test.001.review.action_fear
     requiredEvidenceIds: []
+  - candidateId: action_record
+    textId: post.test.001.action_record
+    tag: 2
+    beliefDelta: -3
+    reviewTextId: post.test.001.review.action_record
+    requiredEvidenceIds:
+    - analysis_test_001_b
   - candidateId: action_calm2
     textId: post.test.001.action_calm2
     tag: 2
@@ -195,6 +223,81 @@ MonoBehaviour:
   _weakReactions:
   - authorTextId: ui.net.author_nick_5
     bodyTextId: post.test.001.react.weak_1
+  _commentOptions:
+  - optionId: c_ok1
+    bodyTextId: post.test.001.c_ok1
+    beliefDelta: -2
+    requiredEvidenceIds: []
+  - optionId: c_bad1
+    bodyTextId: post.test.001.c_bad1
+    beliefDelta: 2
+    requiredEvidenceIds: []
+  - optionId: c_ok2
+    bodyTextId: post.test.001.c_ok2
+    beliefDelta: -3
+    requiredEvidenceIds:
+    - analysis_test_001_a
+  - optionId: c_bad2
+    bodyTextId: post.test.001.c_bad2
+    beliefDelta: 2
+    requiredEvidenceIds: []
+  - optionId: c_ok3
+    bodyTextId: post.test.001.c_ok3
+    beliefDelta: -3
+    requiredEvidenceIds:
+    - analysis_test_001_b
+  _questionTemplates:
+  - templateId: q1
+    titleTextId: post.test.001.q1.title
+    bodyTextId: post.test.001.q1.body
+    authorTextId: ui.net.author_anon
+    options:
+    - optionId: q1_ok
+      bodyTextId: post.test.001.q1_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+    - optionId: q1_bad1
+      bodyTextId: post.test.001.q1_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+    - optionId: q1_bad2
+      bodyTextId: post.test.001.q1_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+  - templateId: q2
+    titleTextId: post.test.001.q2.title
+    bodyTextId: post.test.001.q2.body
+    authorTextId: ui.net.author_anon
+    options:
+    - optionId: q2_bad1
+      bodyTextId: post.test.001.q2_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+    - optionId: q2_ok
+      bodyTextId: post.test.001.q2_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+    - optionId: q2_bad2
+      bodyTextId: post.test.001.q2_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+  - templateId: q3
+    titleTextId: post.test.001.q3.title
+    bodyTextId: post.test.001.q3.body
+    authorTextId: ui.net.author_anon
+    options:
+    - optionId: q3_bad1
+      bodyTextId: post.test.001.q3_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+    - optionId: q3_bad2
+      bodyTextId: post.test.001.q3_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+    - optionId: q3_ok
+      bodyTextId: post.test.001.q3_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
   _introLineTextId: 
   _excellentLineTextId: 
   _successLineTextId: 

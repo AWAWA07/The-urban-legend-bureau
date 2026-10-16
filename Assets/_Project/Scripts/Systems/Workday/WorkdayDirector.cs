@@ -304,26 +304,36 @@ namespace UrbanLegendBureau.Systems
         public bool HasSpecialTarget(CaseSO c) => c != null && c.ResolveBeliefOverride > 0;
 
         /// <summary>
-        /// 화면에 보이고 해결 판정에 쓰는 괴담 믿음도(%). 소수 첫째 자리에서 반올림한 값이다.
+        /// 화면에 보이는 괴담 믿음도(%). 실제 계산값(LegendBelief)을 소수 첫째 자리에서 올림한 값이다.
         ///
         /// 괴담 믿음도 = 그 괴담 글들의 믿음도 평균(글마다 정수) + 아직 글에 옮겨지지 않은 자연 확산 몫(1% 미만, 저장된다).
-        /// 계산에 쓰는 몫은 버리지 않는다(LegendBelief). 판정만 화면에 적힌 그 값으로 한다.
-        /// 그래서 화면에 30% 라고 보이면 해결 목표 30% 이하를 채운 것이고, 30.1% 면 채우지 못한 것이다.
+        /// 해결 판정은 실제 계산값으로 한다(MeetsTarget). 표시를 올림으로 해 두면 두 값이 어긋나지 않는다.
+        ///   실제 30.00%  → 화면 30.0%  → 해결 가능
+        ///   실제 30.04%  → 화면 30.1%  → 목표 초과(반올림이었다면 화면은 30.0% 인데 해결이 안 되는 혼란이 생긴다)
+        /// 즉 화면이 목표 이하로 보이면 실제로도 목표 이하다. 부동소수 오차만큼(BeliefEpsilon)은 같은 값으로 친다.
         /// </summary>
         public float DisplayBelief(string legendId)
         {
             float b = LegendBelief(legendId);
-            return b < 0f ? b : Mathf.Round(b * 10f) / 10f;
+            return b < 0f ? b : CeilTenth(b);
         }
 
-        public float DisplayOverall => Mathf.Round(OverallBelief * 10f) / 10f;
+        public float DisplayOverall => CeilTenth(OverallBelief);
+
+        /// <summary>계산 과정에서 생기는 아주 작은 부동소수 오차. 이보다 작은 차이는 같은 값으로 본다.</summary>
+        private const float BeliefEpsilon = 0.0005f;
+
+        private static float CeilTenth(float v) => Mathf.Ceil(v * 10f - BeliefEpsilon * 10f) / 10f;
+
+        /// <summary>실제 계산값이 목표 이하인가. 해결 판정은 이것 하나로 한다.</summary>
+        public bool MeetsTarget(CaseSO c) => c != null && LegendBelief(c.LegendId) >= 0f && LegendBelief(c.LegendId) <= ResolveTarget(c) + BeliefEpsilon;
 
         /// <summary>
         /// 사건의 정식 해결 판정. 아래를 모두 채워야 Ready 다.
         ///   1. 수사 노트의 추론을 모두 마쳤다
         ///   2. 조사 보고서를 확정했다
         ///   3. 정정글이 한 번 이상 성공했다(게시물 평가 '성공' 또는 '우수')
-        ///   4. 괴담 믿음도(DisplayBelief)가 해결 목표 이하다
+        ///   4. 괴담 믿음도 실제 계산값이 해결 목표 이하다(MeetsTarget. 화면 값은 올림이라 같은 결론이 보인다)
         /// 게시물 평가는 글 한 편이 잘 쓰였는지를, 이 판정은 사건이 끝났는지를 본다. 둘은 다르다.
         /// 조사하지 않은 사건은 1·2에서 걸리므로 믿음도가 처음부터 낮아도 저절로 끝나지 않는다.
         /// </summary>
@@ -340,8 +350,7 @@ namespace UrbanLegendBureau.Systems
             }
             if (c.PostWriting != null && !HasCorrection(c)) return CaseStatus.CorrectionPending;
 
-            float belief = DisplayBelief(c.LegendId);
-            if (belief > ResolveTarget(c)) return CaseStatus.AboveTarget;
+            if (!MeetsTarget(c)) return CaseStatus.AboveTarget;
             return CaseStatus.Ready;
         }
 
@@ -406,7 +415,7 @@ namespace UrbanLegendBureau.Systems
                 var c = FindCase(id);
                 if (c == null || !c.MainStory) continue;
                 float belief = DisplayBelief(c.LegendId);
-                if (belief < 0f || belief <= ResolveTarget(c)) continue;
+                if (belief < 0f || MeetsTarget(c)) continue;
 
                 _save.Current.completedCaseIds.Remove(id);
                 w.resolvedLegendIds.Remove(c.LegendId);
@@ -533,6 +542,9 @@ namespace UrbanLegendBureau.Systems
             int passed = activity != null ? activity.RestorePassedPosts(Mathf.Max(GameClock.ElapsedMinutes, W.elapsedMinutes)) : 0;
             if (passed > 0) Debug.Log($"[Workday] 지난 시각에 올라온 글 {passed}개를 다시 걸었다");
 
+            // 근무일마다 올라온 질문 글도 다시 건다. 숫자와 댓글은 아래에서 저장본으로 덮는다.
+            RestoreQuestionPosts();
+
             // 글을 건 사건은 해결해서 활성에서 빠졌어도 글이 그대로 남는다.
             foreach (var id in PostedCaseIds())
             {
@@ -545,7 +557,7 @@ namespace UrbanLegendBureau.Systems
             foreach (var e in _tutorial.BoardEntries)
             {
                 if (e == null || e.IsPlayerPost) continue;
-                var s = states.Find(x => x != null && x.key == e.TitleTextId);
+                var s = states.Find(x => x != null && x.key == EntryKey(e));
                 if (s == null) continue;
                 e.BeliefPercent = s.belief;
                 e.Views = s.views;
@@ -593,7 +605,7 @@ namespace UrbanLegendBureau.Systems
                 if (e == null || e.IsPlayerPost || string.IsNullOrEmpty(e.TitleTextId)) continue;
                 var s = new BoardEntryState
                 {
-                    key = e.TitleTextId, belief = e.BeliefPercent, views = e.Views, likes = e.Likes, dislikes = e.Dislikes,
+                    key = EntryKey(e), belief = e.BeliefPercent, views = e.Views, likes = e.Likes, dislikes = e.Dislikes,
                     likePressed = e.LikePressed, dislikePressed = e.DislikePressed,
                     growthCarry = e.GrowthCarry != null && e.GrowthCarry.Length == 4 ? (float[])e.GrowthCarry.Clone() : new float[4],
                     growthAddedComments = e.GrowthAddedComments,
@@ -603,6 +615,146 @@ namespace UrbanLegendBureau.Systems
                         if (c != null) s.comments.Add(c.AuthorTextId + "|" + c.BodyTextId + "|" + (c.IsPlayer ? "1" : "0"));
                 states.Add(s);
             }
+        }
+
+        /// <summary>게시판 글 상태의 열쇠. 질문 글처럼 같은 틀로 여러 번 올라오는 글은 글 ID 로, 나머지는 제목 ID 로 짝짓는다.</summary>
+        public static string EntryKey(CommunityBoardEntry e) => e == null ? null : !string.IsNullOrEmpty(e.PostId) ? e.PostId : e.TitleTextId;
+
+        // ------------------------------------------------------------- 질문 글
+
+        /// <summary>질문 글 하나. 저장본의 "사건ID|순번|글ID|올라온 분|틀 번호" 한 줄을 푼 것.</summary>
+        public class QuestionPost
+        {
+            public string CaseId;
+            public int Index;
+            public string PostId;
+            public int PostedMinute;
+            public int Template;
+        }
+
+        private static QuestionPost ParseQuestion(string line)
+        {
+            var p = line != null ? line.Split('|') : null;
+            if (p == null || p.Length < 5) return null;
+            int.TryParse(p[1], out int index);
+            int.TryParse(p[3], out int minute);
+            int.TryParse(p[4], out int template);
+            return new QuestionPost { CaseId = p[0], Index = index, PostId = p[2], PostedMinute = minute, Template = template };
+        }
+
+        /// <summary>이 글이 질문 글이면 그 정보, 아니면 null.</summary>
+        public QuestionPost FindQuestion(CommunityBoardEntry e)
+        {
+            var w = W;
+            if (w == null || e == null || string.IsNullOrEmpty(e.PostId)) return null;
+            foreach (var line in w.questionPosts)
+            {
+                var q = ParseQuestion(line);
+                if (q != null && q.PostId == e.PostId) return q;
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// 근무가 시작될 때, 아직 풀리지 않은 사건마다 그 괴담을 묻는 질문 글이 올라온다. 위험등급이 높을수록 많이 올라온다(하루 등급 수만큼).
+        /// 플레이어는 글마다 답글 하나를 달 수 있다. 근무일마다 새로 생기므로, 정정글 문장을 다 써 버렸거나 오래 방치한 사건도 수습할 길이 남는다.
+        /// 다만 하루에 생기는 수가 정해져 있고 답글마다 시간이 들어, 같은 대응을 끝없이 되풀이해 한꺼번에 깎을 수는 없다.
+        /// 질문 글의 믿음도는 그 괴담의 지금 믿음도와 같게 걸려, 글이 올라온 것만으로 평균이 바뀌지 않는다.
+        /// </summary>
+        private void SpawnQuestionPosts()
+        {
+            var w = W;
+            if (w == null || _tutorial == null) return;
+            foreach (var c in ActiveCases())
+            {
+                var templates = c.PostWriting != null ? c.PostWriting.QuestionTemplates : null;
+                if (templates == null || templates.Count == 0 || IsLegendResolved(c.LegendId)) continue;
+
+                float belief = LegendBelief(c.LegendId);
+                int count = belief < 0f ? 1 : (int)LegendRiskLevelExtensions.FromBelief(belief);
+                int index = 0;
+                foreach (var line in w.questionPosts) { var q = ParseQuestion(line); if (q != null && q.CaseId == c.CaseId) index = Mathf.Max(index, q.Index + 1); }
+
+                for (int i = 0; i < count; i++, index++)
+                {
+                    var q = new QuestionPost
+                    {
+                        CaseId = c.CaseId, Index = index, PostId = "q_" + c.CaseId + "_" + index,
+                        PostedMinute = GameClock.ElapsedMinutes - i * 7, Template = index % templates.Count,
+                    };
+                    w.questionPosts.Add(q.CaseId + "|" + q.Index + "|" + q.PostId + "|" + q.PostedMinute + "|" + q.Template);
+                    var entry = MakeQuestionEntry(c, q, Mathf.Clamp(Mathf.RoundToInt(belief), 1, 99));
+                    if (entry != null) _tutorial.AddBoardPost(entry);
+                }
+                Debug.Log($"[Workday] 질문 글 {count}개 | {c.CaseId} | 믿음도 {belief:0.0}%");
+            }
+            _save.MarkDirty();
+        }
+
+        /// <summary>게시판을 새로 지은 뒤 질문 글을 다시 건다. 믿음도·반응·댓글은 저장본(boardStates)이 덮는다.</summary>
+        private void RestoreQuestionPosts()
+        {
+            var w = W;
+            if (w == null || _tutorial == null) return;
+            foreach (var line in w.questionPosts)
+            {
+                var q = ParseQuestion(line);
+                if (q == null) continue;
+                bool onBoard = false;
+                foreach (var e in _tutorial.BoardEntries) if (e != null && e.PostId == q.PostId) { onBoard = true; break; }
+                if (onBoard) continue;
+                var c = FindCase(q.CaseId);
+                var entry = MakeQuestionEntry(c, q, c != null ? Mathf.Clamp(Mathf.RoundToInt(LegendBelief(c.LegendId)), 1, 99) : 1);
+                if (entry != null) _tutorial.AddBoardPost(entry);
+            }
+        }
+
+        private CommunityBoardEntry MakeQuestionEntry(CaseSO c, QuestionPost q, int belief)
+        {
+            var templates = c != null && c.PostWriting != null ? c.PostWriting.QuestionTemplates : null;
+            if (templates == null || q.Template < 0 || q.Template >= templates.Count) return null;
+            var t = templates[q.Template];
+            return new CommunityBoardEntry
+            {
+                PostId = q.PostId,
+                TitleTextId = t.titleTextId,
+                BodyTextId = t.bodyTextId,
+                AuthorTextId = string.IsNullOrEmpty(t.authorTextId) ? "ui.net.author_anon" : t.authorTextId,
+                BoardTextId = "ui.net.board_free",
+                Comments = new List<CommunityComment>(),
+                Views = 12 + q.Index * 3,
+                BeliefPercent = belief,
+                LegendId = c.LegendId,
+                PostedMinutesAgo = -q.PostedMinute,
+                Likes = 2,
+                Dislikes = 0,
+            };
+        }
+
+        // ------------------------------------------------------------- 댓글 기록
+
+        /// <summary>이 사건에서 이 댓글을 이 글에 이미 달았는가. 글 열쇠를 비우면 사건 어디에든 달았는가를 본다.</summary>
+        public bool CommentUsed(string caseId, string optionId, string entryKey = null)
+        {
+            var w = W;
+            if (w == null) return false;
+            foreach (var line in w.commentLog)
+            {
+                var p = line.Split('|');
+                if (p.Length < 3 || p[0] != caseId) continue;
+                if (optionId != null && p[1] != optionId) continue;
+                if (entryKey != null && p[2] != entryKey) continue;
+                return true;
+            }
+            return false;
+        }
+
+        public void LogComment(string caseId, string optionId, string entryKey, int shift)
+        {
+            var w = W;
+            if (w == null) return;
+            w.commentLog.Add(caseId + "|" + optionId + "|" + entryKey + "|" + GameClock.ElapsedMinutes + "|" + shift);
+            _save.MarkDirty();
         }
 
         /// <summary>괴담 글을 게시판에 건 사건. 활성 사건도 빠짐없이 든다.</summary>
@@ -659,7 +811,7 @@ namespace UrbanLegendBureau.Systems
         {
             var w = W;
             w.legendCarry.RemoveAll(s => s.StartsWith(legendId + "|"));
-            w.legendCarry.Add(legendId + "|" + value.ToString("0.####", System.Globalization.CultureInfo.InvariantCulture));
+            w.legendCarry.Add(legendId + "|" + value.ToString("R", System.Globalization.CultureInfo.InvariantCulture));
         }
 
         /// <summary>"괴담ID|%" 목록에서 하나를 읽는다. 없으면 -1.</summary>
@@ -856,6 +1008,7 @@ namespace UrbanLegendBureau.Systems
                 var c = FindCase(id);
                 if (c != null) report.Changes.Add(new LegendChange { CaseId = id, LegendId = c.LegendId, Before = -1f, IsNew = true });
             }
+            SpawnQuestionPosts();
             TakeSnapshot(w.dayStartBeliefs);
             Debug.Log($"[Workday] 근무 {Workday}일차 시작 | 활성 사건 {w.activeCaseIds.Count}개");
         }

@@ -1403,3 +1403,91 @@ post.test.002.review.fact_real2	괴담이 실제로 일어난다고 못 박습�
 post.test.002.review.action_calm2	평소처럼 대처하라는 안내가 안심시킵니다.	Telling people to act normally reassures.
 post.test.002.review.action_counter2	괴담 규칙을 대처법처럼 남깁니다.	Leaves the legend's rule standing as advice.
 post.test.002.review.action_fear2	피하라는 말이 공포를 키웁니다.	Telling people to avoid it spreads fear.
+ui.net.main_comment_header	댓글 달기 (등록한 댓글은 고치거나 지울 수 없습니다)	Comment (posted comments can't be edited or deleted)	본편 댓글 선택지 머리
+ui.net.comment_none	지금 이 글에 달 수 있는 댓글이 없습니다	No comment to post here right now
+ui.net.comment_done	이 글에는 이미 답글을 달았습니다	You already replied to this post
+ui.net.clue_from_page	새 단서 — {0}	New clue — {0}	인터넷 글에서 얻은 단서
+ui.casefile.place_test_net	괴담넷 글	GwedamNet post	인터넷에서 얻은 단서 자리
+ui.casefile.place_test_phone	사무실 휴대폰	Office phone	테스트 사건 1
+web.test.004.title	삭제 기록 남겨 둡니다 (운영 보조)	Deletion log, for the record (moderator)	테스트 1 후속 글
+web.test.004.body	운영 보조입니다. 그 글은 지울 때마다 몇 분 안에 다른 신규 계정이 다시 올렸습니다.\n같은 글이 저절로 돌아온 적은 없습니다. 기록을 남겨 둡니다.	Moderator here. Each time that post was deleted, a different new account reposted it within minutes.\nIt never came back on its own. Leaving this for the record.
+web.test.004.c1	그럼 퍼 나른 사람이 있었던 거네요	So someone was reposting it
+web.test.004.c2	네, 계정은 매번 달랐습니다	Yes, a different account every time
+web.test.005.title	관리실입니다. 3층 자동 정지 안내	Management office: about the 3F auto-stop	테스트 2 후속 글
+web.test.005.body	관리실입니다. 야간 점검 때문에 3층 자동 정지가 걸려 있습니다.\n해제를 요청해 두었고, 그동안 문이 열려도 이상이 있는 것은 아닙니다.	Management office. The night maintenance setting stops the elevator at 3F.\nWe have asked for it to be removed; until then, the doors opening is not a fault.
+web.test.005.c1	아 점검 때문이었구나	Ah, it was maintenance
+web.test.005.c2	네, 해제되면 다시 공지하겠습니다	Yes, we'll post again once it's removed
+clue.test.005.title	운영 보조의 삭제 기록	The moderator's deletion log
+clue.test.005.text	운영 보조가 남긴 기록. 지울 때마다 몇 분 안에 서로 다른 신규 계정이 같은 글을 다시 올렸다.	The moderator's log: after each deletion, a different new account reposted it within minutes.	인터넷 단서
+clue.test.006.title	휴대폰의 공유 알림	Share alerts on the phone
+clue.test.006.text	휴대폰에 '[퍼가요] 지워지기 전에 저장하세요' 공유 알림이 세 번 와 있다.	The phone has three share alerts: "[Repost] Save it before it's deleted."	추가 조사 단서
+clue.test.007.title	관리실 안내 글	The management notice
+clue.test.007.text	관리실이 괴담넷에 직접 올린 안내. 야간 점검으로 3층 자동 정지가 걸려 있고 해제를 요청했다.	A notice the management posted: night maintenance sets an auto-stop at 3F; removal requested.	인터넷 단서
+clue.test.008.title	조작판 안쪽 점검 표시	The maintenance tag inside the panel
+clue.test.008.text	조작판 덮개 안쪽에 '야간 3F 정지 — 점검 모드' 표시가 붙어 있다.	Inside the panel cover: "Night 3F stop — maintenance mode."	추가 조사 단서
+action.test.008.name	휴대폰 기록 확인	Check the phone's history
+action.test.008.desc	휴대폰에 남은 알림과 공유 기록을 하나씩 확인한다. 시간이 꽤 걸린다.	Go through the phone's alerts and share history. It takes a while.
+action.test.008.result	공유 알림이 세 번 와 있었다.	There were three share alerts.
+action.test.009.name	조작판 안쪽 확인	Check inside the panel
+action.test.009.desc	조작판 덮개를 열어 안쪽 표시를 확인한다. 시간이 꽤 걸린다.	Open the panel cover and check the tags inside. It takes a while.
+action.test.009.result	덮개 안쪽에 점검 표시가 붙어 있었다.	There was a maintenance tag inside the cover.
+analysis.test.001.b.title	삭제 기록과 공유 알림	The deletion log and the share alerts	추가 분석
+analysis.test.001.b.body	지워지기 전에 저장하라는 공유가 돌았고, 지워지면 그 사본을 다른 계정이 다시 올렸다. 글은 사람이 옮긴 것이다.	A "save it before it's deleted" share went around, and after each deletion someone reposted the copy. People carried it.
+analysis.test.002.b.title	관리실 안내와 점검 표시	The notice and the maintenance tag	추가 분석
+analysis.test.002.b.body	관리실 안내와 조작판 안쪽 표시가 같은 말을 한다. 3층 정지는 점검 모드 설정이다.	The notice and the tag inside the panel say the same: the 3F stop is a maintenance-mode setting.
+post.test.001.title_record	삭제 기록 확인: 지워질 때마다 다른 계정이 다시 올렸습니다	Deletion log: a different account reposted it each time	근거 문장
+post.test.001.intro_record	운영 기록과 공유 알림을 함께 확인했습니다.	I checked the moderation log and the share alerts.	근거 문장
+post.test.001.fact_record	'지워지기 전에 저장하세요' 공유가 돌았고, 지워지면 그 사본이 다시 올라온 것입니다.	A "save before deletion" share went around; the copies were reposted after each deletion.	근거 문장
+post.test.001.action_record	퍼 가자는 공유는 받아도 넘기지 마세요. 그러면 다시 올라오지 않습니다.	If you get a "repost" share, don't pass it on. Then it won't come back.	근거 문장
+post.test.001.review.title_record	새 근거로 글이 사람 손으로 돌아왔음을 밝힙니다.	New evidence shows people brought it back.
+post.test.001.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Citing checked evidence lowers belief.
+post.test.001.review.fact_record	새 근거로 덧붙은 이야기를 걷어냅니다.	Removes the added story with new evidence.
+post.test.001.review.action_record	할 일을 구체적으로 알려 줘 안심시킵니다.	A concrete step reassures.
+post.test.002.title_record	관리실 안내 확인: 3층 정지는 점검 모드입니다	Management notice: the 3F stop is maintenance mode	근거 문장
+post.test.002.intro_record	관리실 안내와 조작판 표시를 함께 확인했습니다.	I checked the management notice and the panel tag.	근거 문장
+post.test.002.fact_record	관리실 안내와 조작판 안쪽 표시 모두 야간 점검 모드라고 적혀 있습니다.	Both the notice and the tag inside the panel say night maintenance mode.	근거 문장
+post.test.002.action_record	해제 공지가 올라올 때까지는 문이 열려도 닫힘 버튼을 누르시면 됩니다.	Until the removal notice, just press close if the doors open.	근거 문장
+post.test.002.review.title_record	새 근거로 원인을 밝힙니다.	New evidence states the cause.
+post.test.002.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Citing checked evidence lowers belief.
+post.test.002.review.fact_record	두 근거로 원인을 못 박습니다.	Two pieces of evidence pin down the cause.
+post.test.002.review.action_record	할 일을 구체적으로 알려 줘 안심시킵니다.	A concrete step reassures.
+post.test.001.c_ok1	작성자가 매번 다른 사본이에요. 그냥 퍼 나른 거예요.	Different author every copy. It was just reposted.	본편 댓글 (맞음)
+post.test.001.c_bad1	저도 이름 부르고 나서 이상한 일 생겼어요.	Weird stuff happened after I said the name too.	본편 댓글 (틀림)
+post.test.001.c_ok2	'세 번 부르면'은 '세 번 지웠다'가 잘못 옮겨진 말이에요.	"Say it three times" is a bad copy of "deleted three times."	본편 댓글 (맞음, 분석 필요)
+post.test.001.c_bad2	무서워서 저장해 뒀어요. 퍼갈게요.	Scared, so I saved it. Reposting.	본편 댓글 (틀림)
+post.test.001.c_ok3	삭제 기록 보면 지울 때마다 다른 계정이 다시 올렸대요.	The deletion log says a different account reposted it each time.	본편 댓글 (맞음, 추가 분석 필요)
+post.test.001.q1.title	그 지워지지 않는 글, 진짜 이름 부르면 나와요?	That undeletable post: does it really appear if you say the name?	질문 글
+post.test.001.q1.body	다들 무섭다길래 물어봐요. 진짜예요?	Everyone says it's scary. Is it real?
+post.test.001.q1_ok	'세 번'은 삭제 횟수가 옮겨지며 바뀐 말이에요. 부를 이름 같은 건 없어요.	"Three times" was the deletion count, garbled. There's no name to call.	답글 (맞음)
+post.test.001.q1_bad1	부르지 마세요. 진짜 나온대요.	Don't. It really shows up.	답글 (틀림)
+post.test.001.q1_bad2	한번 불러 보고 후기 남겨 주세요.	Try it and tell us.	답글 (틀림)
+post.test.001.q2.title	그 글 또 올라왔던데 저만 봤나요?	That post came back again — just me?	질문 글
+post.test.001.q2.body	지웠다던 그 글이 또 보여요.	The post they deleted is up again.
+post.test.001.q2_bad1	저도 봤어요. 지워도 계속 돌아온대요.	Saw it too. It keeps coming back.	답글 (틀림)
+post.test.001.q2_ok	지워질 때마다 다른 사람이 퍼 나른 사본이에요. 저절로 오는 게 아니에요.	Each time, someone reposted a copy. It doesn't come back on its own.	답글 (맞음)
+post.test.001.q2_bad2	보면 따라온다던데 조심하세요.	They say it follows you if you look.	답글 (틀림)
+post.test.001.q3.title	지워지지 않는 글 캡처 공유합니다	Sharing a capture of the undeletable post	질문 글
+post.test.001.q3.body	혹시 몰라서 캡처해 뒀어요. 다들 보세요.	Captured it just in case. Have a look.
+post.test.001.q3_bad1	저장해 둘게요, 감사해요.	Saving it, thanks.	답글 (틀림)
+post.test.001.q3_bad2	이거 진짜 저주 걸린 거 아닌가요.	Isn't this actually cursed?	답글 (틀림)
+post.test.001.q3_ok	캡처마다 작성자가 달라요. 이렇게 퍼 나르니까 계속 올라오는 거예요.	Every capture has a different author. Reposting is why it keeps coming back.	답글 (맞음)
+post.test.002.c_ok1	3층 정지는 야간 점검 설정 때문이래요.	The 3F stop is from a night maintenance setting.	본편 댓글 (맞음)
+post.test.002.c_bad1	저도 3층에서 문 열렸을 때 뭔가 있었어요.	Something was there when the doors opened on three for me too.	본편 댓글 (틀림)
+post.test.002.c_ok2	닳은 3층 버튼은 정지를 취소하려고 누른 자국이에요.	The worn 3F button is from people trying to cancel the stop.	본편 댓글 (맞음, 분석 필요)
+post.test.002.c_bad2	무서워서 이제 계단만 써요.	Too scared, stairs only now.	본편 댓글 (틀림)
+post.test.002.c_ok3	관리실 안내랑 조작판 표시 둘 다 점검 모드라고 적혀 있어요.	Both the management notice and the panel tag say maintenance mode.	본편 댓글 (맞음, 추가 분석 필요)
+post.test.002.q1.title	3층 엘리베이터, 내리면 안 되는 거 맞죠?	The 3F elevator — you really shouldn't step out, right?	질문 글
+post.test.002.q1.body	오늘 야근인데 무서워서요.	Working late tonight and I'm scared.
+post.test.002.q1_ok	야간 점검 설정 때문에 서는 거예요. 그냥 닫힘 누르시면 돼요.	It stops because of a night maintenance setting. Just press close.	답글 (맞음)
+post.test.002.q1_bad1	절대 내리지 마세요.	Never step out.	답글 (틀림)
+post.test.002.q1_bad2	계단 쓰세요. 그게 안전해요.	Use the stairs. Safer.	답글 (틀림)
+post.test.002.q2.title	방금 3층에서 또 섰어요	It just stopped at three again	질문 글
+post.test.002.q2.body	아무도 없었는데 문이 열렸어요.	Nobody there, but the doors opened.
+post.test.002.q2_bad1	3층에 뭔가 있는 거예요.	Something is on three.	답글 (틀림)
+post.test.002.q2_ok	관리실에서 점검 정지를 걸어 둔 거래요. 해제 요청 중이에요.	Management set a maintenance stop. Removal is requested.	답글 (맞음)
+post.test.002.q2_bad2	다음엔 꼭 피하세요.	Avoid it next time.	답글 (틀림)
+post.test.002.q3.title	3층 버튼 닳은 거 보셨어요?	Did you see how worn the 3F button is?	질문 글
+post.test.002.q3.body	그 버튼만 유독 닳았더라고요. 소름.	Only that button is worn. Creepy.
+post.test.002.q3_bad1	다들 뭔가를 피하려고 누른 거겠죠.	Everyone pressed it to escape something.	답글 (틀림)
+post.test.002.q3_bad2	그 버튼은 누르면 안 된대요.	You're not supposed to press it.	답글 (틀림)
+post.test.002.q3_ok	자동 정지를 취소하려고 다들 누른 자국이에요. 이상한 게 아니에요.	It's worn from people trying to cancel the auto-stop. Nothing strange.	답글 (맞음)

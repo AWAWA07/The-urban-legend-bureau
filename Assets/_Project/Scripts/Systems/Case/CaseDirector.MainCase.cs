@@ -99,6 +99,7 @@ namespace UrbanLegendBureau.Systems
             if (_internet.TryMarkPageViewed(_save, entry.Page.PageId))
                 Debug.Log($"[CaseDirector] 본편 | 괴담 글을 읽음 | {entry.Page.PageId} ({entry.LegendId})");
             if (HoldingMainCase && entry.LegendId == _legendId) CaseFlow.SetStep(_save, CaseStep.InternetResearch);
+            GrantPageClues(entry.Page);
         }
 
         // ------------------------------------------------------------- 현장 오가기
@@ -218,7 +219,7 @@ namespace UrbanLegendBureau.Systems
         /// 정정글이 성공했어도 괴담 믿음도가 목표보다 높으면 사건은 계속된다. 보고서·올린 글·오른 믿음도는 그대로이고 새 정정글을 쓸 수 있다.
         /// 해결하면 활성에서 빠지고, 그 괴담에 묶인 글은 모두 믿음도가 더 오르지 않는다. 같은 사건은 한 번만 센다.
         /// </summary>
-        private bool TryResolveMainCase(PostWritingSO data)
+        private bool TryResolveMainCase(PostWritingSO data, bool quiet = false)
         {
             if (!InMain || data == null || data.IsTutorial) return false;
 
@@ -233,7 +234,7 @@ namespace UrbanLegendBureau.Systems
             if (!_workday.TryResolve(caseId))
             {
                 var status = _workday.Evaluate(c);
-                if (status == WorkdayDirector.CaseStatus.AboveTarget)
+                if (status == WorkdayDirector.CaseStatus.AboveTarget && !quiet)
                     ShowMainToast(_loc.Get(MainAboveTargetTextId, Pct(_workday.DisplayBelief(c.LegendId)), _workday.ResolveTarget(c)));
                 // 아직 끝나지 않았다. 글쓰기 단추를 다시 세운다.
                 if (_communityScreen != null && _ui.Contains(_communityScreen)) BindWriteButton();

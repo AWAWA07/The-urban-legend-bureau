@@ -132,6 +132,17 @@ namespace UrbanLegendBureau.Save
 
         /// <summary>그렇게 다시 봐서 진행 중으로 되돌린 사건 (v14). 현황판에서 한 번 알리고 비운다.</summary>
         public List<string> reopenedCaseIds = new List<string>();
+
+        /// <summary>
+        /// 근무일마다 올라온 질문 글 (v15). "사건ID|순번|글ID|올라온 분|틀 번호". 게시판을 새로 지을 때 이것으로 되살린다.
+        /// </summary>
+        public List<string> questionPosts = new List<string>();
+
+        /// <summary>
+        /// 본편에서 단 댓글 기록 (v15). "사건ID|댓글ID|글 열쇠|단 분|믿음 몫". 같은 댓글을 다시 쓰지 못하게 막고, 사건별 대응 기록으로 남는다.
+        /// 댓글 내용과 믿음도는 게시판 글 상태(boardStates)에 이미 들어 있어 불러올 때 다시 반영하지 않는다.
+        /// </summary>
+        public List<string> commentLog = new List<string>();
     }
 
     /// <summary>
@@ -316,6 +327,8 @@ namespace UrbanLegendBureau.Save
             work.postedCaseIds ??= new List<string>();
             work.resolvedLegendIds ??= new List<string>();
             work.reopenedCaseIds ??= new List<string>();
+            work.questionPosts ??= new List<string>();
+            work.commentLog ??= new List<string>();
             boardStates ??= new List<BoardEntryState>();
             foreach (var b in boardStates)
             {

@@ -22,9 +22,13 @@ MonoBehaviour:
   _clues:
   - {fileID: 11400000, guid: fbfcfed9f316e4243a344e26e21fd3fc, type: 2}
   - {fileID: 11400000, guid: e2284601e22e258499501fb55ea72b60, type: 2}
+  - {fileID: 11400000, guid: a9b0867d6a95814d12512f19fecf9a3d, type: 2}
+  - {fileID: 11400000, guid: 74d671cc01ca92fad57745448b3b21ec, type: 2}
   _webPages:
   - {fileID: 11400000, guid: 225ad01d109ae504f89de82416d38f79, type: 2}
+  - {fileID: 11400000, guid: 05a2ccd7eaab833ecd368f9c3aff7cce, type: 2}
   _investigationActions:
   - {fileID: 11400000, guid: f1f389d3df3b5d947a1bb0dfaa9a74f8, type: 2}
   - {fileID: 11400000, guid: 5faa49e96e6693448ae7cac87dc543ba, type: 2}
   - {fileID: 11400000, guid: dfe98b20f7025f2de496ee7e5d35f334, type: 2}
+  - {fileID: 11400000, guid: f441af335484faf3cc4fac3bb9d44c99, type: 2}

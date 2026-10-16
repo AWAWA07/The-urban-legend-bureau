@@ -35,3 +35,4 @@ MonoBehaviour:
   _warningThresholds: 320000004b000000550000005f00000063000000
   _defaultResolveBelief: 30
   _postMinutes: 20
+  _commentMinutes: 10

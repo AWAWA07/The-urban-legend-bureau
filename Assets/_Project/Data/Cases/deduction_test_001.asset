@@ -18,12 +18,24 @@ MonoBehaviour:
     placeTextId: ui.casefile.place_test_desk
   - clueId: clue_test_002
     placeTextId: ui.casefile.place_test_wall
+  - clueId: clue_test_005
+    placeTextId: ui.casefile.place_test_net
+    fromPageId: web_test_004
+  - clueId: clue_test_006
+    placeTextId: ui.casefile.place_test_phone
+    fromPageId: 
   _analyses:
   - analysisId: analysis_test_001_a
     clueA: clue_test_001
     clueB: clue_test_002
     titleTextId: analysis.test.001.a.title
     bodyTextId: analysis.test.001.a.body
+  - analysisId: analysis_test_001_b
+    clueA: clue_test_005
+    clueB: clue_test_006
+    titleTextId: analysis.test.001.b.title
+    bodyTextId: analysis.test.001.b.body
+    optional: 1
   _questions:
   - questionId: q1
     labelTextId: deduce.test.001.q1.label

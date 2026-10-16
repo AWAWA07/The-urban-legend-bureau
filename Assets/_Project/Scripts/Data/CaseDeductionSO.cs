@@ -25,6 +25,9 @@ namespace UrbanLegendBureau.Data
 
             [Tooltip("얻은 자리 이름의 문구 ID. 예: 빈자리, 창문.")]
             public string placeTextId;
+
+            [Tooltip("본편: 이 인터넷 글(WebPageSO ID)을 괴담넷에서 읽으면 이 단서를 얻는다. 비우면 현장에서만 얻는다.")]
+            public string fromPageId;
         }
 
         [Serializable]
@@ -36,6 +39,8 @@ namespace UrbanLegendBureau.Data
             public string clueA;
             public string clueB;
 
+            [Tooltip("켜면 최종 추론을 여는 데 필요하지 않은 추가 분석이다. 정정글·댓글의 새 근거로 쓴다.")]
+            public bool optional;
             public string titleTextId;
             public string bodyTextId;
         }

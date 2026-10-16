@@ -573,6 +573,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OpenPhoneNet()
         {
+            _netOnComputer = false;   // 휴대폰으로 보는 글에는 댓글을 달지 않는다
             if (_communityScreen == null) return;
 
             PushStatus();
@@ -643,6 +644,7 @@ namespace UrbanLegendBureau.Systems
             if (!entry.Openable)
             {
                 if (_tutorial != null) _tutorial.OpenFillerPost(entry);
+                BindMainComments(entry);   // 본편: 숙소 컴퓨터로 연 사건 괴담 글에는 댓글을 달 수 있다
                 return;
             }
 
@@ -3897,6 +3899,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             if (appId != NetAppId || _communityScreen == null) return;
+            _netOnComputer = true;
 
             // 컴퓨터로 여는 괴담넷. 휴대폰과 같은 게시판을 창 모양으로 띄운다.
             PushStatus();

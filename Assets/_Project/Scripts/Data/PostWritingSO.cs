@@ -52,6 +52,33 @@ namespace UrbanLegendBureau.Data
         public List<string> requiredEvidenceIds = new List<string>();
     }
 
+    /// <summary>
+    /// 본편 괴담 글에 다는 댓글 하나. 올리면 그 괴담 글들의 믿음도가 beliefDelta 만큼 움직인다(음수면 내려간다).
+    /// 같은 댓글은 한 사건(또는 한 질문 글)에 한 번만 달 수 있다. 근거가 있어야 보이는 댓글은 requiredEvidenceIds 를 채운다.
+    /// </summary>
+    [Serializable]
+    public class CaseCommentOption
+    {
+        public string optionId;
+        public string bodyTextId;
+        public float beliefDelta;
+        public List<string> requiredEvidenceIds = new List<string>();
+    }
+
+    /// <summary>
+    /// 사건이 풀리지 않은 동안 근무가 시작될 때마다 올라오는 질문 글의 틀. 플레이어는 글마다 답글을 하나 달 수 있다.
+    /// 위험등급이 높을수록 하루에 많이 올라온다(사람들이 많이 묻는다). 정정글을 다 써 버렸거나 오래 방치한 사건도 이것으로 수습할 수 있다.
+    /// </summary>
+    [Serializable]
+    public class QuestionPostTemplate
+    {
+        public string templateId;
+        public string titleTextId;
+        public string bodyTextId;
+        public string authorTextId;
+        public List<CaseCommentOption> options = new List<CaseCommentOption>();
+    }
+
     /// <summary>게시 뒤에 달리는 댓글 한 줄. 기존 괴담넷 닉네임과 말투를 그대로 쓴다.</summary>
     [Serializable]
     public class PostWritingReaction
@@ -145,6 +172,13 @@ namespace UrbanLegendBureau.Data
         [SerializeField] private int _weakDislikes = 4;
         [SerializeField] private List<PostWritingReaction> _weakReactions = new List<PostWritingReaction>();
 
+        [Header("본편 댓글")]
+        [Tooltip("이 괴담 글(사건 글)에 달 수 있는 댓글. 각각 이 사건에서 한 번만 쓴다.")]
+        [SerializeField] private List<CaseCommentOption> _commentOptions = new List<CaseCommentOption>();
+
+        [Tooltip("사건이 풀리지 않은 동안 근무일마다 올라오는 질문 글의 틀. 차례로 돌아가며 쓴다.")]
+        [SerializeField] private List<QuestionPostTemplate> _questionTemplates = new List<QuestionPostTemplate>();
+
         [Header("한영의 말 (String ID)")]
         [SerializeField] private string _introLineTextId;
         [SerializeField] private string _excellentLineTextId;
@@ -189,6 +223,8 @@ namespace UrbanLegendBureau.Data
         public int WeakLikes => _weakLikes;
         public int WeakDislikes => _weakDislikes;
         public IReadOnlyList<PostWritingReaction> WeakReactions => _weakReactions;
+        public IReadOnlyList<CaseCommentOption> CommentOptions => _commentOptions;
+        public IReadOnlyList<QuestionPostTemplate> QuestionTemplates => _questionTemplates;
 
         public string IntroLineTextId => _introLineTextId;
         public string ExcellentLineTextId => string.IsNullOrEmpty(_excellentLineTextId) ? _successLineTextId : _excellentLineTextId;

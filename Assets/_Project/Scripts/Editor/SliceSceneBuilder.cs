@@ -95,12 +95,12 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(desk, "point_desk",
                 new[] { "action_test_002", "action_test_006" }, null, false, CaseStep.Started);
             ConfigurePoint(phone, "point_phone",
-                new[] { "action_test_006" }, null, false, CaseStep.Started);
+                new[] { "action_test_006", "action_test_008" }, null, false, CaseStep.Started);
             // 벽은 책상에서 얻은 단서가 있어야 조사할 수 있다.
             ConfigurePoint(wall, "point_wall",
                 new[] { "action_test_003" }, new[] { "clue_test_001" }, false, CaseStep.Started);
             ConfigurePoint(panel, "point_panel",
-                new[] { "action_test_005" }, null, false, CaseStep.Started);
+                new[] { "action_test_005", "action_test_009" }, null, false, CaseStep.Started);
             ConfigurePoint(mirror, "point_mirror",
                 new[] { "action_test_007", "action_test_006" }, null, false, CaseStep.Started);
 
