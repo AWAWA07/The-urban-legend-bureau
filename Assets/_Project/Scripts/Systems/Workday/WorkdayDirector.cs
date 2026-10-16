@@ -567,8 +567,9 @@ namespace UrbanLegendBureau.Systems
                 e.DislikePressed = s.dislikePressed;
                 e.GrowthCarry = s.growthCarry != null && s.growthCarry.Length == 4 ? (float[])s.growthCarry.Clone() : new float[4];
                 e.GrowthAddedComments = s.growthAddedComments;
-                if (s.comments != null && s.comments.Count > 0 && e.Comments != null)
+                if (s.comments != null && s.comments.Count > 0)
                 {
+                    e.Comments ??= new List<CommunityComment>();
                     // 같은 목록을 고쳐 채운다. 인기글은 튜토리얼이 이 목록을 따로 쥐고 있다.
                     e.Comments.Clear();
                     foreach (var line in s.comments)

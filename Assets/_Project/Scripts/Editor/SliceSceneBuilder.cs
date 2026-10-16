@@ -219,6 +219,7 @@ namespace UrbanLegendBureau.EditorTools
             var caseFile = BuildCaseFileScreen("Screen_CaseFile");
             var caseArchive = BuildCaseArchiveScreen("Screen_CaseArchive");
             var workday = BuildWorkdayScreen("Screen_Workday");
+            var saveSlots = BuildSaveSlotScreen("Screen_SaveSlot");
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -300,6 +301,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_caseFileScreen").objectReferenceValue = caseFile;
             dso.FindProperty("_caseArchiveScreen").objectReferenceValue = caseArchive;
             dso.FindProperty("_workdayScreen").objectReferenceValue = workday;
+            dso.FindProperty("_saveSlotScreen").objectReferenceValue = saveSlots;
             dso.FindProperty("_toastScreen").objectReferenceValue = toast;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
@@ -325,11 +327,11 @@ namespace UrbanLegendBureau.EditorTools
             UnityEventTools.AddPersistentListener(btnSettings.GetComponent<Button>().onClick, director.OnOpenSettingsClicked);
             UnityEventTools.AddPersistentListener(btnQuit.GetComponent<Button>().onClick, director.OnQuitClicked);
 
-            // 타이틀 세로 메뉴. 이어하기는 예전 시작과 같고(처음이면 이야기부터), 새 게임은 이야기를 처음부터 돌린다.
-            // 불러오기는 아직 저장 칸이 하나라 사건 목록을 연다. 크레딧은 아직 따로 없어 설명 화면을 연다.
-            UnityEventTools.AddPersistentListener(titleMenu[0].onClick, director.OnStartClicked);
+            // 타이틀 세로 메뉴. 이어하기는 가장 최근 수동 저장 칸(없고 처음이면 이야기부터), 새 게임은 이야기를 처음부터 돌린다.
+            // 불러오기는 수동 저장 칸(SAVE 01 ~ 20)을 연다. 크레딧은 아직 따로 없어 설명 화면을 연다.
+            UnityEventTools.AddPersistentListener(titleMenu[0].onClick, director.OnContinueClicked);
             UnityEventTools.AddPersistentListener(titleMenu[1].onClick, director.OnReplayTutorialClicked);
-            UnityEventTools.AddPersistentListener(titleMenu[2].onClick, director.OnOpenCaseListClicked);
+            UnityEventTools.AddPersistentListener(titleMenu[2].onClick, director.OnOpenLoadClicked);
             UnityEventTools.AddPersistentListener(titleMenu[3].onClick, director.OnOpenSettingsClicked);
             UnityEventTools.AddPersistentListener(titleMenu[4].onClick, director.OnOpenHelpClicked);
             UnityEventTools.AddPersistentListener(titleMenu[5].onClick, director.OnQuitClicked);
@@ -4036,6 +4038,7 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "memo", "ui.desktop.app_memo" },
                 new[] { "casefile", "ui.desktop.app_casefile" },   // 수사 노트. 숙소에 도착하면 열린다
                 new[] { "workboard", "ui.desktop.app_workboard" },   // 업무 현황. 본편에서 열린다
+                new[] { "saveslot", "ui.desktop.app_saveslot" },   // 수동 저장 칸. 본편에서 열린다
                 new[] { "archive", "ui.desktop.app_archive" },
                 new[] { "kikitalk", "ui.desktop.app_talk" },
                 new[] { "gallery", "ui.desktop.app_gallery" },
@@ -4051,7 +4054,7 @@ namespace UrbanLegendBureau.EditorTools
 
             for (int i = 0; i < apps.Length; i++)
             {
-                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-840f, 400f - i * 150f),
+                var icon = BuildDesktopIcon(go.transform, apps[i][0], new Vector2(-840f + (i / 6) * 160f, 400f - (i % 6) * 150f),   // 여섯 개씩 한 줄
                     out var iconLabel, out var iconHint, out var iconBadge, out var iconBadgeCount);
 
                 var element = iconList.GetArrayElementAtIndex(i);
@@ -5705,6 +5708,24 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>본편의 업무 현황판 / 야간 확산 보고 / 근무 종료 화면. 내용은 화면이 스스로 그린다.</summary>
+        /// <summary>수동 저장 칸 화면(SAVE 01 ~ 20). 칸과 단추는 화면이 열릴 때 그린다. 여기서는 글꼴만 잇는다.</summary>
+        private static SaveSlotScreen BuildSaveSlotScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.063f, 0.075f, 0.094f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<SaveSlotScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
+            so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
+            so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
         private static WorkdayScreen BuildWorkdayScreen(string name)
         {
             var go = CreatePanel(null, name, new Color(0.063f, 0.075f, 0.094f, 1f));

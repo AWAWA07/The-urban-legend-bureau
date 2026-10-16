@@ -623,6 +623,9 @@ namespace UrbanLegendBureau.Systems
             // 올라온 시각은 "게임을 시작한 밤 10시 30분에서 몇 분 전인가" 로 적는다.
             // 화면에 적히는 문구는 지금 시각을 보고 만든다. 조사하는 동안 시간이 흐르면 함께 밀린다.
             //
+            // 인기글 댓글 목록을 먼저 만든다. 이 목록이 없으면 저장본의 댓글(시간이 흘러 붙은 것)을 되살릴 자리가 없다.
+            if (_comments == null) BuildComments();
+
             // LegendId 를 적은 글만 그 사건을 조사할 때 믿음이 오른다.
             // 다른 괴담 이야기도 믿음 수치를 들고 있지만, 막차 사건과는 상관이 없다.
             _boardEntries = new List<CommunityBoardEntry>
@@ -969,6 +972,19 @@ namespace UrbanLegendBureau.Systems
         /// 게시판을 살아 움직이게 하는 쪽이 이 값으로 "처음부터 다시"를 알아챈다.
         /// </summary>
         public int BoardGeneration { get; private set; }
+
+        /// <summary>
+        /// 저장 칸을 불러온 뒤 게시판을 그 저장본으로 다시 짓는다. 지금 걸린 글은 모두 버린다.
+        /// 다시 지으면 BoardRebuilt 를 받은 쪽이 저장본의 글 상태·질문 글·플레이어 글을 되살린다.
+        /// 인기글이 따로 쥐고 있는 믿음 몫(_postBelief)도 되살린 값에 맞춘다.
+        /// </summary>
+        public void RebuildBoardFromSave()
+        {
+            BuildBoardEntries();
+            foreach (var entry in _boardEntries)
+                if (entry != null && entry.Openable) _postBelief = entry.BeliefPercent;
+            PushBeliefToTaskbar();
+        }
 
         /// <summary>게시판 목록을 새로 지었을 때. 저장본에 적힌 플레이어 글을 다시 거는 쪽이 받는다.</summary>
         public event System.Action BoardRebuilt;

@@ -183,5 +183,78 @@ namespace UrbanLegendBureau.Save
             if (!IsDirty) return false;
             return Save();
         }
+
+        // ------------------------------------------------------------- 수동 저장 칸 (SAVE 01 ~ SAVE 20)
+        //
+        // 수동 저장은 RPG 쯔꾸르처럼 칸마다 따로 있는 저장 파일이다(save_01 ~ save_20).
+        // 자동 저장(slot_0)은 지금 하고 있는 판의 숨겨진 임시 기록이라 칸과 섞이지 않는다.
+        //   칸에 저장    지금 진행(Current)을 그 칸에 통째로 쓴다. 자동 저장 칸(SlotKey)은 바뀌지 않는다.
+        //   칸 불러오기  그 칸의 파일을 새로 읽어 지금 진행으로 삼는다. 다른 칸과 나누는 것이 없어 저장한 그 시점으로 돌아간다.
+
+        public const int ManualSlotCount = 20;
+
+        /// <summary>수동 저장 칸의 열쇠. 1 부터 20 까지.</summary>
+        public static string ManualSlotKey(int slot) => "save_" + slot.ToString("00");
+
+        public bool SlotExists(int slot) => _backend != null && slot >= 1 && slot <= ManualSlotCount && _backend.Exists(ManualSlotKey(slot));
+
+        /// <summary>지금 진행을 수동 저장 칸에 쓴다. 저장 직전 정리(BeforeSave)는 자동 저장과 같다.</summary>
+        public bool SaveToSlot(int slot)
+        {
+            if (_backend == null || Current == null || slot < 1 || slot > ManualSlotCount) return false;
+
+            try { BeforeSave?.Invoke(); }
+            catch (Exception ex) { Debug.LogError($"[SaveService] 저장 전 정리 실패: {ex.Message}"); }
+
+            string json;
+            try
+            {
+                Current.saveVersion = SaveMigration.CurrentVersion;
+                json = JsonUtility.ToJson(Current, false);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveService] 직렬화 실패: {ex.Message}");
+                return false;
+            }
+
+            if (!_backend.Write(ManualSlotKey(slot), json)) return false;
+            _backend.Flush();
+            Debug.Log($"[SaveService] 수동 저장 | {ManualSlotKey(slot)} | {json.Length}자");
+            return true;
+        }
+
+        /// <summary>수동 저장 칸을 읽는다. 지금 진행은 바꾸지 않는다. 없거나 읽지 못하면 null.</summary>
+        public SaveData ReadSlot(int slot)
+        {
+            if (_backend == null || slot < 1 || slot > ManualSlotCount) return null;
+            var json = _backend.Read(ManualSlotKey(slot));
+            if (string.IsNullOrEmpty(json)) return null;
+
+            SaveData loaded;
+            try { loaded = JsonUtility.FromJson<SaveData>(json); }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SaveService] {ManualSlotKey(slot)} 역직렬화 실패: {ex.Message}");
+                return null;
+            }
+            if (loaded == null) return null;
+
+            loaded.EnsureIntegrity();
+            var result = SaveMigration.Migrate(loaded);
+            if (result == SaveMigration.Result.TooNew || result == SaveMigration.Result.Failed) return null;
+            return loaded;
+        }
+
+        /// <summary>
+        /// 읽어 온 저장본을 지금 진행으로 삼는다(칸 불러오기). 자동 저장 칸은 다음 저장 때 이 진행으로 덮인다.
+        /// 넘겨받은 것은 파일에서 새로 읽은 것이라 칸 파일과 메모리가 서로 묶이지 않는다.
+        /// </summary>
+        public void Adopt(SaveData data)
+        {
+            if (data == null) return;
+            Current = data;
+            IsDirty = true;
+        }
     }
 }

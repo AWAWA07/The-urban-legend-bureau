@@ -123,6 +123,7 @@ namespace UrbanLegendBureau.Systems
         private void EnterMainField()
         {
             _inRoom = false;
+            SetPlace("field");
             _night = NightState.None;
             _ui.CloseAll();
 

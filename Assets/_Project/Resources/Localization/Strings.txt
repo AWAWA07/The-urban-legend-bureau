@@ -1512,3 +1512,27 @@ post.test.002.q5_bad2	거기 원래 사람이 안 들어간대요.	Nobody's supp
 post.test.002.q5_ok	아무 일 없어요. 관리실이 야간 점검 정지를 걸어 둔 층일 뿐이에요.	Nothing happened. It's just the floor management set a night maintenance stop on.	답글 (맞음)
 post.subway.line_rewrite	이번 글은 내가 내려 둘게. 고른 문장은 그대로 있으니까, 고칠 칸만 바꿔 보자.\n대신 기억해 둬. 실전에서는 한 번 올린 글을 못 내려. 올리기 전에 잘 보고 올려.	I'll take this one down. Your picks are still there, so just change the parts that need it.\nBut remember: on a real case, a post can't be taken back once it's up. Check before you post.	튜토리얼 실패 글 내리기 + 본편 경고 (한영)
 ui.post.taken_down	실패한 글을 내렸습니다. 이번 괴담 믿음도 {0}% → {1}%  ·  전체 괴담 믿음도 {2}% → {3}%	The failed post was taken down. This legend {0}% → {1}%  ·  Overall {2}% → {3}%	튜토리얼에서만
+ui.desktop.app_saveslot	기록	Save	수동 저장 칸 앱
+ui.slot.title_save	기록 저장	Save Game	
+ui.slot.title_load	기록 불러오기	Load Game	
+ui.slot.sub_save	저장할 칸을 고르세요. 쓰던 칸을 고르면 덮어쓰기를 확인합니다.	Pick a slot to save to. Picking a used slot asks before overwriting.	
+ui.slot.sub_load	불러올 칸을 고르세요. 그 칸을 저장한 시점으로 돌아갑니다.	Pick a slot to load. You return to the moment it was saved.	
+ui.slot.tab_save	저장하기	Save	
+ui.slot.tab_load	불러오기	Load	
+ui.slot.empty	— 비어 있음 —	— Empty —	
+ui.slot.latest	최근 저장	Latest	
+ui.slot.close	닫기	Close	
+ui.slot.number	SAVE {0}	SAVE {0}	
+ui.slot.line1	{0}  {1}  ·  제{2}일차 근무  ·  플레이 {3}	{0}  {1}  ·  Shift day {2}  ·  Played {3}	
+ui.slot.line2	{0}  ·  {1}  ·  해결 {2}건  ·  저장 {3}	{0}  ·  {1}  ·  Solved {2}  ·  Saved {3}	
+ui.slot.no_case	맡은 사건 없음	No active case	
+ui.slot.place_field	{0} 현장	Site: {0}	
+ui.slot.confirm_overwrite	SAVE {0}에 이미 기록이 있습니다.\n덮어쓰시겠습니까?	SAVE {0} already has a record.\nOverwrite it?	
+ui.slot.overwrite	덮어쓰기	Overwrite	
+ui.slot.cancel	취소	Cancel	
+ui.slot.confirm_load	SAVE {0}을 불러오시겠습니까?\n저장하지 않은 지금 진행은 사라집니다.	Load SAVE {0}?\nUnsaved progress will be lost.	
+ui.slot.load	불러오기	Load	
+ui.slot.saved	SAVE {0}에 저장했습니다.	Saved to SAVE {0}.	
+ui.slot.save_failed	SAVE {0}에 저장하지 못했습니다.	Could not save to SAVE {0}.	
+ui.slot.load_failed	SAVE {0}을 불러오지 못했습니다.	Could not load SAVE {0}.	
+ui.slot.no_save	수동 저장 기록이 없습니다. 새 게임이나 불러오기를 고르세요.	No saved game. Choose New Game or Load.	

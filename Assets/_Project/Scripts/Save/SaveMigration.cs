@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 15;
+        public const int CurrentVersion = 16;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -188,6 +188,16 @@ namespace UrbanLegendBureau.Save
                 data.work.questionPosts ??= new System.Collections.Generic.List<string>();
                 data.work.commentLog ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 15;
+            }
+
+            if (data.saveVersion == 15)
+            {
+                // v16에서 수동 저장 칸 요약(meta), 플레이 시간(playSeconds), 지금 있는 곳(work.place)이 추가됐다.
+                // 구버전 저장본은 숙소에 있던 것으로 읽힌다. 플레이 시간은 0 에서 다시 센다.
+                data.meta ??= new SaveSlotMeta();
+                data.work ??= new WorkState();
+                if (string.IsNullOrEmpty(data.work.place)) data.work.place = "room";
+                data.saveVersion = 16;
             }
 
             if (data.saveVersion < CurrentVersion)

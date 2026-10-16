@@ -1727,6 +1727,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void Update()
         {
+            TickPlayTime();
             UpdateTitleAudio();
             UpdateFieldMusic();
             if (_sitStage == SitStage.None) CheckTrainFullySearched();   // 마지막으로 무엇을 살폈든 놓치지 않게 매 프레임 본다
@@ -3438,6 +3439,7 @@ namespace UrbanLegendBureau.Systems
         private void EnterRoom(bool withIntro = true)
         {
             _inRoom = true;
+            SetPlace("room");
             ShowRoom();
 
             // 숙소에는 밖에서 들어온다. 들어설 때마다 문 앞에서 시작한다.
@@ -3793,6 +3795,7 @@ namespace UrbanLegendBureau.Systems
             var apps = new List<string> { NetAppId, MemoAppId };
             if (Deduction != null || InMain) apps.Add(CaseFileAppId);
             if (InMain) apps.Add(WorkboardAppId);
+            if (InMain) apps.Add(SaveAppId);   // 수동 저장 칸. 본편에서만
             _desktopScreen.SetAllowedApps(apps.ToArray());
 
             bool notePending = IsNotePending();
@@ -3877,6 +3880,13 @@ namespace UrbanLegendBureau.Systems
             if (appId == WorkboardAppId)
             {
                 ShowWorkBoard();
+                return;
+            }
+
+            // 수동 저장 칸(SAVE 01 ~ 20).
+            if (appId == SaveAppId)
+            {
+                OpenSlots(fromTitle: false, saveMode: true);
                 return;
             }
 

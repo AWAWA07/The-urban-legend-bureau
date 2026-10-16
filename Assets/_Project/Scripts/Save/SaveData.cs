@@ -143,12 +143,34 @@ namespace UrbanLegendBureau.Save
         /// 댓글 내용과 믿음도는 게시판 글 상태(boardStates)에 이미 들어 있어 불러올 때 다시 반영하지 않는다.
         /// </summary>
         public List<string> commentLog = new List<string>();
+
+        /// <summary>지금 있는 곳 (v16). "room" 숙소 / "field" 맡은 사건의 현장. 불러오면 그 자리에서 다시 시작한다.</summary>
+        public string place = "room";
     }
 
     /// <summary>
     /// 게시판 글 하나의 바뀌는 숫자 (v11). 게시판은 매번 새로 짓고, 본편에서는 이 값으로 덮어 저장 시점의 모습을 되살린다.
     /// 열쇠는 글의 제목 ID 다(플레이어 글은 PlayerPostStore 가 따로 다룬다).
     /// </summary>
+    /// <summary>
+    /// 수동 저장 칸 하나의 요약 (v16). 칸 목록을 그릴 때 이것만 읽어 보여 준다(불러오기 전에 진행을 바꾸지 않는다).
+    /// </summary>
+    [Serializable]
+    public class SaveSlotMeta
+    {
+        /// <summary>실제로 저장한 때(UTC 틱). 이어하기는 이것이 가장 늦은 칸을 고른다. 0 이면 비어 있다.</summary>
+        public long savedAtUtcTicks;
+        public string savedAtLocal;
+        public int calendarDay;
+        public string dateText;
+        public int workday;
+        public int minuteOfDay;
+        public string placeText;
+        public string caseNameTextId;
+        public int solvedCount;
+        public float playSeconds;
+    }
+
     [Serializable]
     public class BoardEntryState
     {
@@ -294,6 +316,12 @@ namespace UrbanLegendBureau.Save
         /// <summary>본편 게시판 글의 믿음도와 반응 (v11).</summary>
         public List<BoardEntryState> boardStates = new List<BoardEntryState>();
 
+        /// <summary>쌓인 플레이 시간(초) (v16). 저장 칸에 보인다.</summary>
+        public float playSeconds;
+
+        /// <summary>수동 저장 칸에 보이는 요약 (v16). 수동 저장할 때 채운다. 자동 저장(slot_0)에서는 쓰지 않는다.</summary>
+        public SaveSlotMeta meta = new SaveSlotMeta();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -329,6 +357,8 @@ namespace UrbanLegendBureau.Save
             work.reopenedCaseIds ??= new List<string>();
             work.questionPosts ??= new List<string>();
             work.commentLog ??= new List<string>();
+            if (string.IsNullOrEmpty(work.place)) work.place = "room";
+            meta ??= new SaveSlotMeta();
             boardStates ??= new List<BoardEntryState>();
             foreach (var b in boardStates)
             {
