@@ -96,10 +96,10 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>
         /// 튜토리얼 글(어제 막차에서 있었던 일)이 괴담의 믿음에 보태고 있는 몫(%). 정답 댓글을 달면 조금 내려간다.
-        /// 조사하는 동안 이 글은 42% 다. 막차 괴담의 원글이라 다른 막차 글보다 높다.
+        /// 처음에는 42%, 정답 댓글을 달면 38% 로 내려간다. 막차 괴담의 원글이라 다른 막차 글보다 높다.
         /// </summary>
-        private const int TutorialPostBelief = 46;
-        private const int TutorialPostBeliefAfter = 42;
+        private const int TutorialPostBelief = 42;
+        private const int TutorialPostBeliefAfter = 38;
 
         /// <summary>지금 이 글이 들고 있는 몫. 댓글을 단 뒤에 바뀐다.</summary>
         private int _postBelief = TutorialPostBelief;
