@@ -102,7 +102,7 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(panel, "point_panel",
                 new[] { "action_test_005" }, null, false, CaseStep.Started);
             ConfigurePoint(mirror, "point_mirror",
-                new[] { "action_test_006" }, null, false, CaseStep.Started);
+                new[] { "action_test_007", "action_test_006" }, null, false, CaseStep.Started);
 
             // --- 실제 사건 1: 막차의 빈자리 (20단계) ---
             var fieldRootSubway = new GameObject("FieldRoot_Subway");

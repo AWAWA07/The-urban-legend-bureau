@@ -1,0 +1,120 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0dbd73e73be1c409294794e2046c17, type: 3}
+  m_Name: post_test_001
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.PostWritingSO
+  _postWritingId: post_test_001
+  _caseId: case_test_001
+  _legendId: legend_test_001
+  _isTutorial: 0
+  _titleCandidates:
+  - candidateId: title_fear
+    textId: post.test.001.title_fear
+    tag: 4
+    beliefDelta: 3
+    reviewTextId: post.test.001.review.title_fear
+  - candidateId: title_refute
+    textId: post.test.001.title_refute
+    tag: 1
+    beliefDelta: -2
+    reviewTextId: post.test.001.review.title_refute
+  - candidateId: title_calm
+    textId: post.test.001.title_calm
+    tag: 2
+    beliefDelta: -1
+    reviewTextId: post.test.001.review.title_calm
+  _introCandidates:
+  - candidateId: intro_rumor
+    textId: post.test.001.intro_rumor
+    tag: 0
+    beliefDelta: 0
+    reviewTextId: post.test.001.review.intro_rumor
+  - candidateId: intro_witness
+    textId: post.test.001.intro_witness
+    tag: 3
+    beliefDelta: 1
+    reviewTextId: post.test.001.review.intro_witness
+  - candidateId: intro_hook
+    textId: post.test.001.intro_hook
+    tag: 3
+    beliefDelta: 2
+    reviewTextId: post.test.001.review.intro_hook
+  _factCandidates:
+  - candidateId: fact_refute
+    textId: post.test.001.fact_refute
+    tag: 1
+    beliefDelta: -3
+    reviewTextId: post.test.001.review.fact_refute
+  - candidateId: fact_reports
+    textId: post.test.001.fact_reports
+    tag: 3
+    beliefDelta: 3
+    reviewTextId: post.test.001.review.fact_reports
+  - candidateId: fact_real
+    textId: post.test.001.fact_real
+    tag: 4
+    beliefDelta: 4
+    reviewTextId: post.test.001.review.fact_real
+  _actionCandidates:
+  - candidateId: action_calm
+    textId: post.test.001.action_calm
+    tag: 2
+    beliefDelta: -2
+    reviewTextId: post.test.001.review.action_calm
+  - candidateId: action_counter
+    textId: post.test.001.action_counter
+    tag: 0
+    beliefDelta: -1
+    reviewTextId: post.test.001.review.action_counter
+  - candidateId: action_fear
+    textId: post.test.001.action_fear
+    tag: 4
+    beliefDelta: 3
+    reviewTextId: post.test.001.review.action_fear
+  _postModifier: -1
+  _tutorialTargetBelief: 10
+  _requiredDrop: 5
+  _excellentDrop: 8
+  _refuteSection: 2
+  _allowRewrite: 1
+  _maxAttempts: 0
+  _takeDownFailedPost: 0
+  _authorTextId: ui.net.author_alias
+  _boardTextId: ui.net.board_free
+  _replyLineTextId: post.test.001.reply_to
+  _views: 29
+  _successLikes: 11
+  _successDislikes: 2
+  _successReactions:
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: post.test.001.react.ok_1
+  - authorTextId: ui.net.author_nick_10
+    bodyTextId: post.test.001.react.ok_2
+  _failLikes: 7
+  _failDislikes: 3
+  _failReactions:
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: post.test.001.react.bad_1
+  - authorTextId: ui.net.author_nick_12
+    bodyTextId: post.test.001.react.bad_2
+  _weakLikes: 4
+  _weakDislikes: 4
+  _weakReactions:
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: post.test.001.react.weak_1
+  _introLineTextId: 
+  _excellentLineTextId: 
+  _successLineTextId: 
+  _failLineTextId: 
+  _weakLineTextId: 
+  _flatLineTextId: 
+  _takeDownLineTextId: 

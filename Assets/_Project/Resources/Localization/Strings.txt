@@ -1207,3 +1207,134 @@ report.subway.target.title	검열 대상	Priority Moderation Target	보고서 5 
 report.subway.target.body	온라인에서 괴담의 규칙을 단정적으로 소개한 '[정리] 막차 괴담 규칙 {_}' 게시물이 우선 검열 대상으로 지목되었다.	The post '[Summary] Last train rules, {_}', which presented the legend's rules as settled fact, has been flagged as the priority moderation target.	보고서 5 문단 (빈칸: 검열 대상 web_subway_003)
 report.subway.target.answer	총정리	all in one place	보고서 5 대표 답
 tutorial.field.alight_room	다 왔다. 숙소로 돌아가서 오늘 조사한 걸 정리하자.	We are here. Let's head back to the dorm and go over what we found today.	종점 승강장에서 열차가 떠난 뒤 - 한영
+ui.travel.duration_main_field	숙소에서 현장까지 {0}분	{0} min from the dorm to the site	본편 현장 이동
+ui.travel.duration_main_room	현장에서 숙소까지 {0}분	{0} min from the site back to the dorm	본편 숙소 복귀
+ui.work.toast_report_done	조사 보고서를 확정했습니다. 괴담넷에서 정정글을 쓸 수 있습니다.	Report confirmed. You can now write a correction on GwedamNet.	
+ui.work.toast_solved	사건 해결 — {0}	Case solved — {0}	
+ui.work.detail_progress	진행  단서 {0}/{1} · 분석 {2}/{3} · 추론 {4}/{5}	Progress  clues {0}/{1} · analyses {2}/{3} · deductions {4}/{5}	
+ui.work.detail_report	보고서 확정 {0}   ·   정정글 {1}	Report filed {0}   ·   Correction {1}	
+ui.work.detail_solved	해결한 사건입니다. 이 괴담은 더 퍼지지 않습니다.	Solved. This legend no longer spreads.	
+ui.work.btn_take	이 사건 맡기	Take this case	
+ui.work.btn_holding	맡고 있는 사건	Current case	
+ui.work.btn_go_field	현장으로 이동 ({0}분)	Go to the site ({0} min)	
+ui.work.tag_holding	조사 중	ACTIVE	
+ui.work.tag_solved	해결	SOLVED	
+ui.work.btn_return_room	숙소로 돌아가기	Back to the dorm	
+clue.test.001.title	책상 밑 캡처 출력물	Printouts under the desk	테스트 단서 제목
+clue.test.002.title	벽의 낙서	Graffiti on the wall	테스트 단서 제목
+clue.test.003.title	닳은 3층 버튼	The worn third-floor button	테스트 단서 제목
+clue.test.004.text	거울 아래에 관리실 메모가 붙어 있다. "야간 3층 자동 정지 — 점검 설정, 해제 요청 중"	A management note under the mirror: "Night auto-stop on 3F, maintenance setting, removal requested"	테스트 단서 (거울)
+clue.test.004.title	거울 아래 관리 메모	The note under the mirror	테스트 단서 제목
+action.test.007.name	거울 주변 살피기	Check around the mirror
+action.test.007.desc	거울 테두리와 그 아래를 꼼꼼히 살핀다.	Look closely at the mirror frame and below it.
+action.test.007.result	거울 아래에 종이 한 장이 붙어 있다.	A sheet of paper is taped under the mirror.
+ui.casefile.place_test_desk	사무실 책상	Office desk	테스트 사건 1
+ui.casefile.place_test_wall	사무실 벽	Office wall	테스트 사건 1
+ui.casefile.place_test_panel	엘리베이터 조작판	Elevator panel	테스트 사건 2
+ui.casefile.place_test_mirror	엘리베이터 거울	Elevator mirror	테스트 사건 2
+analysis.test.001.a.title	작성자가 다른 세 장	Three copies, three authors	분석 (테스트 1)
+analysis.test.001.a.body	캡처 속 글 세 개는 작성자가 모두 다르다. 벽 낙서의 '세 번 부르면 나타난다'는 '세 번 지워도 다시 올라온다'가 옮겨 적히며 바뀐 말이다. 글은 지워질 때마다 누군가 다시 퍼 나른 것이다.	The three captured posts each have a different author. "Say it three times and it appears" on the wall is a garbled copy of "deleted three times and it came back". Someone reposted it each time.
+deduce.test.001.q1.label	괴담의 진위	Is it real
+deduce.test.001.q1.question	지워도 다시 올라오는 글은 무엇 때문일까?	Why does the deleted post keep coming back?
+deduce.test.001.q1.opt0	글에 무언가 씌어 있어 스스로 돌아온다.	Something is attached to the post and it returns on its own.
+deduce.test.001.q1.opt1	지워질 때마다 다른 사람이 다시 퍼 나른 것이다.	Each time it was deleted, someone else reposted it.	정답
+deduce.test.001.q1.opt2	운영자가 일부러 다시 올리고 있다.	The admin is reposting it on purpose.
+deduce.test.001.q1.explain	세 장의 작성자가 모두 다르다. 같은 글이 스스로 돌아온 것이 아니라 여러 사람이 옮긴 것이다.	Three copies, three authors. It did not come back by itself; people carried it.
+deduce.test.001.q1.report	사람들이 퍼 나른 가짜 괴담으로 판단됨.	Judged to be a fake legend spread by reposting.
+deduce.test.001.q2.label	덧붙은 규칙	Added rule
+deduce.test.001.q2.question	퍼지면서 덧붙은 거짓 규칙은 무엇일까?	Which false rule was added as it spread?
+deduce.test.001.q2.opt0	자정 이후에는 이름을 부르지 않는다.	Do not call the name after midnight.
+deduce.test.001.q2.opt1	이름을 세 번 부르면 나타난다.	Say the name three times and it appears.	정답
+deduce.test.001.q2.opt2	글을 끝까지 읽으면 따라온다.	Read it to the end and it follows you.
+deduce.test.001.q2.explain	'세 번'은 글이 지워진 횟수였다. 벽 낙서로 옮겨지며 '세 번 부르면'으로 바뀌었다.	"Three times" was how often the post was deleted. Copied onto the wall, it became "say it three times".
+deduce.test.001.q2.report	'세 번 부르면 나타난다'는 옮겨 적다 생긴 거짓 규칙.	"Say it three times" is a false rule born from copying.
+deduce.test.001.summary	캡처 세 장과 벽 낙서를 대조해, 글이 스스로 돌아온 것이 아니라 여러 사람이 퍼 나른 것임을 확인하였다.	Comparing the three captures with the graffiti showed the post was reposted by people, not returning on its own.
+report.test.001.overview.title	사건 개요	Case Overview
+report.test.001.overview.body	세 번 지워도 다시 올라온다는 게시글은 작성자가 매번 다른 복사본이었다. 이 괴담은 {_}(이)다.	The post that "came back after three deletions" was a different copy each time. This legend is {_}.
+report.test.001.overview.answer	가짜	fake
+report.test.001.target.title	검열 대상	Target post
+report.test.001.target.body	검열 대상은 '이 글 {_}' 글이다.	The target is the post "This post {_}".
+report.test.001.target.answer	지워지지 않음	will not delete
+analysis.test.002.a.title	닳은 버튼과 관리 메모	The worn button and the note	분석 (테스트 2)
+analysis.test.002.a.body	엘리베이터는 점검 설정 때문에 밤마다 3층에 선다. 놀란 사람들이 3층 버튼을 눌러 취소하려다 버튼이 닳았다.	The elevator stops on three every night because of a maintenance setting. Startled riders kept pressing the 3F button to cancel it, wearing it down.
+deduce.test.002.q1.label	괴담의 진위	Is it real
+deduce.test.002.q1.question	엘리베이터가 밤마다 3층에 서는 까닭은?	Why does the elevator stop on three every night?
+deduce.test.002.q1.opt0	3층에 무언가가 타려고 기다린다.	Something on three is waiting to ride.
+deduce.test.002.q1.opt1	야간 자동 정지 점검 설정 때문이다.	A night auto-stop maintenance setting.	정답
+deduce.test.002.q1.opt2	누군가 장난으로 버튼을 누른다.	Someone presses it as a prank.
+deduce.test.002.q1.explain	관리실 메모가 야간 3층 자동 정지 설정을 밝히고 있다.	The management note states the night 3F auto-stop setting.
+deduce.test.002.q1.report	점검 설정에서 생긴 착각으로 판단됨.	Judged to be a misunderstanding from a maintenance setting.
+deduce.test.002.q2.label	대처법	What to do
+deduce.test.002.q2.question	이 괴담에 맞는 대처는?	What is the right response?
+deduce.test.002.q2.opt0	3층에서는 문이 열려도 절대 내리지 않는다.	Never step out on three, even if the doors open.
+deduce.test.002.q2.opt1	관리실에 자동 정지 해제를 요청한다.	Ask management to turn off the auto-stop.	정답
+deduce.test.002.q2.opt2	밤에는 엘리베이터를 타지 않는다.	Do not ride the elevator at night.
+deduce.test.002.q2.explain	원인이 설정이니 설정을 풀면 멈추지 않는다.	The cause is a setting; remove it and the stops end.
+deduce.test.002.q2.report	관리실에 자동 정지 해제를 요청할 것.	Ask management to remove the auto-stop.
+deduce.test.002.summary	닳은 3층 버튼과 관리 메모를 대조해, 밤마다 3층에 서는 것은 점검 설정 때문임을 확인하였다.	Comparing the worn button and the note showed the nightly stops come from a maintenance setting.
+report.test.002.overview.title	사건 개요	Case Overview
+report.test.002.overview.body	밤마다 3층에서 문이 열리는 것은 야간 자동 정지 {_} 때문이다.	The doors open on three every night because of the night auto-stop {_}.
+report.test.002.overview.answer	설정	setting
+report.test.002.target.title	검열 대상	Target post
+report.test.002.target.body	검열 대상은 '{_}하다 겪은 일 (엘리베이터)' 글이다.	The target is "Something that happened during {_} (elevator)".
+report.test.002.target.answer	야근	overtime
+post.test.001.reply_to	원글: 이 글 지워지지 않음	Re: This post will not delete	정정글 원글 표시
+post.test.001.title_fear	[경고] 지워지지 않는 글, 절대 이름 부르지 마세요	[Warning] The undeletable post, never say the name
+post.test.001.title_refute	지워지지 않는 글, 사람들이 퍼 나른 겁니다	The undeletable post was just reposted
+post.test.001.title_calm	그 글 관련해서 확인한 것 적어요	Notes on that post
+post.test.001.intro_rumor	요즘 도는 '지워지지 않는 글' 이야기 다들 보셨을 거예요.	You have all seen the "undeletable post" story.
+post.test.001.intro_witness	저도 그 글이 다시 올라오는 걸 직접 봤어요.	I saw it come back myself.
+post.test.001.intro_hook	이건 진짜 소름 돋는 이야기입니다.	This one gives real chills.
+post.test.001.fact_refute	다시 올라온 글은 매번 작성자가 달랐고, '세 번 부르면 나타난다'는 옮겨 적다 생긴 말입니다.	Each repost had a different author, and "say it three times" came from bad copying.
+post.test.001.fact_reports	비슷한 제보가 계속 들어오는 건 사실이에요.	It is true that similar reports keep coming in.
+post.test.001.fact_real	실제로 지워도 돌아오는 글이 있다는 건 확인됐습니다.	It is confirmed that some posts return after deletion.
+post.test.001.action_calm	보이면 그냥 신고하고 넘기시면 됩니다.	If you see it, just report it and move on.
+post.test.001.action_counter	그래도 이름은 부르지 않는 게 좋겠죠.	Still, better not to say the name.
+post.test.001.action_fear	절대 읽지 말고 바로 창을 닫으세요.	Never read it. Close the window right away.
+post.test.001.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.
+post.test.001.review.title_refute	제목에서 원인을 밝혀 소문을 꺾습니다.	Naming the cause in the title deflates it.
+post.test.001.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but does not say what is wrong.
+post.test.001.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor without feeding it.
+post.test.001.review.intro_witness	직접 봤다는 말이 실재한다는 인상을 줍니다.	"I saw it" makes it feel real.
+post.test.001.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opening feeds belief.
+post.test.001.review.fact_refute	덧붙은 규칙을 근거와 함께 걷어냅니다.	Removes the added rule with evidence.
+post.test.001.review.fact_reports	제보가 많다는 말만으로 믿음이 오릅니다.	Talking about many reports raises belief.
+post.test.001.review.fact_real	괴담이 사실이라고 못 박습니다.	States the legend as fact.
+post.test.001.review.action_calm	평소대로 행동하라고 안심시킵니다.	Reassures people to act normally.
+post.test.001.review.action_counter	거짓 규칙을 반쯤 인정합니다.	Half-endorses the false rule.
+post.test.001.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to flee spreads fear.
+post.test.001.react.ok_1	작성자가 매번 달랐다니, 그럼 그냥 퍼 나른 거네요.	Different authors each time? So it was just reposted.
+post.test.001.react.ok_2	세 번 부르면 나타난다는 건 어디서 나온 건가 했는데.	I wondered where "say it three times" came from.
+post.test.001.react.bad_1	역시 진짜였구나... 이름 안 불러야지.	So it was real... not saying the name.
+post.test.001.react.bad_2	더 무서워졌어요.	Now I am more scared.
+post.test.001.react.weak_1	음... 그래서 진짜라는 거예요 아니라는 거예요?	So... is it real or not?
+post.test.002.reply_to	원글: 야근하다 겪은 일 (엘리베이터)	Re: Something that happened during overtime (elevator)	정정글 원글 표시
+post.test.002.title_fear	[주의] 3층에서 절대 내리지 마세요	[Caution] Never step out on three
+post.test.002.title_refute	3층 엘리베이터, 점검 설정 때문이었습니다	The 3F elevator was a maintenance setting
+post.test.002.title_calm	3층 엘리베이터 건 확인해 봤어요	I looked into the 3F elevator
+post.test.002.intro_rumor	밤마다 3층에서 문이 열린다는 이야기 보셨죠.	You have seen the story about doors opening on three.
+post.test.002.intro_witness	저도 그 엘리베이터에서 겪었어요.	It happened to me in that elevator too.
+post.test.002.intro_hook	이건 정말 오싹한 이야기입니다.	This one is truly eerie.
+post.test.002.fact_refute	관리실 메모를 보니 야간 3층 자동 정지가 점검 설정으로 걸려 있었습니다.	A management note shows a night 3F auto-stop maintenance setting.
+post.test.002.fact_reports	같은 제보가 여러 건 있는 건 맞아요.	There are indeed several identical reports.
+post.test.002.fact_real	3층에 뭔가 있는 건 확실해 보입니다.	Something on three seems certain.
+post.test.002.action_calm	관리실에 해제 요청이 들어가 있으니 평소처럼 타시면 됩니다.	Removal has been requested; ride as usual.
+post.test.002.action_counter	그래도 3층에서는 내리지 않는 게 좋겠죠.	Still, better not to step out on three.
+post.test.002.action_fear	밤에는 계단을 이용하세요.	Take the stairs at night.
+post.test.002.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.
+post.test.002.review.title_refute	제목에서 원인을 밝혀 소문을 꺾습니다.	Naming the cause in the title deflates it.
+post.test.002.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but does not say what is wrong.
+post.test.002.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor without feeding it.
+post.test.002.review.intro_witness	직접 겪었다는 말이 실재한다는 인상을 줍니다.	"It happened to me" makes it feel real.
+post.test.002.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opening feeds belief.
+post.test.002.review.fact_refute	원인을 근거와 함께 밝힙니다.	States the cause with evidence.
+post.test.002.review.fact_reports	제보가 많다는 말만으로 믿음이 오릅니다.	Talking about many reports raises belief.
+post.test.002.review.fact_real	괴담이 사실이라고 못 박습니다.	States the legend as fact.
+post.test.002.review.action_calm	평소대로 행동하라고 안심시킵니다.	Reassures people to act normally.
+post.test.002.review.action_counter	괴담 규칙을 반쯤 인정합니다.	Half-endorses the legend's rule.
+post.test.002.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to avoid it spreads fear.
+post.test.002.react.ok_1	점검 설정이었구나. 괜히 무서워했네요.	A maintenance setting. I was scared for nothing.
+post.test.002.react.ok_2	관리실 메모 사진도 있으면 좋겠어요.	A photo of the note would be nice.
+post.test.002.react.bad_1	역시 3층엔 뭐가 있어...	There really is something on three...
+post.test.002.react.bad_2	이제 계단으로 다닙니다.	Taking the stairs from now on.
+post.test.002.react.weak_1	그래서 내려도 된다는 거예요?	So is it okay to step out or not?

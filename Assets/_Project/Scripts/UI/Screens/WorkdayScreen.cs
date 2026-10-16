@@ -33,6 +33,14 @@ namespace UrbanLegendBureau.UI
             public bool TagDanger;
         }
 
+        /// <summary>자세히 칸 아래의 단추 하나. 누를 수 없으면 흐리게 보인다.</summary>
+        public class ActionButton
+        {
+            public string Label;
+            public Action OnClick;
+            public bool Enabled = true;
+        }
+
         public class View
         {
             public string Bureau;       // 괴담 검열국 — 오늘의 업무
@@ -51,6 +59,7 @@ namespace UrbanLegendBureau.UI
             public string PrimaryLabel;
             public Action OnPrimary;
             public Action<string> OnSelect;
+            public List<ActionButton> Actions = new List<ActionButton>();   // 자세히 칸 아래에 세우는 단추들
         }
 
         private static readonly Color Bg = Hex("101318");
@@ -166,9 +175,32 @@ namespace UrbanLegendBureau.UI
                 var title = Label("Title", side.rectTransform, _bold, 28f, TextMain, TextAlignmentOptions.TopLeft);
                 Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(26f, -66f), new Vector2(-26f, -22f));
                 title.text = v.DetailTitle;
+                // 단추는 칸 맨 아래부터 위로 쌓는다. 글은 그 위까지만 쓴다.
+                float btnH = 58f, gap = 10f;
+                float buttonsTop = 20f + v.Actions.Count * (btnH + gap);
+                for (int i = 0; i < v.Actions.Count; i++)
+                {
+                    var a = v.Actions[i];
+                    if (a == null) continue;
+                    float y = 20f + (v.Actions.Count - 1 - i) * (btnH + gap);
+                    var btn = Box("Action" + i, side.rectTransform, a.Enabled ? (i == 0 ? Soft : Hex("3A4552")) : Hex("262C34"));
+                    Place(btn.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(26f, y), new Vector2(-26f, y + btnH));
+                    var t = Label("Label", btn.rectTransform, _bold, 23f,
+                        !a.Enabled ? TextDim : i == 0 ? Hex("1B1E24") : TextMain, TextAlignmentOptions.Center);
+                    Stretch(t.rectTransform);
+                    t.text = a.Label;
+                    if (!a.Enabled) continue;
+                    btn.raycastTarget = true;
+                    var b = btn.gameObject.AddComponent<Button>();
+                    b.targetGraphic = btn;
+                    var act = a.OnClick;
+                    b.onClick.AddListener(() => act?.Invoke());
+                }
+
                 var body = Label("Body", side.rectTransform, _regular, 21f, TextSub, TextAlignmentOptions.TopLeft);
-                Place(body.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(26f, 20f), new Vector2(-26f, -78f));
+                Place(body.rectTransform, new Vector2(0f, 0f), new Vector2(1f, 1f), new Vector2(26f, buttonsTop + 6f), new Vector2(-26f, -78f));
                 body.textWrappingMode = TextWrappingModes.Normal;
+                body.overflowMode = TextOverflowModes.Truncate;
                 body.lineSpacing = 8f;
                 body.text = string.Join("\n", v.Detail);
             }

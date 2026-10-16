@@ -18,6 +18,8 @@ MonoBehaviour:
   _legendId: legend_test_002
   _startingStep: 1
   _isPlayable: 1
+  _postWriting: {fileID: 11400000, guid: 27771d73af2e67cfc29b00b0ea7aa609, type: 2}
+  _deduction: {fileID: 11400000, guid: 5a38ccc1e9270814b317badc40405235, type: 2}
   _mainStory: 1
   _startBelief: 38
   _appearWorkday: 2

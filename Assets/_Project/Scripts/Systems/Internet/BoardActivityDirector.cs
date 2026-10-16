@@ -87,6 +87,27 @@ namespace UrbanLegendBureau.Systems
             if (saved >= 0) _lastMinute = saved;
         }
 
+        /// <summary>
+        /// 게시판을 새로 지은 뒤(불러오기) 이미 지난 시각에 올라왔어야 할 글을 다시 건다. 게시판에 이미 있으면 건너뛴다.
+        /// 걸어 둔 글은 올린 것으로 적어 두어 시간이 흘러도 두 번 올라오지 않는다. 걸린 글의 숫자는 부르는 쪽이 저장본으로 덮는다.
+        /// </summary>
+        public int RestorePassedPosts(int nowMinute)
+        {
+            if (_data == null || _tutorial == null) return 0;
+            int added = 0;
+            foreach (var post in _data.ScheduledPosts)
+            {
+                if (post == null || string.IsNullOrEmpty(post.fillerKey) || post.atElapsedMinute > nowMinute) continue;
+                _posted.Add(post.fillerKey);
+                string key = "board.filler." + post.fillerKey;
+                bool onBoard = false;
+                foreach (var e in _tutorial.BoardEntries) if (e != null && e.TitleTextId == key) { onBoard = true; break; }
+                if (onBoard) continue;
+                if (_tutorial.AddScheduledPost(post) != null) added++;
+            }
+            return added;
+        }
+
         /// <summary>이미 지난 시각에 올라오기로 한 글은 다시 올리지 않는다.</summary>
         private void MarkPostedUpTo(int minute)
         {

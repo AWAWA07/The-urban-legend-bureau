@@ -637,6 +637,7 @@ namespace UrbanLegendBureau.Systems
         private void OnPhoneBoardEntry(CommunityBoardEntry entry)
         {
             if (entry == null) return;
+            OnMainBoardEntryOpened(entry);
 
             // 게시판을 채우는 글들. 현장으로 나온 뒤부터 읽을 수 있다.
             if (!entry.Openable)
@@ -1073,7 +1074,9 @@ namespace UrbanLegendBureau.Systems
             foreach (var point in _field.ActiveRoot.GetComponentsInChildren<InvestigationPoint>(true))
             {
                 if (point == null || !point.HasActions) continue;
+                // 기록과 다르게 남은 표시는 걷는다. 새 판이나 다른 사건을 거쳐 온 현장에 지난 표시가 남지 않게 한다.
                 if (AreAllActionsDone(point)) point.MarkInvestigated();
+                else if (point.IsInvestigated) point.ResetVisual();
             }
         }
 
@@ -1250,7 +1253,8 @@ namespace UrbanLegendBureau.Systems
             // 현장에 닿는 시각은 정해져 있다. 막차를 잡으려면 그 시각에 거기 있어야 한다.
             // 컴퓨터 앞에서 얼마를 보냈든 여기 도착하면 이 시각이고, 여기서부터 다시 흐른다.
             // 한 사건에 한 번만 맞춘다. 현장을 들락거린다고 시계가 되감기지는 않는다.
-            if (!_fieldTimeAdded)
+            // 본편 현장은 정해진 도착 시각이 없다. 오가는 시간만 흐른다.
+            if (!_fieldTimeAdded && !InMain)
             {
                 _fieldTimeAdded = true;
                 GameClock.SetTo(FieldHour, FieldMinute);
@@ -1740,6 +1744,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private bool IsAfterTerminus()
         {
+            if (InMain) return false;   // 막차의 종점은 튜토리얼 사건의 일이다
             int now = GameClock.MinutesOfDay;
             return now >= TerminusMinutesOfDay && now < MorningMinutesOfDay;
         }
@@ -2072,6 +2077,8 @@ namespace UrbanLegendBureau.Systems
         /// <summary>현장 화면의 조사 종료 버튼. 봉인 단계로 넘어간다.</summary>
         public void OnFieldDoneClicked()
         {
+            // 본편에서는 조사를 마치고 숙소로 돌아간다. 봉인은 퇴마 단계에서 붙는다.
+            if (InMain) { ReturnFromMainField(); return; }
             ShowExorcism();
         }
 
@@ -3544,6 +3551,7 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnPostSucceeded(PostWritingSO data)
         {
+            if (TryResolveMainCase(data)) return;
             if (data == null || !data.IsTutorial || !_inRoom) return;
 
             // 컴퓨터를 끈다. 위에 떠 있는 괴담넷과 메모장부터 닫는다.
@@ -3961,7 +3969,7 @@ namespace UrbanLegendBureau.Systems
         private CaseDeductionSO Deduction => _case != null ? _case.Deduction : null;
 
         /// <summary>현장 조사가 닫혔는가(막차가 종점에 닿았다). 최종 추론은 그 뒤에 연다.</summary>
-        private bool FieldClosed() => _terminusDone || _alighted || IsAfterTerminus();
+        private bool FieldClosed() => InMain || _terminusDone || _alighted || IsAfterTerminus();
 
         /// <summary>조사가 닫힌 뒤 수사 노트를 열 때 펼칠 쪽. 아직 할 일이 남은 첫 쪽이다.</summary>
         private CaseFileScreen.Page NextCaseFilePage()
@@ -4018,7 +4026,8 @@ namespace UrbanLegendBureau.Systems
                 if (data == null) continue;
 
                 bool solved = CaseNotebook.IsReportConfirmed(_save.Current, c.CaseId);
-                bool active = c.CaseId == _caseId;
+                // 본편에서는 지금 맡은 사건뿐 아니라 활성 사건이 모두 카드로 선다. 눌러서 바꿔 맡을 수 있다.
+                bool active = c.CaseId == _caseId || (InMain && _workday.IsActive(c.CaseId));
                 if (!solved && !active) continue;
 
                 var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
@@ -4055,6 +4064,9 @@ namespace UrbanLegendBureau.Systems
         /// <summary>기록부에서 사건 하나를 골랐다. 할 일이 남았으면 그쪽부터, 끝났으면 보고서를 펼친다.</summary>
         private void OnArchiveCaseOpened(string caseId)
         {
+            // 본편에서는 다른 사건 카드를 누르면 그 사건으로 바꿔 든다. 모아 둔 것은 사건별로 남아 있다.
+            if (InMain && caseId != _caseId) HoldMainCase(caseId);
+
             if (caseId != _caseId || Deduction == null)
             {
                 Debug.Log($"[CaseDirector] 사건 기록부 | {caseId} 는 지금 맡은 사건이 아니라 펼치지 않는다");
@@ -4104,7 +4116,8 @@ namespace UrbanLegendBureau.Systems
             }
             _save.MarkDirty();
 
-            if (_tutorial != null) _tutorial.ShowComputerTalk(ReportCueTextId, null);
+            // 본편에서는 한영이 곁에 없다.
+            if (_tutorial != null && !InMain) _tutorial.ShowComputerTalk(ReportCueTextId, null);
         }
 
         /// <summary>
@@ -4117,6 +4130,18 @@ namespace UrbanLegendBureau.Systems
             _reportFiled = true;
 
             bool saved = MemoScreen.AddNote(BuildCaseFileReportNote());
+
+            // 본편에서는 한영이 곁에 없다. 확정했다는 것과 이제 정정글을 쓸 수 있다는 것만 알린다.
+            if (InMain)
+            {
+                if (_toastScreen != null) ShowToast(MainReportDoneTextId);
+                RefreshRoomDesktop();
+                UpdateRoomComputerBeckon();
+                _save.MarkDirty();
+                Debug.Log($"[CaseDirector] 본편 | 조사 결과 확정 | {_caseId} | 메모장에 적음={saved}");
+                return;
+            }
+
             bool talked = _tutorial != null && _tutorial.ShowComputerTalk(ReportConfirmedTextId, OnReportPraiseDone);
             if (_toastScreen != null) ShowToast(saved ? ReportSavedTextId : ReportAlreadySavedTextId);
 

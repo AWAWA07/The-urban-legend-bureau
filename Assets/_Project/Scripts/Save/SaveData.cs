@@ -109,6 +109,14 @@ namespace UrbanLegendBureau.Save
         /// <summary>게임 오버가 났는가와 그 원인 괴담("*" 이면 전체 믿음도).</summary>
         public bool gameOver;
         public string gameOverLegendId;
+
+        /// <summary>지금 맡아 조사하는 사건 (v12). 현황판에서 고른다. 비어 있으면 아직 고르지 않았다.</summary>
+        public string currentCaseId;
+
+        /// <summary>
+        /// 괴담 글을 게시판에 건 사건 (v12). 활성 사건과 따로 센다. 해결해 활성에서 빠져도 그 글은 게시판에 남는다.
+        /// </summary>
+        public List<string> postedCaseIds = new List<string>();
     }
 
     /// <summary>
@@ -123,6 +131,18 @@ namespace UrbanLegendBureau.Save
         public int views;
         public int likes;
         public int dislikes;
+
+        /// <summary>
+        /// 이 글의 댓글 전부 (v12). "작성자ID|본문ID|플레이어면1". 시간이 흘러 붙은 댓글도 여기에 남는다.
+        /// 비어 있으면(v11 저장본) 게시판이 지은 기본 댓글을 그대로 쓴다.
+        /// </summary>
+        public List<string> comments = new List<string>();
+
+        /// <summary>시간이 흘러 붙은 반응의 남은 몫과 붙은 댓글 수, 눌러 둔 좋아요·싫어요 (v12). 불러와도 그 자리에서 이어 간다.</summary>
+        public float[] growthCarry = new float[4];
+        public int growthAddedComments;
+        public bool likePressed;
+        public bool dislikePressed;
     }
 
     /// <summary>
@@ -278,7 +298,14 @@ namespace UrbanLegendBureau.Save
             work.dayStartBeliefs ??= new List<string>();
             work.prevDayBeliefs ??= new List<string>();
             work.warned ??= new List<string>();
+            work.postedCaseIds ??= new List<string>();
             boardStates ??= new List<BoardEntryState>();
+            foreach (var b in boardStates)
+            {
+                if (b == null) continue;
+                b.comments ??= new List<string>();
+                if (b.growthCarry == null || b.growthCarry.Length != 4) b.growthCarry = new float[4];
+            }
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdec0e17650c6246a78d2846b48c4fa, type: 3}
+  m_Name: deduction_test_002
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.CaseDeductionSO
+  _caseId: case_test_002
+  _fieldClues:
+  - clueId: clue_test_003
+    placeTextId: ui.casefile.place_test_panel
+  - clueId: clue_test_004
+    placeTextId: ui.casefile.place_test_mirror
+  _analyses:
+  - analysisId: analysis_test_002_a
+    clueA: clue_test_003
+    clueB: clue_test_004
+    titleTextId: analysis.test.002.a.title
+    bodyTextId: analysis.test.002.a.body
+  _questions:
+  - questionId: q1
+    labelTextId: deduce.test.002.q1.label
+    questionTextId: deduce.test.002.q1.question
+    optionTextIds:
+    - deduce.test.002.q1.opt0
+    - deduce.test.002.q1.opt1
+    - deduce.test.002.q1.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.002.q1.explain
+    reportTextId: deduce.test.002.q1.report
+    evidenceClueIds:
+    - clue_test_003
+    - clue_test_004
+    evidenceAnalysisIds:
+    - analysis_test_002_a
+  - questionId: q2
+    labelTextId: deduce.test.002.q2.label
+    questionTextId: deduce.test.002.q2.question
+    optionTextIds:
+    - deduce.test.002.q2.opt0
+    - deduce.test.002.q2.opt1
+    - deduce.test.002.q2.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.002.q2.explain
+    reportTextId: deduce.test.002.q2.report
+    evidenceClueIds:
+    - clue_test_004
+    evidenceAnalysisIds:
+    - analysis_test_002_a
+  _reportBlanks:
+  - blankId: verdict
+    answerType: 1
+    titleTextId: report.test.002.overview.title
+    bodyTextId: report.test.002.overview.body
+    blankWidth: 160
+    answerTextId: report.test.002.overview.answer
+    targetPageId: 
+    acceptedAnswers:
+    - "설정"
+    - "점검"
+    - "점검 설정"
+    - "~[자동정지|점검|정지]? [설정|점검]"
+    - setting
+    - maintenance
+  - blankId: target
+    answerType: 4
+    titleTextId: report.test.002.target.title
+    bodyTextId: report.test.002.target.body
+    blankWidth: 160
+    answerTextId: report.test.002.target.answer
+    targetPageId: web_test_003
+    acceptedAnswers:
+    - "야근"
+    - "~[야근|야근하다]"
+    - overtime
+  _documentNumber: ULB-TEST-002
+  _summaryTextId: deduce.test.002.summary

@@ -127,6 +127,8 @@ namespace UrbanLegendBureau.Systems
         {
             if (!InMain) return false;
             _workday.RestoreFromSave();
+            // 맡고 있던 사건을 다시 든다. 맡은 사건이 없으면 첫 활성 사건, 그것도 없으면 튜토리얼 사건(기록 열람용)이다.
+            HoldSavedMainCase();
             if (_case == null && _cases != null && _cases.TryGetCase(TutorialDirector.TutorialCaseId, out var tutorialCase)) _case = tutorialCase;
             EnterRoom(false);
             var room = GetRoomNight();
@@ -175,8 +177,16 @@ namespace UrbanLegendBureau.Systems
         {
             if (!InMain) return;
             var active = _workday.ActiveCases();
-            if (string.IsNullOrEmpty(_workFocusCaseId) || active.Find(c => c.CaseId == _workFocusCaseId) == null)
-                _workFocusCaseId = active.Count > 0 ? active[0].CaseId : null;
+            // 해결한 본편 사건도 아래에 남겨 둔다. 글은 게시판에 그대로 있고 믿음도는 멈춰 있다.
+            var solved = new List<CaseSO>();
+            foreach (var id in _workday.PostedCaseIds())
+            {
+                var c = _workday.FindCase(id);
+                if (c != null && _workday.IsSolved(id) && !active.Contains(c)) solved.Add(c);
+            }
+            if (string.IsNullOrEmpty(_workFocusCaseId)
+                || (active.Find(c => c.CaseId == _workFocusCaseId) == null && solved.Find(c => c.CaseId == _workFocusCaseId) == null))
+                _workFocusCaseId = HoldingMainCase ? _caseId : active.Count > 0 ? active[0].CaseId : null;
 
             var view = new WorkdayScreen.View
             {
@@ -216,12 +226,26 @@ namespace UrbanLegendBureau.Systems
                     GradeLevel = GradeLevel(b),
                     DeltaCell = 3,
                     DeltaSign = float.IsNaN(d) ? 0 : d > 0.05f ? 1 : d < -0.05f ? -1 : 0,
-                    Tag = urgent ? L("ui.work.tag_urgent") : float.IsNaN(d) ? L("ui.work.tag_new") : null,
+                    Tag = urgent ? L("ui.work.tag_urgent") : _case == c ? L("ui.work.tag_holding") : float.IsNaN(d) ? L("ui.work.tag_new") : null,
                     TagDanger = urgent,
                 });
             }
+            foreach (var c in solved)
+            {
+                float b = _workday.LegendBelief(c.LegendId);
+                view.Rows.Add(new WorkdayScreen.Row
+                {
+                    Key = c.CaseId,
+                    Name = CaseName(c),
+                    Sub = LegendName(c.LegendId),
+                    Cells = new[] { string.Empty, Pct(b), GradeName(b), "-" },
+                    GradeCell = 2,
+                    GradeLevel = GradeLevel(b),
+                    Tag = L("ui.work.tag_solved"),
+                });
+            }
 
-            var focus = active.Find(c => c.CaseId == _workFocusCaseId);
+            var focus = active.Find(c => c.CaseId == _workFocusCaseId) ?? solved.Find(c => c.CaseId == _workFocusCaseId);
             if (focus != null)
             {
                 float b = _workday.LegendBelief(focus.LegendId);
@@ -233,6 +257,7 @@ namespace UrbanLegendBureau.Systems
                 view.Detail.Add(L("ui.work.detail_belief", Pct(b), GradeName(b)));
                 view.Detail.Add(L("ui.work.detail_spread", spread.ToString("0")));
                 view.Detail.Add(L("ui.work.detail_sealed", L(_exorcism != null && _exorcism.IsSealed(_save.Current, focus.LegendId) ? "ui.work.yes" : "ui.work.no")));
+                AddCaseProgress(view, focus);
             }
             if (active.Count == 0) view.Notes.Add(L("ui.work.note_no_case"));
 
@@ -298,6 +323,8 @@ namespace UrbanLegendBureau.Systems
         /// <summary>03:00. 근무가 끝났다. 오늘 바뀐 것을 보여 주고 숙소로 돌려보낸다.</summary>
         private void OnWorkShiftEnded()
         {
+            if (_mainTravelling) { _shiftEndPending = true; return; }   // 오가는 중이면 도착한 뒤에 알린다
+            bool inField = !_inRoom;
             var view = new WorkdayScreen.View
             {
                 Bureau = L("ui.work.bureau"),
@@ -305,8 +332,9 @@ namespace UrbanLegendBureau.Systems
                 Sub = L("ui.work.end_sub", _workday.FormatDate(_loc), WorkdayDirector.FormatClock24(), _workday.Workday),
                 Columns = new[] { L("ui.work.col_case"), L("ui.work.col_start"), L("ui.work.col_now"), L("ui.work.col_grade") },
                 ColumnWidths = new[] { 640f, 220f, 220f, 230f },
-                PrimaryLabel = L("ui.work.btn_ok"),
-                OnPrimary = CloseWorkScreen,
+                PrimaryLabel = L(inField ? "ui.work.btn_return_room" : "ui.work.btn_ok"),
+                // 현장에서 퇴근 시각을 맞았으면 숙소로 돌아간다.
+                OnPrimary = () => { CloseWorkScreen(); if (inField) ReturnFromMainField(); },
             };
             var w = _save.Current.work;
             foreach (var c in _workday.ActiveCases())
@@ -343,6 +371,7 @@ namespace UrbanLegendBureau.Systems
         {
             Debug.Log($"[CaseDirector] 게임 오버 | {legendId}");
             if (_sleepingThrough) return;
+            if (_mainTravelling) { _gameOverPending = legendId; return; }
 
             string who = legendId == "*" ? L("ui.work.overall") : LegendName(legendId);
             var view = new WorkdayScreen.View

@@ -82,6 +82,10 @@ namespace UrbanLegendBureau.Systems
         {
             if (save == null || save.boardPosts == null || tutorial == null) return 0;
 
+            // 본편 저장본은 글마다의 믿음도를 따로 적어 두고 그 값으로 덮는다(WorkdayDirector). 그 값에는 이 글이 옮긴 몫이
+            // 이미 들어 있으므로 여기서 또 옮기면 두 번 반영된다. 어느 쪽이 먼저 불려도 같은 결과가 나오게 여기서는 옮기지 않는다.
+            bool beliefsSaved = save.work != null && save.work.mainStarted && save.boardStates != null && save.boardStates.Count > 0;
+
             int restored = 0;
             foreach (var record in save.boardPosts)
             {
@@ -89,7 +93,7 @@ namespace UrbanLegendBureau.Systems
                 if (OnBoard(tutorial.BoardEntries, record.postId)) continue;
 
                 tutorial.AddBoardPost(ToEntry(record));
-                if (record.beliefShift != 0) tutorial.ShiftLegendBelief(record.legendId, record.beliefShift);
+                if (record.beliefShift != 0 && !beliefsSaved) tutorial.ShiftLegendBelief(record.legendId, record.beliefShift);
                 restored++;
                 Debug.Log($"[PlayerPostStore] 저장된 글을 게시판에 되살림 | {record.postId} ({record.titleTextId}) 조회 {record.views} 댓글 {record.comments.Count} 믿음 {record.beliefShift:+0;-0;0}%p");
             }

@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdec0e17650c6246a78d2846b48c4fa, type: 3}
+  m_Name: deduction_test_001
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.CaseDeductionSO
+  _caseId: case_test_001
+  _fieldClues:
+  - clueId: clue_test_001
+    placeTextId: ui.casefile.place_test_desk
+  - clueId: clue_test_002
+    placeTextId: ui.casefile.place_test_wall
+  _analyses:
+  - analysisId: analysis_test_001_a
+    clueA: clue_test_001
+    clueB: clue_test_002
+    titleTextId: analysis.test.001.a.title
+    bodyTextId: analysis.test.001.a.body
+  _questions:
+  - questionId: q1
+    labelTextId: deduce.test.001.q1.label
+    questionTextId: deduce.test.001.q1.question
+    optionTextIds:
+    - deduce.test.001.q1.opt0
+    - deduce.test.001.q1.opt1
+    - deduce.test.001.q1.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.001.q1.explain
+    reportTextId: deduce.test.001.q1.report
+    evidenceClueIds:
+    - clue_test_001
+    - clue_test_002
+    evidenceAnalysisIds:
+    - analysis_test_001_a
+  - questionId: q2
+    labelTextId: deduce.test.001.q2.label
+    questionTextId: deduce.test.001.q2.question
+    optionTextIds:
+    - deduce.test.001.q2.opt0
+    - deduce.test.001.q2.opt1
+    - deduce.test.001.q2.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.001.q2.explain
+    reportTextId: deduce.test.001.q2.report
+    evidenceClueIds:
+    - clue_test_002
+    evidenceAnalysisIds:
+    - analysis_test_001_a
+  _reportBlanks:
+  - blankId: verdict
+    answerType: 1
+    titleTextId: report.test.001.overview.title
+    bodyTextId: report.test.001.overview.body
+    blankWidth: 160
+    answerTextId: report.test.001.overview.answer
+    targetPageId: 
+    acceptedAnswers:
+    - "가짜"
+    - "거짓"
+    - "허위"
+    - "~[가짜|거짓|허위] [다|이다|임]?"
+    - fake
+    - false
+  - blankId: target
+    answerType: 4
+    titleTextId: report.test.001.target.title
+    bodyTextId: report.test.001.target.body
+    blankWidth: 200
+    answerTextId: report.test.001.target.answer
+    targetPageId: web_test_001
+    acceptedAnswers:
+    - "지워지지 않음"
+    - "~[지워지지않음|지워지지|안지워짐|삭제안됨]"
+    - will not delete
+  _documentNumber: ULB-TEST-001
+  _summaryTextId: deduce.test.001.summary

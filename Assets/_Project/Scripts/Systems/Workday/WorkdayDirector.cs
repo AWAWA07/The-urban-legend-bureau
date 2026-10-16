@@ -149,6 +149,7 @@ namespace UrbanLegendBureau.Systems
         public void ResetForNewRun()
         {
             if (_save == null || _save.Current == null) return;
+            ResetMainCaseProgress();
             _save.Current.work = new WorkState();
             _save.Current.boardStates.Clear();
             _save.Current.completedCaseIds.Clear();   // 해결한 고유 사건 수도 새 판부터 다시 센다
@@ -157,6 +158,38 @@ namespace UrbanLegendBureau.Systems
             _save.Current.global.clockElapsedMinutes = -1;
             _save.Current.global.boardActivityMinute = -1;
         }
+
+        /// <summary>
+        /// 본편 사건들의 진행을 처음으로 되돌린다. 새 판에서 지난 판의 단서, 수사 노트, 올린 글, 확산도가 이어지지 않게 한다.
+        /// 튜토리얼 사건은 튜토리얼이 스스로 처음부터 되돌리므로 건드리지 않는다.
+        /// </summary>
+        private void ResetMainCaseProgress()
+        {
+            var data = _save.Current;
+            if (_cases == null) return;
+            foreach (var c in _cases.GetAllCases())
+            {
+                if (c == null || !c.MainStory) continue;
+                var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
+                if (legend != null)
+                {
+                    foreach (var clue in legend.Clues) if (clue != null) data.acquiredClueIds.Remove(clue.ClueId);
+                    foreach (var rule in legend.Rules) if (rule != null) data.deducedRuleIds.Remove(rule.RuleId);
+                    foreach (var page in legend.WebPages) if (page != null) data.storyFlags.Remove(ViewedFlagPrefix + page.PageId);
+                }
+                data.doneActions?.RemoveAll(k => k != null && k.StartsWith(c.CaseId + "|"));
+                if (c.PostWriting != null) data.storyFlags.Remove(PostWritingDirector.PublishedFlag(c.PostWriting));
+                PlayerPostStore.RemoveCase(data, c.CaseId, _tutorial);
+                CaseNotebook.ResetCase(data, c.CaseId);
+                data.legendStates?.RemoveAll(s => s != null && s.legendId == c.LegendId);
+                data.caseTimes?.RemoveAll(s => s != null && s.caseId == c.CaseId);
+                if (data.currentCaseId == c.CaseId) data.currentCaseId = null;
+            }
+            _save.MarkDirty();
+        }
+
+        /// <summary>InternetService 가 읽은 글에 붙이는 표시와 같다.</summary>
+        private const string ViewedFlagPrefix = "web_viewed_";
 
         /// <summary>저장본을 불러온 뒤. 본편이면 시계를 멈춰 두고 적어 둔 시각으로 되돌린다.</summary>
         public void RestoreFromSave()
@@ -237,7 +270,13 @@ namespace UrbanLegendBureau.Systems
                 if (Workday < c.AppearWorkday) continue;
 
                 w.activeCaseIds.Add(c.CaseId);
+                if (!w.postedCaseIds.Contains(c.CaseId)) w.postedCaseIds.Add(c.CaseId);
                 AddCaseEntries(c);
+
+                // 이 괴담이 처음 퍼지기 시작하는 확산도. 조사하며 소란을 피우면 여기서 더 오른다.
+                var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
+                if (legend != null && _spread != null && _spread.GetSpreadRate(_save.Current, c.LegendId) <= 0f)
+                    _spread.TrySetSpreadRate(_save.Current, c.LegendId, legend.InitialSpreadRate);
                 opened.Add(c.CaseId);
                 Debug.Log($"[Workday] 새 사건 | {c.CaseId} ({c.LegendId}) 시작 믿음도 {c.StartBelief}%");
             }
@@ -296,10 +335,20 @@ namespace UrbanLegendBureau.Systems
         private void OnBoardRebuilt()
         {
             if (!MainStarted) return;
-            foreach (var c in ActiveCases()) AddCaseEntries(c);
+            // 저장 전에 시간이 되어 올라와 있던 글을 다시 건다. 빠지면 전체 평균이 불러올 때마다 달라진다.
+            var activity = FindFirstObjectByType<BoardActivityDirector>();
+            int passed = activity != null ? activity.RestorePassedPosts(Mathf.Max(GameClock.ElapsedMinutes, W.elapsedMinutes)) : 0;
+            if (passed > 0) Debug.Log($"[Workday] 지난 시각에 올라온 글 {passed}개를 다시 걸었다");
+
+            // 글을 건 사건은 해결해서 활성에서 빠졌어도 글이 그대로 남는다.
+            foreach (var id in PostedCaseIds())
+            {
+                var c = FindCase(id);
+                if (c != null) AddCaseEntries(c);
+            }
 
             var states = _save.Current.boardStates;
-            int applied = 0;
+            int applied = 0, withComments = 0;
             foreach (var e in _tutorial.BoardEntries)
             {
                 if (e == null || e.IsPlayerPost) continue;
@@ -309,12 +358,33 @@ namespace UrbanLegendBureau.Systems
                 e.Views = s.views;
                 e.Likes = s.likes;
                 e.Dislikes = s.dislikes;
+                e.LikePressed = s.likePressed;
+                e.DislikePressed = s.dislikePressed;
+                e.GrowthCarry = s.growthCarry != null && s.growthCarry.Length == 4 ? (float[])s.growthCarry.Clone() : new float[4];
+                e.GrowthAddedComments = s.growthAddedComments;
+                if (s.comments != null && s.comments.Count > 0 && e.Comments != null)
+                {
+                    // 같은 목록을 고쳐 채운다. 인기글은 튜토리얼이 이 목록을 따로 쥐고 있다.
+                    e.Comments.Clear();
+                    foreach (var line in s.comments)
+                    {
+                        if (string.IsNullOrEmpty(line)) continue;
+                        var parts = line.Split('|');
+                        e.Comments.Add(new CommunityComment
+                        {
+                            AuthorTextId = parts[0],
+                            BodyTextId = parts.Length > 1 ? parts[1] : string.Empty,
+                            IsPlayer = parts.Length > 2 && parts[2] == "1",
+                        });
+                    }
+                    withComments++;
+                }
                 applied++;
             }
-            Debug.Log($"[Workday] 게시판 되살림 | 저장된 글 {applied}개");
+            Debug.Log($"[Workday] 게시판 되살림 | 저장된 글 {applied}개 (댓글까지 {withComments}개)");
         }
 
-        /// <summary>저장 직전. 시각과 게시판 글의 숫자를 저장본에 옮긴다.</summary>
+        /// <summary>저장 직전. 시각과 게시판 글의 숫자, 댓글을 저장본에 옮긴다.</summary>
         public void SyncToSave()
         {
             if (!MainStarted || _tutorial == null) return;
@@ -325,9 +395,44 @@ namespace UrbanLegendBureau.Systems
             foreach (var e in _tutorial.BoardEntries)
             {
                 if (e == null || e.IsPlayerPost || string.IsNullOrEmpty(e.TitleTextId)) continue;
-                states.Add(new BoardEntryState { key = e.TitleTextId, belief = e.BeliefPercent, views = e.Views, likes = e.Likes, dislikes = e.Dislikes });
+                var s = new BoardEntryState
+                {
+                    key = e.TitleTextId, belief = e.BeliefPercent, views = e.Views, likes = e.Likes, dislikes = e.Dislikes,
+                    likePressed = e.LikePressed, dislikePressed = e.DislikePressed,
+                    growthCarry = e.GrowthCarry != null && e.GrowthCarry.Length == 4 ? (float[])e.GrowthCarry.Clone() : new float[4],
+                    growthAddedComments = e.GrowthAddedComments,
+                };
+                if (e.Comments != null)
+                    foreach (var c in e.Comments)
+                        if (c != null) s.comments.Add(c.AuthorTextId + "|" + c.BodyTextId + "|" + (c.IsPlayer ? "1" : "0"));
+                states.Add(s);
             }
         }
+
+        /// <summary>괴담 글을 게시판에 건 사건. 활성 사건도 빠짐없이 든다.</summary>
+        public List<string> PostedCaseIds()
+        {
+            var ids = new List<string>();
+            var w = W;
+            if (w == null) return ids;
+            foreach (var id in w.postedCaseIds) if (!ids.Contains(id)) ids.Add(id);
+            foreach (var id in w.activeCaseIds) if (!ids.Contains(id)) ids.Add(id);
+            return ids;
+        }
+
+        /// <summary>지금 맡아 조사하는 사건. 현황판에서 고른다.</summary>
+        public string CurrentCaseId
+        {
+            get => W != null ? W.currentCaseId : null;
+            set
+            {
+                if (W == null) return;
+                W.currentCaseId = value;
+                _save.MarkDirty();
+            }
+        }
+
+        public bool IsActive(string caseId) => W != null && W.activeCaseIds.Contains(caseId);
 
         // ------------------------------------------------------------- 믿음도
 

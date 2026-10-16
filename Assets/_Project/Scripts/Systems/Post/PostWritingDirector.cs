@@ -640,6 +640,8 @@ namespace UrbanLegendBureau.Systems
         /// <summary>못 미쳤을 때 한영이 한 칸을 짚어 준다. 정답을 골라 주지는 않는다.</summary>
         private void TalkFixHint()
         {
+            // 한영이 곁에 있는 튜토리얼에서만 고칠 칸을 짚어 준다. 본편에서는 평가 화면의 설명을 읽고 고친다.
+            if (_data == null || !_data.IsTutorial) { AfterMiss(); return; }
             int s = SectionToFix();
             if (s < 0) { AfterMiss(); return; }
             Talk(FixHintTextIds[s], AfterMiss);
@@ -648,6 +650,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>한영이 말하게 한다. 말할 수 없으면 곧바로 다음으로 간다.</summary>
         private void Talk(string lineTextId, Action onDone)
         {
+            if (string.IsNullOrEmpty(lineTextId)) { onDone?.Invoke(); return; }
             bool talked = _tutorial != null && _tutorial.ShowComputerTalk(lineTextId, onDone);
             if (!talked) onDone?.Invoke();
         }

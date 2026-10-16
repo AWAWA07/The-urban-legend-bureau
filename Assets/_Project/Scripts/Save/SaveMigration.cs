@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 11;
+        public const int CurrentVersion = 12;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -145,6 +145,19 @@ namespace UrbanLegendBureau.Save
                 data.work ??= new WorkState();
                 data.boardStates ??= new System.Collections.Generic.List<BoardEntryState>();
                 data.saveVersion = 11;
+            }
+
+            if (data.saveVersion == 11)
+            {
+                // v12에서 지금 맡은 사건(work.currentCaseId), 글을 건 사건(work.postedCaseIds), 게시판 글의 댓글과 반응 몫이 추가됐다.
+                // 글을 건 사건은 v11 에서 활성이던 사건으로 채운다(v11 은 활성 사건의 글만 걸었다).
+                // 댓글이 비어 있는 글은 게시판이 지은 기본 댓글로 열린다(예전과 같다).
+                data.work ??= new WorkState();
+                data.work.postedCaseIds ??= new System.Collections.Generic.List<string>();
+                if (data.work.activeCaseIds != null)
+                    foreach (var id in data.work.activeCaseIds)
+                        if (!data.work.postedCaseIds.Contains(id)) data.work.postedCaseIds.Add(id);
+                data.saveVersion = 12;
             }
 
             if (data.saveVersion < CurrentVersion)
