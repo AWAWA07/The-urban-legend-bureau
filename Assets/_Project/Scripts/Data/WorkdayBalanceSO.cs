@@ -44,12 +44,21 @@ namespace UrbanLegendBureau.Data
         [Tooltip("처음 넘을 때 한 번 알리는 경고 단계(%).")]
         [SerializeField] private int[] _warningThresholds = { 50, 75, 85, 95, 99 };
 
+        [Header("사건 해결")]
+        [Tooltip("사건을 정식으로 해결하려면 그 괴담 믿음도가 이 값(%) 이하여야 한다. 사건 데이터에 따로 정한 목표가 없을 때 쓴다.")]
+        [SerializeField] private int _defaultResolveBelief = 30;
+
+        [Tooltip("본편에서 글이나 댓글 하나를 실제로 올릴 때 흐르는 시간(분). 올리기를 확정한 순간 한 번만 흐른다.")]
+        [SerializeField] private int _postMinutes = 20;
+
         public int ShiftStartHour => _shiftStartHour;
         public int ShiftEndHour => _shiftEndHour;
         public DateTime StartDate => new DateTime(_startYear, _startMonth, _startDay);
         public float SpreadBoost => _spreadBoost;
         public int GameOverBelief => _gameOverBelief;
         public int[] WarningThresholds => _warningThresholds;
+        public int DefaultResolveBelief => _defaultResolveBelief;
+        public int PostMinutes => _postMinutes;
 
         /// <summary>등급(1 관측 ~ 5 멸망)과 상태에 맞는 시간당 상승(%p).</summary>
         public float RisePerHour(int grade, bool sleeping)

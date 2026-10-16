@@ -3551,7 +3551,8 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnPostSucceeded(PostWritingSO data)
         {
-            if (TryResolveMainCase(data)) return;
+            // 본편 글은 평가를 읽은 뒤 사건 해결을 따로 따진다(OnPostResultConfirmed). 성공했다고 끝나지 않는다.
+            if (InMain && data != null && !data.IsTutorial) return;
             if (data == null || !data.IsTutorial || !_inRoom) return;
 
             // 컴퓨터를 끈다. 위에 떠 있는 괴담넷과 메모장부터 닫는다.
@@ -4025,14 +4026,16 @@ namespace UrbanLegendBureau.Systems
                 var data = c != null ? c.Deduction : null;
                 if (data == null) continue;
 
-                bool solved = CaseNotebook.IsReportConfirmed(_save.Current, c.CaseId);
+                bool confirmed = CaseNotebook.IsReportConfirmed(_save.Current, c.CaseId);
+                // 본편 사건은 보고서를 확정해도 믿음도가 목표에 닿아 정식으로 해결해야 해결 도장이 찍힌다. 튜토리얼 사건은 예전처럼 보고서 확정이 끝이다.
+                bool solved = c.MainStory && _workday != null ? _workday.IsSolved(c.CaseId) : confirmed;
                 // 본편에서는 지금 맡은 사건뿐 아니라 활성 사건이 모두 카드로 선다. 눌러서 바꿔 맡을 수 있다.
                 bool active = c.CaseId == _caseId || (InMain && _workday.IsActive(c.CaseId));
-                if (!solved && !active) continue;
+                if (!confirmed && !solved && !active) continue;
 
                 var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
                 string verdict = null;
-                if (solved)
+                if (confirmed)
                 {
                     string truth = null;
                     foreach (var b in data.ReportBlanks)
@@ -4053,7 +4056,9 @@ namespace UrbanLegendBureau.Systems
                         CaseNotebook.AcquiredClues(_save.Current, data).Count, data.FieldClues.Count,
                         CaseNotebook.AnalysisCount(_save.Current, data), data.Analyses.Count,
                         CaseNotebook.SolvedCount(_save.Current, data), data.Questions.Count),
-                    Verdict = solved ? verdict : _loc.Get(ArchivePendingTextId),
+                    Verdict = !confirmed ? _loc.Get(ArchivePendingTextId)
+                        : solved ? verdict
+                        : verdict + "  ·  " + StatusText(_workday.Evaluate(c)),
                     Solved = solved,
                     Active = active,
                 });

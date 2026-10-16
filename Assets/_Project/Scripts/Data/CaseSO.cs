@@ -55,11 +55,16 @@ namespace UrbanLegendBureau.Data
         [Tooltip("이 근무 일차부터 등장할 수 있다. 동시 활성 상한이 차 있으면 자리가 날 때까지 기다린다.")]
         [SerializeField] private int _appearWorkday = 2;
 
+        [Tooltip("이 사건만의 해결 목표(%). 0 이면 기본 목표(WorkdayBalanceSO, 30%)를 쓴다. 특별한 사건에만 정한다.")]
+        [SerializeField, Range(0, 99)] private int _resolveBelief;
+
         public string Id => _caseId;
         public string CaseId => _caseId;
         public bool MainStory => _mainStory;
         public int StartBelief => _startBelief;
         public int AppearWorkday => _appearWorkday;
+        /// <summary>이 사건만의 해결 목표(%). 0 이면 따로 정하지 않았다.</summary>
+        public int ResolveBeliefOverride => _resolveBelief;
         public string CaseNameTextId => _caseNameTextId;
         public string CaseDescriptionTextId => _caseDescriptionTextId;
         public string LegendId => _legendId;

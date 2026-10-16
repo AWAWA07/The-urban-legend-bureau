@@ -178,65 +178,117 @@ namespace UrbanLegendBureau.Systems
 
         private const string MainReportDoneTextId = "ui.work.toast_report_done";
         private const string MainSolvedTextId = "ui.work.toast_solved";
+        private const string MainAboveTargetTextId = "ui.work.toast_above_target";
+
+        /// <summary>글쓰기를 본편 규칙에 잇는다. Start 에서 한 번 부른다.</summary>
+        private void HookMainPostWriting()
+        {
+            if (_postWriting == null) return;
+            // 본편 글은 해결 판정과 같은 믿음도(소수 첫째 자리)로 보여 주고 평가한다. 튜토리얼 글은 예전 그대로다.
+            _postWriting.BeliefOf = id => InMain ? _workday.DisplayBelief(id) : _tutorial != null ? _tutorial.GetLegendBelief(id) : 0f;
+            _postWriting.OverallOf = () => InMain ? _workday.DisplayOverall : _tutorial != null ? _tutorial.BoardBelief : 0f;
+            // 정정글이 성공해도 사건을 정식으로 해결하기 전까지는 더 쓸 수 있다.
+            _postWriting.KeepOpen = d => InMain && d != null && !d.IsTutorial && !_workday.IsSolved(d.CaseId);
+            _postWriting.CaseGoalLine = d =>
+            {
+                var c = d != null ? _workday.FindCase(d.CaseId) : null;
+                return c == null ? null : L("ui.post.case_goal", _workday.ResolveTarget(c), Pct(_workday.DisplayBelief(c.LegendId)));
+            };
+            _postWriting.Published += OnPostPublished;
+            _postWriting.ResultConfirmed += OnPostResultConfirmed;
+        }
+
+        /// <summary>글을 실제로 올렸다(확인창에서 올리기를 고른 순간 한 번). 본편이면 그만큼 시간이 흐르고 괴담이 퍼진다.</summary>
+        private void OnPostPublished(PostWritingSO data)
+        {
+            if (!InMain || data == null || data.IsTutorial) return;
+            AdvanceTime(_workday.Balance.PostMinutes);
+            Debug.Log($"[CaseDirector] 본편 | 글을 올렸다 | {data.PostWritingId} | {_workday.Balance.PostMinutes}분 | {WorkdayDirector.FormatClock24()}");
+        }
+
+        /// <summary>글의 평가를 읽었다(성공이든 아니든). 본편이면 사건을 정식으로 해결할 수 있는지 본다.</summary>
+        private void OnPostResultConfirmed(PostWritingSO data)
+        {
+            if (!InMain || data == null || data.IsTutorial) return;
+            TryResolveMainCase(data);
+        }
 
         /// <summary>
-        /// 정정글이 성공했다. 보고서를 확정한 본편 사건이면 해결로 적는다. 같은 사건은 한 번만 센다.
-        /// 해결한 사건은 활성에서 빠지고, 그 괴담에 묶인 글은 모두 믿음도가 더 오르지 않는다(WorkdayDirector.IsLegendResolved).
-        /// 게시판의 글과 올린 정정글은 그대로 남는다.
+        /// 사건을 정식으로 해결할 수 있으면 해결로 적는다(WorkdayDirector.TryResolve, 조건은 Evaluate).
+        /// 정정글이 성공했어도 괴담 믿음도가 목표보다 높으면 사건은 계속된다. 보고서·올린 글·오른 믿음도는 그대로이고 새 정정글을 쓸 수 있다.
+        /// 해결하면 활성에서 빠지고, 그 괴담에 묶인 글은 모두 믿음도가 더 오르지 않는다. 같은 사건은 한 번만 센다.
         /// </summary>
         private bool TryResolveMainCase(PostWritingSO data)
         {
             if (!InMain || data == null || data.IsTutorial) return false;
 
             string caseId = data.CaseId;
+            var c = _workday.FindCase(caseId);
             if (_workday.IsSolved(caseId))
             {
                 Debug.Log($"[CaseDirector] 본편 | {caseId} 는 이미 해결했다. 다시 세지 않는다");
                 return true;
             }
-            if (!CaseNotebook.IsReportConfirmed(_save.Current, caseId))
+
+            if (!_workday.TryResolve(caseId))
             {
-                Debug.LogWarning($"[CaseDirector] 본편 | {caseId} 보고서 확정 없이 글이 성공했다. 해결로 적지 않는다");
-                return true;
+                var status = _workday.Evaluate(c);
+                if (status == WorkdayDirector.CaseStatus.AboveTarget)
+                    ShowMainToast(_loc.Get(MainAboveTargetTextId, Pct(_workday.DisplayBelief(c.LegendId)), _workday.ResolveTarget(c)));
+                // 아직 끝나지 않았다. 글쓰기 단추를 다시 세운다.
+                if (_communityScreen != null && _ui.Contains(_communityScreen)) BindWriteButton();
+                RefreshRoomDesktop();
+                return false;
             }
 
-            _workday.MarkSolved(caseId);
             CaseFlow.SetStep(_save, CaseStep.Completed);
             if (_workday.CurrentCaseId == caseId) _workday.CurrentCaseId = null;
+            if (_postWriting != null) _postWriting.Close();
             _save.AutoSave();
 
-            var c = _workday.FindCase(caseId);
-            if (_toastScreen != null)
-            {
-                _toastScreen.Closed = s => _ui.Close(s);
-                if (!_ui.Contains(_toastScreen)) _ui.Push(_toastScreen);
-                _toastScreen.Show(_loc.Get(MainSolvedTextId, CaseName(c)));
-            }
+            ShowMainToast(_loc.Get(MainSolvedTextId, CaseName(c)));
             RefreshRoomDesktop();
             UpdateRoomComputerBeckon();
             Debug.Log($"[CaseDirector] 본편 | 사건 해결 | {caseId} | 해결 {_workday.SolvedCount}건");
             return true;
         }
 
+        private void ShowMainToast(string text)
+        {
+            if (_toastScreen == null) return;
+            _toastScreen.Closed = s => _ui.Close(s);
+            if (!_ui.Contains(_toastScreen)) _ui.Push(_toastScreen);
+            _toastScreen.Show(text);
+        }
+
+        /// <summary>현황판과 기록부에 적는 사건 상태 한마디.</summary>
+        private string StatusText(WorkdayDirector.CaseStatus status) => L("ui.work.status_" + status.ToString().ToLowerInvariant());
+
         // ------------------------------------------------------------- 현황판
 
-        /// <summary>현황판 오른쪽 칸의 진행 줄과 단추. 고른 사건이 활성이면 맡기·현장 이동·수사 노트를 세운다.</summary>
+        /// <summary>현황판 오른쪽 칸의 진행 줄과 단추. 고른 사건이 활성이면 맡기·현장 이동을 세운다.</summary>
         private void AddCaseProgress(WorkdayScreen.View view, CaseSO focus)
         {
+            var status = _workday.Evaluate(focus);
+            int target = _workday.ResolveTarget(focus);
+            view.Detail.Add(L(_workday.HasSpecialTarget(focus) ? "ui.work.detail_target_special" : "ui.work.detail_target", target));
+
             var data = focus.Deduction;
             if (data != null)
             {
-                view.Detail.Add(string.Empty);
                 view.Detail.Add(L("ui.work.detail_progress",
                     CaseNotebook.AcquiredClues(_save.Current, data).Count, data.FieldClues.Count,
                     CaseNotebook.AnalysisCount(_save.Current, data), data.Analyses.Count,
                     CaseNotebook.SolvedCount(_save.Current, data), data.Questions.Count));
-                bool filed = CaseNotebook.IsReportConfirmed(_save.Current, focus.CaseId);
-                bool posted = focus.PostWriting != null && _postWriting != null && _postWriting.IsFinished(focus.PostWriting);
-                view.Detail.Add(L("ui.work.detail_report", L(filed ? "ui.work.yes" : "ui.work.no"), L(posted ? "ui.work.yes" : "ui.work.no")));
             }
+            bool filed = CaseNotebook.IsReportConfirmed(_save.Current, focus.CaseId);
+            bool posted = _workday.HasCorrection(focus);
+            bool solved = status == WorkdayDirector.CaseStatus.Resolved;
+            // 정정글 작성 완료와 사건 해결 완료는 다르다. 따로 적는다.
+            view.Detail.Add(L("ui.work.detail_report", L(filed ? "ui.work.yes" : "ui.work.no"), L(posted ? "ui.work.yes" : "ui.work.no"), L(solved ? "ui.work.yes" : "ui.work.no")));
+            view.Detail.Add(L("ui.work.detail_status", StatusText(status)));
 
-            if (_workday.IsSolved(focus.CaseId))
+            if (solved)
             {
                 view.Detail.Add(L("ui.work.detail_solved"));
                 return;

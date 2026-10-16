@@ -123,6 +123,15 @@ namespace UrbanLegendBureau.Save
         /// 글은 지우지 않고 해결 당시의 믿음도를 지킨다. 다시 퍼지게 하는 재발 규칙은 아직 없다.
         /// </summary>
         public List<string> resolvedLegendIds = new List<string>();
+
+        /// <summary>
+        /// 예전 해결 규칙(정정글 성공만으로 해결)으로 적힌 해결 사건을 새 규칙(믿음도 목표 이하)으로 다시 봐야 하는가 (v14).
+        /// v13 이전 저장본을 옮길 때 켜고, 게시판 믿음도가 돌아온 뒤 한 번 보고 끈다.
+        /// </summary>
+        public bool needsResolveAudit;
+
+        /// <summary>그렇게 다시 봐서 진행 중으로 되돌린 사건 (v14). 현황판에서 한 번 알리고 비운다.</summary>
+        public List<string> reopenedCaseIds = new List<string>();
     }
 
     /// <summary>
@@ -306,6 +315,7 @@ namespace UrbanLegendBureau.Save
             work.warned ??= new List<string>();
             work.postedCaseIds ??= new List<string>();
             work.resolvedLegendIds ??= new List<string>();
+            work.reopenedCaseIds ??= new List<string>();
             boardStates ??= new List<BoardEntryState>();
             foreach (var b in boardStates)
             {

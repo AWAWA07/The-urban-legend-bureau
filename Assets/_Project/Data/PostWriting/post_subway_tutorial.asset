@@ -87,7 +87,6 @@ MonoBehaviour:
   _refuteSection: 2
   _allowRewrite: 1
   _maxAttempts: 0
-  _takeDownFailedPost: 1
   _authorTextId: ui.net.author_alias
   _boardTextId: ui.net.board_free
   _replyLineTextId: post.subway.reply_to
@@ -129,4 +128,4 @@ MonoBehaviour:
   _failLineTextId: post.subway.line_fail
   _weakLineTextId: post.subway.line_weak
   _flatLineTextId: post.subway.line_flat
-  _takeDownLineTextId: post.subway.line_takedown
+  _rewriteLineTextId: post.subway.line_rewrite

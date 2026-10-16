@@ -12,9 +12,9 @@ namespace UrbanLegendBureau.Systems
     /// 게시판을 지을 때 되살린다. 저장본의 기록과 게시판의 줄은 PostId 로 짝지어진다.
     ///   올릴 때    Record   - 기록을 만든다
     ///   바뀔 때    Sync     - 조회수 / 반응 / 댓글 / 성장 몫을 기록으로 옮긴다 (저장 직전, 게시판 시간이 흐를 때)
-    ///   내릴 때    MarkRemoved
+    ///   (올린 글은 고치거나 내리지 않는다. 내리는 길은 없다. 예전 저장본의 removed 표시만 읽는다)
     ///   지을 때    Restore  - 아직 게시판에 없는 기록만 되살리고, 그 글이 옮긴 믿음도를 한 번만 다시 반영한다
-    ///   사건을 처음부터 다시 할 때  RemoveCase
+    ///   사건을 처음부터 다시 할 때  RemoveCase - 새 판을 시작할 때만 쓴다. 게임 안에서 글을 지우는 것이 아니다
     /// </summary>
     public static class PlayerPostStore
     {
@@ -66,12 +66,6 @@ namespace UrbanLegendBureau.Systems
                 var record = Find(save, entry.PostId);
                 if (record != null && !record.removed) CopyFrom(record, entry);
             }
-        }
-
-        public static void MarkRemoved(SaveData save, string postId)
-        {
-            var record = Find(save, postId);
-            if (record != null) record.removed = true;
         }
 
         /// <summary>

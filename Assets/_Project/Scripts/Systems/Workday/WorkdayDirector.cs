@@ -172,7 +172,16 @@ namespace UrbanLegendBureau.Systems
             if (_cases == null) return;
             foreach (var c in _cases.GetAllCases())
             {
-                if (c == null || !c.MainStory) continue;
+                if (c == null) continue;
+                if (!c.MainStory)
+                {
+                    // 튜토리얼 사건은 단서·수사 노트를 튜토리얼이 현장에 들어갈 때 스스로 되돌린다.
+                    // 다만 지난 판에 올린 정정글은 그보다 먼저(인기글 댓글 단계) 새 게시판에 다시 걸려 믿음도를 옮겨 버리므로 여기서 걷는다.
+                    // 게임 안에서 글을 지우는 것이 아니라 새 판을 시작하며 지난 판의 기록을 비우는 것이다.
+                    if (c.PostWriting != null) data.storyFlags.Remove(PostWritingDirector.PublishedFlag(c.PostWriting));
+                    PlayerPostStore.RemoveCase(data, c.CaseId, _tutorial);
+                    continue;
+                }
                 var legend = _legends != null ? _legends.GetLegend(c.LegendId) : null;
                 if (legend != null)
                 {
@@ -264,6 +273,158 @@ namespace UrbanLegendBureau.Systems
         private void RepairResolvedLegends()
         {
             foreach (var id in _save.Current.completedCaseIds) ResolveLegendOf(id);
+        }
+
+        // ------------------------------------------------------------- 정식 해결 판정
+
+        /// <summary>본편 사건이 지금 어디까지 왔는가. 업무 현황판, 사건 완료, 확산 차단이 모두 이 판정 하나를 쓴다.</summary>
+        public enum CaseStatus
+        {
+            /// <summary>조사·추론이 남았다.</summary>
+            Investigating,
+            /// <summary>추론은 끝났고 조사 보고서를 확정하지 않았다.</summary>
+            ReportPending,
+            /// <summary>보고서는 확정했고 정정글이 아직 성공하지 않았다.</summary>
+            CorrectionPending,
+            /// <summary>할 일은 다 했지만 괴담 믿음도가 해결 목표보다 높다. 추가 대응이 필요하다.</summary>
+            AboveTarget,
+            /// <summary>모든 조건을 채웠다. 정식 해결로 적을 수 있다.</summary>
+            Ready,
+            /// <summary>정식으로 해결했다.</summary>
+            Resolved,
+        }
+
+        /// <summary>이 사건의 해결 목표(%). 사건 데이터에 따로 정했으면 그 값, 아니면 기본값(30%)이다.</summary>
+        public int ResolveTarget(CaseSO c)
+        {
+            if (c != null && c.ResolveBeliefOverride > 0) return c.ResolveBeliefOverride;
+            return _balance != null ? _balance.DefaultResolveBelief : 30;
+        }
+
+        public bool HasSpecialTarget(CaseSO c) => c != null && c.ResolveBeliefOverride > 0;
+
+        /// <summary>
+        /// 화면에 보이고 해결 판정에 쓰는 괴담 믿음도(%). 소수 첫째 자리에서 반올림한 값이다.
+        ///
+        /// 괴담 믿음도 = 그 괴담 글들의 믿음도 평균(글마다 정수) + 아직 글에 옮겨지지 않은 자연 확산 몫(1% 미만, 저장된다).
+        /// 계산에 쓰는 몫은 버리지 않는다(LegendBelief). 판정만 화면에 적힌 그 값으로 한다.
+        /// 그래서 화면에 30% 라고 보이면 해결 목표 30% 이하를 채운 것이고, 30.1% 면 채우지 못한 것이다.
+        /// </summary>
+        public float DisplayBelief(string legendId)
+        {
+            float b = LegendBelief(legendId);
+            return b < 0f ? b : Mathf.Round(b * 10f) / 10f;
+        }
+
+        public float DisplayOverall => Mathf.Round(OverallBelief * 10f) / 10f;
+
+        /// <summary>
+        /// 사건의 정식 해결 판정. 아래를 모두 채워야 Ready 다.
+        ///   1. 수사 노트의 추론을 모두 마쳤다
+        ///   2. 조사 보고서를 확정했다
+        ///   3. 정정글이 한 번 이상 성공했다(게시물 평가 '성공' 또는 '우수')
+        ///   4. 괴담 믿음도(DisplayBelief)가 해결 목표 이하다
+        /// 게시물 평가는 글 한 편이 잘 쓰였는지를, 이 판정은 사건이 끝났는지를 본다. 둘은 다르다.
+        /// 조사하지 않은 사건은 1·2에서 걸리므로 믿음도가 처음부터 낮아도 저절로 끝나지 않는다.
+        /// </summary>
+        public CaseStatus Evaluate(CaseSO c)
+        {
+            if (c == null || _save == null || _save.Current == null) return CaseStatus.Investigating;
+            if (IsSolved(c.CaseId)) return CaseStatus.Resolved;
+
+            var data = _save.Current;
+            if (c.Deduction != null)
+            {
+                if (!CaseNotebook.AllSolved(data, c.Deduction)) return CaseStatus.Investigating;
+                if (!CaseNotebook.IsReportConfirmed(data, c.CaseId)) return CaseStatus.ReportPending;
+            }
+            if (c.PostWriting != null && !HasCorrection(c)) return CaseStatus.CorrectionPending;
+
+            float belief = DisplayBelief(c.LegendId);
+            if (belief > ResolveTarget(c)) return CaseStatus.AboveTarget;
+            return CaseStatus.Ready;
+        }
+
+        /// <summary>
+        /// 이 사건의 정정(덧붙은 거짓을 걷어내는 문장)을 실제로 게시했는가. 해결 조건 3이다.
+        /// 글 한 편의 평가 등급과는 따로 본다. 반박 문장을 담은 글을 올렸으면 그 글이 '부족'이었어도 정정은 한 것이다.
+        /// 등급으로 보면 반박 문장을 부족한 글에 다 써 버린 플레이어가 영영 해결하지 못하게 된다.
+        /// 사건 데이터의 반박 칸(RefuteSection)이 없으면 정정글을 한 편이라도 올렸는지로 본다.
+        /// </summary>
+        public bool HasCorrection(CaseSO c)
+        {
+            var post = c != null ? c.PostWriting : null;
+            if (post == null || _save == null || _save.Current == null || _save.Current.boardPosts == null) return false;
+
+            var refutes = new HashSet<string>();
+            int section = post.RefuteSection;
+            if (section >= 0 && section < PostWritingSO.SectionCount)
+            {
+                var list = post.GetCandidates(section);
+                if (list != null) foreach (var cand in list) if (cand != null && cand.tag == PostTone.Refutation) refutes.Add(cand.textId);
+            }
+
+            foreach (var r in _save.Current.boardPosts)
+            {
+                if (r == null || r.removed || r.postWritingId != post.PostWritingId) continue;
+                if (section < 0) return true;
+                if (refutes.Contains(r.titleTextId)) return true;
+                if (r.bodyTextIds != null) foreach (var id in r.bodyTextIds) if (refutes.Contains(id)) return true;
+            }
+            return false;
+        }
+
+        /// <summary>조건을 모두 채웠으면 정식 해결로 적는다. 적었으면 true. 같은 사건은 한 번만 적는다.</summary>
+        public bool TryResolve(string caseId)
+        {
+            var c = FindCase(caseId);
+            if (c == null || !c.MainStory || !MainStarted) return false;
+            var status = Evaluate(c);
+            if (status != CaseStatus.Ready)
+            {
+                Debug.Log($"[Workday] 해결 판정 | {caseId} {status} | 믿음도 {DisplayBelief(c.LegendId):0.0}% / 목표 {ResolveTarget(c)}% 이하");
+                return false;
+            }
+            MarkSolved(caseId);
+            Debug.Log($"[Workday] 정식 해결 | {caseId} | 믿음도 {DisplayBelief(c.LegendId):0.0}% ≤ 목표 {ResolveTarget(c)}%");
+            return true;
+        }
+
+        /// <summary>
+        /// 예전 규칙(정정글 성공만으로 해결)으로 해결된 사건을 새 규칙으로 다시 본다. v13 이전 저장본을 처음 불러올 때 한 번만 한다.
+        /// 목표를 넘은 채 해결로 적힌 본편 사건은 지우지 않고 '진행 중'으로 되돌린다. 보고서, 올린 글, 오른 믿음도는 그대로 둔다.
+        /// 튜토리얼 사건(막차)은 튜토리얼 평가로 끝나는 사건이라 건드리지 않는다. 되돌린 사건은 현황판에서 알린다.
+        /// </summary>
+        private void AuditResolvedCases()
+        {
+            var w = W;
+            if (w == null || !w.needsResolveAudit) return;
+            w.needsResolveAudit = false;
+
+            foreach (var id in new List<string>(_save.Current.completedCaseIds))
+            {
+                var c = FindCase(id);
+                if (c == null || !c.MainStory) continue;
+                float belief = DisplayBelief(c.LegendId);
+                if (belief < 0f || belief <= ResolveTarget(c)) continue;
+
+                _save.Current.completedCaseIds.Remove(id);
+                w.resolvedLegendIds.Remove(c.LegendId);
+                if (!w.activeCaseIds.Contains(id)) w.activeCaseIds.Add(id);
+                if (!w.postedCaseIds.Contains(id)) w.postedCaseIds.Add(id);
+                if (!w.reopenedCaseIds.Contains(id)) w.reopenedCaseIds.Add(id);
+                Debug.Log($"[Workday] 예전 저장본 | {id} 는 믿음도 {belief:0.0}% 로 새 목표({ResolveTarget(c)}% 이하)를 넘어 진행 중으로 되돌렸다. 보고서·글은 그대로");
+            }
+            _save.MarkDirty();
+        }
+
+        /// <summary>예전 규칙으로 해결됐다가 진행 중으로 돌아온 사건. 알린 뒤 비운다.</summary>
+        public List<string> TakeReopenedNotice()
+        {
+            var w = W;
+            var list = w != null ? new List<string>(w.reopenedCaseIds) : new List<string>();
+            if (w != null && w.reopenedCaseIds.Count > 0) { w.reopenedCaseIds.Clear(); _save.MarkDirty(); }
+            return list;
         }
 
         public bool IsSolved(string caseId) => _save != null && _save.Current != null && _save.Current.completedCaseIds.Contains(caseId);
@@ -414,6 +575,9 @@ namespace UrbanLegendBureau.Systems
                 applied++;
             }
             Debug.Log($"[Workday] 게시판 되살림 | 저장된 글 {applied}개 (댓글까지 {withComments}개)");
+
+            // 글마다의 믿음도가 돌아온 뒤라야 예전 저장본의 해결 사건을 새 기준으로 다시 볼 수 있다.
+            AuditResolvedCases();
         }
 
         /// <summary>저장 직전. 시각과 게시판 글의 숫자, 댓글을 저장본에 옮긴다.</summary>

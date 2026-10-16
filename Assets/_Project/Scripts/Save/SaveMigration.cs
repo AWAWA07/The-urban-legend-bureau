@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 13;
+        public const int CurrentVersion = 14;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -167,6 +167,17 @@ namespace UrbanLegendBureau.Save
                 data.work ??= new WorkState();
                 data.work.resolvedLegendIds ??= new System.Collections.Generic.List<string>();
                 data.saveVersion = 13;
+            }
+
+            if (data.saveVersion == 13)
+            {
+                // v14에서 사건 해결 기준이 바뀌었다. 예전에는 정정글이 성공하면 해결이었고, 이제는 괴담 믿음도가 목표(기본 30%) 이하여야 한다.
+                // 저장본을 지우거나 진행을 고치지 않는다. 본편을 진행 중이던 저장본이면 표시만 켜 두고,
+                // 불러온 뒤 게시판 믿음도가 돌아오면 WorkdayDirector 가 해결 사건을 새 기준으로 다시 본다(넘는 사건만 진행 중으로 되돌림).
+                data.work ??= new WorkState();
+                data.work.reopenedCaseIds ??= new System.Collections.Generic.List<string>();
+                data.work.needsResolveAudit = data.work.mainStarted;
+                data.saveVersion = 14;
             }
 
             if (data.saveVersion < CurrentVersion)

@@ -47,6 +47,9 @@ namespace UrbanLegendBureau.Data
 
         [Tooltip("올린 뒤 평가에서 이 문장이 왜 그런 영향을 줬는지 설명하는 String ID. 올리기 전에는 보이지 않는다.")]
         public string reviewTextId;
+
+        [Tooltip("본편: 이 근거(단서 ID 또는 분석 기록 ID)를 모두 얻어야 후보로 보인다. 비우면 늘 보인다. 새 근거로 다시 바로잡는 정정 문장에 쓴다.")]
+        public List<string> requiredEvidenceIds = new List<string>();
     }
 
     /// <summary>게시 뒤에 달리는 댓글 한 줄. 기존 괴담넷 닉네임과 말투를 그대로 쓴다.</summary>
@@ -114,8 +117,6 @@ namespace UrbanLegendBureau.Data
         [Tooltip("올릴 수 있는 최대 횟수. 0이면 제한이 없다.")]
         [SerializeField] private int _maxAttempts;
 
-        [Tooltip("다시 쓸 때 실패한 글을 내리고 그 글이 올린 믿음도를 되돌린다. 튜토리얼에서만 켠다.")]
-        [SerializeField] private bool _takeDownFailedPost = true;
 
         [Header("게시되는 모습")]
         [Tooltip("작성자(차지한의 부계정) 표기의 String ID.")]
@@ -152,7 +153,9 @@ namespace UrbanLegendBureau.Data
         [SerializeField] private string _weakLineTextId;
         [Tooltip("믿음도가 그대로일 때. 비우면 weak 를 쓴다.")]
         [SerializeField] private string _flatLineTextId;
-        [SerializeField] private string _takeDownLineTextId;
+        [Tooltip("튜토리얼에서 못 미친 글을 올린 뒤 한영이 하는 말. 올린 글은 지울 수 없으니 새 정정글로 바로잡자고 이른다.")]
+        [UnityEngine.Serialization.FormerlySerializedAs("_takeDownLineTextId")]
+        [SerializeField] private string _rewriteLineTextId;
 
         public string PostWritingId => _postWritingId;
         public string CaseId => _caseId;
@@ -171,7 +174,6 @@ namespace UrbanLegendBureau.Data
         public int RefuteSection => _refuteSection;
         public bool AllowRewrite => _allowRewrite;
         public int MaxAttempts => _maxAttempts;
-        public bool TakeDownFailedPost => _takeDownFailedPost;
 
         public string AuthorTextId => _authorTextId;
         public string BoardTextId => _boardTextId;
@@ -194,7 +196,7 @@ namespace UrbanLegendBureau.Data
         public string FailLineTextId => _failLineTextId;
         public string WeakLineTextId => _weakLineTextId;
         public string FlatLineTextId => string.IsNullOrEmpty(_flatLineTextId) ? _weakLineTextId : _flatLineTextId;
-        public string TakeDownLineTextId => _takeDownLineTextId;
+        public string RewriteLineTextId => _rewriteLineTextId;
 
         /// <summary>칸 순서대로 후보 목록. 0 제목, 1 도입, 2 사실, 3 행동 지침.</summary>
         public IReadOnlyList<PostWritingCandidate> GetCandidates(int section)

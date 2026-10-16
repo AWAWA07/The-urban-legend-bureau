@@ -33,6 +33,7 @@ namespace UrbanLegendBureau.Systems
             _workday.Init(_tutorial);
             _workday.ShiftEnded += OnWorkShiftEnded;
             _workday.GameOver += OnWorkGameOver;
+            HookMainPostWriting();
             _workday.RestoreFromSave();
         }
 
@@ -56,7 +57,7 @@ namespace UrbanLegendBureau.Systems
 
             bool doomed = false;
             foreach (var c in _workday.ActiveCases())
-                if (_workday.LegendBelief(c.LegendId) >= 85f) doomed = true;
+                if (_workday.DisplayBelief(c.LegendId) >= 85f) doomed = true;
 
             var labels = new List<System.Func<string>>
             {
@@ -201,7 +202,7 @@ namespace UrbanLegendBureau.Systems
                 OnPrimary = CloseWorkScreen,
             };
 
-            float overall = _workday.OverallBelief;
+            float overall = _workday.DisplayOverall;
             view.Stats = new[]
             {
                 L("ui.work.stat_overall") + "\n" + Pct(overall) + "  <size=60%>" + Delta(_workday.DeltaSincePrevDay("*")) + "</size>",
@@ -213,7 +214,7 @@ namespace UrbanLegendBureau.Systems
 
             foreach (var c in active)
             {
-                float b = _workday.LegendBelief(c.LegendId);
+                float b = _workday.DisplayBelief(c.LegendId);
                 float d = _workday.DeltaSincePrevDay(c.LegendId);
                 bool urgent = b >= 75f;
                 view.Rows.Add(new WorkdayScreen.Row
@@ -226,13 +227,13 @@ namespace UrbanLegendBureau.Systems
                     GradeLevel = GradeLevel(b),
                     DeltaCell = 3,
                     DeltaSign = float.IsNaN(d) ? 0 : d > 0.05f ? 1 : d < -0.05f ? -1 : 0,
-                    Tag = urgent ? L("ui.work.tag_urgent") : _case == c ? L("ui.work.tag_holding") : float.IsNaN(d) ? L("ui.work.tag_new") : null,
+                    Tag = urgent ? L("ui.work.tag_urgent") : _workday.Evaluate(c) == WorkdayDirector.CaseStatus.AboveTarget ? L("ui.work.tag_more") : _case == c ? L("ui.work.tag_holding") : float.IsNaN(d) ? L("ui.work.tag_new") : null,
                     TagDanger = urgent,
                 });
             }
             foreach (var c in solved)
             {
-                float b = _workday.LegendBelief(c.LegendId);
+                float b = _workday.DisplayBelief(c.LegendId);
                 view.Rows.Add(new WorkdayScreen.Row
                 {
                     Key = c.CaseId,
@@ -248,7 +249,7 @@ namespace UrbanLegendBureau.Systems
             var focus = active.Find(c => c.CaseId == _workFocusCaseId) ?? solved.Find(c => c.CaseId == _workFocusCaseId);
             if (focus != null)
             {
-                float b = _workday.LegendBelief(focus.LegendId);
+                float b = _workday.DisplayBelief(focus.LegendId);
                 float spread = _spread != null ? _spread.GetSpreadRate(_save.Current, focus.LegendId) : 0f;
                 view.DetailTitle = CaseName(focus);
                 view.Detail.Add(_loc.Get(focus.CaseDescriptionTextId));
@@ -260,6 +261,12 @@ namespace UrbanLegendBureau.Systems
                 AddCaseProgress(view, focus);
             }
             if (active.Count == 0) view.Notes.Add(L("ui.work.note_no_case"));
+            // 예전 저장본에서 새 해결 기준(믿음도 목표 이하)에 못 미쳐 진행 중으로 돌아온 사건을 한 번 알린다.
+            foreach (var id in _workday.TakeReopenedNotice())
+            {
+                var rc = _workday.FindCase(id);
+                if (rc != null) view.Notes.Add(L("ui.work.note_reopened", CaseName(rc), _workday.ResolveTarget(rc)));
+            }
 
             PushWorkScreen(view);
         }
@@ -340,7 +347,7 @@ namespace UrbanLegendBureau.Systems
             foreach (var c in _workday.ActiveCases())
             {
                 float start = WorkdayDirector.ReadSnapshot(w.dayStartBeliefs, c.LegendId);
-                float now = _workday.LegendBelief(c.LegendId);
+                float now = _workday.DisplayBelief(c.LegendId);
                 view.Rows.Add(new WorkdayScreen.Row
                 {
                     Key = c.CaseId,
@@ -353,7 +360,7 @@ namespace UrbanLegendBureau.Systems
             }
             view.Stats = new[]
             {
-                L("ui.work.stat_overall") + "\n" + Pct(_workday.OverallBelief),
+                L("ui.work.stat_overall") + "\n" + Pct(_workday.DisplayOverall),
                 L("ui.work.stat_solved") + "\n" + L("ui.work.count", _workday.SolvedCount),
             };
             view.Notes.Add(L("ui.work.note_go_sleep"));
@@ -387,7 +394,7 @@ namespace UrbanLegendBureau.Systems
             };
             foreach (var c in _workday.ActiveCases())
             {
-                float b = _workday.LegendBelief(c.LegendId);
+                float b = _workday.DisplayBelief(c.LegendId);
                 view.Rows.Add(new WorkdayScreen.Row
                 {
                     Key = c.CaseId, Name = CaseName(c), Sub = LegendName(c.LegendId),

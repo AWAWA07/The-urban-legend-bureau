@@ -1155,7 +1155,13 @@ namespace UrbanLegendBureau.Systems
             switch (_afterTalk)
             {
                 case AfterTalk.PostComment:
-                    PostCorrectComment();
+                    // 실제로 댓글이 올라가기 직전의 마지막 확인. 고르기만 한 것은 아직 연습이라 바꿀 수 있다.
+                    // "다시 확인하기"를 고르면 선택지가 그대로 남는다. 등록하면 그 댓글은 고치거나 지울 수 없다.
+                    if (_communityScreen != null)
+                        UrbanLegendBureau.UI.ConfirmDialog.Show(_communityScreen.Window, _communityScreen.BodyFont, _communityScreen.TitleFont,
+                            _loc.Get(ConfirmCommentTextId), _loc.Get(ConfirmCommentYesTextId), _loc.Get(ConfirmBackTextId),
+                            PostCorrectComment, () => _pendingChoice = null);
+                    else PostCorrectComment();
                     break;
 
                 case AfterTalk.Finish:
@@ -1351,6 +1357,10 @@ namespace UrbanLegendBureau.Systems
         // ------------------------------------------------------------- 정답 처리
 
         private TutorialCommentChoice _pendingChoice;
+
+        private const string ConfirmCommentTextId = "ui.net.confirm_comment";
+        private const string ConfirmCommentYesTextId = "ui.net.confirm_comment_yes";
+        private const string ConfirmBackTextId = "ui.post.confirm_back";
 
         private void PostCorrectComment()
         {
