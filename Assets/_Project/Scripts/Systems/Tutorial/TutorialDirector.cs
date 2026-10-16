@@ -1884,15 +1884,22 @@ namespace UrbanLegendBureau.Systems
 
         // ------------------------------------------------------------- 첫날 밤
 
-        /// <summary>게시물을 다 올린 뒤 숙소에서 주고받는 말. 한영, 차지한, 한영 순이다.</summary>
+        /// <summary>
+        /// 게시물을 다 올린 뒤 숙소에서 주고받는 말.
+        /// 한영이 수고했다고 하고, 차지한이 자기한테도 귀신이 붙은 게 아니냐고 묻고, 한영이 진작 떼어 놨다고 한 뒤 쉬라고 한다.
+        /// </summary>
         private static readonly string[] NightLineTextIds =
         {
+            "tutorial.night.after_1",
+            "tutorial.night.after_2",
+            "tutorial.night.after_3",
+            "tutorial.night.after_4",
             "tutorial.night.001",
             "tutorial.night.002",
             "tutorial.night.003",
         };
 
-        private static readonly bool[] NightLineIsHanyoung = { true, false, true };
+        private static readonly bool[] NightLineIsHanyoung = { true, false, true, true, true, false, true };
 
         /// <summary>한영이 나간 뒤 차지한 혼자 하는 말.</summary>
         private static readonly string[] MonologueTextIds =

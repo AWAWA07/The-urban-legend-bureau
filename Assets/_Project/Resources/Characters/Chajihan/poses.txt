@@ -28,6 +28,7 @@ tutorial.brief.042	hair	근데 저는 퇴마를 할 줄 모르는데…
 tutorial.room.002	chest2	방 좋네요.
 
 # 첫날 밤
+tutorial.night.after_2	head2	근데 이러면 저한테도 귀신이 붙은 거 아닌가요..?
 tutorial.night.002	chest2	감사합니다. 안녕히 주무세요.
 tutorial.night.mono_1	headache	...다사다난한 하루였다..
 tutorial.night.mono_2	headache2	내일부터 진짜 시작이구나.

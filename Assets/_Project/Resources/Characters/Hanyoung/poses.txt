@@ -106,6 +106,9 @@ post.subway.line_success	thinksmail	그래. 이 정도면 사람들이 괜히 �
 post.subway.line_fail	surprised	잠깐. 이건 오히려 괴담을 더 퍼뜨리는 글이야.
 post.subway.line_weak	think	나쁘진 않은데, 아직 믿는 사람이 많아. 덧붙은 거짓은 확실히 걷어내 줘야 해.
 post.subway.line_takedown	arms_crossed	이 글은 내가 내려 둘게. 다시 써 보자.
+tutorial.night.after_1	standingsmail	수고했어.
+tutorial.night.after_3	thinksmail	아, 이제 믿나 보네?
+tutorial.night.after_4	arms_crossed	진작 떼어 놨으니 걱정하지 마.
 tutorial.night.001	standingsmail	어느새 벌써 새벽 {0}시 {1}분이네, 오늘은 여기까지 하고 쉬어.
 tutorial.night.003	standing	그래, 내일 6시에 보자. 그때부터는 진짜 실전이니까.
 
