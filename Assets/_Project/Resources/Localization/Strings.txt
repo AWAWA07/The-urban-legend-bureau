@@ -511,7 +511,7 @@ ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름
 ui.memo.new	+ 새 메모	+ New note	메모를 한 장 더 만드는 단추
 ui.memo.default_grade	[위험 등급표]  — 한영이 설명해 준 것	[Risk grades] - as Hanyoung explained	기본으로 들어 있는 메모의 첫 줄
 ui.memo.unlocked	메모장 기능이 열렸습니다!	The notepad is now available.	메모장이 열렸다는 알림
-ui.casefile.unlocked	수사 노트 앱이 열렸습니다! 숙소 컴퓨터에서 열 수 있어요.	The case file app is now available on the dorm computer.	숙소에 도착하면 뜨는 위쪽 알림
+ui.casefile.unlocked	수사 노트 기능이 열렸습니다!	The case file is now available.	숙소에 도착하면 뜨는 위쪽 알림
 ui.net.posts_unlocked	괴담넷의 다른 글도 읽을 수 있습니다!	You can now read the other posts on LegendNet.	게시판이 열렸다는 알림
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음
