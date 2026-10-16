@@ -762,6 +762,42 @@ namespace UrbanLegendBureau.Systems
             };
         }
 
+        /// <summary>인터넷 글(WebPageSO) 하나를 게시판 글로 짓는다. 본편 사건의 괴담 글을 게시판에 걸 때 쓴다.</summary>
+        public CommunityBoardEntry MakePageEntry(string pageId, int views, int belief, int minutesAgo, int up, int down, string author, string legendId)
+            => PageEntry(pageId, views, belief, minutesAgo, up, down, author, legendId);
+
+        /// <summary>이 괴담 글들의 믿음도 평균(반올림하지 않은 값). 글이 없으면 -1.</summary>
+        public float GetLegendBeliefExact(string legendId)
+        {
+            if (string.IsNullOrEmpty(legendId)) return -1f;
+            if (_boardEntries == null) BuildBoardEntries();
+            int total = 0, counted = 0;
+            foreach (var entry in _boardEntries)
+            {
+                if (entry == null || entry.LegendId != legendId || entry.BeliefPercent <= 0) continue;
+                total += entry.BeliefPercent;
+                counted++;
+            }
+            return counted == 0 ? -1f : (float)total / counted;
+        }
+
+        /// <summary>전체 괴담 믿음도(반올림하지 않은 값). 믿음도가 붙은 모든 글의 평균이다.</summary>
+        public float BoardBeliefExact
+        {
+            get
+            {
+                if (_boardEntries == null) BuildBoardEntries();
+                int total = 0, counted = 0;
+                foreach (var entry in _boardEntries)
+                {
+                    if (entry == null || entry.BeliefPercent <= 0) continue;
+                    total += entry.BeliefPercent;
+                    counted++;
+                }
+                return counted == 0 ? 0f : (float)total / counted;
+            }
+        }
+
         /// <summary>막차 사건의 검열 대상 글. "[정리] 막차 괴담 규칙 총정리".</summary>
         private const string SubwaySummaryPageId = "web_subway_003";
 

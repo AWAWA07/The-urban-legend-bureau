@@ -505,6 +505,63 @@ ui.desktop.belief	전체 괴담 믿음도 {0}%	Overall belief {0}%	작업 표시
 ui.desktop.app_net	괴담넷	LegendNet	
 ui.desktop.app_memo	메모장	Notepad	컴퓨터와 휴대폰에서 여는 메모장
 ui.desktop.app_casefile	수사 노트	Case File	숙소 컴퓨터의 수사 노트 앱. 숙소에 도착하면 열린다
+ui.desktop.app_workboard	업무 현황	Duty Board	숙소 컴퓨터 - 본편 업무 현황판
+ui.work.bureau	괴담 검열국 · 야간 근무	URBAN LEGEND BUREAU · NIGHT SHIFT	
+ui.work.board_title	오늘의 업무 현황	Today's Duty Board	
+ui.work.board_sub	{0}  ·  {1}  ·  제{2}일차 근무	{0}  ·  {1}  ·  Shift day {2}	날짜 / 시각 / 근무 일차
+ui.work.col_case	사건 · 괴담	Case · Legend	
+ui.work.col_belief	믿음도	Belief	
+ui.work.col_grade	위험등급	Risk	
+ui.work.col_delta	전날 대비	Since last shift	
+ui.work.col_before	잠들기 전	Before sleep	
+ui.work.col_after	출근 뒤	At shift start	
+ui.work.col_start	출근 때	At shift start	
+ui.work.col_now	지금	Now	
+ui.work.btn_close	닫기	Close	
+ui.work.btn_to_board	업무 현황 보기 ›	Open duty board ›	
+ui.work.btn_title	타이틀로	Back to title	
+ui.work.btn_ok	확인	OK	
+ui.work.stat_overall	전체 괴담 믿음도	Overall belief	
+ui.work.stat_left	퇴근(03:00)까지	Until 03:00	
+ui.work.stat_active	맡은 사건 / 상한	Active cases / limit	
+ui.work.stat_solved	해결한 사건	Cases solved	
+ui.work.stat_overall_before	잠들기 전 전체 믿음도	Overall before sleep	
+ui.work.stat_overall_after	출근 뒤 전체 믿음도	Overall now	
+ui.work.stat_new_cases	새 사건	New cases	
+ui.work.off_duty	근무 시간 아님	Off duty	
+ui.work.count	{0}건	{0}	
+ui.work.duration	{0}시간 {1}분	{0}h {1}m	
+ui.work.tag_urgent	긴급	URGENT	
+ui.work.tag_new	신규	NEW	
+ui.work.tag_grade_up	등급 상승	RISK UP	
+ui.work.detail_legend	괴담: {0}	Legend: {0}	
+ui.work.detail_belief	믿음도: {0} ({1})	Belief: {0} ({1})	
+ui.work.detail_spread	확산도: {0}	Spread: {0}	
+ui.work.detail_sealed	봉인: {0}	Sealed: {0}	
+ui.work.yes	됨	Yes	
+ui.work.no	안 됨	No	
+ui.work.note_no_case	지금 맡은 사건이 없습니다.	No active cases right now.	
+ui.work.report_title	야간 확산 보고	Overnight Spread Report	
+ui.work.report_sub	{0}  ·  {1}  ·  제{2}일차 근무 시작  ·  {3} 동안 잠들었습니다	{0}  ·  {1}  ·  Shift day {2} begins  ·  You slept for {3}	
+ui.work.overall	전체 괴담 믿음도	Overall belief	
+ui.work.note_warning	주의: {0} {1}% 넘음	Warning: {0} passed {1}%	경고 단계를 처음 넘었을 때
+ui.work.gameover	{0} 믿음도 100% — 게임 오버	{0} reached 100% — Game over	
+ui.work.gameover_title	게임 오버	Game Over	괴담 믿음도 100%
+ui.work.end_title	근무 종료	Shift Over	
+ui.work.end_sub	{0}  ·  {1}  ·  제{2}일차 근무가 끝났습니다	{0}  ·  {1}  ·  Shift day {2} is over	
+ui.work.note_go_sleep	숙소 침대에서 잠들면 다음 날 18:00 출근입니다. 잠든 동안에도 괴담은 퍼집니다.	Sleep in the dorm bed to start the next shift at 18:00. Legends keep spreading while you sleep.	
+ui.work.grade_beyond	???급	???	100%
+ui.work.date	{0}월 {1}일 ({2})	{0}/{1} ({2})	
+ui.work.dow_0	일	Sun	
+ui.work.dow_1	월	Mon	
+ui.work.dow_2	화	Tue	
+ui.work.dow_3	수	Wed	
+ui.work.dow_4	목	Thu	
+ui.work.dow_5	금	Fri	
+ui.work.dow_6	토	Sat	
+ui.work.sleep_ask	오늘은 여기까지 할까? 잠들면 다음 출근(18:00)까지 시간이 흐른다.	Call it a night? Time will pass until the next shift at 18:00.	본편 침대 - 차지한
+ui.work.sleep_early	아직 근무 시간이긴 한데... 지금 잘까? 자는 동안에도 괴담은 퍼진다.	It's still my shift... sleep now anyway? Legends keep spreading while I sleep.	근무 중 조기 취침
+ui.work.sleep_warn	지금 멸망급 괴담이 있다. 쉬는 동안에도 괴담은 퍼질 텐데... 그래도 잘까?	There's an Annihilation-level legend out there. It'll keep spreading while I rest... sleep anyway?	멸망급(85%+) 괴담이 있을 때
 ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 비어 있을 때
 ui.memo.autosave	적는 대로 저장된다.	Saved as you type.	메모장 아래 한 줄
 ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름

@@ -39,5 +39,21 @@ namespace UrbanLegendBureau.Data
                 default: return "legend.risk.observation";
             }
         }
+
+        /// <summary>
+        /// 믿음도(%)에서 위험등급을 정한다. 관측 1~10 / 전파 11~30 / 침식 31~50 / 현현 51~84 / 멸망 85~99.
+        /// 85 는 멸망급으로 본다. 100 은 ???급(게임 오버)이라 IsBeyond 로 따로 묻는다. 0 은 괴담과 무관한 글이다.
+        /// </summary>
+        public static LegendRiskLevel FromBelief(float belief)
+        {
+            if (belief >= 85f) return LegendRiskLevel.Annihilation;
+            if (belief >= 51f) return LegendRiskLevel.Manifestation;
+            if (belief >= 31f) return LegendRiskLevel.Erosion;
+            if (belief >= 11f) return LegendRiskLevel.Propagation;
+            return LegendRiskLevel.Observation;
+        }
+
+        /// <summary>???급(100%). 이미 끝난 뒤를 가리키는 수치다.</summary>
+        public static bool IsBeyond(float belief) => belief >= 100f;
     }
 }

@@ -179,6 +179,12 @@ namespace UrbanLegendBureau.Systems
             UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_room", 0.4f, 1f);
         }
 
+        /// <summary>한영이 방에 있는지 정한다. 본편에서는 한영이 자기 방에 있으므로 숙소에 없다.</summary>
+        public void SetHanyoungPresent(bool present)
+        {
+            if (_hanyoung != null) _hanyoung.gameObject.SetActive(present);
+        }
+
         // ------------------------------------------------------------- 조명
 
         /// <summary>불을 켜거나 끈다. 끄면 방이 어두워지고 창으로 달빛만 들어온다.</summary>

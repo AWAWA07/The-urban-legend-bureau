@@ -10,7 +10,7 @@ namespace UrbanLegendBureau.Save
     public static class SaveMigration
     {
         /// <summary>현재 스키마 버전.</summary>
-        public const int CurrentVersion = 10;
+        public const int CurrentVersion = 11;
 
         // 사건 종료를 뜻하던 단계 값. 중간 단계가 끼어들 때마다 뒤로 밀렸다.
         private const int V1CompletedStep = 5;   // v1: 규칙 추론 단계가 없었다
@@ -136,6 +136,15 @@ namespace UrbanLegendBureau.Save
                 // 그 사건의 글은 게시판에 없는 채로 이어진다(예전과 같다).
                 data.boardPosts ??= new System.Collections.Generic.List<SavedBoardPost>();
                 data.saveVersion = 10;
+            }
+
+            if (data.saveVersion == 10)
+            {
+                // v11에서 본편의 하루 진행(work)과 게시판 글 상태(boardStates)가 추가됐다.
+                // 구버전 저장본은 아직 본편을 시작하지 않은 것으로 읽힌다. 튜토리얼 진행은 그대로 남는다.
+                data.work ??= new WorkState();
+                data.boardStates ??= new System.Collections.Generic.List<BoardEntryState>();
+                data.saveVersion = 11;
             }
 
             if (data.saveVersion < CurrentVersion)

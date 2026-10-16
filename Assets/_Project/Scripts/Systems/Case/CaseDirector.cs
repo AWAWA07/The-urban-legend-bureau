@@ -18,7 +18,7 @@ namespace UrbanLegendBureau.Systems
     /// 사건이 여러 개가 되면 이 역할은 CaseSO + CaseService로 옮겨간다.
     /// 지금은 사건 하나를 관통시키는 것이 목적이라 최소 형태로 둔다.
     /// </summary>
-    public class CaseDirector : MonoBehaviour
+    public partial class CaseDirector : MonoBehaviour
     {
         [Header("화면")]
         [SerializeField] private TextPanelScreen _titleScreen;
@@ -265,6 +265,9 @@ namespace UrbanLegendBureau.Systems
             }
 
             if (_postWriting != null) _postWriting.Succeeded += OnPostSucceeded;
+
+            // 본편 하루 진행. 저장본에 본편 진행이 있으면 시계를 멈춰 두고 그 시각으로 되돌린다.
+            InitWorkday();
 
             if (_field != null)
             {
@@ -800,8 +803,12 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         public void OnStartClicked()
         {
+            // 본편을 진행하던 저장본이면 숙소에서 이어 간다. (이어하기·불러오기 메뉴는 저장 슬롯 단계에서 붙는다)
+            if (TryResumeMain()) return;
+
             if (_tutorial != null && !TutorialDirector.HasSeenTutorial())
             {
+                if (_workday != null) _workday.ResetForNewRun();
                 _tutorial.StartTutorial();
                 return;
             }
@@ -831,6 +838,7 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
+            if (_workday != null) _workday.ResetForNewRun();   // 튜토리얼을 처음부터 다시 보면 본편 진행도 처음부터다
             _tutorial.StartTutorial();
         }
 
@@ -1674,10 +1682,13 @@ namespace UrbanLegendBureau.Systems
         {
             if (minutes > 0) GameClock.Skip(minutes);
 
+            // 본편이면 위험등급별 자연 확산과 퇴근 시각을 본다. 튜토리얼의 게시판 흐름은 쓰지 않는다.
+            bool main = OnMainTimeAdvanced();
+
             if (_tutorial != null)
             {
                 // 시간이 흐른 것만으로도 게시판 전체가 조금씩 더 믿긴다.
-                if (minutes > 0) _tutorial.DriftBoardBelief(minutes);
+                if (minutes > 0 && !main) _tutorial.DriftBoardBelief(minutes);
 
                 // 그 위에, 지금 쫓고 있는 괴담의 글만 퍼진 만큼 더 오른다.
                 if (spread.Changed)
@@ -3410,7 +3421,7 @@ namespace UrbanLegendBureau.Systems
             if (minutes <= 0) return;
 
             GameClock.Skip(minutes);
-            if (_tutorial != null) _tutorial.DriftBoardBelief(minutes);
+            if (!OnMainTimeAdvanced() && _tutorial != null) _tutorial.DriftBoardBelief(minutes);
             PushStatus();
         }
 
@@ -3648,7 +3659,10 @@ namespace UrbanLegendBureau.Systems
                 _save.AutoSave();
             }
 
-            Debug.Log($"[CaseDirector] 첫날 밤 끝 | 잠들었다 | 시각 {GameClock.FormatShort()} (다음 단계에서 06:00 으로)");
+            Debug.Log($"[CaseDirector] 잠들었다 | 시각 {GameClock.FormatShort()}");
+
+            // 다음 출근(18:00)까지 시간이 흐르고 본편 하루가 이어진다. 튜토리얼 첫날 밤이면 여기서 본편이 시작된다.
+            AfterFellAsleep();
         }
 
         /// <summary>
@@ -3703,6 +3717,9 @@ namespace UrbanLegendBureau.Systems
                 if (room != null) room.ToggleLight();
                 return;
             }
+
+            // 본편 숙소의 침대. 언제든 잠들 수 있다.
+            if (TryHandleMainRoomPoint(point)) return;
 
             // 잘 시간이다. 침대 말고는 한마디씩만 한다.
             if (_night == NightState.Bedtime)
@@ -3761,8 +3778,11 @@ namespace UrbanLegendBureau.Systems
         {
             if (_desktopScreen == null) return;
 
-            if (Deduction != null) _desktopScreen.SetAllowedApps(NetAppId, MemoAppId, CaseFileAppId);
-            else _desktopScreen.SetAllowedApps(NetAppId, MemoAppId);
+            // 본편이면 업무 현황 앱도 연다.
+            var apps = new List<string> { NetAppId, MemoAppId };
+            if (Deduction != null || InMain) apps.Add(CaseFileAppId);
+            if (InMain) apps.Add(WorkboardAppId);
+            _desktopScreen.SetAllowedApps(apps.ToArray());
 
             bool notePending = IsNotePending();
             bool postPending = !notePending && IsPostPending();
@@ -3842,6 +3862,13 @@ namespace UrbanLegendBureau.Systems
         /// <summary>숙소 컴퓨터의 아이콘. 열리는 것은 괴담넷과 메모장, 휴대폰과 같은 둘이다.</summary>
         private void OnRoomAppClicked(string appId)
         {
+            // 본편의 업무 현황판.
+            if (appId == WorkboardAppId)
+            {
+                ShowWorkBoard();
+                return;
+            }
+
             // 수사 노트. 지금 할 쪽(단서 분석 → 최종 추론 → 조사 보고서)부터 펼친다. 확정한 뒤에도 다시 읽을 수 있다.
             if (appId == CaseFileAppId)
             {

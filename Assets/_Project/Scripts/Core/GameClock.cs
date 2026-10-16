@@ -114,6 +114,9 @@ namespace UrbanLegendBureau.Core
         /// 지금이 그날의 몇 분째인가(0~1439). 자정을 넘기면 다시 0부터다.
         /// "몇 시가 되면" 하는 일을 거는 쪽이 이 값을 본다.
         /// </summary>
+        /// <summary>시계가 세기 시작한 시각(그날 0시부터 분). 기본 22:30.</summary>
+        public static int StartMinuteOfDay => _startHour * 60 + _startMinute;
+
         public static int MinutesOfDay => (_startHour * 60 + _startMinute + ElapsedMinutes) % 1440;
 
         /// <summary>시작한 뒤로 흐른 분. 이 값이 바뀔 때만 글자를 다시 쓰면 된다.</summary>
@@ -122,8 +125,30 @@ namespace UrbanLegendBureau.Core
             get
             {
                 EnsureStarted();
-                return _skipped + Mathf.FloorToInt((Time.unscaledTime - _origin) / 60f);
+                return _skipped + RealMinutes();
             }
+        }
+
+        /// <summary>실제 시간이 흐른 만큼의 분. 멈춰 둔 동안에는 0 이다.</summary>
+        private static int RealMinutes() => _flowsWithRealTime ? Mathf.FloorToInt((Time.unscaledTime - _origin) / 60f) : 0;
+
+        private static bool _flowsWithRealTime = true;
+
+        /// <summary>실제 시간으로도 흐르는가. 튜토리얼은 흐르고, 본편은 행동할 때만 흐른다.</summary>
+        public static bool FlowsWithRealTime => _flowsWithRealTime;
+
+        /// <summary>
+        /// 실제 시간으로 흐를지 정한다. 끄면 지금까지 흐른 분을 그대로 붙잡아 두고, 그 뒤로는 행동(Skip 등)으로만 움직인다.
+        /// 본편에서 글을 읽거나 추론하거나 메뉴를 보는 동안 시간이 저절로 흐르지 않게 한다.
+        /// </summary>
+        public static void SetRealTimeFlow(bool on)
+        {
+            EnsureStarted();
+            if (_flowsWithRealTime == on) return;
+
+            if (!on) _skipped += RealMinutes();   // 흐른 만큼을 붙잡아 둔다
+            _origin = Time.unscaledTime;
+            _flowsWithRealTime = on;
         }
 
         private static void EnsureStarted()

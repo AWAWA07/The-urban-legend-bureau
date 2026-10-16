@@ -18,3 +18,7 @@ MonoBehaviour:
   _legendId: legend_test_002
   _startingStep: 1
   _isPlayable: 1
+  _mainStory: 1
+  _startBelief: 38
+  _appearWorkday: 2
+  _spreadsAfterSolved: 0

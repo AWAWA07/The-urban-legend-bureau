@@ -73,6 +73,59 @@ namespace UrbanLegendBureau.Save
     }
 
     /// <summary>
+    /// 본편의 하루 진행과 괴담 상태 (v11). 튜토리얼에서는 비어 있다.
+    /// 시각은 벽시계(GameClock)가 1일차 22:30 부터 흐른 분으로 적는다. 달력 날짜와 근무 일차는 이 값에서 계산한다(WorkdayDirector).
+    /// </summary>
+    [Serializable]
+    public class WorkState
+    {
+        /// <summary>본편이 시작됐는가. 튜토리얼 첫날 밤 취침 뒤 켜진다.</summary>
+        public bool mainStarted;
+
+        /// <summary>벽시계가 흐른 분. -1 이면 적어 둔 적이 없다.</summary>
+        public int elapsedMinutes = -1;
+
+        /// <summary>자연 확산을 어느 시각(벽시계 흐른 분)까지 반영했는가. 불러온 뒤 같은 시간이 두 번 반영되지 않게 한다.</summary>
+        public int spreadAppliedMinute = -1;
+
+        /// <summary>오늘 근무가 03:00 으로 끝났고 잠들기를 기다리는가.</summary>
+        public bool shiftEnded;
+
+        /// <summary>지금 맡고 있는(활성) 사건.</summary>
+        public List<string> activeCaseIds = new List<string>();
+
+        /// <summary>괴담마다 1%에 못 미친 자연 확산 몫. "괴담ID|몫" 으로 적는다.</summary>
+        public List<string> legendCarry = new List<string>();
+
+        /// <summary>이번 근무를 시작할 때의 괴담 믿음도. "괴담ID|%". 전체는 "*" 로 적는다.</summary>
+        public List<string> dayStartBeliefs = new List<string>();
+
+        /// <summary>지난 근무를 시작할 때의 괴담 믿음도. 현황판의 "전날 대비"에 쓴다.</summary>
+        public List<string> prevDayBeliefs = new List<string>();
+
+        /// <summary>이미 알린 경고 단계. "괴담ID|단계%". 처음 넘을 때 한 번만 알린다.</summary>
+        public List<string> warned = new List<string>();
+
+        /// <summary>게임 오버가 났는가와 그 원인 괴담("*" 이면 전체 믿음도).</summary>
+        public bool gameOver;
+        public string gameOverLegendId;
+    }
+
+    /// <summary>
+    /// 게시판 글 하나의 바뀌는 숫자 (v11). 게시판은 매번 새로 짓고, 본편에서는 이 값으로 덮어 저장 시점의 모습을 되살린다.
+    /// 열쇠는 글의 제목 ID 다(플레이어 글은 PlayerPostStore 가 따로 다룬다).
+    /// </summary>
+    [Serializable]
+    public class BoardEntryState
+    {
+        public string key;
+        public int belief;
+        public int views;
+        public int likes;
+        public int dislikes;
+    }
+
+    /// <summary>
     /// 플레이어가 괴담넷에 올린 글 하나 (v10).
     /// 게시판 목록은 저장하지 않고 매번 새로 짓는다. 플레이어가 쓴 글만 여기에 적어 두었다가, 게시판을 지을 때 되살린다.
     /// 화면에 걸린 글(CommunityBoardEntry)의 숫자가 바뀌면 PlayerPostStore 가 이쪽으로 옮겨 적는다.
@@ -189,6 +242,12 @@ namespace UrbanLegendBureau.Save
         /// <summary>플레이어가 괴담넷에 올린 글 (v10). 내린 글도 removed 로 남는다.</summary>
         public List<SavedBoardPost> boardPosts = new List<SavedBoardPost>();
 
+        /// <summary>본편의 하루 진행과 괴담 상태 (v11).</summary>
+        public WorkState work = new WorkState();
+
+        /// <summary>본편 게시판 글의 믿음도와 반응 (v11).</summary>
+        public List<BoardEntryState> boardStates = new List<BoardEntryState>();
+
         // --- 전역 ---
         public GlobalState global = new GlobalState();
         public SettingsData settings = new SettingsData();
@@ -213,6 +272,13 @@ namespace UrbanLegendBureau.Save
             confirmedReports ??= new List<string>();
             reportInputs ??= new List<string>();
             boardPosts ??= new List<SavedBoardPost>();
+            work ??= new WorkState();
+            work.activeCaseIds ??= new List<string>();
+            work.legendCarry ??= new List<string>();
+            work.dayStartBeliefs ??= new List<string>();
+            work.prevDayBeliefs ??= new List<string>();
+            work.warned ??= new List<string>();
+            boardStates ??= new List<BoardEntryState>();
         }
 
         /// <summary>괴담 상태를 찾거나 없으면 만들어 돌려준다.</summary>

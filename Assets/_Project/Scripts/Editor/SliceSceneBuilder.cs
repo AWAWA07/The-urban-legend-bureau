@@ -218,6 +218,7 @@ namespace UrbanLegendBureau.EditorTools
             var report = BuildReportScreen("Screen_Report", out var reportButtons);
             var caseFile = BuildCaseFileScreen("Screen_CaseFile");
             var caseArchive = BuildCaseArchiveScreen("Screen_CaseArchive");
+            var workday = BuildWorkdayScreen("Screen_Workday");
             var internetList = BuildInternetListScreen("Screen_InternetList", out var internetButtons);
             var internetPage = BuildInternetPageScreen("Screen_InternetPage", out var pageButtons);
             var fieldHud = BuildFieldHudScreen("Screen_FieldHud", out var fieldButtons);
@@ -298,6 +299,7 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_reportScreen").objectReferenceValue = report;
             dso.FindProperty("_caseFileScreen").objectReferenceValue = caseFile;
             dso.FindProperty("_caseArchiveScreen").objectReferenceValue = caseArchive;
+            dso.FindProperty("_workdayScreen").objectReferenceValue = workday;
             dso.FindProperty("_toastScreen").objectReferenceValue = toast;
             dso.FindProperty("_resultScreen").objectReferenceValue = result;
             dso.FindProperty("_field").objectReferenceValue = field;
@@ -4033,6 +4035,7 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "gwedamnet", "ui.desktop.app_net" },
                 new[] { "memo", "ui.desktop.app_memo" },
                 new[] { "casefile", "ui.desktop.app_casefile" },   // 수사 노트. 숙소에 도착하면 열린다
+                new[] { "workboard", "ui.desktop.app_workboard" },   // 업무 현황. 본편에서 열린다
                 new[] { "archive", "ui.desktop.app_archive" },
                 new[] { "kikitalk", "ui.desktop.app_talk" },
                 new[] { "gallery", "ui.desktop.app_gallery" },
@@ -5696,6 +5699,24 @@ namespace UrbanLegendBureau.EditorTools
             so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
             so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
             so.FindProperty("_semiBold").objectReferenceValue = LoadFont(UIFontWeight.SemiBold);
+            so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return screen;
+        }
+
+        /// <summary>본편의 업무 현황판 / 야간 확산 보고 / 근무 종료 화면. 내용은 화면이 스스로 그린다.</summary>
+        private static WorkdayScreen BuildWorkdayScreen(string name)
+        {
+            var go = CreatePanel(null, name, new Color(0.063f, 0.075f, 0.094f, 1f));
+            StretchFull(go);
+
+            var screen = go.AddComponent<WorkdayScreen>();
+            ConfigureScreen(screen, name, UILayer.Screen, true, true);
+
+            var so = new SerializedObject(screen);
+            so.Update();
+            so.FindProperty("_regular").objectReferenceValue = LoadFont(UIFontWeight.Regular);
+            so.FindProperty("_medium").objectReferenceValue = LoadFont(UIFontWeight.Medium);
             so.FindProperty("_bold").objectReferenceValue = LoadFont(UIFontWeight.Bold);
             so.ApplyModifiedPropertiesWithoutUndo();
             return screen;
