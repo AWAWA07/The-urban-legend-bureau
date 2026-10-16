@@ -505,14 +505,13 @@ ui.desktop.belief	전체 괴담 믿음도 {0}%	Overall belief {0}%	작업 표시
 ui.desktop.app_net	괴담넷	LegendNet	
 ui.desktop.app_memo	메모장	Notepad	컴퓨터와 휴대폰에서 여는 메모장
 ui.desktop.app_casefile	수사 노트	Case File	숙소 컴퓨터의 수사 노트 앱. 숙소에 도착하면 열린다
-ui.app_toast.header	새 앱	New app	앱이 열렸다는 오른쪽 위 알림의 머리
-ui.app_toast.casefile_where	숙소 컴퓨터에서 열 수 있습니다.	Open it on the dorm computer.	수사 노트 앱이 열렸다는 알림의 아래 안내
 ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 비어 있을 때
 ui.memo.autosave	적는 대로 저장된다.	Saved as you type.	메모장 아래 한 줄
 ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름
 ui.memo.new	+ 새 메모	+ New note	메모를 한 장 더 만드는 단추
 ui.memo.default_grade	[위험 등급표]  — 한영이 설명해 준 것	[Risk grades] - as Hanyoung explained	기본으로 들어 있는 메모의 첫 줄
 ui.memo.unlocked	메모장 기능이 열렸습니다!	The notepad is now available.	메모장이 열렸다는 알림
+ui.casefile.unlocked	수사 노트 앱이 열렸습니다! 숙소 컴퓨터에서 열 수 있어요.	The case file app is now available on the dorm computer.	숙소에 도착하면 뜨는 위쪽 알림
 ui.net.posts_unlocked	괴담넷의 다른 글도 읽을 수 있습니다!	You can now read the other posts on LegendNet.	게시판이 열렸다는 알림
 ui.desktop.app_archive	도감	Archive	아직 기능 없음
 ui.desktop.app_talk	키키톡	KikiTalk	아직 기능 없음

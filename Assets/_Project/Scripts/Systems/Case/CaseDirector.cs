@@ -3770,17 +3770,12 @@ namespace UrbanLegendBureau.Systems
         /// <summary>숙소 컴퓨터의 수사 노트 앱. 숙소에 도착하면 열린다.</summary>
         private const string CaseFileAppId = "casefile";
 
-        private const string AppToastHeaderTextId = "ui.app_toast.header";
-        private const string AppToastCaseFileTextId = "ui.desktop.app_casefile";
-        private const string AppToastCaseFileWhereTextId = "ui.app_toast.casefile_where";
+        private const string CaseFileUnlockedTextId = "ui.casefile.unlocked";
 
-        /// <summary>숙소에 도착하자마자 수사 노트 앱이 열렸다고 알린다. 단서를 얻을 때와 같은 오른쪽 위 알림이다.</summary>
+        /// <summary>숙소에 도착하자마자 수사 노트 앱이 열렸다고 알린다. 메모장이 열릴 때와 같은 위쪽 알림이다.</summary>
         private void AnnounceCaseFileApp()
         {
-            Sfx.Play("clue_get", 0.55f);
-            var label = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
-            ClueToast.Show(_loc.Get(AppToastHeaderTextId), _loc.Get(AppToastCaseFileTextId),
-                _loc.Get(AppToastCaseFileWhereTextId), label != null ? label.font : null);
+            ShowToast(CaseFileUnlockedTextId);
         }
 
         /// <summary>보고서를 확정했고 아직 게시물을 올리지 않았는가. 다음 할 일이 컴퓨터로 가는 것뿐인 때다.</summary>
