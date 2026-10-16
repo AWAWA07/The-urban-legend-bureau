@@ -4030,6 +4030,7 @@ namespace UrbanLegendBureau.EditorTools
             {
                 new[] { "gwedamnet", "ui.desktop.app_net" },
                 new[] { "memo", "ui.desktop.app_memo" },
+                new[] { "casefile", "ui.desktop.app_casefile" },   // 수사 노트. 숙소에 도착하면 열린다
                 new[] { "archive", "ui.desktop.app_archive" },
                 new[] { "kikitalk", "ui.desktop.app_talk" },
                 new[] { "gallery", "ui.desktop.app_gallery" },

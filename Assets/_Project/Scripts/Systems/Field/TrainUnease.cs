@@ -138,6 +138,9 @@ namespace UrbanLegendBureau.Systems
         private bool _figureGone;
         private float _figureGoneAt = -1000f;
         private float _figureShownAt = -1f;   // 다 드러난 때. 아직이면 -1
+
+        /// <summary>문 유리 너머 그것이 드러나는 소리를 이미 냈는가. 한 사건에 한 번만 낸다.</summary>
+        private bool _figureAnnounced;
         private Vector2 _pointerWorld = new Vector2(9999f, 9999f);   // 마우스 빛의 가운데. 빛이 없으면 멀리
 
         private void Awake()
@@ -194,6 +197,7 @@ namespace UrbanLegendBureau.Systems
             _figureFade = 0f;
             _figureGone = false;
             _figureGoneAt = -1000f;
+            _figureAnnounced = false;
             _figureShownAt = -1f;
             _pointerWorld = new Vector2(9999f, 9999f);
             Apply(1f);
@@ -565,7 +569,7 @@ namespace UrbanLegendBureau.Systems
                 }
                 else
                 {
-                    if (_figureFade <= 0f) { UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.15f); UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_1", 0.08f); }   // 창 너머에 드러날 때 아주 작게 웅. 눈치챌 듯 말 듯
+                    if (_figureFade <= 0f && !_figureAnnounced) { _figureAnnounced = true; UrbanLegendBureau.Core.Sfx.Play("ghost_sting", 0.15f); UrbanLegendBureau.Core.Sfx.Play("ghost_whisper_1", 0.08f); }   // 창 너머에 드러날 때 아주 작게 웅. 눈치챌 듯 말 듯
                     _figureFade = Mathf.MoveTowards(_figureFade, 1f, Time.deltaTime / 1.6f);
                     if (_figureFade >= 1f && _figureShownAt < 0f) _figureShownAt = now;
                 }

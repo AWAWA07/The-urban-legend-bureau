@@ -468,6 +468,12 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         public static bool PostsUnlocked { get; private set; }
 
+        /// <summary>
+        /// 게시판의 글을 모두 열어 둔다. 알림은 띄우지 않는다.
+        /// 숙소처럼 승강장을 지나온 뒤의 자리에서 부른다. 어떤 길로 들어왔든(이야기 건너뛰기, 저장본) 게시물을 쓸 때는 잠긴 글이 없어야 한다.
+        /// </summary>
+        public static void EnsurePostsUnlocked() => PostsUnlocked = true;
+
         /// <summary>게시판의 다른 글을 열어 준다. 이미 열려 있으면 아무것도 하지 않고 false.</summary>
         private bool UnlockPosts()
         {

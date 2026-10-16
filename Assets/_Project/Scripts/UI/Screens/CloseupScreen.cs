@@ -105,7 +105,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnOpen()
         {
-            UrbanLegendBureau.Core.Sfx.Play("closeup_open", 0.45f);   // 가까이 다가가는 쉬익
+            UrbanLegendBureau.Core.Sfx.Play("closeup_open", 0.25f);   // 가까이 다가가는 쉬익. 작게 둔다. 크면 무언가 나타나는 소리로 들린다
             SetTab(_tabTextId);
             ShowLine(_hintTextId);
             SetInteractable(true);
@@ -113,7 +113,7 @@ namespace UrbanLegendBureau.UI
 
         protected override void OnClose()
         {
-            UrbanLegendBureau.Core.Sfx.Play("closeup_close", 0.35f);
+            // 닫을 때는 소리를 내지 않는다. 길게 빠지는 쉬익이 현장으로 돌아올 때마다 귀신이 사라지는 소리처럼 들렸다.
         }
 
         /// <summary>살필 곳을 모두 살폈는가. 나중에 드러나는 자리도 센다.</summary>

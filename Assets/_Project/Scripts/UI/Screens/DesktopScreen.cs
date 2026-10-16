@@ -264,6 +264,16 @@ namespace UrbanLegendBureau.UI
         /// 모니터가 켜지는 모습. 가운데에 가는 빛줄기가 옆으로 퍼진 뒤 위아래로 펴지며 화면이 된다.
         /// 옛 모니터가 켜질 때처럼 짧게 지나간다.
         /// </summary>
+        /// <summary>
+        /// 켜지는 모습이 끝나기 전에 다른 화면(수사 노트 등)이 덮으면 그 자리에서 멈춘다.
+        /// 덮개가 걷혔을 때 접힌 채로 남지 않게 다 펴진 크기로 둔다.
+        /// </summary>
+        protected override void OnCoveredChanged(bool covered)
+        {
+            if (_powerOn != null && !isActiveAndEnabled) _powerOn = null;
+            if (!covered && _powerOn == null) transform.localScale = Vector3.one;
+        }
+
         private void PlayPowerOn()
         {
             if (_powerOn != null) StopCoroutine(_powerOn);

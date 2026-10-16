@@ -504,6 +504,9 @@ ui.desktop.pm	오후	PM
 ui.desktop.belief	전체 괴담 믿음도 {0}%	Overall belief {0}%	작업 표시줄 왼쪽. 게시판 괴담 글 전체의 평균
 ui.desktop.app_net	괴담넷	LegendNet	
 ui.desktop.app_memo	메모장	Notepad	컴퓨터와 휴대폰에서 여는 메모장
+ui.desktop.app_casefile	수사 노트	Case File	숙소 컴퓨터의 수사 노트 앱. 숙소에 도착하면 열린다
+ui.app_toast.header	새 앱	New app	앱이 열렸다는 오른쪽 위 알림의 머리
+ui.app_toast.casefile_where	숙소 컴퓨터에서 열 수 있습니다.	Open it on the dorm computer.	수사 노트 앱이 열렸다는 알림의 아래 안내
 ui.memo.placeholder	여기에 적어 둔다.	Type your notes here.	메모장이 비어 있을 때
 ui.memo.autosave	적는 대로 저장된다.	Saved as you type.	메모장 아래 한 줄
 ui.memo.note	메모 {0}	Note {0}	제목이 없는 메모의 탭 이름
@@ -820,9 +823,10 @@ field.room.clock.result	지금 시각은 {0}. 오늘 활동도 얼마 안 남았
 field.room.door	방문	Door	
 field.room.door.result	지금은 나갈 일이 없다. 컴퓨터부터 보자.	No reason to go out now. The computer first.	숙소 - 차지한
 tutorial.room.cue	처음 치고는 잘하는데? 이제 저기 컴퓨터에서, 조사한 걸 바탕으로 게시물을 올려 보자.	Not bad for a first time. Now let's use that computer over there and post something based on what we found.	보고서 확정 뒤 숙소에서 - 한영
+tutorial.room.cue_pc	처음 치고는 잘하는데? 이제 괴담넷에서, 조사한 걸 바탕으로 게시물을 올려 보자.	Not bad for a first time. Now let's post something on LegendNet based on what we found.	숙소 컴퓨터에서 보고서를 확정한 뒤 - 한영
 tutorial.room.001	우리 활동 시간은 6시에서 3시까지고.. 숙식은 여기서 해결하면 돼.	We work from six to three... You can eat and sleep here.	숙소에 들어서서 - 한영
 tutorial.room.002	방 좋네요.	Nice room.	숙소에 들어서서 - 차지한
-tutorial.room.003	그렇지? 그럼 오늘 조사한 것부터 수사 노트에 정리해 보자.	Right? Then let's start by putting today's findings in order in the case file.	숙소 - 한영 (이 말 뒤에 수사 노트가 열린다)
+tutorial.room.003	그렇지? 그럼 저기 컴퓨터에서 오늘 조사한 것부터 수사 노트에 정리해 보자.	Right? Then let's use that computer over there and sort today's findings into the case file.	숙소 - 한영 (이 말 뒤에 수사 노트 앱이 열렸다는 알림이 뜬다)
 ui.net.board_meta	{0}    조회 {1}    댓글 {2}	{0}    views {1}    comments {2}	곁가지 문구를 따로 두지 않은 글의 목록 줄
 ui.post.btn_write	글쓰기	Write	괴담넷 목록의 글쓰기 단추
 ui.post.title_placeholder	(제목을 골라 주세요)	(Pick a title)	쓰고 있는 글 - 아직 고르지 않은 제목

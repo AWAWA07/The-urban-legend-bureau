@@ -92,9 +92,11 @@ namespace UrbanLegendBureau.Systems
             _pace = k * k;
             if (_stopAt >= 0f)
             {
-                // 서는 중. 처음엔 천천히, 끝에서 빨리 줄어 덜컹 하고 선다.
+                // 서는 중. 브레이크를 밟은 듯 처음부터 고르게 줄고, 끝에서는 아주 느리게 스르르 선다.
+                // 끝에서 확 멈추면 창밖이 갑자기 얼어붙은 것처럼 보인다.
                 float s = Mathf.Clamp01((Time.time - _stopAt) / _stopSeconds);
-                _pace *= 1f - s * s;
+                float left = 1f - s;
+                _pace *= left * left;
             }
             float dt = Time.deltaTime * _pace;
             for (int i = 0; i < _passing.Length; i++)
@@ -115,6 +117,9 @@ namespace UrbanLegendBureau.Systems
                 // 잔잔한 떨림에 이따금 레일 이음매를 넘는 덜컹이 섞인다.
                 float bump = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(time * 2.1f)), 24f) * 0.04f;
                 float jolt = since < 0.35f ? Mathf.Sin(since / 0.35f * Mathf.PI) * 0.05f : 0f;   // 출발할 때 한 번 덜컹
+                // 다 서는 순간 앞으로 한 번 꿀렁 하고 멈춘다.
+                float halted = _stopAt >= 0f ? Time.time - _stopAt - _stopSeconds : -1f;
+                if (halted >= 0f && halted < 0.4f) jolt += Mathf.Sin(halted / 0.4f * Mathf.PI) * 0.035f;
                 float y = (Mathf.PerlinNoise(time * 6f, 0.3f) - 0.5f) * 2f * _shake * Mathf.Max(0.2f, _pace) + bump * _pace - jolt;
                 _car.localPosition = _carBase + new Vector3(0f, y, 0f);
             }

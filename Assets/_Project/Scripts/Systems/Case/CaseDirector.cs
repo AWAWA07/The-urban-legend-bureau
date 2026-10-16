@@ -1791,7 +1791,6 @@ namespace UrbanLegendBureau.Systems
 
             _terminusDone = true;
             _field.InvestigationAllowed = false;
-            Sfx.Play("train_stop", 0.8f);   // 막차가 덜컹이며 느려지다 푸쉬익 하고 종점에 선다
 
             // 첫 사건에서는 못 푼 채로 끝나지 않게 한영이 모자란 것을 짚어 준다.
             int helped = HelpWithMissingClues();
@@ -1799,9 +1798,9 @@ namespace UrbanLegendBureau.Systems
             Debug.Log("[CaseDirector] 막차 종점 | 현장 조사를 닫는다" +
                       (helped > 0 ? " | 모자란 단서 " + helped + "개를 채웠다" : string.Empty));
 
-            // 열차가 서서히 선다. 창밖이 느려지고 달리는 소리가 잦아든다.
+            // 한영이 종점이라고 말하고 1초쯤 뒤에 열차가 서서히 선다. 창밖이 느려지고 달리는 소리가 잦아든다.
             var running = _field.ActiveRoot != null ? _field.ActiveRoot.GetComponentInChildren<TrainRunning>() : null;
-            if (running != null) running.Stop(2.4f);
+            StartCoroutine(StopTrainSoon(running));
 
             // 수사 노트를 쓰는 사건은 여기서 정리하지 않는다. 열차에서 내려 숙소로 간 뒤에 정리한다.
             if (Deduction != null)
@@ -1815,6 +1814,19 @@ namespace UrbanLegendBureau.Systems
             if (_tutorial != null && _tutorial.ShowTerminusLine(helped > 0, AlightAtTerminus, OnOpenRulesClicked)) return;
             AlightAtTerminus();
             OnOpenRulesClicked();
+        }
+
+        /// <summary>종점 대사가 뜨고 열차가 서기 시작하기까지(초).</summary>
+        private const float TerminusStopDelay = 1f;
+
+        /// <summary>열차가 다 서기까지(초). 고르게 줄어 스르르 선다.</summary>
+        private const float TerminusStopSeconds = 3.2f;
+
+        private System.Collections.IEnumerator StopTrainSoon(TrainRunning running)
+        {
+            yield return new WaitForSeconds(TerminusStopDelay);
+            Sfx.Play("train_stop", 0.8f);   // 막차가 덜컹이며 느려지다 푸쉬익 하고 종점에 선다
+            if (running != null) running.Stop(TerminusStopSeconds);
         }
 
         /// <summary>
@@ -2471,21 +2483,21 @@ namespace UrbanLegendBureau.Systems
         {
             yield return new WaitForSeconds(0.6f);
             var door = FindActiveField("Door_Left");
-            // 누가 주먹으로 두드린다. 여섯 번. 사이도 세기도 매번 조금씩 달라 사람이 다급하게 두드리는 것처럼 들린다.
+            // 누가 주먹으로 쾅쾅쾅쾅, 네 번을 한 번에 몰아 두드린다. 사이가 고르고 짧아 끊기지 않고 한 덩어리로 들린다.
             // 두드릴 때마다 문 유리에 손바닥 자국이 하나씩 늘어난다. 다 두드리고 나면 남은 자국까지 한꺼번에 드러난다.
-            float[] gaps = { 0.16f, 0.29f, 0.2f, 0.46f, 0.13f, 0f };
-            for (int g = 0; g < gaps.Length - 1; g++) gaps[g] += Random.Range(-0.04f, 0.05f);
+            float[] gaps = { 0.2f, 0.2f, 0.2f, 0f };
             // 두드리는 동안 음악과 깔린 소리를 확 줄여 쾅 소리가 귀를 때리게 한다.
             Bgm.Duck(0.15f, 0.1f);
             Sfx.DuckLoops(0.25f, 0.1f);
             var prints = door != null ? door.Find("DoorHandprints") : null;
             for (int i = 0; i < gaps.Length; i++)
             {
-                // 첫 번은 묵직하게 크게 쾅, 마지막은 울림이 길게 남는다. 사이에는 주먹 소리 넷을 돌려 쓴다.
-                string bang = i == 0 ? "door_bang_big" : i == gaps.Length - 1 ? "door_bang_4" : "door_bang_" + (i % 4);
+                // 네 번 모두 묵직한 같은 소리로 친다. 마지막만 울림이 길게 남는다.
+                // 소리가 매번 바뀌거나 세기가 들쭉날쭉하면 한 번 한 번 따로 끊겨 들린다.
+                string bang = i == gaps.Length - 1 ? "door_bang_4" : "door_bang_big";
                 // 같은 소리를 같은 높이로 두 번 겹쳐 크게 한다. 높이가 다르면 겹친 소리가 일렁여 어색하다.
-                float pitch = Random.Range(0.95f, 1.05f);
-                float hit = i == 0 || i == gaps.Length - 1 ? 1f : Random.Range(0.72f, 1f);   // 주먹이 들어가는 힘이 매번 다르다
+                float pitch = 1f + (i % 2 == 0 ? 0.02f : -0.02f);
+                float hit = 1f;
                 Sfx.Play(bang, hit, pitch);
                 Sfx.Play(bang, hit * 0.8f, pitch);
                 if (door != null) StartCoroutine(ShakeDoor(door));
@@ -3284,6 +3296,15 @@ namespace UrbanLegendBureau.Systems
             if (_toastScreen != null && _ui.Contains(_toastScreen)) _ui.Close(_toastScreen);
             if (_caseFileScreen != null && _ui.Contains(_caseFileScreen)) _ui.Close(_caseFileScreen);
 
+            // 숙소 컴퓨터에서 수사 노트를 마쳤다. 컴퓨터를 끄지 않고 그 자리에서 괴담넷으로 가 게시물을 쓰라고 한다.
+            if (_inRoom && _desktopScreen != null && _ui.Contains(_desktopScreen))
+            {
+                RefreshRoomDesktop();
+                UpdateRoomComputerBeckon();
+                if (_tutorial != null) _tutorial.ShowComputerTalk(PostCuePcTextId, null);
+                return;
+            }
+
             ShowFieldHud();
 
             // 숙소에서 보고서를 썼으면 이미 숙소다. 옮겨 가지 않고 그 자리에서 컴퓨터로 가 게시물을 쓰라고 한다.
@@ -3296,6 +3317,9 @@ namespace UrbanLegendBureau.Systems
 
             if (_tutorial == null || !_tutorial.ShowPostCue(TravelToRoom)) TravelToRoom();
         }
+
+        /// <summary>컴퓨터 앞에서 수사 노트를 마친 뒤 한영의 말. 괴담넷에서 게시물을 올리자고 한다.</summary>
+        private const string PostCuePcTextId = "tutorial.room.cue_pc";
 
         /// <summary>종점에서 숙소까지 걸리는 시간(분).</summary>
         private const int RoomTravelMinutes = 50;
@@ -3421,8 +3445,11 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnRoomIntroDone()
         {
-            if (Deduction == null || CaseNotebook.IsReportConfirmed(_save.Current, _caseId)) return;
-            OpenCaseFile(NextCaseFilePage());
+            if (!IsNotePending()) return;
+
+            // 수사 노트는 컴퓨터에서 연다. 앱이 열렸다고 알리고, 플레이어가 직접 컴퓨터로 걸어가게 한다.
+            AnnounceCaseFileApp();
+            UpdateRoomComputerBeckon();
         }
 
         // ------------------------------------------------------------- 첫날 밤
@@ -3634,9 +3661,11 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.Bind(() => _loc.Get(RoomPlaceTextId));
             _fieldHudScreen.BindPhoneApps(OnPhoneAppClicked, ClosePhoneApps);
             FieldHudScreen.PhoneAppVisible = IsPhoneAppVisible;
-            // 숙소에는 조사 종료가 없다. 보고서를 확정하기 전까지는 수사 노트 단추만 남겨 언제든 다시 열게 한다.
-            bool noteOpen = Deduction != null && !CaseNotebook.IsReportConfirmed(_save.Current, _caseId);
-            _fieldHudScreen.SetButtonsVisible(noteOpen);
+            // 숙소는 승강장을 지나온 뒤다. 게시판 글은 모두 열려 있어야 한다.
+            TutorialDirector.EnsurePostsUnlocked();
+
+            // 숙소에는 조사 종료가 없다. 수사 노트도 현장 단추가 아니라 컴퓨터의 앱으로 연다.
+            _fieldHudScreen.SetButtonsVisible(false);
             _fieldHudScreen.SetDoneButtonVisible(false);
             _fieldHudScreen.SetPhoneButtonVisible(true);
 
@@ -3713,6 +3742,47 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.ShowLine(FieldSpeakerTextId, line, () => _fieldHudScreen.ClearSpeech());
         }
 
+        /// <summary>수사 노트(단서 분석 → 최종 추론 → 조사 보고서)를 아직 마치지 않았는가.</summary>
+        private bool IsNotePending()
+        {
+            return Deduction != null && _save != null && _save.Current != null
+                   && !CaseNotebook.IsReportConfirmed(_save.Current, _caseId);
+        }
+
+        /// <summary>
+        /// 숙소 컴퓨터 바탕화면의 앱과 안내를 지금 할 일에 맞춘다.
+        /// 수사 노트가 남았으면 수사 노트를, 보고서를 확정했고 게시물이 남았으면 괴담넷을 가리키고 알림 점을 붙인다.
+        /// </summary>
+        private void RefreshRoomDesktop()
+        {
+            if (_desktopScreen == null) return;
+
+            if (Deduction != null) _desktopScreen.SetAllowedApps(NetAppId, MemoAppId, CaseFileAppId);
+            else _desktopScreen.SetAllowedApps(NetAppId, MemoAppId);
+
+            bool notePending = IsNotePending();
+            bool postPending = !notePending && IsPostPending();
+            _desktopScreen.SetHintApp(notePending ? CaseFileAppId : postPending ? NetAppId : null);
+            _desktopScreen.SetAppBadge(CaseFileAppId, notePending ? 1 : 0);
+            _desktopScreen.SetAppBadge(NetAppId, postPending ? 1 : 0);
+        }
+
+        /// <summary>숙소 컴퓨터의 수사 노트 앱. 숙소에 도착하면 열린다.</summary>
+        private const string CaseFileAppId = "casefile";
+
+        private const string AppToastHeaderTextId = "ui.app_toast.header";
+        private const string AppToastCaseFileTextId = "ui.desktop.app_casefile";
+        private const string AppToastCaseFileWhereTextId = "ui.app_toast.casefile_where";
+
+        /// <summary>숙소에 도착하자마자 수사 노트 앱이 열렸다고 알린다. 단서를 얻을 때와 같은 오른쪽 위 알림이다.</summary>
+        private void AnnounceCaseFileApp()
+        {
+            Sfx.Play("clue_get", 0.55f);
+            var label = _fieldHudScreen != null ? _fieldHudScreen.GetComponentInChildren<TMPro.TMP_Text>(true) : null;
+            ClueToast.Show(_loc.Get(AppToastHeaderTextId), _loc.Get(AppToastCaseFileTextId),
+                _loc.Get(AppToastCaseFileWhereTextId), label != null ? label.font : null);
+        }
+
         /// <summary>보고서를 확정했고 아직 게시물을 올리지 않았는가. 다음 할 일이 컴퓨터로 가는 것뿐인 때다.</summary>
         private bool IsPostPending()
         {
@@ -3726,7 +3796,7 @@ namespace UrbanLegendBureau.Systems
         private void UpdateRoomComputerBeckon()
         {
             if (_field == null || _field.ActiveRoot == null) return;
-            bool on = _inRoom && IsPostPending();
+            bool on = _inRoom && (IsNotePending() || IsPostPending());
             foreach (var point in _field.ActiveRoot.GetComponentsInChildren<InvestigationPoint>(true))
             {
                 if (point.PointId == RoomComputerPointId) point.SetBeckon(on);
@@ -3753,11 +3823,7 @@ namespace UrbanLegendBureau.Systems
             GamePointer.SetVisible(true);
 
             _desktopScreen.Bind(OnRoomAppClicked);
-            _desktopScreen.SetAllowedApps(NetAppId, MemoAppId);
-            // 게시물을 써야 할 때는 괴담넷 아이콘을 가리키고 알림 점을 붙인다. 그 안에서는 글쓰기 단추가 가리켜진다.
-            bool postPending = IsPostPending();
-            _desktopScreen.SetHintApp(postPending ? NetAppId : null);
-            _desktopScreen.SetAppBadge(NetAppId, postPending ? 1 : 0);
+            RefreshRoomDesktop();
             if (_tutorial != null) _desktopScreen.SetBelief(_tutorial.BoardBelief);
             _desktopScreen.Closed = OnRoomComputerClosed;
 
@@ -3775,6 +3841,14 @@ namespace UrbanLegendBureau.Systems
         /// <summary>숙소 컴퓨터의 아이콘. 열리는 것은 괴담넷과 메모장, 휴대폰과 같은 둘이다.</summary>
         private void OnRoomAppClicked(string appId)
         {
+            // 수사 노트. 지금 할 쪽(단서 분석 → 최종 추론 → 조사 보고서)부터 펼친다. 확정한 뒤에도 다시 읽을 수 있다.
+            if (appId == CaseFileAppId)
+            {
+                if (Deduction == null) return;
+                OpenCaseFile(IsNotePending() ? NextCaseFilePage() : CaseFileScreen.Page.Report);
+                return;
+            }
+
             if (appId == MemoAppId)
             {
                 if (_memoScreen == null || !MemoScreen.IsUnlocked) return;
