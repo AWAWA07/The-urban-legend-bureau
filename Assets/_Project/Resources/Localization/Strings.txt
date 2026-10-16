@@ -1342,7 +1342,6 @@ ui.post.confirm_back	다시 확인하기	Check again
 ui.net.confirm_comment	한 번 작성한 댓글은 수정하거나 삭제할 수 없습니다.\n이대로 등록하시겠습니까?	Once written, this comment can't be edited or deleted.\nSubmit it as it is?	댓글 등록 직전 확인
 ui.net.confirm_comment_yes	등록하기	Submit
 ui.post.case_goal	사건 해결 목표 · 이 괴담 믿음도 {0}% 이하 (지금 {1})	Case goal · this legend at {0}% or lower (now {1})	게시물 평가와 다른 기준
-post.subway.line_rewrite	올린 글은 이제 지울 수 없어. 그 글 때문에 오른 믿음도도 그대로야.\n대신 새 정정글로 바로잡자. 고른 문장은 그대로 있으니까 고칠 칸만 바꿔 봐.	That post is up for good now, and the belief it added stays.\nSo we fix it with a new correction. Your picks are still there; just change what needs it.	실패 뒤 다시 쓰기 (한영)
 ui.work.toast_above_target	믿음도 {0} · 해결 목표 {1}% 이하 — 추가 대응 필요	Belief {0} · goal {1}% or lower — more work needed	정정글 성공 뒤 목표 미달
 ui.work.detail_target	해결 목표: 괴담 믿음도 {0}% 이하	Goal: legend belief {0}% or lower
 ui.work.detail_target_special	해결 목표: 괴담 믿음도 {0}% 이하 (특별 목표)	Goal: legend belief {0}% or lower (special)
@@ -1491,3 +1490,25 @@ post.test.002.q3.body	그 버튼만 유독 닳았더라고요. 소름.	Only that
 post.test.002.q3_bad1	다들 뭔가를 피하려고 누른 거겠죠.	Everyone pressed it to escape something.	답글 (틀림)
 post.test.002.q3_bad2	그 버튼은 누르면 안 된대요.	You're not supposed to press it.	답글 (틀림)
 post.test.002.q3_ok	자동 정지를 취소하려고 다들 누른 자국이에요. 이상한 게 아니에요.	It's worn from people trying to cancel the auto-stop. Nothing strange.	답글 (맞음)
+post.test.001.q4.title	친구가 그 글 보고 이름 불러 봤대요	My friend read that post and said the name	질문 글
+post.test.001.q4.body	아직은 아무 일 없다는데 괜찮은 걸까요?	Nothing yet, she says. Is she okay?
+post.test.001.q4_bad1	며칠 지나야 온대요. 조심하라고 하세요.	It takes a few days. Tell her to be careful.	답글 (틀림)
+post.test.001.q4_ok	괜찮아요. '부르면 나온다'는 건 삭제 횟수가 와전된 말이에요.	She's fine. "It appears if you call it" is a garbled deletion count.	답글 (맞음)
+post.test.001.q4_bad2	저도 불렀다가 이상한 꿈 꿨어요.	I called it once and had weird dreams.	답글 (틀림)
+post.test.001.q5.title	지워지지 않는 글, 운영자는 뭐 하나요?	The undeletable post — what are the mods doing?	질문 글
+post.test.001.q5.body	지워도 또 올라오면 운영자도 못 막는 거 아닌가요.	If it keeps coming back, the mods can't stop it either, right?
+post.test.001.q5_bad1	운영자도 무서워서 손 놨대요.	The mods gave up, scared.	답글 (틀림)
+post.test.001.q5_bad2	서버에 뭐가 씌었다던데요.	They say the server is possessed.	답글 (틀림)
+post.test.001.q5_ok	운영 기록 보면 매번 다른 계정이 다시 올린 거라, 계정을 막으면 끝나요.	The mod log shows a new account reposted it each time; blocking accounts ends it.	답글 (맞음)
+post.test.002.q4.title	야근 끝나고 엘리베이터 타기 무서워요	Scared to take the elevator after overtime	질문 글
+post.test.002.q4.body	오늘도 3층에서 설까 봐 계속 신경 쓰여요.	I keep worrying it'll stop on three again tonight.
+post.test.002.q4_bad1	그냥 계단 쓰세요. 그게 맘 편해요.	Just take the stairs. Less stress.	답글 (틀림)
+post.test.002.q4_ok	점검 설정이라 서는 거예요. 문 열리면 닫힘 누르시면 돼요.	It stops because of a maintenance setting. Press close if it opens.	답글 (맞음)
+post.test.002.q4_bad2	3층에서 내리면 안 된대요.	You're not supposed to step out on three.	답글 (틀림)
+post.test.002.q5.title	3층에 예전에 무슨 일 있었어요?	Did something happen on three before?	질문 글
+post.test.002.q5.body	다들 3층 3층 하니까 궁금해서요.	Everyone keeps talking about three, so I'm curious.
+post.test.002.q5_bad1	예전에 사고가 있었대요.	There was an accident there, they say.	답글 (틀림)
+post.test.002.q5_bad2	거기 원래 사람이 안 들어간대요.	Nobody's supposed to go there.	답글 (틀림)
+post.test.002.q5_ok	아무 일 없어요. 관리실이 야간 점검 정지를 걸어 둔 층일 뿐이에요.	Nothing happened. It's just the floor management set a night maintenance stop on.	답글 (맞음)
+post.subway.line_rewrite	이번 글은 내가 내려 둘게. 고른 문장은 그대로 있으니까, 고칠 칸만 바꿔 보자.\n대신 기억해 둬. 실전에서는 한 번 올린 글을 못 내려. 올리기 전에 잘 보고 올려.	I'll take this one down. Your picks are still there, so just change the parts that need it.\nBut remember: on a real case, a post can't be taken back once it's up. Check before you post.	튜토리얼 실패 글 내리기 + 본편 경고 (한영)
+ui.post.taken_down	실패한 글을 내렸습니다. 이번 괴담 믿음도 {0}% → {1}%  ·  전체 괴담 믿음도 {2}% → {3}%	The failed post was taken down. This legend {0}% → {1}%  ·  Overall {2}% → {3}%	튜토리얼에서만

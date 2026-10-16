@@ -9,7 +9,7 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 본편 괴담넷 댓글. 숙소 컴퓨터로 사건 괴담 글을 열면 그 글에 댓글을 달 수 있다(휴대폰으로는 읽기만 한다).
     ///
-    ///   사건 글     사건 데이터(PostWritingSO.CommentOptions)의 댓글. 각각 이 사건에서 한 번만 쓴다.
+    ///   사건 글     사건 데이터(PostWritingSO.CommentOptions)의 댓글. 한 글에 같은 댓글은 한 번. 반박은 주장(claimId)마다 사건에서 한 번.
     ///   질문 글     근무일마다 올라오는 질문 글. 글마다 답글 하나만 단다. 선택지는 그 글의 틀에 있다.
     ///   근거        근거(단서·분석 기록)가 있어야 보이는 댓글은 그 근거를 얻은 뒤에 보인다.
     ///   확정        등록 직전에 확인창을 띄운다. 등록한 댓글은 고치거나 지우지 않는다. 시간이 흐르고 믿음도가 한 번 움직인다.
@@ -78,9 +78,25 @@ namespace UrbanLegendBureau.Systems
                 return list;
             }
 
+            string pageId = entry.Page != null ? entry.Page.PageId : null;
             foreach (var o in c.PostWriting.CommentOptions)
-                if (o != null && !_workday.CommentUsed(c.CaseId, o.optionId) && HasCommentEvidence(c, o)) list.Add(o);
+                if (o != null && CommentFits(c, o, pageId, key) && HasCommentEvidence(c, o)) list.Add(o);
             return list;
+        }
+
+        /// <summary>
+        /// 사건 글에 이 댓글을 달 수 있는가.
+        ///   그 글을 겨눈 댓글인가(pageIds 가 비었으면 어느 글이든)
+        ///   이 글에 이미 단 댓글이 아닌가
+        ///   반박 댓글이면 그 주장을 이 사건에서 아직 반박하지 않았는가(다른 글에서 같은 주장을 반박했어도 빠진다)
+        /// 글마다 다른 잘못된 주장이 있으면 주장마다 따로 반박할 수 있다. 같은 주장을 여러 글에서 거듭 반박해 깎을 수는 없다.
+        /// </summary>
+        private bool CommentFits(CaseSO c, CaseCommentOption o, string pageId, string key)
+        {
+            if (o.pageIds != null && o.pageIds.Count > 0 && (pageId == null || !o.pageIds.Contains(pageId))) return false;
+            if (_workday.CommentUsed(c.CaseId, o.optionId, key)) return false;
+            if (!string.IsNullOrEmpty(o.claimId) && (_workday.ClaimRebutted(c.CaseId, o.claimId) || _workday.CommentUsed(c.CaseId, o.optionId))) return false;
+            return true;
         }
 
         private bool HasCommentEvidence(CaseSO c, CaseCommentOption o)
@@ -110,7 +126,7 @@ namespace UrbanLegendBureau.Systems
             string key = WorkdayDirector.EntryKey(entry);
             bool question = _workday.FindQuestion(entry) != null;
             // 두 번 눌렸거나 그사이 다른 길로 이미 달았으면 아무것도 하지 않는다.
-            if (question ? _workday.CommentUsed(c.CaseId, null, key) : _workday.CommentUsed(c.CaseId, option.optionId)) return;
+            if (question ? _workday.CommentUsed(c.CaseId, null, key) : !CommentFits(c, option, entry.Page != null ? entry.Page.PageId : null, key)) return;
 
             AdvanceTime(_workday.Balance.CommentMinutes);
 
@@ -121,7 +137,8 @@ namespace UrbanLegendBureau.Systems
             entry.Comments ??= new List<CommunityComment>();
             entry.Comments.Add(new CommunityComment { AuthorTextId = "ui.net.author_anon", BodyTextId = option.bodyTextId, IsPlayer = true });
             if (shift != 0 && _tutorial != null) _tutorial.ShiftLegendBelief(c.LegendId, shift);
-            _workday.LogComment(c.CaseId, option.optionId, key, shift);
+            // 반박 댓글은 믿음도를 내렸을 때만 그 주장을 반박한 것으로 적는다.
+            _workday.LogComment(c.CaseId, option.optionId, key, shift, shift < 0 ? option.claimId : null);
 
             float after = _workday.DisplayBelief(c.LegendId);
             float overallAfter = _workday.DisplayOverall;

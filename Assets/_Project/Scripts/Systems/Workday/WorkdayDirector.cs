@@ -749,11 +749,24 @@ namespace UrbanLegendBureau.Systems
             return false;
         }
 
-        public void LogComment(string caseId, string optionId, string entryKey, int shift)
+        /// <summary>이 사건에서 이 주장을 이미 반박했는가(믿음도를 내린 댓글로). 같은 주장을 여러 글에서 거듭 반박해 깎지 못하게 한다.</summary>
+        public bool ClaimRebutted(string caseId, string claimId)
+        {
+            var w = W;
+            if (w == null || string.IsNullOrEmpty(claimId)) return false;
+            foreach (var line in w.commentLog)
+            {
+                var p = line.Split('|');
+                if (p.Length >= 6 && p[0] == caseId && p[5] == claimId) return true;
+            }
+            return false;
+        }
+
+        public void LogComment(string caseId, string optionId, string entryKey, int shift, string claimId = null)
         {
             var w = W;
             if (w == null) return;
-            w.commentLog.Add(caseId + "|" + optionId + "|" + entryKey + "|" + GameClock.ElapsedMinutes + "|" + shift);
+            w.commentLog.Add(caseId + "|" + optionId + "|" + entryKey + "|" + GameClock.ElapsedMinutes + "|" + shift + "|" + (claimId ?? string.Empty));
             _save.MarkDirty();
         }
 

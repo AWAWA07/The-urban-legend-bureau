@@ -139,7 +139,7 @@ namespace UrbanLegendBureau.Save
         public List<string> questionPosts = new List<string>();
 
         /// <summary>
-        /// 본편에서 단 댓글 기록 (v15). "사건ID|댓글ID|글 열쇠|단 분|믿음 몫". 같은 댓글을 다시 쓰지 못하게 막고, 사건별 대응 기록으로 남는다.
+        /// 본편에서 단 댓글 기록 (v15). "사건ID|댓글ID|글 열쇠|단 분|믿음 몫|반박한 주장ID". 같은 댓글을 다시 쓰지 못하게 막고, 사건별 대응 기록으로 남는다.
         /// 댓글 내용과 믿음도는 게시판 글 상태(boardStates)에 이미 들어 있어 불러올 때 다시 반영하지 않는다.
         /// </summary>
         public List<string> commentLog = new List<string>();

@@ -54,7 +54,9 @@ namespace UrbanLegendBureau.Data
 
     /// <summary>
     /// 본편 괴담 글에 다는 댓글 하나. 올리면 그 괴담 글들의 믿음도가 beliefDelta 만큼 움직인다(음수면 내려간다).
-    /// 같은 댓글은 한 사건(또는 한 질문 글)에 한 번만 달 수 있다. 근거가 있어야 보이는 댓글은 requiredEvidenceIds 를 채운다.
+    /// 같은 댓글은 한 글에 한 번만 단다. 반박 댓글(claimId)은 그 주장을 한 사건에서 한 번만 반박으로 친다.
+    /// 글마다 다른 잘못된 주장이 실려 있으면 각각 반박할 수 있다(pageIds 로 그 글에만 단다).
+    /// 근거가 있어야 보이는 댓글은 requiredEvidenceIds 를 채운다. 새 근거로 생기는 댓글은 따로 claimId 를 두어 기존 댓글과 구별한다.
     /// </summary>
     [Serializable]
     public class CaseCommentOption
@@ -63,6 +65,12 @@ namespace UrbanLegendBureau.Data
         public string bodyTextId;
         public float beliefDelta;
         public List<string> requiredEvidenceIds = new List<string>();
+
+        [Tooltip("이 댓글이 반박하는 잘못된 주장의 ID. 같은 주장은 한 사건에서 한 번만 반박으로 친다(다른 글에 같은 주장이 있어도). 비우면 반박이 아니다.")]
+        public string claimId;
+
+        [Tooltip("이 댓글을 달 수 있는 글(WebPageSO ID). 그 글에 실린 주장을 겨눈다. 비우면 이 사건의 어느 괴담 글에나 단다.")]
+        public List<string> pageIds = new List<string>();
     }
 
     /// <summary>
@@ -187,7 +195,7 @@ namespace UrbanLegendBureau.Data
         [SerializeField] private string _weakLineTextId;
         [Tooltip("믿음도가 그대로일 때. 비우면 weak 를 쓴다.")]
         [SerializeField] private string _flatLineTextId;
-        [Tooltip("튜토리얼에서 못 미친 글을 올린 뒤 한영이 하는 말. 올린 글은 지울 수 없으니 새 정정글로 바로잡자고 이른다.")]
+        [Tooltip("튜토리얼에서 못 미친 글을 내려 주며 한영이 하는 말. 본편에서는 올린 글을 내릴 수 없다는 경고를 함께 담는다.")]
         [UnityEngine.Serialization.FormerlySerializedAs("_takeDownLineTextId")]
         [SerializeField] private string _rewriteLineTextId;
 

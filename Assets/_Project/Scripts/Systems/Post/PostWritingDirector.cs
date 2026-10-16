@@ -205,7 +205,7 @@ namespace UrbanLegendBureau.Systems
             if (IsFinished(data) && !(KeepOpen != null && KeepOpen(data))) return false;
             if (_attempts > 0 && !data.AllowRewrite) return false;
             if (data.MaxAttempts > 0 && _attempts >= data.MaxAttempts) return false;
-            // 본편은 칸마다 아직 올리지 않은 문장이 남아 있어야 쓸 수 있다.
+            // 본편은 칸마다 아직 올리지 않은 문장이 남아 있어야 쓸 수 있다. 튜토리얼은 예전 그대로다.
             for (int s = 0; !data.IsTutorial && s < PostWritingSO.SectionCount; s++)
                 if (Visible(data, s).Count == 0) return false;
             return true;
@@ -218,7 +218,7 @@ namespace UrbanLegendBureau.Systems
         /// 빠진 것을 보고 무엇이 정답이었는지 알 수 없다. 같은 글을 되풀이해 믿음도를 끝없이 깎는 것을 막는다.
         /// 남은 문장 가운데 앞에서부터 ShownPerSection 개가 보이고, 뒤에 둔 문장(다른 근거로 다시 말하는 정정)이 차례로 올라온다.
         /// 근거(단서나 분석 기록)가 있어야 쓰는 문장은 그 근거를 얻은 뒤에 보인다.
-        /// 튜토리얼은 처음 성공하면 끝나므로 이 규칙을 쓰지 않는다. 몇 번을 틀려도 맞는 글을 다시 쓸 수 있어야 한다.
+        /// 튜토리얼은 예전 그대로다(틀린 글은 한영이 내려 주고, 맞는 글을 다시 쓸 수 있다). 처음 성공하면 끝나 남용할 길이 없다.
         /// </summary>
         private List<int> Visible(PostWritingSO data, int section)
         {
@@ -309,6 +309,7 @@ namespace UrbanLegendBureau.Systems
             _lastShift = 0;
             _busy = false;
             _introTalked = false;
+            _takenDownNotice = null;
             _resultBuilder = null;
             ClearPicks();
             HideCompose();
@@ -406,7 +407,7 @@ namespace UrbanLegendBureau.Systems
             _compose.ShowStep(new PostComposeView.Step
             {
                 Header = L(ComposeHeaderTextId, section + 1, PostWritingSO.SectionCount, names[section]),
-                Notice = null,
+                Notice = _takenDownNotice != null ? _takenDownNotice() : null,
                 Account = L(ComposeAccountTextId, L(_data.BoardTextId), L(_data.AuthorTextId)),
                 Goal = before > 0 ? L(GoalTextId, P(before), P(success), P(excellent)) : null,
                 StepNames = names,
@@ -459,6 +460,7 @@ namespace UrbanLegendBureau.Systems
         private void OnNext()
         {
             if (_busy || _section >= PostWritingSO.SectionCount || _picks[_section] < 0) return;
+            _takenDownNotice = null;
             _section++;
             if (_section >= PostWritingSO.SectionCount) ShowPreview();
             else ShowStep();
@@ -824,9 +826,10 @@ namespace UrbanLegendBureau.Systems
         /// <summary>
         /// 목표에 못 미쳤다. 다시 쓸 수 있으면 새 정정글을 쓰게 한다. 고른 문장은 그대로 두고 첫 칸부터 다시 본다.
         ///
-        /// 올린 글은 게시판에 그대로 남고, 그 글로 오른 믿음도도 되돌리지 않는다. 글을 내려 주는 일은 없다.
-        /// 튜토리얼에서는 한영이 지울 수 없다는 것과 새 글로 바로잡으면 된다는 것을 이르고 다시 쓰기로 간다.
-        /// 튜토리얼 평가는 그 글을 올리기 직전의 믿음도에서 얼마나 내렸는가로 보므로, 틀린 글이 남아도 맞는 글 하나로 넘어갈 수 있다.
+        /// 본편: 올린 글은 게시판에 그대로 남고, 그 글로 오른 믿음도도 되돌리지 않는다. 새 정정글로만 바로잡는다.
+        /// 튜토리얼: 예전 그대로 한영이 실패한 글을 내려 주고 그 글이 올린 믿음도를 되돌린다. 처음 배우는 자리라 한 번 봐주는 것이다.
+        ///           내려 주면서, 본편에서는 한 번 올린 글을 내릴 수 없다는 것을 한영이 일러 둔다(데이터의 RewriteLineTextId).
+        /// 순서: 한영이 내리겠다고(그리고 앞으로는 못 내린다고) 말한다 → 넘기면 실제로 내린다 → 목록이 갱신된 것을 보여 준다 → 다시 쓰기.
         /// </summary>
         private void AfterMiss()
         {
@@ -839,9 +842,10 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            if (_data.IsTutorial)
+            if (_data.IsTutorial && _lastPost != null)
             {
-                Talk(_data.RewriteLineTextId, Rewrite);
+                // 결과 화면을 띄운 채로 말한다. 뒤에 내릴 글이 보이지 않는다.
+                Talk(_data.RewriteLineTextId, () => StartCoroutine(TakeDownThenRewrite()));
                 return;
             }
             Rewrite();
@@ -854,5 +858,45 @@ namespace UrbanLegendBureau.Systems
             ValidatePicks();
             ShowStep();
         }
+
+        /// <summary>목록이 갱신된 것을 보여 주는 시간(초).</summary>
+        private const float TakenDownBoardSeconds = 1.2f;
+
+        /// <summary>튜토리얼에서만. 실패한 글을 내리고 그 글이 옮긴 믿음도를 되돌린 뒤 다시 쓰기로 간다.</summary>
+        private IEnumerator TakeDownThenRewrite()
+        {
+            _communityScreen.SetControlsEnabled(false);
+
+            int before = _tutorial.GetLegendBelief(_data.LegendId);
+            int overallBefore = _tutorial.BoardBelief;
+
+            _tutorial.RemoveBoardPost(_lastPost);
+            if (_save != null) PlayerPostStore.MarkRemoved(_save.Current, _lastPost.PostId);
+            _tutorial.ShiftLegendBelief(_data.LegendId, -_lastShift);
+            if (_belief != null && _save != null) _belief.TryAddBelief(_save.Current, -_lastShift);
+            if (_save != null) _save.MarkDirty();
+
+            int after = _tutorial.GetLegendBelief(_data.LegendId);
+            int overallAfter = _tutorial.BoardBelief;
+            _lastPost = null;
+            _lastShift = 0;
+
+            Debug.Log($"[PostWriting] 튜토리얼 | 실패한 글을 내림 | 이번 괴담 {before}% -> {after}% | 전체 {overallBefore}% -> {overallAfter}%");
+
+            // 내린 뒤의 게시판 목록. 그 글이 빠진 것을 잠깐 보여 준다.
+            HideCompose();
+            _communityScreen.ShowNotice(null);
+            _communityScreen.ShowBoard(true);
+            yield return new WaitForSecondsRealtime(TakenDownBoardSeconds);
+
+            _communityScreen.SetControlsEnabled(true);
+            _takenDownNotice = () => L(TakenDownTextId, before, after, overallBefore, overallAfter);
+            Rewrite();
+        }
+
+        private const string TakenDownTextId = "ui.post.taken_down";
+
+        /// <summary>글을 내린 직후 다시 쓰기 화면 맨 위에 한 번 띄우는 알림. 다음 단계로 가면 사라진다.</summary>
+        private Func<string> _takenDownNotice;
     }
 }

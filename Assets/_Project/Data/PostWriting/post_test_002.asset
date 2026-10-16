@@ -228,24 +228,37 @@ MonoBehaviour:
     bodyTextId: post.test.002.c_ok1
     beliefDelta: -2
     requiredEvidenceIds: []
+    claimId: claim_main
+    pageIds:
+    - web_test_003
   - optionId: c_bad1
     bodyTextId: post.test.002.c_bad1
     beliefDelta: 2
     requiredEvidenceIds: []
+    claimId: 
+    pageIds: []
   - optionId: c_ok2
     bodyTextId: post.test.002.c_ok2
     beliefDelta: -3
     requiredEvidenceIds:
     - analysis_test_002_a
+    claimId: claim_rule
+    pageIds:
+    - web_test_003
   - optionId: c_bad2
     bodyTextId: post.test.002.c_bad2
     beliefDelta: 2
     requiredEvidenceIds: []
+    claimId: 
+    pageIds: []
   - optionId: c_ok3
     bodyTextId: post.test.002.c_ok3
     beliefDelta: -3
     requiredEvidenceIds:
     - analysis_test_002_b
+    claimId: claim_source
+    pageIds:
+    - web_test_003
   _questionTemplates:
   - templateId: q1
     titleTextId: post.test.002.q1.title
@@ -256,48 +269,112 @@ MonoBehaviour:
       bodyTextId: post.test.002.q1_ok
       beliefDelta: -3
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q1_bad1
       bodyTextId: post.test.002.q1_bad1
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q1_bad2
       bodyTextId: post.test.002.q1_bad2
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
   - templateId: q2
     titleTextId: post.test.002.q2.title
     bodyTextId: post.test.002.q2.body
-    authorTextId: ui.net.author_anon
+    authorTextId: ui.net.author_nick_3
     options:
     - optionId: q2_bad1
       bodyTextId: post.test.002.q2_bad1
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q2_ok
       bodyTextId: post.test.002.q2_ok
       beliefDelta: -3
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q2_bad2
       bodyTextId: post.test.002.q2_bad2
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
   - templateId: q3
     titleTextId: post.test.002.q3.title
     bodyTextId: post.test.002.q3.body
-    authorTextId: ui.net.author_anon
+    authorTextId: ui.net.author_nick_9
     options:
     - optionId: q3_bad1
       bodyTextId: post.test.002.q3_bad1
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q3_bad2
       bodyTextId: post.test.002.q3_bad2
       beliefDelta: 2
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
     - optionId: q3_ok
       bodyTextId: post.test.002.q3_ok
       beliefDelta: -3
       requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q4
+    titleTextId: post.test.002.q4.title
+    bodyTextId: post.test.002.q4.body
+    authorTextId: ui.net.author_nick_4
+    options:
+    - optionId: q4_bad1
+      bodyTextId: post.test.002.q4_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q4_ok
+      bodyTextId: post.test.002.q4_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q4_bad2
+      bodyTextId: post.test.002.q4_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q5
+    titleTextId: post.test.002.q5.title
+    bodyTextId: post.test.002.q5.body
+    authorTextId: ui.net.author_nick_11
+    options:
+    - optionId: q5_bad1
+      bodyTextId: post.test.002.q5_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q5_bad2
+      bodyTextId: post.test.002.q5_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q5_ok
+      bodyTextId: post.test.002.q5_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
   _introLineTextId: 
   _excellentLineTextId: 
   _successLineTextId: 
@@ -305,3 +382,5 @@ MonoBehaviour:
   _weakLineTextId: 
   _flatLineTextId: 
   _rewriteLineTextId: 
+  _moreLineTextId: 
+  _settledLineTextId: 
