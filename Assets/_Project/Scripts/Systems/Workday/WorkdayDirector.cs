@@ -66,6 +66,7 @@ namespace UrbanLegendBureau.Systems
         public void Init(TutorialDirector tutorial)
         {
             _tutorial = tutorial;
+            Weather.InMain = () => MainStarted;   // 첫날 밤은 늘 비, 본편은 날마다 정해진다
             ServiceRegistry.TryGet(out _save);
             ServiceRegistry.TryGet(out _cases);
             ServiceRegistry.TryGet(out _legends);

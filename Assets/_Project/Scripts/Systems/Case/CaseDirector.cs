@@ -4103,6 +4103,7 @@ namespace UrbanLegendBureau.Systems
                 FieldClosed = FieldClosed,
                 OnAllSolved = OnCaseFileAllSolved,
                 OnConfirm = OnCaseFileConfirmed,
+                OnWrong = OnCaseFileWrong,
                 PostRecords = BuildPostRecords,
             }, page);
 

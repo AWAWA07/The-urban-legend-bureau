@@ -91,6 +91,14 @@ namespace UrbanLegendBureau.Systems
             _onArrived = onArrived;
         }
 
+        /// <summary>연출이 시킨 걸음을 그 자리에서 멈춘다. 닿았을 때 부를 일도 버린다(연출을 건너뛸 때 쓴다).</summary>
+        public void CancelWalk()
+        {
+            _autoX = null;
+            _onArrived = null;
+            IsWalking = false;
+        }
+
         /// <summary>연출이 시킨 걸음을 한 번 옮긴다. 닿았으면 true.</summary>
         private bool StepAuto()
         {

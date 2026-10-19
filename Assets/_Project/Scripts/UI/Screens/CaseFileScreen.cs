@@ -58,6 +58,12 @@ namespace UrbanLegendBureau.UI
             /// <summary>조사 결과 확정을 눌렀을 때.</summary>
             public Action OnConfirm;
 
+            /// <summary>
+            /// 틀렸을 때(엉뚱한 단서 짝, 틀린 추론 보기, 보고서의 틀린 칸). 본편에서는 그 괴담 믿음도가 조금 오른다.
+            /// 같은 실수를 되풀이해도 한 번만 부른다.
+            /// </summary>
+            public Action OnWrong;
+
             /// <summary>화면이 닫힐 때(닫기 단추, ESC).</summary>
             public Action OnClosed;
 
@@ -823,6 +829,8 @@ namespace UrbanLegendBureau.UI
             if (found == null)
             {
                 _compareMessageId = T + "compare_wrong";
+                string pair = string.CompareOrdinal(_picked[0], _picked[1]) < 0 ? _picked[0] + "+" + _picked[1] : _picked[1] + "+" + _picked[0];
+                if (_wrongMarks.Add(Deduction.CaseId + "|pair|" + pair)) _ctx?.OnWrong?.Invoke();
                 Debug.Log($"[CaseFile] 단서 분석 | {_picked[0]} + {_picked[1]} - 새로 알아낸 것 없음");
                 Refresh();
                 return;
@@ -904,6 +912,9 @@ namespace UrbanLegendBureau.UI
 
         /// <summary>지금 물음에서 고르고 틀렸던 보기들. 물음이 바뀌면 비운다. 같은 오답을 거듭 내지 않게 한다.</summary>
         private readonly HashSet<int> _wrongPicks = new HashSet<int>();
+
+        /// <summary>이미 믿음도를 올린 실수들. 같은 실수로 두 번 오르지 않게 한다. 화면을 닫았다 열어도 남는다.</summary>
+        private static readonly HashSet<string> _wrongMarks = new HashSet<string>();
         private string _wrongFor;
 
         private void BuildDeducePage()
@@ -1072,8 +1083,9 @@ namespace UrbanLegendBureau.UI
 
             if (_deduceChoice != q.correctIndex)
             {
-                // 틀려도 아무것도 잃지 않는다. 근거를 다시 보고 다른 답을 고르면 된다.
+                // 근거를 다시 보고 다른 답을 고르면 된다. 본편에서는 틀린 판단이 퍼져 믿음도가 조금 오른다(OnWrong).
                 _wrongPicks.Add(_deduceChoice);
+                if (_wrongMarks.Add(Deduction.CaseId + "|q|" + q.questionId + "|" + _deduceChoice)) _ctx?.OnWrong?.Invoke();
                 _wrongFor = q.questionId;
                 _deduceWrong = true;
                 Debug.Log($"[CaseFile] 최종 추론 {q.questionId} | 보기 {_deduceChoice} - 아니다");
@@ -1847,6 +1859,7 @@ namespace UrbanLegendBureau.UI
         {
             if (CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId)) return;
 
+            bool newWrong = false;
             BlankView firstProblem = null;
             foreach (var v in _blankViews)
             {
@@ -1857,9 +1870,12 @@ namespace UrbanLegendBureau.UI
                 BlankState state = CaseNotebook.Normalize(input).Length == 0 ? BlankState.Empty
                     : right ? BlankState.Right : BlankState.Wrong;
                 _blankResults[v.Blank.blankId] = state;
+                if (state == BlankState.Wrong && _wrongMarks.Add(Deduction.CaseId + "|blank|" + v.Blank.blankId + "|" + CaseNotebook.Normalize(input))) newWrong = true;
                 if (state != BlankState.Right && firstProblem == null) firstProblem = v;
             }
 
+            // 고치지 않은 칸을 다시 검토해도 또 오르지 않는다. 새로 틀린 답이 있을 때 한 번만.
+            if (newWrong) _ctx?.OnWrong?.Invoke();
             _reviewed = true;
             _save?.AutoSave();
             Sfx.PlayVaried("paper_" + UnityEngine.Random.Range(0, 2), 0.5f);

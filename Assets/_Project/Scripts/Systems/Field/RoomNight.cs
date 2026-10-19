@@ -101,9 +101,24 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private void OnEnable()
         {
-            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_rain", "amb_dorm_rain", 0.35f, 2f);
+            UrbanLegendBureau.Core.Sfx.StartLoop("dorm_rain", "amb_dorm_rain", RainVolume(0.35f), 2f);
+            _rainWas = Weather.IsRaining;
             UrbanLegendBureau.Core.Sfx.StartLoop("dorm_room", "amb_dorm_room", 0.4f, 2f);
             UrbanLegendBureau.Core.Sfx.StartLoop("dorm_clock", "amb_clock", 0.5f, 1f);
+        }
+
+        /// <summary>그날 비가 오는가에 맞춘 빗소리 크기. 오지 않는 날은 0 이다(Weather).</summary>
+        private static float RainVolume(float volume) => Weather.IsRaining ? volume : 0f;
+
+        private bool _rainWas;
+
+        private void LateUpdate()
+        {
+            // 자는 사이 날이 바뀌어 비가 그치거나 내리기 시작했으면 빗소리도 따라간다.
+            bool rain = Weather.IsRaining;
+            if (rain == _rainWas) return;
+            _rainWas = rain;
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_rain", RainVolume(IsLightOn ? 0.35f : 0.5f), 2f);
         }
 
         private void OnDisable()
@@ -244,7 +259,7 @@ namespace UrbanLegendBureau.Systems
             }
 
             if (_moonLight != null) _moonLight.gameObject.SetActive(!IsLightOn);
-            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_rain", IsLightOn ? 0.35f : 0.5f, 1.5f);
+            UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_rain", RainVolume(IsLightOn ? 0.35f : 0.5f), 1.5f);
             UrbanLegendBureau.Core.Sfx.SetLoopVolume("dorm_clock", IsLightOn ? 0.5f : 0.65f, 1.5f);
         }
 
@@ -345,6 +360,12 @@ namespace UrbanLegendBureau.Systems
         public void PlaySleep(Action onDone)
         {
             if (_chajihan == null) { onDone?.Invoke(); return; }
+
+            // 끝나면 한 번만 알린다. 건너뛰기(SkipSleep)로 끝나도 같은 길로 간다.
+            _sleepDone = onDone;
+            _sleeping = true;
+            onDone = FinishSleep;
+            ShowSkipButton(true);
 
             _chajihan.Locked = true;
 
@@ -458,6 +479,110 @@ namespace UrbanLegendBureau.Systems
             yield return LieDown(onDone);
         }
 
+        // ------------------------------------------------------------- 잠들기 건너뛰기
+
+        private Action _sleepDone;
+        private bool _sleeping;
+        private GameObject _skipButton;
+
+        private const string SkipLabel = "건너뛰기  ▶▶";
+        private const string SkipTextId = "ui.sleep.skip";
+
+        private void FinishSleep()
+        {
+            if (!_sleeping) return;
+            _sleeping = false;
+            ShowSkipButton(false);
+            var done = _sleepDone;
+            _sleepDone = null;
+            done?.Invoke();
+        }
+
+        /// <summary>
+        /// 잠드는 연출을 건너뛴다. 옷을 걸고 침대에 누워 눈을 감은 마지막 모습으로 곧장 옮기고 잠들었다고 알린다.
+        /// 잠드는 중이 아니면 아무것도 하지 않는다.
+        /// </summary>
+        public void SkipSleep()
+        {
+            if (!_sleeping || _chajihan == null) return;
+            StopAllCoroutines();
+            _chajihan.CancelWalk();
+            Sfx.Play("sheet_rustle", 0.3f);
+
+            var t = _chajihan.transform;
+            t.localScale = new Vector3(Mathf.Abs(_chajihanScale.x), _chajihanScale.y, _chajihanScale.z);
+            var look = _chajihan.GetComponent<FieldSpriteAnimator>();
+            if (look != null && look.FrameCount("coatoff") > 0 && _coatHung != null) _coatHung.SetActive(true);
+            if (look != null && look.FrameCount("lie") > 0)
+            {
+                look.Hold("lie", look.FrameCount("lie") - 1);
+                t.localPosition = new Vector3(_lyingArtPosition.x, _lyingArtPosition.y, t.localPosition.z);
+                t.localRotation = Quaternion.identity;
+                if (look.FrameCount("sleep") > 0) _sleepLook = look;
+            }
+            else
+            {
+                if (look != null && look.FrameCount("tie") > 0) look.Hold("tie", look.FrameCount("tie") - 1);
+                t.localPosition = new Vector3(_lyingPosition.x, _lyingPosition.y, t.localPosition.z);
+                t.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            }
+            if (_blanketOver != null) _blanketOver.SetActive(true);
+            SetShadow(false);
+
+            _lidsFollowEyes = true;
+            SetEyes(0.08f);
+            Bgm.Duck(0f, 1.5f);
+            Sfx.SetLoopVolume("dorm_rain", RainVolume(0.8f), 1.5f);
+            Sfx.SetLoopVolume("dorm_room", 0.15f, 1.5f);
+            Sfx.SetLoopVolume("dorm_clock", 0.35f, 1.5f);
+            Debug.Log("[RoomNight] 잠드는 연출을 건너뛰었다");
+            FinishSleep();
+        }
+
+        /// <summary>잠드는 동안 화면 오른쪽 아래에 건너뛰기 단추를 띄운다. 눈꺼풀보다 위에 그린다.</summary>
+        private void ShowSkipButton(bool on)
+        {
+            if (on && _skipButton == null) BuildSkipButton();
+            if (_skipButton == null) return;
+            _skipButton.SetActive(on);
+            if (on) _skipButton.transform.SetAsLastSibling();
+        }
+
+        private void BuildSkipButton()
+        {
+            var parent = _eyeMask != null ? _eyeMask.parent as RectTransform : null;
+            if (parent == null) return;
+
+            var go = new GameObject("Btn_SkipSleep", typeof(RectTransform), typeof(UnityEngine.UI.Image), typeof(UnityEngine.UI.Button));
+            go.transform.SetParent(parent, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = rt.anchorMax = new Vector2(1f, 0f);
+            rt.pivot = new Vector2(1f, 0f);
+            rt.anchoredPosition = new Vector2(-48f, 48f);
+            rt.sizeDelta = new Vector2(260f, 72f);
+            var bg = go.GetComponent<UnityEngine.UI.Image>();
+            bg.color = new Color(0.08f, 0.09f, 0.12f, 0.82f);
+            go.GetComponent<UnityEngine.UI.Button>().onClick.AddListener(SkipSleep);
+
+            var label = new GameObject("Label", typeof(RectTransform), typeof(TMPro.TextMeshProUGUI));
+            label.transform.SetParent(go.transform, false);
+            var lrt = (RectTransform)label.transform;
+            lrt.anchorMin = Vector2.zero;
+            lrt.anchorMax = Vector2.one;
+            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            var text = label.GetComponent<TMPro.TextMeshProUGUI>();
+            text.text = SkipLabel;
+            label.AddComponent<UrbanLegendBureau.UI.LocalizedText>().SetTextId(SkipTextId);
+            text.fontSize = 30f;
+            text.alignment = TMPro.TextAlignmentOptions.Center;
+            text.color = new Color(0.86f, 0.88f, 0.92f);
+            text.raycastTarget = false;
+            var anyText = parent.GetComponentInParent<Canvas>() != null ? parent.GetComponentInParent<Canvas>().GetComponentInChildren<TMPro.TMP_Text>(true) : null;
+            if (anyText != null && anyText != text) text.font = anyText.font;
+            _skipButton = go;
+            go.SetActive(false);
+        }
+
         /// <summary>그림 묶음을 처음부터 끝까지 한 칸씩 보여 준다. 칸이 바뀔 때마다 onFrame 에 칸 번호를 넘긴다.</summary>
         private IEnumerator PlayClip(FieldSpriteAnimator look, string clip, float seconds, Action<int> onFrame)
         {
@@ -510,7 +635,7 @@ namespace UrbanLegendBureau.Systems
             _lidsFollowEyes = true;                    // 여기서부터 화면도 함께 감긴다
             // 졸음이 오면 음악이 천천히 멀어지고 창밖 빗소리만 또렷하게 남는다. 방 공기와 시계도 조금 가라앉는다.
             Bgm.Duck(0f, 6f);
-            Sfx.SetLoopVolume("dorm_rain", 0.8f, 5f);
+            Sfx.SetLoopVolume("dorm_rain", RainVolume(0.8f), 5f);
             Sfx.SetLoopVolume("dorm_room", 0.15f, 5f);
             Sfx.SetLoopVolume("dorm_clock", 0.35f, 5f);
             Sfx.Play("sit_breath_1", 0.25f, 0.9f);   // 길게 내쉬는 숨

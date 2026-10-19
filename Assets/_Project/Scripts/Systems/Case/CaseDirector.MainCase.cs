@@ -265,6 +265,25 @@ namespace UrbanLegendBureau.Systems
             return true;
         }
 
+        /// <summary>본편 수사 노트에서 틀렸을 때 그 괴담 믿음도가 오르는 만큼(%p).</summary>
+        private const int CaseFileWrongBelief = 1;
+
+        /// <summary>
+        /// 수사 노트에서 틀렸다(엉뚱한 단서 짝, 틀린 추론 보기, 보고서의 틀린 칸). 같은 실수는 한 번만 온다.
+        /// 본편에서는 잘못 짚은 판단이 새어 나가 그 괴담 믿음도가 조금 오른다. 튜토리얼에서는 아무것도 잃지 않는다.
+        /// </summary>
+        private void OnCaseFileWrong()
+        {
+            if (!InMain || _case == null || _tutorial == null || _workday == null) return;
+            if (_workday.IsSolved(_case.CaseId)) return;
+            float before = _workday.DisplayBelief(_case.LegendId);
+            _tutorial.ShiftLegendBelief(_case.LegendId, CaseFileWrongBelief);
+            float after = _workday.DisplayBelief(_case.LegendId);
+            PushStatus();
+            if (after > before) ShowMainToast(L("ui.casefile.wrong_belief", Num(before), Num(after)));
+            Debug.Log($"[CaseDirector] 본편 | 수사 노트 오답 | {_case.CaseId} | {before:0.0}% -> {after:0.0}%");
+        }
+
         private void ShowMainToast(string text)
         {
             if (_toastScreen == null) return;

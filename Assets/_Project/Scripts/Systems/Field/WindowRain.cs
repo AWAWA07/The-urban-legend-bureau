@@ -22,6 +22,7 @@ namespace UrbanLegendBureau.Systems
         private Transform[] _drops;
         private float[] _dropSpeeds;
         private float[] _dropWait;
+        private GameObject _root;
 
         private void Awake()
         {
@@ -35,6 +36,7 @@ namespace UrbanLegendBureau.Systems
             int order = glassRenderer.sortingOrder + 1;
 
             var root = new GameObject("Rain").transform;
+            _root = root.gameObject;
             root.SetParent(transform, false);
             root.localPosition = glass.localPosition;
 
@@ -89,6 +91,11 @@ namespace UrbanLegendBureau.Systems
 
         private void Update()
         {
+            // 비가 오지 않는 날에는 빗줄기를 숨긴다. 자는 사이 날이 바뀌면 깨어났을 때 바뀌어 있다.
+            bool rain = Weather.IsRaining;
+            if (_root != null && _root.activeSelf != rain) _root.SetActive(rain);
+            if (!rain) return;
+
             float dt = Time.deltaTime;
             for (int i = 0; i < _streaks.Length; i++)
             {

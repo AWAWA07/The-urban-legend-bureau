@@ -1620,3 +1620,5 @@ field.elev.mirror_memo	거울 아래에 <b>관리실 메모</b>가 붙어 있다
 field.elev.mirror_memo_text	야간 3층 자동 정지\n— 점검 설정, 해제 요청 중\n관리실	Night auto-stop at 3F\n— maintenance setting, release requested\nManagement	거울 아래 메모 글
 ui.net.comment_low	믿음도가 해결 목표 아래라 댓글로는 더 낮출 수 없습니다. <b>정정글</b>로 마무리하세요.	Belief is below the target; comments can't lower it further. Finish with a <b>correction post</b>.	본편 사건 글 - 믿음도가 목표 아래일 때
 ui.work.case_opened_now	새 사건 접수: <b>{0}</b>	New case: <b>{0}</b>	사건 해결 직후 바로 열린 새 사건
+ui.sleep.skip	건너뛰기  ▶▶	Skip  ▶▶	잠드는 연출 건너뛰기 단추
+ui.casefile.wrong_belief	잘못 짚은 판단이 새어 나갔다. 믿음도 <color=#E05A4F>{0}% → {1}%</color>	A wrong call leaked out. Belief <color=#E05A4F>{0}% → {1}%</color>	본편 수사 노트 오답 알림
