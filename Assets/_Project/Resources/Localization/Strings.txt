@@ -1189,7 +1189,7 @@ ui.casefile.posts_meta_research	인터넷 조사 자료	Internet research	게시
 ui.casefile.paper_org	괴담 검열국 / 기밀 사건 보고서	URBAN LEGEND BUREAU / CLASSIFIED CASE REPORT	종이 보고서 머리
 ui.casefile.paper_title	최종 조사 보고서	Final Investigation Report	종이 보고서 제목
 ui.casefile.paper_meta	사건 번호 {0}   ·   사건명 {1}	Case No. {0}   ·   {1}	종이 보고서 사건 정보
-ui.casefile.paper_guide	아래 보고서는 조사 내용을 정리한 것이다. 밑줄 친 빈칸을 눌러 알맞은 낱말을 적은 뒤 보고서 검토를 누른다.	The report below summarizes the investigation. Click each underlined blank, type the missing word, then press Review Report.	종이 보고서 안내
+ui.casefile.paper_guide	아래 보고서는 조사 내용을 정리한 것이다. <b>밑줄 친 빈칸</b>을 눌러 <b>보기 3개 중 알맞은 낱말</b>을 고른 뒤 <b>보고서 검토</b>를 누른다.	The report below summarizes the investigation. Click each underlined blank, pick the right word from three choices, then press Review Report.	종이 보고서 안내
 report.subway.overview.title	사건 개요	Case Overview	보고서 1 제목
 report.subway.overview.body	막차의 같은 좌석에서 '옆자리에 누군가 앉았다'는 신고가 반복되었다. 같은 칸 승객들은 그 자리가 계속 비어 있었다고 진술했고, 역무실에도 같은 좌석에 대한 신고가 여러 차례 남아 있다. 반복된 신고와 목격담을 종합한 결과, 본 사건의 괴담은 {_}로 판단된다.	Reports that someone sat down in the same empty seat on the last train have come in again and again. Passengers in that car said the seat stayed empty, and the station office holds repeated reports about the same seat. Taking the reports and accounts together, this legend is assessed as {_}.	보고서 1 문단 (빈칸: 진위)
 report.subway.overview.answer	진짜	real	보고서 1 대표 답
@@ -1549,3 +1549,20 @@ field.room.door.no_case	지금은 맡을 사건이 없다. <b>업무 현황</b>�
 field.room.bookshelf.result.main	지난 사건 파일이 빼곡하다. 언젠가 내 사건도 여기 꽂히겠지.	Packed with old case files. Someday mine will be up there too.	본편 숙소 책장 - 차지한
 field.room.clock.result.main	지금 시각은 {0}. 퇴근까지 <b>{1}</b> 남았다.	It is {0}. <b>{1}</b> left in the shift.	본편 숙소 벽시계 - 차지한, {0} 시각 {1} 남은 시간
 field.room.clock.result.main_off	지금 시각은 {0}. 오늘 근무는 끝났다.	It is {0}. The shift is over.	본편 숙소 벽시계(근무 끝) - 차지한
+# 조사 보고서 빈칸 보기(오답). 정답은 각 .answer 문장이다
+report.subway.overview.choice_1	가짜	fake	보고서 보기(오답)
+report.subway.overview.choice_2	판단 불가	undeterminable	보고서 보기(오답)
+report.subway.rule.choice_1	숙여	lowering their head and	보고서 보기(오답)
+report.subway.rule.choice_2	들어	raising their head and	보고서 보기(오답)
+report.subway.counter.choice_1	바로 돌려 확인한다	turn right away to check	보고서 보기(오답)
+report.subway.counter.choice_2	숙이고 눈을 감는다	lower it and close your eyes	보고서 보기(오답)
+report.subway.target.choice_1	모음	Collection	보고서 보기(오답)
+report.subway.target.choice_2	후기	Review	보고서 보기(오답)
+report.test.001.overview.choice_1	진짜	real	보고서 보기(오답)
+report.test.001.overview.choice_2	판단 불가	undeterminable	보고서 보기(오답)
+report.test.001.target.choice_1	퍼가지 마세요	do not share	보고서 보기(오답)
+report.test.001.target.choice_2	보면 저주받음	cursed if you read	보고서 보기(오답)
+report.test.002.overview.choice_1	고장	malfunction	보고서 보기(오답)
+report.test.002.overview.choice_2	귀신	ghost	보고서 보기(오답)
+report.test.002.target.choice_1	산책	walk	보고서 보기(오답)
+report.test.002.target.choice_2	청소	cleaning	보고서 보기(오답)

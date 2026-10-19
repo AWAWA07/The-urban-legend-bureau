@@ -1320,6 +1320,7 @@ namespace UrbanLegendBureau.UI
         /// </summary>
         private void BuildFillReport(bool confirmed)
         {
+            CloseBlankChoices();
             _blankViews.Clear();
             if (confirmed)
             {
@@ -1502,6 +1503,10 @@ namespace UrbanLegendBureau.UI
             if (at >= 0)
             {
                 float w = Mathf.Max(80f, section.blankWidth);
+                // 보기에서 고르는 빈칸은 가장 긴 보기가 들어갈 만큼 넓힌다. 펼침 표(▼) 자리도 둔다.
+                if (section.HasChoices)
+                    foreach (var choiceId in section.ChoiceOrder())
+                        w = Mathf.Max(w, _measure.GetPreferredValues(L(choiceId)).x + 56f);
                 if (x + w > width && x > 0f)
                 {
                     Flush();
@@ -1588,6 +1593,27 @@ namespace UrbanLegendBureau.UI
             var view = new BlankView { Blank = section, Section = box, Field = field, Underline = underline, Mark = mark, LastLength = field.text.Length };
             _blankViews.Add(view);
 
+            // 보기에서 고르는 빈칸. 직접 적지 않는다. 누르면 아래에 보기 세 개가 펼쳐지고, 고른 낱말이 빈칸에 들어간다.
+            if (section.HasChoices)
+            {
+                field.readOnly = true;
+                field.caretColor = new Color(0f, 0f, 0f, 0f);
+                field.selectionColor = new Color(0f, 0f, 0f, 0f);
+
+                var drop = Label("Drop", fieldRt, _semiBold, 13f, Under, TextAlignmentOptions.MidlineRight);
+                Place(drop.rectTransform, new Vector2(1f, 0f), new Vector2(1f, 1f), new Vector2(-24f, 0f), new Vector2(-4f, 0f));
+                drop.text = "▼";
+                drop.raycastTarget = false;
+
+                if (!confirmed)
+                {
+                    var trigger = fieldRt.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+                    var entry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.PointerClick };
+                    entry.callback.AddListener(_ => OpenBlankChoices(view));
+                    trigger.triggers.Add(entry);
+                }
+            }
+
             string id = section.blankId;
             field.onValueChanged.AddListener(value =>
             {
@@ -1606,6 +1632,86 @@ namespace UrbanLegendBureau.UI
             });
             field.onEndEdit.AddListener(_ => _save?.AutoSave());
             field.onSubmit.AddListener(_ => FocusBlank(_blankViews.IndexOf(view) + 1));
+        }
+
+        /// <summary>지금 펼쳐 둔 보기 판과, 그 뒤에 깔아 바깥을 누르면 닫히게 하는 가림막.</summary>
+        private GameObject _choicePopup;
+        private GameObject _choiceBlocker;
+
+        /// <summary>
+        /// 빈칸 아래에 보기 세 개를 펼친다. 하나를 고르면 그 낱말이 빈칸에 들어가고 판정 전으로 돌아간다.
+        /// 아래 자리가 모자라면 빈칸 위에 펼친다. 바깥을 누르면 고르지 않고 닫힌다.
+        /// </summary>
+        private void OpenBlankChoices(BlankView view)
+        {
+            if (view == null || view.Field == null || CaseNotebook.IsReportConfirmed(Data, Deduction.CaseId)) return;
+            CloseBlankChoices();
+            UnityEngine.EventSystems.EventSystem.current?.SetSelectedGameObject(null);
+
+            var blocker = Panel("ChoiceBlocker", _body, new Color(0f, 0f, 0f, 0.001f));
+            Stretch(blocker.rectTransform);
+            blocker.rectTransform.offsetMin = new Vector2(-4000f, -4000f);
+            blocker.rectTransform.offsetMax = new Vector2(4000f, 4000f);
+            var blockButton = blocker.gameObject.AddComponent<Button>();
+            blockButton.transition = Selectable.Transition.None;
+            blockButton.onClick.AddListener(CloseBlankChoices);
+            _choiceBlocker = blocker.gameObject;
+
+            var ids = view.Blank.ChoiceOrder();
+            const float RowHeight = 54f, Pad = 8f;
+            var fieldRt = (RectTransform)view.Field.transform;
+            float width = Mathf.Max(fieldRt.rect.width, 300f);
+            float height = ids.Count * RowHeight + (ids.Count + 1) * Pad;
+
+            // 빈칸의 왼쪽 아래 모서리를 기준으로 그 아래에 둔다.
+            var corners = new Vector3[4];
+            fieldRt.GetWorldCorners(corners);
+            Vector2 bottomLeft = _body.InverseTransformPoint(corners[0]);
+            Vector2 topLeft = _body.InverseTransformPoint(corners[1]);
+            float bodyBottom = _body.rect.yMin + 160f;   // 아래 알림·단추 줄은 가리지 않는다
+            bool above = bottomLeft.y - height - 6f < bodyBottom;
+            float y = above ? topLeft.y + 6f + height : bottomLeft.y - 6f;
+
+            var popup = Panel("BlankChoices", _body, CardColor);
+            var prt = popup.rectTransform;
+            prt.anchorMin = prt.anchorMax = new Vector2(0.5f, 0.5f);
+            prt.pivot = new Vector2(0f, 1f);
+            prt.sizeDelta = new Vector2(width, height);
+            prt.anchoredPosition = new Vector2(bottomLeft.x - _body.rect.center.x, y - _body.rect.center.y);
+            Outline(popup.gameObject, Accent);
+            _choicePopup = popup.gameObject;
+
+            string current = view.Field.text.Trim();
+            for (int i = 0; i < ids.Count; i++)
+            {
+                string text = L(ids[i]);
+                bool picked = current.Length > 0 && current == text.Trim();
+                var option = MakeButton("Choice_" + i, popup.transform, picked ? AccentDeep : Line, out var label, _semiBold, 23f);
+                var ort = (RectTransform)option.transform;
+                ort.anchorMin = new Vector2(0f, 1f);
+                ort.anchorMax = new Vector2(1f, 1f);
+                ort.pivot = new Vector2(0.5f, 1f);
+                ort.sizeDelta = new Vector2(-Pad * 2f, RowHeight);
+                ort.anchoredPosition = new Vector2(0f, -Pad - i * (RowHeight + Pad));
+                label.text = (i + 1) + ".  " + text;
+                label.alignment = TextAlignmentOptions.MidlineLeft;
+                label.margin = new Vector4(18f, 0f, 12f, 0f);
+                option.onClick.AddListener(() =>
+                {
+                    CloseBlankChoices();
+                    view.LastLength = text.Length;   // 고른 것이라 타건음은 내지 않는다
+                    view.Field.text = text;   // 바뀐 낱말을 저장하고 판정 전으로 돌린다(onValueChanged)
+                    Sfx.PlayVaried("paper_" + UnityEngine.Random.Range(0, 2), 0.35f);
+                });
+            }
+        }
+
+        private void CloseBlankChoices()
+        {
+            if (_choicePopup != null) Destroy(_choicePopup);
+            if (_choiceBlocker != null) Destroy(_choiceBlocker);
+            _choicePopup = null;
+            _choiceBlocker = null;
         }
 
         /// <summary>
@@ -1745,8 +1851,11 @@ namespace UrbanLegendBureau.UI
             foreach (var v in _blankViews)
             {
                 string input = v.Field != null ? v.Field.text : string.Empty;
+                // 보기에서 고른 칸은 대표 정답 보기를 골랐는지로 본다.
+                bool right = CaseNotebook.CheckAnswer(v.Blank, input)
+                             || (v.Blank.HasChoices && input.Trim() == L(v.Blank.answerTextId).Trim());
                 BlankState state = CaseNotebook.Normalize(input).Length == 0 ? BlankState.Empty
-                    : CaseNotebook.CheckAnswer(v.Blank, input) ? BlankState.Right : BlankState.Wrong;
+                    : right ? BlankState.Right : BlankState.Wrong;
                 _blankResults[v.Blank.blankId] = state;
                 if (state != BlankState.Right && firstProblem == null) firstProblem = v;
             }

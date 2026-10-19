@@ -16,8 +16,10 @@ MonoBehaviour:
   _fieldClues:
   - clueId: clue_test_001
     placeTextId: ui.casefile.place_test_desk
+    fromPageId: 
   - clueId: clue_test_002
     placeTextId: ui.casefile.place_test_wall
+    fromPageId: 
   - clueId: clue_test_005
     placeTextId: ui.casefile.place_test_net
     fromPageId: web_test_004
@@ -28,14 +30,15 @@ MonoBehaviour:
   - analysisId: analysis_test_001_a
     clueA: clue_test_001
     clueB: clue_test_002
+    optional: 0
     titleTextId: analysis.test.001.a.title
     bodyTextId: analysis.test.001.a.body
   - analysisId: analysis_test_001_b
     clueA: clue_test_005
     clueB: clue_test_006
+    optional: 1
     titleTextId: analysis.test.001.b.title
     bodyTextId: analysis.test.001.b.body
-    optional: 1
   _questions:
   - questionId: q1
     labelTextId: deduce.test.001.q1.label
@@ -75,12 +78,15 @@ MonoBehaviour:
     answerTextId: report.test.001.overview.answer
     targetPageId: 
     acceptedAnswers:
-    - "가짜"
-    - "거짓"
-    - "허위"
-    - "~[가짜|거짓|허위] [다|이다|임]?"
+    - "\uAC00\uC9DC"
+    - "\uAC70\uC9D3"
+    - "\uD5C8\uC704"
+    - "~[\uAC00\uC9DC|\uAC70\uC9D3|\uD5C8\uC704] [\uB2E4|\uC774\uB2E4|\uC784]?"
     - fake
     - false
+    choiceTextIds:
+    - report.test.001.overview.choice_1
+    - report.test.001.overview.choice_2
   - blankId: target
     answerType: 4
     titleTextId: report.test.001.target.title
@@ -89,8 +95,11 @@ MonoBehaviour:
     answerTextId: report.test.001.target.answer
     targetPageId: web_test_001
     acceptedAnswers:
-    - "지워지지 않음"
-    - "~[지워지지않음|지워지지|안지워짐|삭제안됨]"
+    - "\uC9C0\uC6CC\uC9C0\uC9C0 \uC54A\uC74C"
+    - "~[\uC9C0\uC6CC\uC9C0\uC9C0\uC54A\uC74C|\uC9C0\uC6CC\uC9C0\uC9C0|\uC548\uC9C0\uC6CC\uC9D0|\uC0AD\uC81C\uC548\uB428]"
     - will not delete
+    choiceTextIds:
+    - report.test.001.target.choice_1
+    - report.test.001.target.choice_2
   _documentNumber: ULB-TEST-001
   _summaryTextId: deduce.test.001.summary

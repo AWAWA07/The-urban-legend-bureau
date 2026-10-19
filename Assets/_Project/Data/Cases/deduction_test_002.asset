@@ -16,8 +16,10 @@ MonoBehaviour:
   _fieldClues:
   - clueId: clue_test_003
     placeTextId: ui.casefile.place_test_panel
+    fromPageId: 
   - clueId: clue_test_004
     placeTextId: ui.casefile.place_test_mirror
+    fromPageId: 
   - clueId: clue_test_007
     placeTextId: ui.casefile.place_test_net
     fromPageId: web_test_005
@@ -28,14 +30,15 @@ MonoBehaviour:
   - analysisId: analysis_test_002_a
     clueA: clue_test_003
     clueB: clue_test_004
+    optional: 0
     titleTextId: analysis.test.002.a.title
     bodyTextId: analysis.test.002.a.body
   - analysisId: analysis_test_002_b
     clueA: clue_test_007
     clueB: clue_test_008
+    optional: 1
     titleTextId: analysis.test.002.b.title
     bodyTextId: analysis.test.002.b.body
-    optional: 1
   _questions:
   - questionId: q1
     labelTextId: deduce.test.002.q1.label
@@ -75,12 +78,15 @@ MonoBehaviour:
     answerTextId: report.test.002.overview.answer
     targetPageId: 
     acceptedAnswers:
-    - "설정"
-    - "점검"
-    - "점검 설정"
-    - "~[자동정지|점검|정지]? [설정|점검]"
+    - "\uC124\uC815"
+    - "\uC810\uAC80"
+    - "\uC810\uAC80 \uC124\uC815"
+    - "~[\uC790\uB3D9\uC815\uC9C0|\uC810\uAC80|\uC815\uC9C0]? [\uC124\uC815|\uC810\uAC80]"
     - setting
     - maintenance
+    choiceTextIds:
+    - report.test.002.overview.choice_1
+    - report.test.002.overview.choice_2
   - blankId: target
     answerType: 4
     titleTextId: report.test.002.target.title
@@ -89,8 +95,11 @@ MonoBehaviour:
     answerTextId: report.test.002.target.answer
     targetPageId: web_test_003
     acceptedAnswers:
-    - "야근"
-    - "~[야근|야근하다]"
+    - "\uC57C\uADFC"
+    - "~[\uC57C\uADFC|\uC57C\uADFC\uD558\uB2E4]"
     - overtime
+    choiceTextIds:
+    - report.test.002.target.choice_1
+    - report.test.002.target.choice_2
   _documentNumber: ULB-TEST-002
   _summaryTextId: deduce.test.002.summary

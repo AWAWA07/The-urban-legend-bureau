@@ -111,7 +111,29 @@ namespace UrbanLegendBureau.Data
             [Tooltip("받아 주는 답(한국어, 영어). 정리한 뒤 통째로 견준다. ~ 로 시작하면 틀이다(위 설명).")]
             public List<string> acceptedAnswers = new List<string>();
 
+            [Tooltip("보기로 함께 내놓을 오답(문장 ID). 대표 정답(answerTextId)과 섞어 보기 3개를 만든다. 비우면 예전처럼 직접 적는다.")]
+            public List<string> choiceTextIds = new List<string>();
+
             public bool HasBlank => !string.IsNullOrEmpty(blankId);
+
+            /// <summary>보기 중에서 고르는 빈칸인가. 대표 정답과 오답이 있어야 한다.</summary>
+            public bool HasChoices => HasBlank && !string.IsNullOrEmpty(answerTextId) && choiceTextIds != null && choiceTextIds.Count > 0;
+
+            /// <summary>
+            /// 보기 문장 ID 를 늘어놓는다. 정답이 늘 같은 자리에 있지 않게 빈칸 ID 로 정한 순서로 섞는다.
+            /// 열 때마다 바뀌지 않으므로 다시 열어도 같은 자리에 같은 보기가 있다.
+            /// </summary>
+            public List<string> ChoiceOrder()
+            {
+                var list = new List<string> { answerTextId };
+                foreach (var id in choiceTextIds) if (!string.IsNullOrEmpty(id)) list.Add(id);
+                uint seed = 2166136261;   // FNV-1a
+                foreach (char ch in blankId + answerTextId) seed = unchecked((seed ^ ch) * 16777619);
+                int shift = (int)((seed >> 7) % (uint)list.Count);
+                var ordered = new List<string>(list.Count);
+                for (int i = 0; i < list.Count; i++) ordered.Add(list[(i + shift) % list.Count]);
+                return ordered;
+            }
         }
 
         [SerializeField] private string _caseId;

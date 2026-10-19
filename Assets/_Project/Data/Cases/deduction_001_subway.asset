@@ -16,23 +16,30 @@ MonoBehaviour:
   _fieldClues:
   - clueId: clue_subway_001
     placeTextId: ui.casefile.place_seat
+    fromPageId: 
   - clueId: clue_subway_002
     placeTextId: ui.casefile.place_window_trace
+    fromPageId: 
   - clueId: clue_subway_008
     placeTextId: ui.casefile.place_window_glass
+    fromPageId: 
   - clueId: clue_subway_003
     placeTextId: ui.casefile.place_cctv
+    fromPageId: 
   - clueId: clue_subway_005
     placeTextId: ui.casefile.place_intercom
+    fromPageId: 
   _analyses:
   - analysisId: analysis_subway_a
     clueA: clue_subway_001
     clueB: clue_subway_005
+    optional: 0
     titleTextId: analysis.subway.a.title
     bodyTextId: analysis.subway.a.body
   - analysisId: analysis_subway_b
     clueA: clue_subway_002
     clueB: clue_subway_008
+    optional: 0
     titleTextId: analysis.subway.b.title
     bodyTextId: analysis.subway.b.body
   _questions:
@@ -103,6 +110,9 @@ MonoBehaviour:
     - "~[\uC9C4\uC9DC|\uC2E4\uC81C|\uC2E4\uC7AC|\uC0AC\uC2E4|\uC2E4\uC81C\uD604\uC0C1]
       [\uB85C|\uC73C\uB85C|\uB2E4|\uC774\uB2E4|\uC784]?"
     - '~[real|true|genuine]'
+    choiceTextIds:
+    - report.subway.overview.choice_1
+    - report.subway.overview.choice_2
   - blankId: 
     answerType: 0
     titleTextId: report.subway.findings.title
@@ -111,6 +121,7 @@ MonoBehaviour:
     answerTextId: 
     targetPageId: 
     acceptedAnswers: []
+    choiceTextIds: []
   - blankId: rule
     answerType: 2
     titleTextId: report.subway.rule.title
@@ -123,6 +134,9 @@ MonoBehaviour:
     - "\uB3CC\uB824\uC11C"
     - turned
     - turn
+    choiceTextIds:
+    - report.subway.rule.choice_1
+    - report.subway.rule.choice_2
   - blankId: counter
     answerType: 3
     titleTextId: report.subway.counter.title
@@ -142,6 +156,9 @@ MonoBehaviour:
     - "~[\uACE0\uAC1C\uB97C]? [\uB3CC\uB9AC\uC9C0|\uB3CC\uB824\uD655\uC778\uD558\uC9C0|\uB3CC\uB824\uC11C\uD655\uC778\uD558\uC9C0]
       [\uC54A\uB294\uB2E4|\uC54A\uAE30|\uC54A\uB294\uAC83|\uC54A\uC744\uAC83|\uB9D0\uAC83|\uB9C8|\uB9C8\uB77C|\uB9C8\uC138\uC694|\uB9D0\uC544\uC57C\uD55C\uB2E4|\uC54A\uC544\uC57C\uD55C\uB2E4|\uC54A\uC2B5\uB2C8\uB2E4|\uB9D0\uC544\uB77C|\uC54A\uB3C4\uB85D\uD55C\uB2E4]"
     - '~[do not|dont|never]'
+    choiceTextIds:
+    - report.subway.counter.choice_1
+    - report.subway.counter.choice_2
   - blankId: target
     answerType: 4
     titleTextId: report.subway.target.title
@@ -154,5 +171,8 @@ MonoBehaviour:
     - "~[\uADDC\uCE59]? [\uCD1D\uC815\uB9AC|\uCD1D\uC815\uB9AC\uAE00]"
     - all in one place
     - '~[all in one place|all in one]'
+    choiceTextIds:
+    - report.subway.target.choice_1
+    - report.subway.target.choice_2
   _documentNumber: ULB-2026-001
   _summaryTextId: deduce.subway.summary
