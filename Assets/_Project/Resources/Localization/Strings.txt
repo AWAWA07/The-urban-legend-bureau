@@ -1566,3 +1566,57 @@ report.test.002.overview.choice_1	고장	malfunction	보고서 보기(오답)
 report.test.002.overview.choice_2	귀신	ghost	보고서 보기(오답)
 report.test.002.target.choice_1	산책	walk	보고서 보기(오답)
 report.test.002.target.choice_2	청소	cleaning	보고서 보기(오답)
+# 본편 사건 현장 (원룸·엘리베이터)
+field.main.spot_not_yet	아직 뭘 봐야 할지 모르겠다. <b>다른 데부터</b> 살펴보자.	I don't know what to look for yet. <b>Something else first.</b>	본편 가까이 보기 - 조건이 모자랄 때 차지한
+field.post.graffiti_line	세 번 부르면 나타난다	Call it three times and it appears	원룸 벽 낙서
+field.post.graffiti_old	지워도 다시	Erased, yet back	원룸 벽지 밑 예전 낙서
+field.post.monitor_site	괴담넷	LegendNet	원룸 모니터
+field.post.monitor_meta_a	작성자 익명_7731 · 3분 전 · 조회 118	by anon_7731 · 3 min ago · 118 views	원룸 모니터 글 (처음)
+field.post.monitor_meta_b	작성자 새벽세시 · 방금 전 · 조회 2	by 3AM · just now · 2 views	원룸 모니터 글 (새로고침 뒤)
+field.post.monitor_stats_a	댓글 12 · 공유 31	12 comments · 31 shares	원룸 모니터
+field.post.monitor_stats_b	댓글 0 · 공유 3	0 comments · 3 shares	원룸 모니터
+field.post.monitor_loading	새로고침 중…	Refreshing…	원룸 모니터
+field.post.sticky	자정 전에\n또 지울 것	Delete again\nbefore midnight	원룸 모니터 메모
+field.post.desk_hint	어디를 살펴볼까.	Where should I look?	원룸 책상 가까이 보기
+field.post.desk_post	괴담넷의 '이 글 지워지지 않음'. 작성자는 처음 보는 이름이고, 올라온 지 3분 됐다.	'This post won't delete' on LegendNet. An unfamiliar author, posted 3 minutes ago.	원룸 책상 - 모니터
+field.post.desk_prints	키보드 받침 밑에 출력물 세 장. 같은 글을 캡처해 뽑은 건데… <b>작성자가 세 장 모두 다르다.</b>	Three printouts under the keyboard tray. The same post captured three times… <b>each by a different author.</b>	원룸 책상 - 출력물(단서)
+field.post.desk_note	'자정 전에 또 지울 것.' 이 방 주인이 직접 지우던 모양이다.	'Delete again before midnight.' The owner of this room was deleting it.	원룸 책상 - 메모
+field.post.refresh.001	…방금 저절로 새로고침됐어요. 그 글이 또 올라왔는데요.	…It just refreshed by itself. The post is back again.	원룸 모니터 연출 - 차지한
+field.post.refresh.002	작성자가 또 달라. <b>같은 사람이 올린 게 아니야.</b>	Different author again. <b>Not the same person.</b>	원룸 모니터 연출 - 한영
+field.post.refresh.003	지운 지 몇 분 됐다고…	It's only been a few minutes since it was deleted…	원룸 모니터 연출 - 차지한
+field.post.phone_hint	어디를 살펴볼까.	Where should I look?	원룸 휴대폰 가까이 보기
+field.post.phone_clock	11:47	11:47	원룸 휴대폰 잠금 화면
+field.post.phone_date	10월 16일 금요일	Friday, October 16	원룸 휴대폰 잠금 화면
+field.post.phone_app	괴담넷 · 공유 알림	LegendNet · Share	원룸 휴대폰 알림
+field.post.phone_notice	[퍼가요] 지워지기 전에 저장하세요	[Repost] Save it before it's deleted	원룸 휴대폰 알림
+field.post.phone_notices	잠금 화면에 공유 알림이 세 번. <b>'[퍼가요] 지워지기 전에 저장하세요.'</b>	Three share alerts on the lock screen. <b>'[Repost] Save it before it's deleted.'</b>	원룸 휴대폰 - 알림(단서)
+field.post.phone_crack	액정 귀퉁이가 깨져 있다. 꽤 오래 쓴 휴대폰이다.	The corner of the screen is cracked. An old phone.	원룸 휴대폰 - 금
+field.post.buzz.001	또 왔어요. <b>네 번째</b> 공유 알림이에요.	Another one. The <b>fourth</b> share alert.	원룸 휴대폰 연출 - 차지한
+field.post.buzz.002	누가 계속 저장해 두고 있다는 거지.	Someone keeps saving it.	원룸 휴대폰 연출 - 한영
+field.post.wall_hint	어디를 살펴볼까.	Where should I look?	원룸 벽 가까이 보기
+field.post.wall_writing	<b>'세 번 부르면 나타난다.'</b> 같은 말이 세 줄. 아래로 갈수록 번졌다.	<b>'Call it three times and it appears.'</b> Three lines of it, smudging toward the bottom.	원룸 벽 - 낙서(단서)
+field.post.wall_peel	들뜬 벽지 밑에 덮어 둔 예전 낙서가 있다. '지워도 다시'…	Under the peeling wallpaper, older writing: 'Erased, yet back'…	원룸 벽 - 벽지
+field.elev.board	엘리베이터 타기	Take the elevator	엘리베이터 홀 - 타기
+field.elev.floor_1	1	1	층 표시
+field.elev.floor_3	3	3	층 표시
+field.elev.floor_3f	3F	3F	3층 복도 표지
+field.elev.up	▲	▲	층 표시 오름 화살표
+field.elev.notice	야간 점검 중\n관리실	Night maintenance\nManagement	옆 엘리베이터 안내문
+field.elev.ride.001	제보는 야간에 3층에서 멈춘다는 거였지. 10층 눌러.	The reports said it stops at 3 at night. Press 10.	엘리베이터 연출 - 한영
+field.elev.ride.002	눌렀어요. 근데… <b>3층 불이 같이 켜져 있어요.</b> 아무도 안 눌렀는데.	Done. But… <b>3 is lit too.</b> Nobody pressed it.	엘리베이터 연출 - 차지한
+field.elev.open.001	…아무도 없는데요.	…There's no one.	엘리베이터 연출 - 차지한
+field.elev.open.002	닫힘 버튼 눌러 봐.	Press close.	엘리베이터 연출 - 한영
+field.elev.open.003	<b>안 먹어요.</b> 계속 열려 있어요.	<b>It won't work.</b> It stays open.	엘리베이터 연출 - 차지한
+field.elev.open.004	기다려. 이것도 기록해 둬.	Wait. Write this down too.	엘리베이터 연출 - 한영
+field.elev.panel_hint	어디를 살펴볼까.	Where should I look?	조작판 가까이 보기
+field.elev.panel_openclose	열림   ·   닫힘	Open   ·   Close	조작판
+field.elev.panel_tag	야간 3F 정지 — 점검 모드	Night 3F stop — maintenance	조작판 덮개 안 표시
+field.elev.panel_three	<b>3층 버튼만 반들반들 닳았다.</b> 다들 급하게 눌러 댄 것처럼.	<b>Only the 3 button is worn smooth.</b> As if everyone pressed it in a hurry.	조작판 - 3층 버튼(단서)
+field.elev.panel_cover	덮개를 열자 안쪽에 노란 표시가 붙어 있다. <b>'야간 3F 정지 — 점검 모드'.</b>	Inside the cover, a yellow tag: <b>'Night 3F stop — maintenance'.</b>	조작판 - 덮개(단서)
+field.elev.panel_call	비상 호출을 누르자 지직거리는 잡음만 난다.	The emergency call only crackles.	조작판 - 비상 호출
+field.elev.mirror_hint	어디를 살펴볼까.	Where should I look?	거울 가까이 보기
+field.elev.mirror_glass	거울에는 우리 둘과 뒤쪽 문만 비친다. 다른 건 없다.	Only the two of us and the door behind. Nothing else.	거울 - 유리
+field.elev.mirror_memo	거울 아래에 <b>관리실 메모</b>가 붙어 있다.	A <b>management memo</b> is taped under the mirror.	거울 - 메모(단서)
+field.elev.mirror_memo_text	야간 3층 자동 정지\n— 점검 설정, 해제 요청 중\n관리실	Night auto-stop at 3F\n— maintenance setting, release requested\nManagement	거울 아래 메모 글
+ui.net.comment_low	믿음도가 해결 목표 아래라 댓글로는 더 낮출 수 없습니다. <b>정정글</b>로 마무리하세요.	Belief is below the target; comments can't lower it further. Finish with a <b>correction post</b>.	본편 사건 글 - 믿음도가 목표 아래일 때
+ui.work.case_opened_now	새 사건 접수: <b>{0}</b>	New case: <b>{0}</b>	사건 해결 직후 바로 열린 새 사건

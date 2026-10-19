@@ -383,6 +383,19 @@ namespace UrbanLegendBureau.Systems
             return false;
         }
 
+        /// <summary>
+        /// 근무 중에 자리가 비면(사건을 해결해 동시 활성 수가 줄면) 다음 근무를 기다리지 않고 바로 새 사건을 연다.
+        /// 등장 일차·동시 활성 상한은 출근 때와 같다. 하루에 시간만 있으면 여러 사건을 맡아 풀 수 있다.
+        /// 연 사건 ID 를 돌려준다.
+        /// </summary>
+        public List<string> OpenCasesNow()
+        {
+            if (!MainStarted || !OnDuty) return new List<string>();
+            var opened = ActivateCases();
+            if (opened.Count > 0) _save.MarkDirty();
+            return opened;
+        }
+
         /// <summary>조건을 모두 채웠으면 정식 해결로 적는다. 적었으면 true. 같은 사건은 한 번만 적는다.</summary>
         public bool TryResolve(string caseId)
         {

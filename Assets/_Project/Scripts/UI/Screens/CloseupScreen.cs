@@ -130,6 +130,9 @@ namespace UrbanLegendBureau.UI
         /// <summary>한 곳이라도 살폈는가.</summary>
         public bool AnyChecked => _checked.Count > 0;
 
+        /// <summary>그 살필 곳(_spots 순서)을 살폈는가.</summary>
+        public bool IsChecked(int index) => _checked.Contains(index);
+
         /// <summary>조사 행동이 걸린 자리(단서가 나오는 곳)를 모두 살폈는가. 승차권 같은 곁가지는 세지 않는다.</summary>
         public bool ActionSpotsChecked
         {

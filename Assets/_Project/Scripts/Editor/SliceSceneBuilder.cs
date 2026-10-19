@@ -18,7 +18,7 @@ namespace UrbanLegendBureau.EditorTools
     /// 타이틀/브리핑/인터넷/결과는 기존 UIService의 화면 스택으로,
     /// 현장은 같은 씬의 월드 오브젝트로 구성한다.
     /// </summary>
-    public static class SliceSceneBuilder
+    public static partial class SliceSceneBuilder
     {
         private const string ScenePath = "Assets/_Project/Scenes/01_Title.unity";
         private const string ActionAssetPath = "Assets/InputSystem_Actions.inputactions";
@@ -63,46 +63,36 @@ namespace UrbanLegendBureau.EditorTools
             rootSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 현장 (월드) ---
+            // 사건 #001 삭제되지 않는 게시글: 제보자의 원룸. 걸어 다니며 책상·휴대폰·벽 낙서를 가까이 들여다본다.
             var fieldRoot = new GameObject("FieldRoot_Legend1");
             BuildFieldBackground(fieldRoot.transform);
-            var desk = BuildPoint(fieldRoot.transform, "InvestigationPoint_Desk", new Vector2(-4.2f, -1.2f),
-                new Vector2(3.0f, 2.0f), new Color(0.55f, 0.42f, 0.30f),
-                "field.test.desk", "field.test.desk.result", null);
-            var phone = BuildPoint(fieldRoot.transform, "InvestigationPoint_Phone", new Vector2(0f, -1.6f),
-                new Vector2(1.1f, 1.9f), new Color(0.35f, 0.60f, 0.72f),
-                "field.test.phone", "field.test.phone.result", "clue_test_001");
-            var wall = BuildPoint(fieldRoot.transform, "InvestigationPoint_Wall", new Vector2(4.2f, 1.4f),
-                new Vector2(2.6f, 1.6f), new Color(0.48f, 0.30f, 0.34f),
-                "field.test.wall", "field.test.wall.result", "clue_test_002");   // 오답 규칙의 근거
-
-            // 시험용 현장에도 같은 두 사람을 세운다. 어느 현장에 들어가도 걸을 수 있어야 한다.
-            BuildFieldActors(fieldRoot.transform, -3.4f, -2.0f, 2.4f, -12f, 12f);
+            var postPoints = BuildPostRoomField(fieldRoot.transform);
+            var desk = postPoints[0];
+            var phone = postPoints[1];
+            var wall = postPoints[2];
+            // 현관으로 들어와 왼쪽을 보고 선다.
+            BuildFieldActors(fieldRoot.transform, -3.86f, 9.4f, 2.4f, -11f, 10.4f, faceLeft: true);
 
             // --- 두 번째 사건의 현장 ---
+            // 사건 #002 3층에서 멈추는 엘리베이터: 야간 사무 건물. 홀에서 엘리베이터를 타면 안쪽으로 바뀐다.
             var fieldRoot2 = new GameObject("FieldRoot_Legend2");
             BuildFieldBackground(fieldRoot2.transform);
-            var panel = BuildPoint(fieldRoot2.transform, "InvestigationPoint_Panel", new Vector2(-3.6f, -0.6f),
-                new Vector2(1.6f, 2.6f), new Color(0.42f, 0.46f, 0.52f),
-                "field.test.panel", "field.test.panel.result", "clue_test_003");
-            var mirror = BuildPoint(fieldRoot2.transform, "InvestigationPoint_Mirror", new Vector2(3.4f, 0.4f),
-                new Vector2(2.4f, 3.2f), new Color(0.30f, 0.38f, 0.42f),
-                "field.test.mirror", "field.test.mirror.result", null);
+            BuildElevatorField(fieldRoot2.transform, out var elevBoard, out var panel, out var mirror, out var elevatorCar);
 
-            BuildFieldActors(fieldRoot2.transform, -3.4f, -2.0f, 2.4f, -12f, 12f);
-
-            // --- 지점별 조사 방법과 해금 조건 (17단계) ---
-            // 지점이 어떤 조사 방법을 허용하는지는 여기서 정한다. 모든 지점에서 모든 행동을 할 수 없다.
+            // --- 지점별 조사 방법 ---
+            // 본편 현장의 지점은 가까이 보기 화면을 연다. 살필 곳마다 조사 행동이 걸려 있다(가까이 보기 화면 쪽에서 정한다).
+            // 지점의 행동 목록은 예전 행동 고르기 화면용으로만 남긴다. 순서 조건(벽은 출력물 뒤)도 행동 쪽에 있다.
             ConfigurePoint(desk, "point_desk",
                 new[] { "action_test_002", "action_test_006" }, null, false, CaseStep.Started);
             ConfigurePoint(phone, "point_phone",
                 new[] { "action_test_006", "action_test_008" }, null, false, CaseStep.Started);
-            // 벽은 책상에서 얻은 단서가 있어야 조사할 수 있다.
             ConfigurePoint(wall, "point_wall",
-                new[] { "action_test_003" }, new[] { "clue_test_001" }, false, CaseStep.Started);
+                new[] { "action_test_003" }, null, false, CaseStep.Started);
             ConfigurePoint(panel, "point_panel",
                 new[] { "action_test_005", "action_test_009" }, null, false, CaseStep.Started);
             ConfigurePoint(mirror, "point_mirror",
                 new[] { "action_test_007", "action_test_006" }, null, false, CaseStep.Started);
+            ConfigurePoint(elevBoard, "point_elev_board", null, null, false, CaseStep.Started);
 
             // --- 실제 사건 1: 막차의 빈자리 (20단계) ---
             var fieldRootSubway = new GameObject("FieldRoot_Subway");
@@ -237,6 +227,15 @@ namespace UrbanLegendBureau.EditorTools
             var windowCloseup = BuildWindowCloseupScreen("Screen_WindowCloseup", out var windowGhost);
             var seatCloseup = BuildSeatCloseupScreen("Screen_SeatCloseup");
             var doorCloseup = BuildDoorCloseupScreen("Screen_DoorCloseup");
+            // 본편 사건 현장의 가까이 보기. 지점 ID 와 짝지어 진행 담당에 넘긴다.
+            var mainCloseups = new (string pointId, CloseupScreen screen)[]
+            {
+                ("point_desk", BuildPostDeskCloseup("Screen_PostDeskCloseup")),
+                ("point_phone", BuildPostPhoneCloseup("Screen_PostPhoneCloseup")),
+                ("point_wall", BuildPostWallCloseup("Screen_PostWallCloseup")),
+                ("point_panel", BuildElevPanelCloseup("Screen_ElevPanelCloseup")),
+                ("point_mirror", BuildElevMirrorCloseup("Screen_ElevMirrorCloseup")),
+            };
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);
             var rulePopup = BuildPopupScreen("Popup_Rule", out var ruleButtons);
@@ -320,6 +319,15 @@ namespace UrbanLegendBureau.EditorTools
             dso.FindProperty("_seatCloseupScreen").objectReferenceValue = seatCloseup;
             dso.FindProperty("_doorCloseupScreen").objectReferenceValue = doorCloseup;
             dso.FindProperty("_windowGhost").objectReferenceValue = windowGhost;
+            var mainCloseupList = dso.FindProperty("_mainCloseups");
+            mainCloseupList.arraySize = mainCloseups.Length;
+            for (int i = 0; i < mainCloseups.Length; i++)
+            {
+                var item = mainCloseupList.GetArrayElementAtIndex(i);
+                item.FindPropertyRelative("pointId").stringValue = mainCloseups[i].pointId;
+                item.FindPropertyRelative("screen").objectReferenceValue = mainCloseups[i].screen;
+            }
+            dso.FindProperty("_elevator").objectReferenceValue = elevatorCar;
             dso.ApplyModifiedPropertiesWithoutUndo();
 
             UnityEventTools.AddPersistentListener(btnStart.GetComponent<Button>().onClick, director.OnStartClicked);

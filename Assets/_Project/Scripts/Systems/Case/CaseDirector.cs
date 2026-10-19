@@ -307,6 +307,7 @@ namespace UrbanLegendBureau.Systems
             if (_windowCloseupScreen != null) _windowCloseupScreen.ResetChecked();
             if (_seatCloseupScreen != null) _seatCloseupScreen.ResetChecked();
             if (_doorCloseupScreen != null) _doorCloseupScreen.ResetChecked();
+            ResetMainField();   // 본편 현장의 가까이 보기와 엘리베이터
             // 지난번 종점에서 열어 둔 객실 문을 닫아 둔다.
             foreach (var opener in FindObjectsByType<TrainDoorOpener>(FindObjectsInactive.Include, FindObjectsSortMode.None)) opener.Close();
             _terminusDone = false;
@@ -2901,6 +2902,9 @@ namespace UrbanLegendBureau.Systems
                 BoardTrain();
                 return;
             }
+
+            // 본편 사건 현장(원룸, 엘리베이터). 지점마다 가까이 보기 화면을 연다.
+            if (TryHandleMainFieldPoint(point)) return;
 
             // 열차 안은 살필수록 조금씩 이상해진다. 어떤 곳이든 처음 들여다본 순간 한 단계 나아간다.
             var trainUnease = point.GetComponentInParent<TrainUnease>(true);

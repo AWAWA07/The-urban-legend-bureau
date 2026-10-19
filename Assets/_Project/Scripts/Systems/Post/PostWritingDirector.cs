@@ -671,6 +671,7 @@ namespace UrbanLegendBureau.Systems
             if (_resultOpened || _resultBuilder == null) return;
             _resultOpened = true;
 
+            _communityScreen.SetChoiceHeader(null);
             _communityScreen.BindChoices(null, null, null);
             _view = View.Result;
             _compose.ShowResult(_resultBuilder());

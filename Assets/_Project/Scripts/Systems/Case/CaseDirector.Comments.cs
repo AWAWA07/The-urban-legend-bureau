@@ -9,7 +9,8 @@ namespace UrbanLegendBureau.Systems
     /// <summary>
     /// 본편 괴담넷 댓글. 숙소 컴퓨터로 사건 괴담 글을 열면 그 글에 댓글을 달 수 있다(휴대폰으로는 읽기만 한다).
     ///
-    ///   사건 글     사건 데이터(PostWritingSO.CommentOptions)의 댓글. 한 글에 같은 댓글은 한 번. 반박은 주장(claimId)마다 사건에서 한 번.
+    ///   사건 글     사건 데이터(PostWritingSO.CommentOptions)의 댓글. 그 괴담 믿음도가 해결 목표(기본 30%) 이상인 동안
+    ///               같은 댓글도 몇 번이고 단다(댓글마다 근무 시간이 든다). 목표 아래로 내려오면 더 달 수 없다.
     ///   질문 글     근무일마다 올라오는 질문 글. 글마다 답글 하나만 단다. 선택지는 그 글의 틀에 있다.
     ///   근거        근거(단서·분석 기록)가 있어야 보이는 댓글은 그 근거를 얻은 뒤에 보인다.
     ///   확정        등록 직전에 확인창을 띄운다. 등록한 댓글은 고치거나 지우지 않는다. 시간이 흐르고 믿음도가 한 번 움직인다.
@@ -24,6 +25,7 @@ namespace UrbanLegendBureau.Systems
         private const string CommentHeaderTextId = "ui.net.main_comment_header";
         private const string CommentNoneTextId = "ui.net.comment_none";
         private const string CommentDoneTextId = "ui.net.comment_done";
+        private const string CommentLowTextId = "ui.net.comment_low";
 
         /// <summary>열어 본 글이 풀리지 않은 본편 사건의 괴담 글이면, 달 수 있는 댓글을 선택지로 세운다.</summary>
         private void BindMainComments(CommunityBoardEntry entry)
@@ -38,8 +40,9 @@ namespace UrbanLegendBureau.Systems
 
             if (choices.Count == 0)
             {
-                _communityScreen.SetChoiceHeader(_workday.FindQuestion(entry) != null && _workday.CommentUsed(c.CaseId, null, WorkdayDirector.EntryKey(entry))
-                    ? CommentDoneTextId : CommentNoneTextId);
+                bool question = _workday.FindQuestion(entry) != null;
+                _communityScreen.SetChoiceHeader(question && _workday.CommentUsed(c.CaseId, null, WorkdayDirector.EntryKey(entry))
+                    ? CommentDoneTextId : !question && !CommentsOpen(c) ? CommentLowTextId : CommentNoneTextId);
                 _communityScreen.BindChoices(null, null, null);
                 return;
             }
@@ -78,10 +81,22 @@ namespace UrbanLegendBureau.Systems
                 return list;
             }
 
+            // 사건 글에는 그 괴담 믿음도가 해결 목표(기본 30%) 이상인 동안 댓글을 단다. 목표 아래로 내려오면 더 달 수 없다.
+            if (!CommentsOpen(c)) return list;
+
             string pageId = entry.Page != null ? entry.Page.PageId : null;
             foreach (var o in c.PostWriting.CommentOptions)
                 if (o != null && CommentFits(c, o, pageId, key) && HasCommentEvidence(c, o)) list.Add(o);
             return list;
+        }
+
+        /// <summary>
+        /// 이 사건의 괴담 글에 댓글을 달 수 있는가. 믿음도가 해결 목표(기본 30%) 이상일 때다.
+        /// 그동안은 같은 댓글도 시간만 있으면 몇 번이고 단다. 목표 아래로 내려온 뒤로는 정정글과 질문 글로만 다룬다.
+        /// </summary>
+        private bool CommentsOpen(CaseSO c)
+        {
+            return c != null && _workday != null && _workday.DisplayBelief(c.LegendId) >= _workday.ResolveTarget(c);
         }
 
         /// <summary>
@@ -93,11 +108,14 @@ namespace UrbanLegendBureau.Systems
         /// </summary>
         private bool CommentFits(CaseSO c, CaseCommentOption o, string pageId, string key)
         {
+            // 그 글을 겨눈 댓글인가만 본다. 믿음도가 목표 이상인 동안은 같은 댓글을 되풀이해 달 수 있다(CommentsOpen).
+            // 댓글마다 근무 시간이 들어, 하루에 다는 수는 남은 시간이 정한다.
             if (o.pageIds != null && o.pageIds.Count > 0 && (pageId == null || !o.pageIds.Contains(pageId))) return false;
-            if (_workday.CommentUsed(c.CaseId, o.optionId, key)) return false;
-            if (!string.IsNullOrEmpty(o.claimId) && (_workday.ClaimRebutted(c.CaseId, o.claimId) || _workday.CommentUsed(c.CaseId, o.optionId))) return false;
-            return true;
+            return CommentsOpen(c);
         }
+
+        /// <summary>결과 글에 넣는 숫자. 글 쪽에 % 가 붙어 있어 여기서는 숫자만 낸다(정정글 결과와 같은 모양).</summary>
+        private static string Num(float v) => v.ToString("0.#");
 
         private bool HasCommentEvidence(CaseSO c, CaseCommentOption o)
         {
@@ -144,7 +162,7 @@ namespace UrbanLegendBureau.Systems
             float overallAfter = _workday.DisplayOverall;
             _communityScreen.BindComments(entry.Comments);
             string resultId = after < before ? "ui.post.result_down" : after > before ? "ui.post.result_up" : "ui.post.result_flat";
-            _communityScreen.ShowNotice(() => _loc.Get(resultId, Pct(before), Pct(after), Pct(overallBefore), Pct(overallAfter)));
+            _communityScreen.ShowNotice(() => _loc.Get(resultId, Num(before), Num(after), Num(overallBefore), Num(overallAfter)));
             _communityScreen.ScrollPostToBottom();
             PushStatus();
             Debug.Log($"[CaseDirector] 본편 | 댓글 | {c.CaseId} {option.optionId} on {key} | {shift:+0;-0;0}% | {before:0.0}% -> {after:0.0}%");

@@ -248,7 +248,17 @@ namespace UrbanLegendBureau.Systems
             if (_postWriting != null) _postWriting.Close();
             _save.AutoSave();
 
-            ShowMainToast(_loc.Get(MainSolvedTextId, CaseName(c)));
+            // 자리가 비었으면 오늘 바로 다음 사건이 들어온다. 하루에 여러 사건을 풀 수 있다.
+            var opened = _workday.OpenCasesNow();
+            string solvedText = _loc.Get(MainSolvedTextId, CaseName(c));
+            if (opened.Count > 0)
+            {
+                var names = new List<string>();
+                foreach (var id in opened) names.Add(CaseName(_workday.FindCase(id)));
+                solvedText += "\n" + _loc.Get("ui.work.case_opened_now", string.Join(", ", names));
+                Debug.Log($"[CaseDirector] 본편 | 근무 중 새 사건 | {string.Join(", ", opened)}");
+            }
+            ShowMainToast(solvedText);
             RefreshRoomDesktop();
             UpdateRoomComputerBeckon();
             Debug.Log($"[CaseDirector] 본편 | 사건 해결 | {caseId} | 해결 {_workday.SolvedCount}건");

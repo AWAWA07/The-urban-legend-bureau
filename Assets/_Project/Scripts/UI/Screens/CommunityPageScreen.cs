@@ -1291,7 +1291,8 @@ namespace UrbanLegendBureau.UI
             {
                 bool hasChoices = _choices != null && _choices.Count > 0;
                 string headerId = string.IsNullOrEmpty(_choiceHeaderId) ? ChoiceHeaderTextId : _choiceHeaderId;
-                _choiceHeaderText.text = hasChoices ? loc.Get(headerId) : string.Empty;
+                // 고를 것이 없어도 머리말을 따로 정해 두었으면(댓글을 더 달 수 없는 까닭) 그 글을 보인다.
+                _choiceHeaderText.text = hasChoices || !string.IsNullOrEmpty(_choiceHeaderId) ? loc.Get(headerId) : string.Empty;
             }
 
             if (_noticeText != null) _noticeText.text = _noticeProvider != null ? _noticeProvider() : string.Empty;
