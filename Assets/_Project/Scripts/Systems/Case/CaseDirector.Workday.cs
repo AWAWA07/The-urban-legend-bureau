@@ -151,6 +151,7 @@ namespace UrbanLegendBureau.Systems
         private void CloseWorkScreen()
         {
             if (_workdayScreen != null && _ui.Contains(_workdayScreen)) _ui.Close(_workdayScreen);
+            AnnounceUnlockedApps();   // 출근 보고·현황판에 가려 미뤄 둔 앱 열림 알림
         }
 
         private string L(string id, params object[] args) => args == null || args.Length == 0 ? _loc.Get(id) : _loc.Get(id, args);

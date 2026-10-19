@@ -6400,11 +6400,15 @@ namespace UrbanLegendBureau.EditorTools
             phoneCloseLabel.text = "X";
             phoneCloseLabel.raycastTarget = false;
 
-            // 앱은 컴퓨터 바탕화면과 같은 것들이다. 세로 화면이라 세 칸씩 두 줄로 늘어놓는다.
+            // 앱은 컴퓨터 바탕화면과 같은 것들이다. 세로 화면이라 세 칸씩 늘어놓는다.
+            // 열리는 차례대로 둔다. 아직 열리지 않은 앱은 숨겨지므로 앞에서부터 채워진다.
             var phoneApps = new[]
             {
                 new[] { "gwedamnet", "ui.desktop.app_net" },
                 new[] { "memo", "ui.desktop.app_memo" },
+                new[] { "casefile", "ui.desktop.app_casefile" },   // 숙소에 도착하면 열린다
+                new[] { "workboard", "ui.desktop.app_workboard" },   // 본편부터
+                new[] { "saveslot", "ui.desktop.app_saveslot" },   // 본편부터
                 new[] { "archive", "ui.desktop.app_archive" },
                 new[] { "kikitalk", "ui.desktop.app_talk" },
                 new[] { "gallery", "ui.desktop.app_gallery" },

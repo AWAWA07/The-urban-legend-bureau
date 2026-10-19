@@ -511,22 +511,10 @@ namespace UrbanLegendBureau.Systems
             if (_memoScreen != null && _ui.Contains(_memoScreen)) ClosePhoneMemo();
         }
 
-        /// <summary>휴대폰에 보일 앱. 괴담넷은 늘, 메모장은 한영이 메모하라고 이른 뒤부터. 나머지는 아직 열리지 않아 숨긴다.</summary>
-        private static bool IsPhoneAppVisible(string appId)
-        {
-            return appId == NetAppId || (appId == MemoAppId && MemoScreen.IsUnlocked);
-        }
-
+        /// <summary>휴대폰 앱을 눌렀다. 무엇을 여는지는 CaseDirector.PhoneApps 가 정한다.</summary>
         private void OnPhoneAppClicked(string appId)
         {
-            if (appId == MemoAppId)
-            {
-                OpenPhoneMemo();
-                return;
-            }
-
-            if (appId != NetAppId) return;
-            OpenPhoneNet();
+            HandlePhoneApp(appId);
         }
 
         /// <summary>
@@ -3710,6 +3698,8 @@ namespace UrbanLegendBureau.Systems
             }
 
             UpdateRoomComputerBeckon();
+            // 깨어나거나 이어 할 때는 곧바로 출근 보고·현황판이 뜬다. 한 박자 뒤에 보고, 가려 있으면 닫을 때 알린다.
+            if (isActiveAndEnabled) StartCoroutine(AnnounceUnlockedAppsSoon());
         }
 
         /// <summary>
@@ -3733,6 +3723,8 @@ namespace UrbanLegendBureau.Systems
 
             // 본편 숙소의 침대. 언제든 잠들 수 있다.
             if (TryHandleMainRoomPoint(point)) return;
+            // 본편 숙소의 방문·책장·시계. 튜토리얼 첫날의 문장을 쓰지 않는다.
+            if (TryHandleMainRoomObject(point)) return;
 
             // 잘 시간이다. 침대 말고는 한마디씩만 한다.
             if (_night == NightState.Bedtime)
@@ -3813,6 +3805,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>숙소에 도착하자마자 수사 노트 앱이 열렸다고 알린다. 메모장이 열릴 때와 같은 위쪽 알림이다.</summary>
         private void AnnounceCaseFileApp()
         {
+            MarkAppAnnounced(CaseFileAppId);   // 이때부터 휴대폰에서도 연다
             ShowToast(CaseFileUnlockedTextId);
         }
 

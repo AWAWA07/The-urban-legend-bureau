@@ -75,6 +75,8 @@ namespace UrbanLegendBureau.UI
         private const string FooterTextId = "ui.memo.autosave";
         private const string NoteNameTextId = "ui.memo.note";
         private const string NewNoteTextId = "ui.memo.new";
+        private const string EnlargeHintTextId = "ui.memo.enlarge_hint";
+        private const string ShrinkHintTextId = "ui.memo.shrink_hint";
 
         /// <summary>탭 이름에 쓸 첫 줄의 길이. 이보다 길면 잘라 쓴다.</summary>
         private const int TabTitleLength = 8;
@@ -88,9 +90,26 @@ namespace UrbanLegendBureau.UI
         /// <summary>휴대폰으로 보고 있는가. 글자 크기가 이 값을 따른다.</summary>
         public bool IsPhone { get; private set; }
 
+        /// <summary>휴대폰으로 연 메모장을 화면 가운데에 크게 띄웠는가. 껍데기 안으로 돌아가면 false.</summary>
+        public bool IsEnlarged { get; private set; }
+
+        /// <summary>마지막으로 맞춘 휴대폰 껍데기 안쪽 칸. 크게 띄웠다가 돌아갈 자리다.</summary>
+        private RectTransform _fitFrame;
+
         protected override void Awake()
         {
             base.Awake();
+
+            // 휴대폰에서 제목 줄을 한 번 더 누르면 크게 띄우고, 다시 누르면 껍데기 안으로 돌아간다.
+            if (_titleText != null)
+            {
+                _titleText.raycastTarget = true;
+                var titleButton = _titleText.GetComponent<Button>();
+                if (titleButton == null) titleButton = _titleText.gameObject.AddComponent<Button>();
+                titleButton.transition = Selectable.Transition.None;
+                titleButton.onClick.RemoveAllListeners();
+                titleButton.onClick.AddListener(ToggleEnlarged);
+            }
 
             if (_closeButton != null)
             {
@@ -455,7 +474,10 @@ namespace UrbanLegendBureau.UI
             if (!ServiceRegistry.TryGet<LocalizationService>(out var loc)) return;
 
             if (_titleText != null) _titleText.text = loc.Get(TitleTextId);
-            if (_footerText != null) _footerText.text = loc.Get(FooterTextId);
+            // 휴대폰 안에서는 제목을 누르면 크게 볼 수 있다는 것도 함께 적는다.
+            if (_footerText != null)
+                _footerText.text = !IsPhone ? loc.Get(FooterTextId)
+                    : loc.Get(IsEnlarged ? ShrinkHintTextId : EnlargeHintTextId);
 
             if (_newButton != null)
             {
@@ -480,6 +502,8 @@ namespace UrbanLegendBureau.UI
         public void SetShape(bool phone, RectTransform frame = null)
         {
             IsPhone = phone;
+            IsEnlarged = phone && frame == null;
+            if (phone && frame != null) _fitFrame = frame;
 
             if (_window != null)
             {
@@ -513,8 +537,19 @@ namespace UrbanLegendBureau.UI
             var drag = _window != null ? _window.GetComponentInChildren<WindowDrag>(true) : null;
             if (drag != null) drag.enabled = !phone;
 
-            ApplyFontSizes();
+            Refresh();
             RefreshTabLooks();
+        }
+
+        /// <summary>
+        /// 휴대폰으로 연 메모장을 크게 띄우거나 다시 껍데기 안으로 넣는다. 컴퓨터 창일 때는 아무것도 하지 않는다.
+        /// 휴대폰의 메모장 아이콘이나 메모장 제목 줄을 한 번 더 누르면 부른다.
+        /// </summary>
+        public void ToggleEnlarged()
+        {
+            if (!IsPhone) return;
+            if (IsEnlarged && _fitFrame != null) SetShape(true, _fitFrame);
+            else SetShape(true);
         }
 
         /// <summary>
@@ -555,8 +590,10 @@ namespace UrbanLegendBureau.UI
         /// <summary>창이 좁아진 만큼 글자도 줄인다. 큰 화면의 글자를 그대로 두면 열 자도 안 들어간다.</summary>
         private void ApplyFontSizes()
         {
-            float body = IsPhone ? _phoneFontSize : _deskFontSize;
-            float title = IsPhone ? _phoneTitleSize : _deskTitleSize;
+            // 크게 띄운 휴대폰 메모장은 컴퓨터 창과 같은 글자 크기를 쓴다.
+            bool small = IsPhone && !IsEnlarged;
+            float body = small ? _phoneFontSize : _deskFontSize;
+            float title = small ? _phoneTitleSize : _deskTitleSize;
 
             if (_input != null)
             {
@@ -566,19 +603,19 @@ namespace UrbanLegendBureau.UI
             }
 
             if (_titleText != null) _titleText.fontSize = title;
-            if (_footerText != null) _footerText.fontSize = IsPhone ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
+            if (_footerText != null) _footerText.fontSize = small ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
 
             if (_newButton != null)
             {
                 var label = _newButton.GetComponentInChildren<TMP_Text>(true);
-                if (label != null) label.fontSize = IsPhone ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
+                if (label != null) label.fontSize = small ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
             }
 
             for (int i = 0; i < _tabs.Count; i++)
             {
                 if (_tabs[i] == null) continue;
                 var label = _tabs[i].GetComponentInChildren<TMP_Text>(true);
-                if (label != null) label.fontSize = IsPhone ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
+                if (label != null) label.fontSize = small ? _phoneTitleSize - 2f : _deskTitleSize - 6f;
             }
         }
     }
