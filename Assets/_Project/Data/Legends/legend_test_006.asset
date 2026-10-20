@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04586074f22c48241b185133944d2cee, type: 3}
+  m_Name: legend_test_006
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.LegendSO
+  _legendId: legend_test_006
+  _nameTextId: legend.test.006.name
+  _descriptionTextId: legend.test.006.description
+  _riskLevel: 4
+  _initialSpreadRate: 36
+  _verdictTextId: 
+  _verdictKind: 1
+  _verdictClueIds: []
+  _verdictAllowedClueIds: []
+  _counterTextId: 
+  _counterOptionTextIds: []
+  _counterClueIds: []
+  _counterAllowedClueIds: []
+  _rules: []
+  _clues:
+  - {fileID: 11400000, guid: 3d6bd14cd0acb2b4b8589a57974dd75a, type: 2}
+  - {fileID: 11400000, guid: 23e587fd48644704bbc5d53b35be7ca6, type: 2}
+  - {fileID: 11400000, guid: c8ab870f08ac42e439a7d9ba618bbc3c, type: 2}
+  - {fileID: 11400000, guid: 23261da35945da94199642e3db01b166, type: 2}
+  _webPages:
+  - {fileID: 11400000, guid: c91bc49f55494254fb323b01ec2a4bc4, type: 2}
+  - {fileID: 11400000, guid: 76d2c1a2ce0563f4993e8796128ea649, type: 2}
+  _investigationActions:
+  - {fileID: 11400000, guid: a9d075daad169c945aa4e40cc223e043, type: 2}
+  - {fileID: 11400000, guid: 3a04cff84fc69ad4c897c5b87d6055d6, type: 2}
+  - {fileID: 11400000, guid: 5e4e1db8ba8ca854cbf18f19d5b188be, type: 2}
+  - {fileID: 11400000, guid: 7589eb3a27b6e2f4687f4330e69a30b2, type: 2}

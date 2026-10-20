@@ -115,6 +115,12 @@ namespace UrbanLegendBureau.EditorTools
             var park = BuildParkField(fieldRootPark.transform);
             string[] parkIds = { "point_park_swing", "point_park_vent", "point_park_board", "point_prite_swing", "point_prite_chain", "point_prite_lamp" };
             for (int pi = 0; pi < park.Length; pi++) ConfigurePoint(park[pi], parkIds[pi], null, null, false, CaseStep.Started);
+            // 사건 #006 해월장 304호. 들어서면 갇힌다(나폴리탄).
+            var fieldRootInn = new GameObject("FieldRoot_Legend6");
+            BuildFieldBackground(fieldRootInn.transform);
+            var inn = BuildInnField(fieldRootInn.transform);
+            string[] innIds = { "point_inn_desk", "point_inn_door304", "point_inn_rules", "point_inn_bed", "point_trap_mirror", "point_trap_door", "point_trap_phone", "point_trap_window" };
+            for (int pi = 0; pi < inn.Length; pi++) ConfigurePoint(inn[pi], innIds[pi], null, null, false, CaseStep.Started);
             ConfigurePoint(postDoor, "point_post_door", null, null, false, CaseStep.Started);
             ConfigurePoint(postPile, "point_post_pile", null, null, false, CaseStep.Started);
             ConfigurePoint(postMeter, "point_post_meter", null, null, false, CaseStep.Started);
@@ -208,7 +214,7 @@ namespace UrbanLegendBureau.EditorTools
             var fieldSo = new SerializedObject(field);
             fieldSo.Update();
             var groups = fieldSo.FindProperty("_fieldGroups");
-            groups.arraySize = 7;
+            groups.arraySize = 8;
             var g3 = groups.GetArrayElementAtIndex(3);
             g3.FindPropertyRelative("legendId").stringValue = CaseDirector.RoomFieldId;
             g3.FindPropertyRelative("root").objectReferenceValue = fieldRootRoom;
@@ -221,7 +227,7 @@ namespace UrbanLegendBureau.EditorTools
             var g2 = groups.GetArrayElementAtIndex(2);
             g2.FindPropertyRelative("legendId").stringValue = "legend_subway_last_train";
             g2.FindPropertyRelative("root").objectReferenceValue = fieldRootSubway;
-            (string legend, GameObject root)[] newFields = { ("legend_test_003", fieldRootGosi), ("legend_test_004", fieldRootStore), ("legend_test_005", fieldRootPark) };
+            (string legend, GameObject root)[] newFields = { ("legend_test_003", fieldRootGosi), ("legend_test_004", fieldRootStore), ("legend_test_005", fieldRootPark), ("legend_test_006", fieldRootInn) };
             for (int gi = 0; gi < newFields.Length; gi++)
             {
                 var gx = groups.GetArrayElementAtIndex(4 + gi);
@@ -278,6 +284,9 @@ namespace UrbanLegendBureau.EditorTools
                 ("point_park_swing", BuildParkSwingCloseup("Screen_ParkSwingCloseup")),
                 ("point_park_vent", BuildParkVentCloseup("Screen_ParkVentCloseup")),
                 ("point_park_board", BuildParkBoardCloseup("Screen_ParkBoardCloseup")),
+                ("point_inn_desk", BuildInnDeskCloseup("Screen_InnDeskCloseup")),
+                ("point_inn_rules", BuildInnRulesCloseup("Screen_InnRulesCloseup")),
+                ("point_inn_bed", BuildInnBedCloseup("Screen_InnBedCloseup")),
             };
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);

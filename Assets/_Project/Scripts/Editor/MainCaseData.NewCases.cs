@@ -11,9 +11,10 @@ namespace UrbanLegendBureau.EditorTools
     ///   #003 7호실의 노크        구도시 동명고시원. 진짜 괴담. 생방송 하나로 믿음도가 치솟아 한영이 직접 퇴마한다(결계 순서 퍼즐).
     ///                            수사 노트와 정정글이 없다. 결계를 다 치면 믿음도가 크게 떨어져 해결된다.
     ///   #004 4시 44분의 호출     새벽마트 구도시점. 가짜. 4시 44분 방송은 택배 수령 안내 예약 방송이다.
-    ///   #005 빈 그네의 아이      달빛 어린이공원. 가짜. 자정에 도는 상가 환풍기 바람이 헐거운 그네를 흔든다.
+    ///   #005 빈 그네의 아이      달빛 어린이공원. 진짜. 엄마를 기다리던 아이를 배웅한다.
+    ///   #006 해월장 304호 안전 수칙  구도시 여관. 진짜 나폴리탄. 304호에 갇혀 검은 수칙만 순서대로 지켜 빠져나온다.
     ///
-    /// #004 #005 는 사건 #002 의 에셋(사건, 수사 노트, 정정글, 원글, 안내 글)을 복사해 ID 만 바꾸고 문구는 Strings.txt 에 새로 쓴다.
+    /// #004 #005 #006 는 사건 #002 의 에셋(사건, 수사 노트, 정정글, 원글, 안내 글)을 복사해 ID 만 바꾸고 문구는 Strings.txt 에 새로 쓴다.
     /// 해결 조건은 기존 본편 사건과 같다(분석·추론 → 보고서 → 정정글 → 목표 이하).
     /// </summary>
     public static partial class MainCaseData
@@ -41,6 +42,16 @@ namespace UrbanLegendBureau.EditorTools
                 startBelief: 72, appearWorkday: 3, riskLevel: 4, spread: 30,   // 진짜 괴담: 엄마를 기다리던 아이
                 overview: new[] { "배웅", "~[배웅|배웅해|보내]", "farewell", "send off" },
                 target: new[] { "흔들려요", "~[흔들려요|흔들린다|흔들림]", "swinging" });
+            ApplyClonedCase("006", new Dictionary<string, string>
+            {
+                { "clue_test_003", "clue_test_022" }, { "clue_test_004", "clue_test_025" },
+                { "clue_test_007", "clue_test_023" }, { "clue_test_008", "clue_test_024" },
+                { "web_test_003", "web_test_011" }, { "web_test_005", "web_test_012" },
+            }, new[] { "action_test_024", "action_test_025", "action_test_026", "action_test_027" },
+                new[] { "ui.casefile.place_inn_desk", "ui.casefile.place_inn_desk", "ui.casefile.place_inn_rules", "ui.casefile.place_inn_bed" },
+                startBelief: 76, appearWorkday: 3, riskLevel: 4, spread: 36,   // 진짜 나폴리탄: 초반에서 가장 빨리 퍼진다
+                overview: new[] { "수칙", "~[수칙|규칙|안전수칙]", "rules" },
+                target: new[] { "안전", "~[안전|안전수칙]", "safety" });
         }
 
         // ------------------------------------------------------------- #003 퇴마

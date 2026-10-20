@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6dcd1a067f84e341af645fb5a4c17f9, type: 3}
+  m_Name: case_test_006
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.CaseSO
+  _caseId: case_test_006
+  _caseNameTextId: case.test.006.name
+  _caseDescriptionTextId: case.test.006.description
+  _legendId: legend_test_006
+  _startingStep: 1
+  _isPlayable: 1
+  _postWriting: {fileID: 11400000, guid: 9614693e1cc0bab4ba0fccd7a7ba1a89, type: 2}
+  _deduction: {fileID: 11400000, guid: c5b78b271b2af694db3f462099a16a4d, type: 2}
+  _mainStory: 1
+  _startBelief: 76
+  _appearWorkday: 3
+  _resolveBelief: 0

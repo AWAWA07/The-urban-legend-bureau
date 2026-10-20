@@ -32,6 +32,11 @@ namespace UrbanLegendBureau.Systems
             public string WrongSound, FinaleSound;
             public string[] FinaleA; public bool[] FinaleAHan;  // 마무리 앞 대사
             public string[] FinaleB; public bool[] FinaleBHan;  // 마무리 뒤 대사
+            // 갇힘(나폴리탄): 자리마다 고를 행동이 따로 있고, 차지한이 직접 한다. 틀리면 03:33 으로 처음부터.
+            public string[][] StepOptions;                 // 자리마다 고를 행동(글 ID 꼬리)
+            public int[] StepCorrect;                      // 자리마다 맞는 행동 번호
+            public string[] StepCueSounds;                 // 맞힌 뒤 다음을 알리는 소리(노크, 전화벨 …)
+            public int WrongBelief = 2;                    // 틀릴 때 오르는 믿음도(%p)
         }
 
         private static readonly RiteDef[] Rites =
@@ -56,6 +61,7 @@ namespace UrbanLegendBureau.Systems
                 FinaleA = new[] { "field.park.rite.final.001", "field.park.rite.final.002", "field.park.rite.final.003" }, FinaleAHan = new[] { true, true, true },
                 FinaleB = new[] { "field.park.rite.final.004", "field.park.rite.final.005", "field.park.rite.final.006", "field.park.rite.final.007" }, FinaleBHan = new[] { false, true, false, true },
             },
+            NapolitanRite,
         };
 
         private const string ExorcismCaseId = "case_test_003";
@@ -96,9 +102,11 @@ namespace UrbanLegendBureau.Systems
             {
                 case GosiDoorPointId: EnterGosiRoom(); return true;
                 case GosiExitPointId: SwapGosi(false); return true;
+                case InnDoorPointId: EnterInnRoom(); return true;
             }
             var r = CurrentRite;
             if (r == null) return false;
+            if (r.StepOptions != null && point.PointId == InnExitStepPoint && RiteDoneFor(r)) { SwapGosi(false); return true; }
             foreach (var s in r.Steps)
                 if (s.point == point.PointId) { OnRitePoint(r, point); return true; }
             return false;
@@ -153,6 +161,8 @@ namespace UrbanLegendBureau.Systems
                 foreach (var s in r.Steps) { var t = room.Find(s.obj); if (t != null) t.gameObject.SetActive(done); }
                 var fig = room.Find(r.FigureName);
                 if (fig != null) fig.gameObject.SetActive(false);
+                var clk = room.Find("Clock")?.GetComponent<TMPro.TMP_Text>();
+                if (clk != null) clk.text = done ? "03:34" : "03:33";
                 var swing = room.Find("SwingMiddle");
                 var sway = swing != null ? swing.GetComponent<SwingSway>() : null;
                 if (sway != null) { sway.enabled = !done; if (done) swing.localRotation = Quaternion.identity; }
@@ -173,6 +183,7 @@ namespace UrbanLegendBureau.Systems
             }
             foreach (var c in r.Clues)
                 if (!CaseFlow.HasClue(_save, c)) { SayLines("!" + r.Key + ".rite.not_yet"); return; }
+            if (r.StepOptions != null) { TrapPoint(r, point); return; }
 
             var labels = new List<System.Func<string>>();
             foreach (var item in r.Items) { var id = r.Key + ".item." + item; labels.Add(() => _loc.Get(id)); }
@@ -252,7 +263,7 @@ namespace UrbanLegendBureau.Systems
             if (room != null) foreach (var s in r.Steps) { var t = room.Find(s.obj); if (t != null) t.gameObject.SetActive(false); }
 
             float before = _workday.DisplayBelief(r.LegendId);
-            if (_tutorial != null) _tutorial.ShiftLegendBelief(r.LegendId, RiteWrongBelief);
+            if (_tutorial != null) _tutorial.ShiftLegendBelief(r.LegendId, r.WrongBelief);
             float after = _workday.DisplayBelief(r.LegendId);
             PushStatus();
             ShowMainToast(_loc.Get(r.Key + ".rite.wrong_toast", Num(before), Num(after)));
@@ -291,6 +302,17 @@ namespace UrbanLegendBureau.Systems
                 yield return new WaitForSeconds(0.6f);
                 Sfx.Play("ghost_vanish", 0.6f);
                 if (fig != null) fig.SetActive(false);
+            }
+            else if (r.StepOptions != null)
+            {
+                // 커튼 너머 새벽빛. 멈췄던 시계가 03:34 로 넘어가고, 잠겼던 문이 딸깍 풀린다.
+                var clock = room != null ? room.Find("Clock")?.GetComponent<TMPro.TMP_Text>() : null;
+                yield return new WaitForSeconds(0.8f);
+                if (clock != null) clock.text = "03:34";
+                Sfx.Play("ui_tick", 0.5f);
+                yield return new WaitForSeconds(0.9f);
+                Sfx.Play("key_1", 0.6f);
+                yield return new WaitForSeconds(0.6f);
             }
             else
             {

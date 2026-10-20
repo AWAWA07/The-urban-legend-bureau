@@ -2289,3 +2289,233 @@ field.park.rite.final.007	가자. 남은 건 사람들이 덧붙인 무서운 �
 field.park.rite.after	이제 그네는 안 흔들려. 하은이는 집에 갔어.	The swing won't move anymore. Haeun went home.	한영
 field.park.rite.done_toast	배웅을 마쳤다. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Farewell complete. Belief <color=#6CC9C2>{0}% → {1}%</color>	
 field.park.rite.next	남은 건 '말 걸면 데려간다'는 소문이다. 수사 노트와 정정글로 정리하자.	What's left is the "it takes you" rumor. Finish the case file and post a correction.	
+case.test.006.name	사건 #006 — 해월장 304호 안전 수칙	Case #006 — Safety Rules of Haewoljang Room 304	
+case.test.006.description	구도시 여관 해월장 304호에 묵은 사람들이 아침에 나오지 않는다는 글과 함께, '304호 안전 수칙' 사진이 퍼지고 있다. 이번 것은 진짜다.	Along with posts that guests of Room 304 at the Haewoljang inn never come out in the morning, a photo of its "safety rules" is spreading. This one is real.	
+legend.test.006.name	해월장 304호 안전 수칙	Safety Rules of Room 304	
+legend.test.006.description	해월장 304호에는 안전 수칙이 붙어 있다. 수칙을 하나라도 어기면 아침에 방에서 나오지 못한다고 한다.	Room 304 has safety rules on the wall. Break even one, and you don't walk out in the morning.	
+place.case_test_006	해월장 여관 3층	Haewoljang Inn, 3F	본편 현장 이름
+ui.travel.duration_main_field.case_test_006	숙소에서 해월장 여관까지 {0}분	{0} min from the dorm to the Haewoljang Inn	본편 현장 이동
+ui.casefile.place_inn_desk	해월장 카운터	Haewoljang front desk	사건 #006
+ui.casefile.place_inn_rules	304호 안전 수칙서	The Room 304 rules sheet	사건 #006
+ui.casefile.place_inn_bed	304호 침대 매트리스 밑	Under the Room 304 mattress	사건 #006
+web.test.011.title	해월장 304호 안전 수칙 (진짜임, 꼭 지키세요)	Haewoljang Room 304 safety rules (real, follow them)	
+web.test.011.body	구도시 해월장 304호에 붙어 있던 수칙서예요. 친구가 거기 묵었는데 아침에 연락이 안 됐어요.\n특히 이거요. <b>직원이 노크하면 반드시 문을 열어 주세요.</b> 안 열면 못 나온대요.	The rules sheet from Room 304. My friend stayed there and went silent by morning.\nEspecially this one: <b>if staff knock, you must open the door.</b> Otherwise you never get out.	
+web.test.011.c1	직원이 문 두드리면 열어야 산다는 거죠? 저장함	So open the door for staff to live? Saved	
+web.test.011.c2	거기 밤엔 사람 없다던데…	I heard nobody works there at night…	
+web.test.012.title	[사진] 해월장 304호 수칙서 원본 (글씨 색 다름 주의)	[Photo] Original Room 304 rules sheet (note the ink colors)	
+web.test.012.body	원본 사진 올립니다. 검은 인쇄 사이에 <b>빨간 손글씨 수칙</b>이 끼어 있어요. 검은 글씨랑 서로 반대예요.\n퍼진 글은 빨간 것만 골라 옮겼더라고요.	Here's the original. Between the black print are <b>red handwritten rules</b> that contradict it.\nThe viral post copied only the red ones.	
+web.test.012.c1	빨간 건 누가 쓴 거예요?	Who wrote the red ones?	
+web.test.012.c2	숙박객이 쓴 건 아니래요. 매번 생긴대요	Not a guest, they say. They just keep appearing	
+clue.test.022.title	304호 숙박부	The Room 304 ledger	
+clue.test.022.text	숙박부 304호 칸에 '퇴실 기록 없음'이 드문드문 이어진다. 맨 아래 줄 날짜는 지난주다.	"No check-out" recurs on and off in the Room 304 column. The last line is dated last week.	
+clue.test.025.title	카운터 야간 안내 카드	The front-desk night card	
+clue.test.025.text	카운터 카드: '00시~06시 무인 운영. 직원은 객실에 노크하거나 전화하지 않습니다.'	Front-desk card: "Unstaffed 00:00–06:00. Staff never knock on or call guest rooms."	
+clue.test.023.title	검은 수칙과 빨간 수칙	Black rules and red rules	
+clue.test.023.text	304호 수칙서. 검은 인쇄 수칙 넷 사이에 빨간 손글씨 수칙 셋이 끼어 있고, 서로 반대를 말한다.	The Room 304 rules: three red handwritten rules are squeezed between four black printed ones, each saying the opposite.	
+clue.test.024.title	매트리스 밑 쪽지	The note under the mattress	
+clue.test.024.text	매트리스 밑 쪽지: '빨간 글씨는 밤마다 늘어. 믿지 마. 검은 글씨만, 순서대로.'	A note under the mattress: "The red ones grow every night. Don't trust them. Black only, in order."	
+action.test.024.name	숙박부 읽기	Read the ledger	
+action.test.024.desc	카운터의 숙박부를 넘겨 본다.	Leaf through the ledger at the front desk.	
+action.test.024.result	304호의 퇴실 기록 없는 줄을 찾았다.	Found the no-check-out lines for 304.	
+action.test.025.name	안내 카드 읽기	Read the night card	
+action.test.025.desc	카운터의 야간 안내 카드를 읽는다.	Read the night card at the front desk.	
+action.test.025.result	밤에는 직원이 없다는 안내를 찾았다.	Found that no staff work at night.	
+action.test.026.name	수칙서 읽기	Read the rules sheet	
+action.test.026.desc	304호 벽의 수칙서를 읽는다.	Read the rules on the wall of 304.	
+action.test.026.result	글씨 색이 다른 수칙을 찾았다.	Found rules in two ink colors.	
+action.test.027.name	침대 살피기	Check the bed	
+action.test.027.desc	304호 침대 매트리스 밑을 본다.	Look under the mattress in 304.	
+action.test.027.result	이전 투숙객의 쪽지를 찾았다.	Found a note from an earlier guest.	
+analysis.test.006.a.title	숙박부와 야간 안내 카드	The ledger and the night card	
+analysis.test.006.a.body	304호엔 나오지 못한 투숙객이 이어진다. 그런데 밤의 해월장엔 직원이 없고, 직원은 노크도 전화도 하지 않는다. 밤에 문을 두드리는 '직원'은 직원이 아니다.	Guests keep failing to leave 304, yet no staff work at night, and staff never knock or call. The "staff" knocking at night isn't staff.	
+analysis.test.006.b.title	빨간 수칙과 쪽지	The red rules and the note	
+analysis.test.006.b.body	빨간 손글씨 수칙은 검은 수칙을 하나씩 뒤집는다. 먼저 갇혔던 사람은 빨간 글씨를 믿지 말라고 남겼다. 빨간 수칙은 304호가 덧쓴 함정이다.	Each red rule reverses a black one. The guest trapped before us warned not to trust red. The red rules are a trap the room writes itself.	
+deduce.test.006.q1.label	괴담의 진위	Is it real?	
+deduce.test.006.q1.question	해월장 304호는 무엇이었나?	What was Room 304?	
+deduce.test.006.q1.opt0	장난으로 붙인 종이일 뿐이다.	Just a prank sheet of paper.	
+deduce.test.006.q1.opt1	진짜였다. 검은 수칙을 순서대로 지켜 빠져나왔다.	It was real. We got out by keeping the black rules in order.	
+deduce.test.006.q1.opt2	오래된 보일러 가스로 인한 환각이다.	Hallucinations from an old boiler leak.	
+deduce.test.006.q1.explain	방은 실제로 잠겼고 시계는 03:33에 멈췄다. 검은 수칙을 순서대로 지키자 풀렸다.	The room really locked and the clock froze at 03:33. It let go once the black rules were kept in order.	
+deduce.test.006.q1.report	실제 현상이었으나 검은 수칙을 순서대로 지켜 빠져나와 정리되었다.	A real phenomenon, settled by keeping the black rules in order and getting out.	
+deduce.test.006.q2.label	덧붙은 소문	The added rumor	
+deduce.test.006.q2.question	퍼지면서 덧붙은 거짓 수칙은?	Which false rule was added as it spread?	
+deduce.test.006.q2.opt0	03시 33분이 되면 거울을 가려라.	At 03:33, cover the mirrors.	
+deduce.test.006.q2.opt1	직원이 노크하면 반드시 문을 열어라.	If staff knock, always open the door.	
+deduce.test.006.q2.opt2	전화는 받되 말없이 끊어라.	Answer the phone, hang up without a word.	
+deduce.test.006.q2.explain	밤의 해월장엔 직원이 없다. 문을 열라는 빨간 수칙은 304호가 덧쓴 함정이다.	No staff work at night. The red rule to open the door is the room's own trap.	
+deduce.test.006.q2.report	'직원이 노크하면 문을 열어라'는 304호가 덧쓴 빨간 수칙이 퍼진 거짓 소문.	"Open the door when staff knock" is the room's red rule, spread as a false rumor.	
+deduce.test.006.summary	숙박부와 야간 안내 카드, 빨간 수칙과 쪽지를 대조해 304호가 실재했고 검은 수칙으로 빠져나왔으며, 퍼진 수칙은 304호가 덧쓴 함정이었음을 확인하였다.	Comparing the ledger and night card with the red rules and the note confirmed that Room 304 was real, that we got out by the black rules, and that the viral rule was the room's trap.	
+report.test.006.overview.title	사건 개요	Overview	
+report.test.006.overview.body	304호는 실재했고, 검은 {_}을 순서대로 지켜 빠져나왔다.	Room 304 was real; we got out by keeping the black {_} in order.	
+report.test.006.overview.answer	수칙	rules	
+report.test.006.overview.choice_1	부적	charms	보고서 보기(오답)
+report.test.006.overview.choice_2	거울	mirrors	보고서 보기(오답)
+report.test.006.target.title	검열 대상	Target post	
+report.test.006.target.body	검열 대상은 '해월장 304호 {_} 수칙 (진짜임, 꼭 지키세요)' 글이다.	The target is "Haewoljang Room 304 {_} rules (real, follow them)".	
+report.test.006.target.answer	안전	safety	
+report.test.006.target.choice_1	비밀	secret	보고서 보기(오답)
+report.test.006.target.choice_2	숙박	lodging	보고서 보기(오답)
+post.test.006.reply_to	원글: 해월장 304호 안전 수칙 (진짜임, 꼭 지키세요)	Re: Haewoljang Room 304 safety rules (real, follow them)	정정글 원글 표시
+post.test.006.title_fear	[경고] 해월장 304호, 수칙 하나만 어겨도 못 나옵니다	[Warning] Break one rule in 304 and you never leave	
+post.test.006.title_refute	해월장 304호, 이제 문이 열립니다	Room 304 opens now	
+post.test.006.title_calm	해월장 304호 건 확인해 봤어요	I checked the Room 304 thing	
+post.test.006.title_refute2	'직원이 노크하면 문을 열어라'는 가짜 수칙입니다	"Open the door for staff" is a fake rule	
+post.test.006.title_neutral	해월장 304호 수칙 건	About the Room 304 rules	
+post.test.006.title_fear2	304호에서 밤새운 분 계신가요?	Anyone spent a night in 304?	
+post.test.006.title_record	숙박부와 안내 카드로 확인했습니다: 밤엔 직원이 없습니다	Confirmed by the ledger and the desk card: no staff at night	
+post.test.006.intro_rumor	304호 수칙서 사진 보셨죠.	You've seen the photo of the 304 rules.	
+post.test.006.intro_witness	저도 그 방에 묵어 봤어요.	I stayed in that room too.	
+post.test.006.intro_hook	이건 정말 소름 돋는 이야기입니다.	This one gives real chills.	
+post.test.006.intro_facts	확인된 것만 차분히 정리합니다.	Just the confirmed facts, calmly.	
+post.test.006.intro_neutral	304호 수칙 얘기가 계속 나와서요.	The 304 rules keep coming up.	
+post.test.006.intro_hook2	수칙을 어기면 못 나온다니 무섭죠.	Not getting out if you break a rule is scary.	
+post.test.006.intro_record	현장 숙박부와 카운터 안내를 함께 확인했습니다.	I checked the ledger and the desk notice on site.	
+post.test.006.fact_refute	304호 문은 이제 열립니다. 시계도 다시 갑니다.	Room 304 opens now. The clock runs again.	
+post.test.006.fact_reports	못 나왔다는 이야기가 여러 건 있는 건 맞아요.	There are many such stories, true.	
+post.test.006.fact_real	그 방은 지금도 사람을 가둡니다.	That room still traps people.	
+post.test.006.fact_refute2	퍼진 '문을 열라'는 수칙은 원래 수칙서의 검은 글씨가 아닙니다. 덧쓴 빨간 글씨예요. 원래 수칙은 '문은 열지 마십시오'입니다.	The viral "open the door" rule isn't the original black print. It's the red overwriting. The original says "do not open the door."	
+post.test.006.fact_reports2	다른 여관에도 비슷한 수칙이 있대요.	Other inns have similar rules, they say.	
+post.test.006.fact_real2	직원이 노크하면 열어야 사는 건 사실입니다.	It's true you must open for staff to survive.	
+post.test.006.fact_record	카운터 안내대로 밤 00시~06시엔 직원이 없고, 직원은 객실에 노크하지 않습니다. 밤에 문을 두드리는 건 직원이 아닙니다.	Per the desk notice, no staff work 00:00–06:00, and staff never knock. Whatever knocks at night isn't staff.	
+post.test.006.action_calm	이제 그 방은 조용합니다. 걱정 마세요.	That room is quiet now. Don't worry.	
+post.test.006.action_counter	그래도 노크엔 대답 안 하는 게 좋겠죠.	Still, better not to answer knocks.	
+post.test.006.action_fear	해월장엔 절대 묵지 마세요.	Never stay at Haewoljang.	
+post.test.006.action_calm2	밤에 누가 문을 두드려도 열지 말고, 프런트에 직접 전화하세요. 그거면 됩니다.	If anyone knocks at night, don't open — call the desk yourself. That's all.	
+post.test.006.action_counter2	노크 소리 나면 같이 두드려 주면 된대요.	Just knock back, they say.	
+post.test.006.action_fear2	혹시 모르니 구도시 여관은 다 피하세요.	Just in case, avoid every inn in Old Town.	
+post.test.006.action_record	빨간 글씨만 옮긴 사진은 더 퍼뜨리지 말아 주세요. 사람을 문 앞에 세웁니다.	Please stop sharing the photo with only the red rules. It sends people to the door.	
+post.test.006.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.	
+post.test.006.review.title_refute	끝났다는 사실을 제목에서 밝힙니다.	States in the title that it's over.	
+post.test.006.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but doesn't say what's wrong.	
+post.test.006.review.title_refute2	가짜 수칙을 제목에서 바로잡습니다.	Corrects the fake rule in the title.	
+post.test.006.review.title_neutral	아무 쪽으로도 기울지 않습니다.	Leans neither way.	
+post.test.006.review.title_fear2	겪은 사람을 찾는 제목이 괴담을 키웁니다.	Asking for witnesses grows the legend.	
+post.test.006.review.title_record	근거로 밤의 '직원'이 가짜임을 밝힙니다.	Shows with evidence the night "staff" is fake.	
+post.test.006.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor plainly.	
+post.test.006.review.intro_witness	직접 묵었다는 말이 실재한다는 인상을 줍니다.	Claiming to have stayed makes it feel real.	
+post.test.006.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opener grows belief.	
+post.test.006.review.intro_facts	확인된 것만 말하겠다는 도입이 믿음을 덜어 줍니다.	Promising only facts eases belief.	
+post.test.006.review.intro_neutral	소문을 키우지도 줄이지도 않습니다.	Neither grows nor shrinks the rumor.	
+post.test.006.review.intro_hook2	무섭다는 강조가 겁을 줍니다.	Stressing the fear scares people.	
+post.test.006.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Opening with checked evidence eases belief.	
+post.test.006.review.fact_refute	정리된 결과를 밝힙니다.	States the settled result.	
+post.test.006.review.fact_reports	이야기가 많다는 말만으로 믿음이 오릅니다.	"Many stories" alone raises belief.	
+post.test.006.review.fact_real	방이 아직 가둔다고 못 박습니다.	Declares the room still traps people.	
+post.test.006.review.fact_refute2	가짜 수칙을 원래 수칙으로 정면으로 바로잡습니다.	Corrects the fake rule head-on with the original.	
+post.test.006.review.fact_reports2	다른 곳에도 있다는 말이 믿음을 조금 올립니다.	"It happens elsewhere" nudges belief up.	
+post.test.006.review.fact_real2	거짓 수칙을 사실이라고 못 박습니다.	Declares the false rule true.	
+post.test.006.review.fact_record	두 근거로 가짜 수칙을 바로잡습니다.	Corrects the fake rule with two sources.	
+post.test.006.review.action_calm	이제 안전하다는 안내가 안심시킵니다.	Saying it's safe now reassures.	
+post.test.006.review.action_counter	가짜 대처법을 반쯤 인정합니다.	Half-accepts a fake remedy.	
+post.test.006.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to avoid it grows fear.	
+post.test.006.review.action_calm2	안전한 대처를 알려 두려움을 덜어 줍니다.	A safe instruction eases fear.	
+post.test.006.review.action_counter2	수칙 하나를 맥락 없이 대처법처럼 남깁니다.	Leaves one rule as advice without context.	
+post.test.006.review.action_fear2	구도시 전체를 피하라는 말이 공포를 키웁니다.	Avoiding all of Old Town grows fear.	
+post.test.006.review.action_record	가짜 수칙 사진을 멈추자는 부탁이 소문을 멈춥니다.	Asking to stop the fake-rule photo ends the rumor.	
+post.test.006.react.ok_1	문 열라는 게 가짜였다니… 큰일 날 뻔했네요.	"Open the door" was the fake one… that was close.	
+post.test.006.react.ok_2	저장했던 사진 지웠어요.	Deleted the photo I saved.	
+post.test.006.react.bad_1	그래도 무서워요. 그 방 아직 그대로일 것 같아.	Still scary. I feel the room's the same.	
+post.test.006.react.bad_2	구도시 여관은 이제 못 가겠어요.	I can't go to Old Town inns now.	
+post.test.006.react.weak_1	그래서 노크하면 열라는 거예요, 말라는 거예요?	So open on a knock or not?	
+post.test.006.c_ok1	304호 이제 문 열린대요. 시계도 다시 간대요.	304 opens now, they say. The clock runs again.	
+post.test.006.c_bad1	저도 거기서 노크 소리 들었어요. 열 뻔했어요.	I heard knocking there too. Almost opened it.	
+post.test.006.c_ok2	'문을 열어라'는 덧쓴 빨간 글씨래요. 원래는 열지 말라고 돼 있대요.	"Open the door" was red overwriting. The original says don't.	
+post.test.006.c_bad2	무서워서 그 동네 숙소 다 취소했어요.	Cancelled every room in that area.	
+post.test.006.c_ok3	밤엔 직원이 없대요. 카운터 카드에 적혀 있대요.	No staff at night — it's on the desk card.	
+post.test.006.q1.title	해월장 예약했는데 노크 오면 열어야 해요?	I booked Haewoljang. Do I open if someone knocks?	
+post.test.006.q1.body	오늘 밤 묵어야 해서요.	I'm staying tonight.	
+post.test.006.q1_ok	열지 마세요. 밤엔 직원이 노크하지 않아요. 필요하면 프런트에 직접 전화하세요.	Don't. Staff never knock at night. Call the desk yourself if needed.	
+post.test.006.q1_bad1	꼭 열어야 산대요.	You have to open to live.	
+post.test.006.q1_bad2	예약 취소가 답이에요.	Cancel, that's the answer.	
+post.test.006.q2.title	304호 요즘 조용하다던데요	304 is quiet lately, I hear	
+post.test.006.q2.body	묵은 사람들이 아침에 잘 나왔대요.	Guests came out fine in the morning.	
+post.test.006.q2_bad1	다른 방으로 옮겨 간 거예요.	It moved to another room.	
+post.test.006.q2_ok	그 방은 정리됐대요. 이제 문도 열리고 시계도 간대요.	It's settled. The door opens and the clock runs.	
+post.test.006.q2_bad2	더 무서운 수칙이 생기려는 거예요.	Scarier rules are coming.	
+post.test.006.q3.title	수칙서 글씨 색이 왜 달라요?	Why are the rules in two colors?	
+post.test.006.q3.body	사진 보니까 검은 거랑 빨간 게 있어요.	The photo has black and red.	
+post.test.006.q3_bad1	빨간 게 더 중요한 거래요.	Red is the important part.	
+post.test.006.q3_bad2	직원이 급하게 덧붙인 거래요.	Staff added them in a hurry.	
+post.test.006.q3_ok	검은 인쇄가 원래 수칙이에요. 빨간 손글씨는 그걸 뒤집으려고 덧쓴 거고요.	The black print is the original. The red handwriting was added to reverse it.	
+post.test.006.q4.title	304호 일부러 묵어 보려는데요	I want to stay in 304 on purpose	
+post.test.006.q4.body	수칙만 지키면 되는 거죠?	Just follow the rules, right?	
+post.test.006.q4_bad1	빨간 수칙부터 지키세요.	Follow the red ones first.	
+post.test.006.q4_ok	이제 그냥 낡은 방이에요. 굳이 시험하지 마세요.	It's just an old room now. Don't test it.	
+post.test.006.q4_bad2	거울 속 사람 수를 세 두래요.	Count the people in the mirror, they say.	
+post.test.006.q5.title	해월장 예전에 무슨 일 있었어요?	Did something happen at Haewoljang?	
+post.test.006.q5.body	다들 304호, 304호 하니까요.	Everyone keeps saying 304.	
+post.test.006.q5_bad1	직원이 손님을 가뒀대요.	Staff locked guests in, they say.	
+post.test.006.q5_bad2	원래 304호는 없는 방이래요.	There's no Room 304, they say.	
+post.test.006.q5_ok	숙박부에 퇴실 못 한 기록이 있던 방이에요. 지금은 정리됐어요.	The ledger had guests who never checked out. It's settled now.	
+field.inn.desk	카운터	Front desk	
+field.inn.door304	304호	Room 304	
+field.inn.rules	안전 수칙서	Rules sheet	
+field.inn.bed	침대	Bed	
+field.inn.mirror	거울	Mirror	
+field.inn.door	방문	Door	
+field.inn.phone	객실 전화	Room phone	
+field.inn.window	커튼	Curtain	
+field.inn.room_1	301	301	
+field.inn.room_2	302	302	
+field.inn.room_3	303	303	
+field.inn.room_4	304	304	
+field.inn.clock	03:33	03:33	
+field.inn.desk_hint	어디를 살펴볼까.	Where should I look?	
+field.inn.ledger_text	숙 박 부\n\n301  김○○  10/12 ~ 10/13  퇴실\n304  박○○  10/12 ~        <color=#B03A30>퇴실 기록 없음</color>\n302  이○○  10/13 ~ 10/14  퇴실\n304  최○○  10/14 ~        <color=#B03A30>퇴실 기록 없음</color>\n303  정○○  10/14 ~ 10/15  퇴실\n304  ○○○  10/13 ~	L E D G E R\n\n301  Kim  10/12 ~ 10/13  out\n304  Park  10/12 ~        <color=#B03A30>no check-out</color>\n302  Lee  10/13 ~ 10/14  out\n304  Choi  10/14 ~        <color=#B03A30>no check-out</color>\n303  Jeong  10/14 ~ 10/15  out\n304  ___  10/13 ~	
+field.inn.card_text	야간 안내\n\n00시 ~ 06시 무인 운영\n직원은 객실에\n노크하거나 전화하지 않습니다.	NIGHT NOTICE\n\nUnstaffed 00:00 – 06:00\nStaff never knock on\nor call guest rooms.	
+field.inn.ledger_read	304호만 <b>'퇴실 기록 없음'</b>이 이어진다. 맨 아래 줄 날짜는 지난주다.	Only 304 keeps showing <b>"no check-out."</b> The last line is from last week.	
+field.inn.card_read	<b>밤엔 직원이 없다.</b> 직원은 노크도, 전화도 하지 않는다.	<b>No staff at night.</b> Staff never knock or call.	
+field.inn.rules_hint	천천히 읽자.	Read it slowly.	
+field.inn.rules_title	해월장 304호 객실 안전 수칙	HAEWOLJANG ROOM 304 — SAFETY RULES	
+field.inn.rules_body	1. 03시 33분이 되면 방 안의 거울을 가리십시오.\n<color=#B03A30><i>   거울 속 손님 수를 세어 두십시오. 하나 늘면 큰 소리로 알려 주십시오.</i></color>\n2. 노크가 들리면 같은 횟수로 두드려 답하십시오. 문은 열지 마십시오.\n<color=#B03A30><i>   직원이 노크하면 반드시 문을 열어 주십시오.</i></color>\n3. 전화가 울리면 받으십시오. 아무 말도 하지 말고 끊으십시오.\n<color=#B03A30><i>   이름을 물으면 성함을 정확히 말씀해 주십시오.</i></color>\n4. 커튼 너머가 밝아지면 커튼을 걷어 바깥 빛을 확인하십시오.\n   그 뒤에는 나가셔도 좋습니다.	1. At 03:33, cover the mirrors in the room.\n<color=#B03A30><i>   Count the guests in the mirror. If one more appears, say so out loud.</i></color>\n2. If you hear knocking, knock back the same number of times. Do not open the door.\n<color=#B03A30><i>   If staff knock, you must open the door.</i></color>\n3. If the phone rings, answer it. Say nothing and hang up.\n<color=#B03A30><i>   If asked your name, state it clearly.</i></color>\n4. When it grows light beyond the curtain, open it and check the light outside.\n   After that, you may leave.	
+field.inn.rules_read	검은 인쇄 수칙 넷 사이에 <b>빨간 손글씨 수칙</b> 셋. 서로 반대를 말한다.	Between four black printed rules, <b>three red handwritten ones</b> — each says the opposite.	
+field.inn.bed_hint	매트리스 밑에 뭔가 끼어 있다.	Something is wedged under the mattress.	
+field.inn.note_text	빨간 글씨는 처음엔 없었어.\n밤마다 하나씩 늘어.\n\n믿지 마.\n<b>검은 글씨만, 순서대로.</b>\n\n밤엔 직원 안 와.\n\n— 10/13, 304호	The red writing wasn't there at first.\nOne more every night.\n\nDon't trust it.\n<b>Black only, in order.</b>\n\nNo staff come at night.\n\n— 10/13, Room 304	
+field.inn.note_read	먼저 갇혔던 사람의 쪽지. <b>'빨간 글씨는 믿지 마. 검은 글씨만, 순서대로.'</b>	A note from someone trapped before. <b>"Don't trust the red. Black only, in order."</b>	
+field.inn.scare.tray.001	…304호 앞 쟁반이 저절로 밀렸어요. 문 쪽으로.	…The tray outside 304 slid by itself. Toward the door.	
+field.inn.scare.tray.002	바닥이 기운 거야. 어차피 우리가 갈 데가 저 방이고.	The floor slants. Besides, that room is where we are going.	한영
+field.inn.scare.key.001	열쇠판에… 304 열쇠만 흔들려요.	On the key board… only the 304 key is swinging.	
+field.inn.scare.key.002	오라는 거네. 가 보자.	It wants us. Let's go.	한영
+field.inn.trap.001	(등 뒤에서 문이 닫혔다. 철컥, 잠기는 소리.)	(The door shuts behind us. Click — it locks.)	
+field.inn.trap.002	…안 열려요. 손잡이가 꿈쩍도 안 해요.	…It won't open. The handle won't budge.	
+field.inn.trap.003	시계 봐. 03:33에 멈췄어. 이 방 규칙대로 해야 나갈 수 있겠다. 네가 읽고, 네가 해.	Look, the clock stopped at 03:33. We leave by this room's rules. You read them, you do it.	한영
+field.inn.trap.004	(수칙서가 벽에 걸려 있다. 침대 매트리스 밑에도 뭔가 비죽 나와 있다.)	(A rules sheet hangs on the wall. Something sticks out from under the mattress.)	
+field.inn.trap.ask_0	거울 속 방이 한 칸 더 깊어 보인다. 어떻게 하지?	The room in the mirror looks one step deeper. What do I do?	
+field.inn.trap.ask_1	똑. 똑. 똑. "직원입니다. 문 좀 열어 주세요."	Knock. Knock. Knock. "It's staff. Please open the door."	
+field.inn.trap.ask_2	따르릉— 객실 전화가 울린다.	Rrring — the room phone is ringing.	
+field.inn.trap.ask_3	커튼 틈이 희끄무레하게 밝아졌다.	A pale light shows at the curtain's edge.	
+field.inn.trap.opt.count	거울 속 사람 수를 센다	Count the people in the mirror	
+field.inn.trap.opt.cover	수건으로 거울을 가린다	Cover the mirror with a towel	
+field.inn.trap.opt.open	직원이라니 문을 열어 준다	It says staff — open the door	
+field.inn.trap.opt.answer	똑같이 세 번 두드려 답한다	Knock back three times	
+field.inn.trap.opt.wait	숨죽이고 가만히 있는다	Hold my breath and stay still	
+field.inn.trap.opt.name	받아서 이름을 말한다	Answer and say my name	
+field.inn.trap.opt.ignore	받지 않고 울리게 둔다	Let it ring	
+field.inn.trap.opt.silent	받고, 말없이 끊는다	Answer, then hang up silently	
+field.inn.trap.opt.leave	밝아졌으니 바로 문으로 간다	It's light — go straight to the door	
+field.inn.trap.opt.curtain	커튼을 걷고 바깥 빛을 확인한다	Open the curtain and check the light	
+field.inn.item.cancel	아직 아무것도 하지 않는다	Do nothing yet	
+field.inn.trap.notyet_1	문은 잠겨 있다. 지금은 손대지 말자.	The door's locked. Leave it for now.	
+field.inn.trap.notyet_2	전화는 조용하다. 아직은.	The phone is silent. For now.	
+field.inn.trap.notyet_3	커튼 너머는 새까맣다.	It's pitch black beyond the curtain.	
+field.inn.trap.done_0	거울은 가려 뒀다. 다시 들추지 말자.	The mirror's covered. Don't lift it again.	
+field.inn.trap.done_1	문 밖은 조용해졌다.	It's gone quiet outside.	
+field.inn.trap.done_2	수화기는 내려놓았다.	The receiver is down.	
+field.inn.trap.cue_1.001	…문 밖에서 노크 소리가 나요.	…Someone's knocking outside.	
+field.inn.trap.cue_1.002	세 번이었어. 잘 세어 둬.	That was three. Keep count.	한영
+field.inn.trap.cue_2.001	문 밖 발소리가 멀어져요. …전화가 울려요.	The footsteps are leaving. …The phone's ringing.	
+field.inn.trap.cue_2.002	수칙서 몇 번째였지?	Which number on the sheet was that?	한영
+field.inn.trap.cue_3.001	수화기 너머에서 제 이름을 부르던 것 같아요.	I think it was calling my name on the line.	
+field.inn.trap.cue_3.002	대답 안 했으면 된 거야. 끝까지 순서대로.	You didn't answer. That's what counts. In order to the end.	한영
+field.inn.casefile_locked	서류는 나중에. 지금은 304호에서 나가는 게 먼저야.	Paperwork later. Getting out of 304 comes first.	
+field.inn.rite.not_yet	아직 손대지 마. 수칙서를 읽고, 이 방에 먼저 갇혔던 사람이 남긴 걸 찾아.	Don't touch anything yet. Read the rules, and find what the last guest left behind.	한영
+field.inn.rite.wrong.001	거울 속에… 웃는 얼굴이…! 시계가 다시 03:33이에요!	A smiling face in the mirror…! The clock's back to 03:33!	
+field.inn.rite.wrong.002	빨간 글씨였어. 처음부터 다시. 검은 글씨만, 순서대로.	That was a red rule. From the top. Black only, in order.	한영
+field.inn.rite.wrong_toast	수칙을 어겼다. 처음으로 돌아간다. 믿음도 <color=#E05A4F>{0}% → {1}%</color>	Rule broken. Back to the start. Belief <color=#E05A4F>{0}% → {1}%</color>	
+field.inn.rite.final.001	(커튼을 걷자 잿빛 새벽빛이 방으로 번졌다.)	(The curtain opens; gray dawn spreads into the room.)	
+field.inn.rite.final.002	…03:34. 시계가 넘어갔어요.	…03:34. The clock moved.	
+field.inn.rite.final.003	문 열렸어. 검은 글씨가 맞았네. 수고했어.	The door's open. The black rules were right. Good work.	한영
+field.inn.rite.final.004	(복도엔 아무도 없었다. 304호 문 앞에 빈 쟁반 하나만 놓여 있었다.)	(The hall was empty. Only an empty tray sat outside 304.)	
+field.inn.rite.after	시계가 다시 가. 이제 그냥 낡은 방이야. 문으로 나가자.	The clock runs again. It's just an old room now. Out the door.	한영
+field.inn.rite.done_toast	304호에서 빠져나왔다. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Escaped Room 304. Belief <color=#6CC9C2>{0}% → {1}%</color>	
+field.inn.rite.next	남은 건 '직원이 노크하면 문을 열어라'는 가짜 수칙이다. 수사 노트와 정정글로 바로잡자.	What's left is the fake rule "open the door when staff knock." Fix it with the case file and a correction post.	

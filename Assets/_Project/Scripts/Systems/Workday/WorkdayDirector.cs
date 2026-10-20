@@ -237,6 +237,12 @@ namespace UrbanLegendBureau.Systems
             return Sleep();
         }
 
+        /// <summary>
+        /// 근무 일차가 늘수록 괴담이 더 빨리 퍼진다. 2일차 1배, 하루마다 12% 씩 빨라져 최대 2배.
+        /// 뒤로 갈수록 같은 사건도 더 서둘러 풀어야 한다.
+        /// </summary>
+        public float DayPressure => Mathf.Clamp(1f + (Workday - 2) * 0.12f, 1f, 2f);
+
         public int SolvedCount => _save != null && _save.Current != null ? _save.Current.completedCaseIds.Count : 0;
 
         /// <summary>사건 하나를 해결했다고 적는다. 같은 사건은 한 번만 센다.</summary>
@@ -476,7 +482,8 @@ namespace UrbanLegendBureau.Systems
             var w = W;
             if (w == null || _cases == null) return opened;
 
-            int limit = _balance.MaxActiveCases(SolvedCount);
+            // 뒤 일차일수록 동시에 맡는 괴담이 늘어난다(근무 2일마다 +1, 최대 5). 푼 사건 수로 늘어나는 몫과 큰 쪽을 쓴다.
+            int limit = Mathf.Min(5, Mathf.Max(_balance.MaxActiveCases(SolvedCount), 2 + (Workday - 2) / 2));
             foreach (var c in _cases.GetAllCases())
             {
                 if (w.activeCaseIds.Count >= limit) break;
@@ -888,7 +895,7 @@ namespace UrbanLegendBureau.Systems
 
                     int grade = (int)LegendRiskLevelExtensions.FromBelief(belief);
                     float spreadRate = _spread != null ? _spread.GetSpreadRate(_save.Current, id) : 0f;
-                    float rise = _balance.RisePerHour(grade, sleeping) * (1f + spreadRate / 100f * _balance.SpreadBoost) * hours;
+                    float rise = _balance.RisePerHour(grade, sleeping) * (1f + spreadRate / 100f * _balance.SpreadBoost) * DayPressure * hours;
 
                     float carry = GetCarry(id) + rise;
                     while (carry >= 1f)
