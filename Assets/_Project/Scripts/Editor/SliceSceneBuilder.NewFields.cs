@@ -103,25 +103,12 @@ namespace UrbanLegendBureau.EditorTools
             SetHighlightTargets(deskPoint, root.transform, "Desk", "Notebook", "OfficeWindow");
             SetHighlightTargets(doorPoint, root.transform, "Door_7");
 
-            // 8호실 고시생. 트레이닝복에 안경, 컵라면을 든 채 반쯤 열린 8호실 문 옆에 서 있다. 말을 걸 수 있다.
-            var student = new GameObject("GosiStudent"); student.transform.SetParent(root.transform, false);
+            // 8호실 고시생. 트레이닝복에 안경, 컵라면을 든 채 8호실과 9호실 사이에 서서 일행 쪽(왼쪽)을 본다. 말을 걸 수 있다.
             const float sx = 7.5f;
-            AddFieldSoft(student.transform, "Shadow", new Vector2(sx, -3.86f), new Vector2(1.4f, 0.3f), shadow, -4);
-            AddFieldRect(student.transform, "LegL", new Vector2(sx - 0.18f, -3.5f), new Vector2(0.26f, 0.7f), new Color(0.16f, 0.17f, 0.22f), -3);
-            AddFieldRect(student.transform, "LegR", new Vector2(sx + 0.18f, -3.5f), new Vector2(0.26f, 0.7f), new Color(0.16f, 0.17f, 0.22f), -3);
-            AddFieldRect(student.transform, "Slippers", new Vector2(sx, -3.82f), new Vector2(0.9f, 0.1f), new Color(0.3f, 0.4f, 0.55f), -2);
-            AddFieldRect(student.transform, "Body", new Vector2(sx, -2.65f), new Vector2(0.95f, 1.1f), new Color(0.32f, 0.38f, 0.34f), -3);
-            AddFieldRect(student.transform, "Zip", new Vector2(sx, -2.65f), new Vector2(0.04f, 1.0f), new Color(0.75f, 0.75f, 0.7f), -2);
-            AddFieldRect(student.transform, "Cup", new Vector2(sx - 0.42f, -2.55f), new Vector2(0.34f, 0.4f), new Color(0.92f, 0.9f, 0.85f), -1);
-            AddFieldRect(student.transform, "CupBand", new Vector2(sx - 0.42f, -2.45f), new Vector2(0.34f, 0.08f), new Color(0.8f, 0.2f, 0.15f), 0);
-            AddFieldCircle(student.transform, "Head", new Vector2(sx, -1.55f), 1.05f, new Color(0.93f, 0.82f, 0.72f), -2);
-            AddFieldRect(student.transform, "Hair", new Vector2(sx, -1.12f), new Vector2(1.05f, 0.36f), new Color(0.12f, 0.11f, 0.12f), -1);
-            AddFieldRect(student.transform, "GlassL", new Vector2(sx - 0.2f, -1.55f), new Vector2(0.26f, 0.18f), new Color(0.15f, 0.15f, 0.18f, 0.9f), -1);
-            AddFieldRect(student.transform, "GlassR", new Vector2(sx + 0.2f, -1.55f), new Vector2(0.26f, 0.18f), new Color(0.15f, 0.15f, 0.18f, 0.9f), -1);
-            AddFieldRect(student.transform, "Mouth", new Vector2(sx, -1.88f), new Vector2(0.2f, 0.04f), new Color(0.45f, 0.25f, 0.22f), -1);
-            // 복도의 밤 그늘(-2) 아래에 둔다. 다른 물건처럼 어둑하게 보인다.
-            foreach (var sr in student.GetComponentsInChildren<SpriteRenderer>()) sr.sortingOrder -= 3;
-            npcPoint = BuildPoint(root.transform, "InvestigationPoint_GosiStudent", new Vector2(sx, -2.4f), new Vector2(1.3f, 2.9f),
+            var student = BuildFieldActor(root.transform, "GosiStudent", new Vector2(sx, -3.86f), "Npc/gosi_student");
+            student.transform.localScale = new Vector3(ActorScale, ActorScale, ActorScale);
+            student.transform.Find("Sprite").GetComponent<SpriteRenderer>().sortingOrder = 2;   // 지나가는 두 사람보다 뒤
+            npcPoint = BuildPoint(root.transform, "InvestigationPoint_GosiStudent", new Vector2(sx, -1.95f), new Vector2(1.6f, 3.8f),
                 new Color(0.5f, 0.6f, 0.55f), "field.gosi.npc.point", "field.gosi.npc.point", null);
             SetHighlightTargets(npcPoint, root.transform, "GosiStudent");
 

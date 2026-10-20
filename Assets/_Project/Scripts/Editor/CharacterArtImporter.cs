@@ -48,7 +48,7 @@ namespace UrbanLegendBureau.EditorTools
             settings.spriteAlignment = (int)SpriteAlignment.BottomCenter;
             settings.spriteMeshType = SpriteMeshType.FullRect;
             importer.SetTextureSettings(settings);
-            importer.spritePixelsPerUnit = assetPath.Contains("/Chajihan/") ? ChajihanFieldPpu : HanyoungFieldPpu;
+            importer.spritePixelsPerUnit = assetPath.Contains("/Chajihan/") || assetPath.Contains("/Npc/") ? ChajihanFieldPpu : HanyoungFieldPpu;   // 현장 인물(Npc)은 남자 키에 맞춘다
             importer.textureCompression = TextureImporterCompression.Uncompressed;
         }
     }
