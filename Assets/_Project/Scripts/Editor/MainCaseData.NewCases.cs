@@ -54,6 +54,7 @@ namespace UrbanLegendBureau.EditorTools
             Action("action_test_013", "action.test.013", 10, "clue_test_010");
             Action("action_test_014", "action.test.014", 10, "clue_test_011");
             Action("action_test_015", "action.test.015", 10, "clue_test_012");
+            Clue("clue_test_021", "clue.test.021.text", ClueType.Digital, "web_test_006");
 
             var page = Ensure<WebPageSO>("WebPages", "web_test_006");
             var pso = new SerializedObject(page);
@@ -65,7 +66,7 @@ namespace UrbanLegendBureau.EditorTools
             comments.arraySize = 2;
             SetComment(comments.GetArrayElementAtIndex(0), "ui.net.author_nick_4", "web.test.006.c1", false);
             SetComment(comments.GetArrayElementAtIndex(1), "ui.net.author_nick_9", "web.test.006.c2", false);
-            SetStrings(pso.FindProperty("_relatedClueIds"), new string[0]);
+            SetStrings(pso.FindProperty("_relatedClueIds"), new[] { "clue_test_021" });   // 생방송 다시보기를 읽으면 방송 기록 단서
             pso.FindProperty("_isCensorable").boolValue = false;
             pso.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(page);
@@ -79,7 +80,7 @@ namespace UrbanLegendBureau.EditorTools
             lso.FindProperty("_initialSpreadRate").floatValue = 35f;
             lso.FindProperty("_verdictKind").intValue = 0;
             lso.ApplyModifiedPropertiesWithoutUndo();
-            SetRefs(legend, "_clues", Load<ClueSO>("Clues/clue_test_010"), Load<ClueSO>("Clues/clue_test_011"), Load<ClueSO>("Clues/clue_test_012"));
+            SetRefs(legend, "_clues", Load<ClueSO>("Clues/clue_test_010"), Load<ClueSO>("Clues/clue_test_011"), Load<ClueSO>("Clues/clue_test_012"), Load<ClueSO>("Clues/clue_test_021"));
             SetRefs(legend, "_webPages", page);
             SetRefs(legend, "_investigationActions", Load<InvestigationActionSO>("Actions/action_test_013"),
                 Load<InvestigationActionSO>("Actions/action_test_014"), Load<InvestigationActionSO>("Actions/action_test_015"));
@@ -92,8 +93,28 @@ namespace UrbanLegendBureau.EditorTools
             cso.FindProperty("_legendId").stringValue = "legend_test_003";
             cso.FindProperty("_startingStep").intValue = 1;
             cso.FindProperty("_isPlayable").boolValue = true;
-            cso.FindProperty("_postWriting").objectReferenceValue = null;
-            cso.FindProperty("_deduction").objectReferenceValue = null;
+            // 퇴마 뒤 남은 소문은 다른 사건처럼 수사 노트와 정정글로 정리한다(#002 의 틀을 복사해 ID 만 바꾼다).
+            var map = new Dictionary<string, string>
+            {
+                { "clue_test_003", "clue_test_010" }, { "clue_test_004", "clue_test_011" },
+                { "clue_test_007", "clue_test_021" }, { "clue_test_008", "clue_test_012" },
+                { "web_test_003", "web_test_006" }, { "web_test_005", "web_test_006" },
+                { "test_002", "test_003" }, { "test.002", "test.003" }, { "TEST-002", "TEST-003" },
+            };
+            var deduction = CloneFrom<CaseDeductionSO>("Cases/deduction_test_002", "Cases", "deduction_test_003", map);
+            var post = CloneFrom<PostWritingSO>("PostWriting/post_test_002", "PostWriting", "post_test_003", map);
+            string[] places = { "ui.casefile.place_gosi_desk", "ui.casefile.place_gosi_desk", "ui.casefile.place_test_net", "ui.casefile.place_gosi_window" };
+            string[] clueIds = { "clue_test_010", "clue_test_011", "clue_test_021", "clue_test_012" };
+            for (int i = 0; i < 4; i++) FieldClue(deduction, clueIds[i], places[i], i == 2 ? "web_test_006" : "");
+            var dso = new SerializedObject(deduction);
+            var q2 = dso.FindProperty("_questions").GetArrayElementAtIndex(1);
+            SetStrings(q2.FindPropertyRelative("evidenceClueIds"), new[] { "clue_test_021" });
+            SetStrings(q2.FindPropertyRelative("evidenceAnalysisIds"), new[] { "analysis_test_003_b" });
+            dso.ApplyModifiedPropertiesWithoutUndo();
+            BlankAnswers(deduction, "verdict", "결계", "~[결계|결계로]", "ward");
+            BlankAnswers(deduction, "target", "들림", "~[들림|들려|들린다]", "hear");
+            cso.FindProperty("_postWriting").objectReferenceValue = post;
+            cso.FindProperty("_deduction").objectReferenceValue = deduction;
             cso.FindProperty("_mainStory").boolValue = true;
             cso.FindProperty("_startBelief").intValue = 82;   // 생방송 하나로 하룻밤에 치솟았다
             cso.FindProperty("_appearWorkday").intValue = 2;

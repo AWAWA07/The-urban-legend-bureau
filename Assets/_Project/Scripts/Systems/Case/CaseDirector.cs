@@ -4093,6 +4093,7 @@ namespace UrbanLegendBureau.Systems
         private void OpenCaseFile(CaseFileScreen.Page page)
         {
             if (_caseFileScreen == null || Deduction == null) return;
+            if (ExorcismBlocksCaseFile()) return;   // #003: 7호실 퇴마가 먼저다
 
             _caseFileScreen.Bind(new CaseFileScreen.Context
             {

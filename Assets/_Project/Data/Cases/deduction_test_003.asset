@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afdec0e17650c6246a78d2846b48c4fa, type: 3}
+  m_Name: deduction_test_003
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.CaseDeductionSO
+  _caseId: case_test_003
+  _fieldClues:
+  - clueId: clue_test_010
+    placeTextId: ui.casefile.place_gosi_desk
+    fromPageId: 
+  - clueId: clue_test_011
+    placeTextId: ui.casefile.place_gosi_desk
+    fromPageId: 
+  - clueId: clue_test_021
+    placeTextId: ui.casefile.place_test_net
+    fromPageId: web_test_006
+  - clueId: clue_test_012
+    placeTextId: ui.casefile.place_gosi_window
+    fromPageId: 
+  _analyses:
+  - analysisId: analysis_test_003_a
+    clueA: clue_test_010
+    clueB: clue_test_011
+    optional: 0
+    titleTextId: analysis.test.003.a.title
+    bodyTextId: analysis.test.003.a.body
+  - analysisId: analysis_test_003_b
+    clueA: clue_test_021
+    clueB: clue_test_012
+    optional: 1
+    titleTextId: analysis.test.003.b.title
+    bodyTextId: analysis.test.003.b.body
+  _questions:
+  - questionId: q1
+    labelTextId: deduce.test.003.q1.label
+    questionTextId: deduce.test.003.q1.question
+    optionTextIds:
+    - deduce.test.003.q1.opt0
+    - deduce.test.003.q1.opt1
+    - deduce.test.003.q1.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.003.q1.explain
+    reportTextId: deduce.test.003.q1.report
+    evidenceClueIds:
+    - clue_test_010
+    - clue_test_011
+    evidenceAnalysisIds:
+    - analysis_test_003_a
+  - questionId: q2
+    labelTextId: deduce.test.003.q2.label
+    questionTextId: deduce.test.003.q2.question
+    optionTextIds:
+    - deduce.test.003.q2.opt0
+    - deduce.test.003.q2.opt1
+    - deduce.test.003.q2.opt2
+    correctIndex: 1
+    explanationTextId: deduce.test.003.q2.explain
+    reportTextId: deduce.test.003.q2.report
+    evidenceClueIds:
+    - clue_test_021
+    evidenceAnalysisIds:
+    - analysis_test_003_b
+  _reportBlanks:
+  - blankId: verdict
+    answerType: 1
+    titleTextId: report.test.003.overview.title
+    bodyTextId: report.test.003.overview.body
+    blankWidth: 160
+    answerTextId: report.test.003.overview.answer
+    targetPageId: 
+    acceptedAnswers:
+    - "\uACB0\uACC4"
+    - "~[\uACB0\uACC4|\uACB0\uACC4\uB85C]"
+    - ward
+    choiceTextIds:
+    - report.test.003.overview.choice_1
+    - report.test.003.overview.choice_2
+  - blankId: target
+    answerType: 4
+    titleTextId: report.test.003.target.title
+    bodyTextId: report.test.003.target.body
+    blankWidth: 160
+    answerTextId: report.test.003.target.answer
+    targetPageId: web_test_006
+    acceptedAnswers:
+    - "\uB4E4\uB9BC"
+    - "~[\uB4E4\uB9BC|\uB4E4\uB824|\uB4E4\uB9B0\uB2E4]"
+    - hear
+    choiceTextIds:
+    - report.test.003.target.choice_1
+    - report.test.003.target.choice_2
+  _documentNumber: ULB-TEST-003
+  _summaryTextId: deduce.test.003.summary

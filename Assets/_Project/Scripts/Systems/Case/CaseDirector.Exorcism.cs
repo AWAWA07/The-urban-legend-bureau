@@ -12,8 +12,9 @@ namespace UrbanLegendBureau.Systems
     ///   단서     관리인 수첩 두 쪽(문지방에 소금 → 머리맡에 부적 → 창틀에 초), 7호실 창틀의 옛 촛농.
     ///   결계     문지방·머리맡·창틀을 눌러 소금·부적·초 가운데 하나를 놓는다. 순서와 자리가 모두 맞아야 한다.
     ///   틀리면   그것이 반응한다(문 두드림, 불이 꺼졌다 켜짐, 창의 얼굴). 놓은 것이 모두 흩어지고 믿음도가 오른다.
-    ///   다 치면  한영이 마무리하고 그것이 사라진다. 믿음도가 크게 떨어져 사건이 해결된다.
-    /// 수사 노트와 정정글이 없는 사건이라 해결은 믿음도 하나로 판정한다(WorkdayDirector.Evaluate).
+    ///   다 치면  한영이 마무리하고 그것이 사라진다. 믿음도가 35% 로 떨어진다(해결 목표 바로 위).
+    ///   그 뒤    다른 사건처럼 수사 노트(분석·추론·보고서)와 정정글·댓글로 남은 소문을 30% 아래로 내린다.
+    ///            퇴마 전에는 수사 노트를 열 수 없다(ExorcismBlocksCaseFile).
     /// </summary>
     public partial class CaseDirector
     {
@@ -34,8 +35,21 @@ namespace UrbanLegendBureau.Systems
 
         /// <summary>결계가 틀릴 때마다 오르는 믿음도(%p).</summary>
         private const int RiteWrongBelief = 2;
-        /// <summary>결계를 다 쳤을 때 떨어지는 믿음도(%p).</summary>
-        private const int RiteDoneBelief = -70;
+        /// <summary>결계를 다 친 뒤 남는 믿음도(%). 해결 목표(30%) 바로 위다. 나머지는 수사 노트와 정정글로 정리한다.</summary>
+        private const int RiteDoneBelief = 35;
+        private const string RiteDoneEvent = "rite_done";
+
+        /// <summary>퇴마를 마쳤는가.</summary>
+        private bool RiteDone => MainEventDone(RiteDoneEvent);
+
+        /// <summary>#003 에서 퇴마 전에 수사 노트를 열려 하면 막고 알린다. 퇴마가 먼저다.</summary>
+        private bool ExorcismBlocksCaseFile()
+        {
+            if (_case == null || _case.CaseId != ExorcismCaseId || RiteDone) return false;
+            if (_ui.Contains(_caseFileScreen)) _ui.Close(_caseFileScreen);
+            ShowMainToast(_loc.Get("field.gosi.casefile_locked"));
+            return true;
+        }
 
         private readonly List<string> _ritePlaced = new List<string>();
         private bool _riteBusy;
@@ -75,6 +89,7 @@ namespace UrbanLegendBureau.Systems
             if (swap == null) return;
             Sfx.Play(inside ? "room_door_open" : "room_door", 0.45f);
             swap.SetAfter(inside);
+            foreach (var f in root.GetComponentsInChildren<FieldFollower>(true)) { f.Following = true; if (f.isActiveAndEnabled) f.ResetToStart(); }
             foreach (var walker in root.GetComponentsInChildren<FieldWalker>(true)) if (walker.isActiveAndEnabled) walker.ResetToStart();
             if (inside) ResetRiteVisuals();
         }
@@ -90,7 +105,7 @@ namespace UrbanLegendBureau.Systems
             _ritePlaced.Clear();
             var room = GosiRoom();
             if (room == null) return;
-            bool done = _workday != null && _workday.IsSolved(ExorcismCaseId);
+            bool done = RiteDone;
             foreach (var r in RiteOrder)
             {
                 var t = room.Find(r.obj);
@@ -103,7 +118,7 @@ namespace UrbanLegendBureau.Systems
         private void OnRitePoint(InvestigationPoint point)
         {
             if (_riteBusy) return;
-            if (_workday != null && _workday.IsSolved(ExorcismCaseId))
+            if (RiteDone)
             {
                 SayLines("!field.gosi.rite.after");
                 return;
@@ -149,16 +164,56 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
             _ritePlaced.Add(item);
-            var t = GosiRoom()?.Find(want.obj);
+            StartCoroutine(HanyoungPlaces(step, want.obj, item));
+        }
+
+        /// <summary>결계 자리마다 한영이 서는 곳(방 안 x).</summary>
+        private static readonly float[] RiteSpotX = { -3.3f, 2.9f, 0.1f };
+
+        private FieldFollower GosiHanyoung()
+        {
+            var room = GosiRoom();
+            return room != null ? room.GetComponentInChildren<FieldFollower>(true) : null;
+        }
+
+        /// <summary>
+        /// 퇴마는 한영이 한다. 고른 자리로 한영이 직접 걸어가 물건을 놓는다. 차지한은 제자리에서 지켜본다.
+        /// 다 놓으면 마무리로 넘어가고, 아니면 한영이 다음을 짚어 준다.
+        /// </summary>
+        private IEnumerator HanyoungPlaces(int step, string objName, string item)
+        {
+            _riteBusy = true;
+            FieldHudScreen.IsCutscene = true;
+            var hy = GosiHanyoung();
+            if (hy != null)
+            {
+                hy.Following = false;
+                bool arrived = false;
+                hy.WalkTo(RiteSpotX[step], 0f, () => arrived = true);
+                float until = Time.time + 4f;
+                while (!arrived && Time.time < until) yield return null;
+            }
+            yield return new WaitForSeconds(0.35f);
+            var t = GosiRoom()?.Find(objName);
             if (t != null) t.gameObject.SetActive(true);
             Sfx.Play(item == "salt" ? "sheet_rustle" : item == "charm" ? "paper_0" : "light_switch", 0.45f);
-            Debug.Log($"[CaseDirector] 결계 | {step + 1}/3 {pointId} {item}");
+            Debug.Log($"[CaseDirector] 결계 | {step + 1}/3 {item} — 한영이 놓는다");
+            yield return new WaitForSeconds(0.5f);
+            FieldHudScreen.IsCutscene = false;
+            _riteBusy = false;
             if (_ritePlaced.Count < RiteOrder.Length)
             {
                 SayLines("!field.gosi.rite.ok_" + _ritePlaced.Count);
-                return;
+                yield break;
             }
             StartCoroutine(RiteFinale());
+        }
+
+        /// <summary>한영을 다시 차지한 곁으로 돌린다.</summary>
+        private void HanyoungRejoin()
+        {
+            var hy = GosiHanyoung();
+            if (hy != null) hy.Following = true;
         }
 
         /// <summary>틀렸다. 그것이 반응하고 놓은 것이 흩어진다. 믿음도가 오른다.</summary>
@@ -177,6 +232,7 @@ namespace UrbanLegendBureau.Systems
             if (face != null) face.SetActive(false);
             Sfx.Play("door_bang_0", 0.5f);
 
+            HanyoungRejoin();
             _ritePlaced.Clear();
             if (room != null) foreach (var r in RiteOrder) { var t = room.Find(r.obj); if (t != null) t.gameObject.SetActive(false); }
 
@@ -221,7 +277,10 @@ namespace UrbanLegendBureau.Systems
             yield return new WaitForSeconds(1.2f);
 
             float before = _workday.DisplayBelief("legend_test_003");
-            if (_tutorial != null) _tutorial.ShiftLegendBelief("legend_test_003", RiteDoneBelief);
+            // 퇴마로 진짜 원인은 사라졌다. 남은 믿음도는 퍼진 소문이 붙든 몫이라 목표 바로 위(35%)에 남긴다.
+            MarkMainEvent(RiteDoneEvent);
+            int shift = Mathf.RoundToInt(RiteDoneBelief - before);
+            if (_tutorial != null && shift < 0) _tutorial.ShiftLegendBelief("legend_test_003", shift);
             float after = _workday.DisplayBelief("legend_test_003");
             PushStatus();
             Debug.Log($"[CaseDirector] 결계 완성 | {before:0.0}% -> {after:0.0}%");
@@ -232,30 +291,9 @@ namespace UrbanLegendBureau.Systems
             _fieldHudScreen.ClearSpeech();
             FieldHudScreen.IsCutscene = false;
             _riteBusy = false;
-            ResolveExorcism(before, after);
-        }
-
-        private void ResolveExorcism(float before, float after)
-        {
-            if (!_workday.TryResolve(ExorcismCaseId))
-            {
-                ShowMainToast(_loc.Get("field.gosi.rite.done_toast", Num(before), Num(after)));
-                return;
-            }
-            if (_workday.CurrentCaseId == ExorcismCaseId) _workday.CurrentCaseId = null;
-            _save.AutoSave();
-            var opened = _workday.OpenCasesNow();
-            string text = _loc.Get("field.gosi.rite.done_toast", Num(before), Num(after)) + "\n" + _loc.Get(MainSolvedTextId, CaseName(_workday.FindCase(ExorcismCaseId)));
-            if (opened.Count > 0)
-            {
-                var names = new List<string>();
-                foreach (var id in opened) names.Add(CaseName(_workday.FindCase(id)));
-                text += "\n" + _loc.Get("ui.work.case_opened_now", string.Join(", ", names));
-            }
-            ShowMainToast(text);
+            HanyoungRejoin();
+            ShowMainToast(_loc.Get("field.gosi.rite.done_toast", Num(before), Num(after)) + "\n" + _loc.Get("field.gosi.rite.next"));
             RefreshRoomDesktop();
-            UpdateRoomComputerBeckon();
-            Debug.Log("[CaseDirector] 본편 | 퇴마로 사건 해결 | " + ExorcismCaseId);
         }
 
         /// <summary>한마디. '!' 로 시작하는 글 ID 는 한영이 한다.</summary>

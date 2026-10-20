@@ -24,7 +24,8 @@ MonoBehaviour:
   - AuthorTextId: ui.net.author_nick_9
     BodyTextId: web.test.006.c2
     IsAuthor: 0
-  _relatedClueIds: []
+  _relatedClueIds:
+  - clue_test_021
   _spreadWeight: 10
   _isCensorable: 0
   _wrongCensorPenalty: 0
