@@ -178,14 +178,16 @@ namespace UrbanLegendBureau.Systems
                 return;
             }
 
-            if (_renderer == null || _walk == null || _walk.Length == 0) return;
+            // 걷기 그림이 없는 인물(현장에서 만나는 사람)은 서 있기만 한다.
+            bool canWalk = _walk != null && _walk.Length > 0;
+            if (_renderer == null || (!canWalk && (_idle == null || _idle.Length == 0))) return;
 
             float x = transform.position.x;
             float moved = Mathf.Abs(x - _lastX);
             _lastX = x;
 
             bool lying = Mathf.Abs(Mathf.DeltaAngle(transform.eulerAngles.z, 0f)) > 1f;
-            if (moved > 0.0001f && !lying)
+            if (canWalk && moved > 0.0001f && !lying)
             {
                 _still = 0f;
                 _travelled += moved;
