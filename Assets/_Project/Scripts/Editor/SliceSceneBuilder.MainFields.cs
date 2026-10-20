@@ -12,8 +12,8 @@ namespace UrbanLegendBureau.EditorTools
     /// <summary>
     /// 본편 사건 두 곳의 현장. 막차(지하철)처럼 걸어 다니며 조사 지점을 누르면 그 물건을 화면 가득 들여다본다.
     ///
-    ///   사건 #001 삭제되지 않는 게시글   제보자의 원룸. 책상과 모니터, 침대 위 휴대폰, 벽의 낙서.
-    ///   사건 #002 3층에서 멈추는 엘리베이터   야간 사무 건물의 엘리베이터 홀 → 엘리베이터 안. 조작판과 거울.
+    ///   사건 #001 삭제되지 않는 게시글   다세대 3층 복도(302호 문 앞) → 자취방. 문 앞 우편물, 책상과 모니터, 휴대폰, 벽 낙서.
+    ///   사건 #002 3층에서 멈추는 엘리베이터   구도시 구오 빌라 1층 홀 → 엘리베이터 안. 관리실 게시판, 조작판과 거울.
     ///
     /// 그림 파일 없이 도형(네모, 흐린 동그라미, 띠)과 글자로만 짓는다. 다른 현장과 같은 도구를 쓴다.
     /// 가까이 보기에서 살필 곳마다 조사 행동이 걸려 있어, 살피면 시간이 흐르고 단서가 생긴다(CaseDirector.PerformCloseupSpot).
@@ -22,8 +22,173 @@ namespace UrbanLegendBureau.EditorTools
     {
         // =========================================================== 사건 #001 원룸
 
-        /// <summary>원룸 현장을 짓는다. 조사 지점 셋(책상, 휴대폰, 벽 낙서)을 돌려준다.</summary>
-        private static GameObject[] BuildPostRoomField(Transform parent)
+        /// <summary>
+        /// 사건 #001 현장. 검열국이 글을 지우던 사람의 주소를 따서 찾아왔다.
+        /// 다세대 3층 복도(302호 문 앞)에서 사람이 없는지 먼저 확인하고, 관리인 열쇠로 들어가면 원룸으로 바뀐다.
+        /// 돌려주는 지점: 복도[문, 문 앞 우편물, 계량기], 방[책상, 휴대폰, 벽 낙서, 현관, 창문].
+        /// </summary>
+        private static GameObject[] BuildPostField(Transform parent)
+        {
+            var hall = BuildPostHall(parent, out var doorPoint, out var pilePoint, out var meterPoint);
+            var room = BuildPostRoomField(parent, out var roomPoints);
+
+            var swap = parent.gameObject.AddComponent<FieldSceneSwap>();
+            var so = new SerializedObject(swap);
+            so.Update();
+            SetObjectArray(so.FindProperty("_beforeRoots"), hall);
+            SetObjectArray(so.FindProperty("_afterRoots"), room);
+            so.ApplyModifiedPropertiesWithoutUndo();
+
+            return new[] { doorPoint, pilePoint, meterPoint, roomPoints[0], roomPoints[1], roomPoints[2], roomPoints[3], roomPoints[4] };
+        }
+
+        /// <summary>
+        /// 낡은 다세대의 3층 복도. 아래는 녹색 페인트, 위는 누런 벽. 왼쪽 끝 계단참에 창, 천장에 센서등 하나.
+        /// 301·302·303 철문이 늘어서 있다. 302호 문 앞에 전단과 고지서가 쌓여 있다.
+        /// 무서운 연출: 센서등이 꺼진다 / 노크 뒤 안에서 알림 소리(진행 담당) / 계단에서 내려오던 발소리가 멈춘다.
+        /// </summary>
+        private static GameObject BuildPostHall(Transform parent, out GameObject doorPoint, out GameObject pilePoint, out GameObject meterPoint)
+        {
+            var root = new GameObject("PostHall");
+            root.transform.SetParent(parent, false);
+
+            var upper = new Color(0.40f, 0.38f, 0.32f);
+            var lower = new Color(0.16f, 0.24f, 0.22f);
+            var stripe = new Color(0.10f, 0.15f, 0.14f);
+            var floorCol = new Color(0.27f, 0.27f, 0.26f);
+            var steel = new Color(0.30f, 0.25f, 0.22f);
+            var steelDark = new Color(0.20f, 0.17f, 0.15f);
+            var frameCol = new Color(0.22f, 0.22f, 0.24f);
+            var shadow = new Color(0f, 0f, 0f, 0.4f);
+
+            // 벽. 허리 아래는 짙은 녹색 페인트, 위는 누렇게 바랜 벽. 얼룩이 군데군데.
+            AddFieldRect(root.transform, "Wall", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), upper, -9);
+            AddFieldRect(root.transform, "WallLow", new Vector2(0f, -2.15f), new Vector2(44f, 2.5f), lower, -8);
+            AddFieldRect(root.transform, "WallStripe", new Vector2(0f, -0.88f), new Vector2(44f, 0.08f), stripe, -8);
+            foreach (var p in new[] { new Vector2(-3.2f, 1.9f), new Vector2(7.8f, 2.4f), new Vector2(12.6f, 0.6f) })
+                AddFieldSoft(root.transform, "Stain", p, new Vector2(1.8f, 1.3f), new Color(0.22f, 0.20f, 0.14f, 0.35f), -8);
+            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 3.75f), new Vector2(44f, 0.5f), new Color(0.24f, 0.23f, 0.21f), -8);
+            AddFieldRect(root.transform, "Floor", new Vector2(0f, -4.5f), new Vector2(44f, 2.2f), floorCol, -8);
+            // 테라조 바닥의 잔 돌가루.
+            var rng = new System.Random(302);
+            for (int i = 0; i < 70; i++)
+            {
+                float x = -21f + (float)rng.NextDouble() * 42f, y = -5.4f + (float)rng.NextDouble() * 1.9f;
+                AddFieldRect(root.transform, "Grit_" + i, new Vector2(x, y), new Vector2(0.06f, 0.04f), new Color(0.36f, 0.36f, 0.34f), -7);
+            }
+            AddFieldRect(root.transform, "Baseboard", new Vector2(0f, -3.32f), new Vector2(44f, 0.16f), stripe, -7);
+            AddFieldGradient(root.transform, "FloorContact", new Vector2(0f, -3.0f), new Vector2(44f, 0.6f), new Color(0f, 0f, 0f, 0.3f), -7, 180f);
+
+            // 왼쪽 끝 계단. 위로 올라가는 계단참이 어둡게 뚫려 있고, 참에 비 오는 창.
+            AddFieldRect(root.transform, "Stairwell", new Vector2(-11.6f, 0.0f), new Vector2(5.0f, 7.0f), new Color(0.07f, 0.07f, 0.08f), -7);
+            // 계단. 칸마다 바닥까지 채운 덩어리로 쌓아 올라가는 옆모습이 보이게 한다. 디딤판 끝에 밝은 줄.
+            for (int i = 0; i < 7; i++)
+            {
+                float h = 0.5f * (i + 1);
+                float sx = -9.5f - i * 0.6f;
+                AddFieldRect(root.transform, "Step_" + i, new Vector2(sx, -3.35f + h * 0.5f), new Vector2(0.62f, h), new Color(0.19f, 0.19f, 0.2f), -6);
+                AddFieldRect(root.transform, "StepNose_" + i, new Vector2(sx, -3.35f + h - 0.03f), new Vector2(0.62f, 0.06f), new Color(0.34f, 0.34f, 0.33f), -5);
+            }
+            var rail = AddFieldRect(root.transform, "Handrail", new Vector2(-11.3f, -0.45f), new Vector2(5.0f, 0.09f), new Color(0.38f, 0.32f, 0.25f), -4);
+            rail.transform.localRotation = Quaternion.Euler(0f, 0f, 39.8f);
+            for (int i = 0; i < 4; i++)
+                AddFieldRect(root.transform, "Baluster_" + i, new Vector2(-9.8f - i * 1.2f, -2.3f + i * 1.0f), new Vector2(0.05f, 0.9f), new Color(0.3f, 0.26f, 0.22f), -4);
+            var landing = new GameObject("Window");
+            landing.transform.SetParent(root.transform, false);
+            landing.transform.localPosition = new Vector3(-12.4f, 1.9f, 0f);
+            AddFieldRect(landing.transform, "Frame", Vector2.zero, new Vector2(1.8f, 1.6f), frameCol, -6);
+            AddFieldRect(landing.transform, "Glass", Vector2.zero, new Vector2(1.5f, 1.3f), new Color(0.08f, 0.10f, 0.16f), -5);
+            AddFieldRect(landing.transform, "Mullion", Vector2.zero, new Vector2(0.06f, 1.3f), frameCol, -3);
+            landing.AddComponent<WindowRain>();
+            // 계단 벽을 스치는 그림자. 발소리 연출에서만 스르르 지나간다.
+            var stairShadow = AddFieldSoft(root.transform, "StairShadow", new Vector2(-11.0f, 1.2f), new Vector2(1.4f, 3.2f), new Color(0f, 0f, 0f, 0.55f), -4);
+            stairShadow.SetActive(false);
+
+            // 천장 센서등. 가운데 하나뿐이다.
+            AddFieldCircle(root.transform, "SensorLamp", new Vector2(-0.6f, 3.38f), 0.8f, new Color(0.92f, 0.90f, 0.80f), -6);
+            var sensorPool = AddFieldSoft(root.transform, "SensorPool", new Vector2(-0.6f, 0.4f), new Vector2(12f, 7.5f), new Color(1f, 0.95f, 0.8f, 0.13f), -6);
+
+            // 철문 셋. 302호가 이번 주소다.
+            float[] doorX = { -5.6f, 3.0f, 10.6f };
+            string[] numbers = { "field.post.door_301", "field.post.door_302", "field.post.door_303" };
+            for (int i = 0; i < doorX.Length; i++)
+            {
+                float x = doorX[i];
+                AddFieldSoft(root.transform, "Shadow_Door" + i, new Vector2(x, -3.42f), new Vector2(2.8f, 0.3f), shadow, -6);
+                AddFieldRect(root.transform, "DoorFrame_" + i, new Vector2(x, -0.55f), new Vector2(2.4f, 5.6f), frameCol, -6);
+                AddFieldRect(root.transform, "Door_" + i, new Vector2(x, -0.6f), new Vector2(2.1f, 5.3f), steel, -5);
+                AddFieldRect(root.transform, "DoorPanel_" + i, new Vector2(x, 0.4f), new Vector2(1.6f, 2.2f), steelDark, -4);
+                AddFieldRect(root.transform, "DoorPanelLow_" + i, new Vector2(x, -2.2f), new Vector2(1.6f, 1.4f), steelDark, -4);
+                AddFieldRect(root.transform, "Lever_" + i, new Vector2(x - 0.72f, -0.75f), new Vector2(0.42f, 0.1f), new Color(0.62f, 0.60f, 0.55f), -3);
+                AddFieldRect(root.transform, "Lock_" + i, new Vector2(x - 0.72f, -0.35f), new Vector2(0.24f, 0.36f), new Color(0.12f, 0.12f, 0.13f), -3);
+                AddFieldRect(root.transform, "Plate_" + i, new Vector2(x, 2.55f), new Vector2(0.9f, 0.4f), new Color(0.82f, 0.80f, 0.72f), -4);
+                var num = AddFieldWorldText(root.transform, "Number_" + i, new Vector2(x, 2.55f), new Vector2(0.86f, 0.38f), numbers[i], new Color(0.18f, 0.16f, 0.14f), -3);
+                num.fontSizeMax = 2.6f;
+                AddFieldRect(root.transform, "MilkSlot_" + i, new Vector2(x + 0.2f, -1.55f), new Vector2(0.7f, 0.16f), new Color(0.10f, 0.10f, 0.11f), -3);
+            }
+            // 302호. 도시가스 점검 스티커, 문틈에 꽂힌 전단, 문 앞에 쌓인 우편물.
+            AddFieldRect(root.transform, "GasSticker", new Vector2(3.35f, 1.35f), new Vector2(0.5f, 0.32f), new Color(0.86f, 0.74f, 0.28f), -3);
+            foreach (var (p, r) in new[] { (new Vector2(2.2f, 0.1f), 12f), (new Vector2(2.25f, -0.4f), -8f), (new Vector2(2.18f, -1.0f), 20f) })
+            {
+                var flyer = AddFieldRect(root.transform, "GapFlyer", p, new Vector2(0.55f, 0.32f), new Color(0.88f, 0.86f, 0.8f), -3);
+                flyer.transform.localRotation = Quaternion.Euler(0f, 0f, r);
+            }
+            var pile = new GameObject("Pile");
+            pile.transform.SetParent(root.transform, false);
+            pile.transform.localPosition = new Vector3(1.3f, -3.25f, 0f);
+            Color[] paper = { new Color(0.9f, 0.88f, 0.82f), new Color(0.84f, 0.42f, 0.36f), new Color(0.80f, 0.84f, 0.92f), new Color(0.92f, 0.86f, 0.6f) };
+            for (int i = 0; i < 6; i++)
+            {
+                var sheet = AddFieldRect(pile.transform, "Sheet_" + i, new Vector2((i % 3 - 1) * 0.16f, i * 0.05f), new Vector2(0.8f, 0.12f), paper[i % paper.Length], -3 + i % 2);
+                sheet.transform.localRotation = Quaternion.Euler(0f, 0f, (i % 2 == 0 ? 4f : -6f) + i);
+            }
+            // 초인종(인터폰). 302호 오른쪽.
+            AddFieldRect(root.transform, "Bell", new Vector2(4.75f, -0.2f), new Vector2(0.42f, 0.62f), new Color(0.78f, 0.78f, 0.74f), -4);
+            AddFieldCircle(root.transform, "BellButton", new Vector2(4.75f, -0.35f), 0.18f, new Color(0.35f, 0.35f, 0.36f), -3);
+            // 전기 계량기 함. 둥근 유리 안에서 원판이 천천히 돈다(안에 켜 둔 것이 있다).
+            AddFieldRect(root.transform, "MeterBox", new Vector2(6.8f, 1.0f), new Vector2(1.1f, 1.5f), new Color(0.48f, 0.48f, 0.46f), -5);
+            AddFieldCircle(root.transform, "MeterGlass", new Vector2(6.8f, 1.1f), 0.7f, new Color(0.62f, 0.68f, 0.70f), -4);
+            AddFieldRect(root.transform, "MeterDisc", new Vector2(6.8f, 0.95f), new Vector2(0.5f, 0.06f), new Color(0.2f, 0.2f, 0.22f), -3);
+            // 301호 앞 신발, 303호 앞 젖은 우산. 사람이 사는 층이다.
+            AddFieldRect(root.transform, "Shoes", new Vector2(-4.4f, -3.3f), new Vector2(0.7f, 0.18f), new Color(0.12f, 0.12f, 0.13f), -4);
+            var umbrella = AddFieldRect(root.transform, "Umbrella", new Vector2(12.1f, -2.6f), new Vector2(0.12f, 1.6f), new Color(0.15f, 0.2f, 0.32f), -4);
+            umbrella.transform.localRotation = Quaternion.Euler(0f, 0f, -12f);
+            AddFieldSoft(root.transform, "Puddle", new Vector2(12.4f, -3.4f), new Vector2(1.0f, 0.18f), new Color(0.5f, 0.6f, 0.8f, 0.25f), -6);
+            AddFieldRect(root.transform, "Hydrant", new Vector2(14.2f, -0.4f), new Vector2(1.0f, 1.6f), new Color(0.55f, 0.12f, 0.12f), -5);
+
+            AddFieldGradient(root.transform, "CeilingShade", new Vector2(0f, 3.0f), new Vector2(44f, 1.2f), new Color(0f, 0f, 0f, 0.4f), -6);
+            AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.07f, 0.28f), -2);
+
+            // 계단에서 올라와 302호 쪽을 보고 선다.
+            BuildFieldActors(root.transform, -3.86f, -8.4f, 2.4f, -9.2f, 13.6f);
+
+            doorPoint = BuildPoint(root.transform, "InvestigationPoint_PostDoor", new Vector2(3.0f, 0.2f), new Vector2(2.4f, 4.4f),
+                new Color(0.6f, 0.5f, 0.4f), "field.post.door", "field.post.door", null);
+            pilePoint = BuildPoint(root.transform, "InvestigationPoint_PostPile", new Vector2(1.2f, -3.0f), new Vector2(1.4f, 0.9f),
+                new Color(0.85f, 0.8f, 0.7f), "field.post.pile", "field.post.pile", null);
+            meterPoint = BuildPoint(root.transform, "InvestigationPoint_PostMeter", new Vector2(6.8f, 1.0f), new Vector2(1.4f, 1.8f),
+                new Color(0.6f, 0.62f, 0.6f), "field.post.meter", "field.post.meter", null);
+            SetHighlightTargets(doorPoint, root.transform, "Door_1", "DoorPanel_1", "DoorPanelLow_1");
+            SetHighlightTargets(pilePoint, root.transform, "Pile");
+            SetHighlightTargets(meterPoint, root.transform, "MeterBox", "MeterGlass");
+
+            // --- 무서운 연출
+            var dark = AddBlackout(root.transform, "Blackout", new Color(0f, 0f, 0.02f, 0.95f));
+            // 가운데쯤 오면 센서등이 꺼진다. 잠깐 깜깜하다가 손을 흔들면 다시 켜진다.
+            AddScare(root.transform, "post_sensor", FieldScare.TriggerKind.ReachX, -1.6f, null, 2f,
+                SSound("power_down", 0.35f), SHide(sensorPool), SFadeIn(dark, 0.5f), SWait(0.9f),
+                SLines("field.post.scare.sensor.001", "!field.post.scare.sensor.002"),
+                SSound("lamp_flicker", 0.4f), SFadeOut(dark, 0.15f), SFlicker(sensorPool, 2, 0.08f), SShow(sensorPool));
+            // 계단 위에서 누가 내려오는 발소리. 참 벽에 그림자가 비치다가 멈춘다. 아무도 내려오지 않는다.
+            AddScare(root.transform, "post_stairs", FieldScare.TriggerKind.ReachX, 6.0f, null, 0f,
+                SSound("step_soft_0", 0.25f), SWait(0.55f), SSound("step_soft_1", 0.3f), SWait(0.5f), SSound("step_soft_2", 0.38f),
+                SFadeIn(stairShadow, 0.6f), SSound("step_soft_3", 0.45f), SWait(1.2f), SFadeOut(stairShadow, 0.4f), SWait(0.6f),
+                SLines("field.post.scare.stairs.001", "field.post.scare.stairs.002", "!field.post.scare.stairs.003"));
+            return root;
+        }
+
+        /// <summary>원룸 현장을 짓는다. 조사 지점(책상, 휴대폰, 벽 낙서, 현관, 창문)을 돌려준다.</summary>
+        private static GameObject BuildPostRoomField(Transform parent, out GameObject[] points)
         {
             var root = new GameObject("PostRoom");
             root.transform.SetParent(parent, false);
@@ -72,13 +237,8 @@ namespace UrbanLegendBureau.EditorTools
                 AddFieldRect(window.transform, "Slat_" + i, new Vector2(0f, 1.25f - i * 0.2f), new Vector2(3.6f, 0.09f), new Color(0.55f, 0.57f, 0.62f), -3);
             AddFieldRect(window.transform, "BlindRail", new Vector2(0f, 1.42f), new Vector2(3.8f, 0.14f), trim, -3);
             AddFieldRect(window.transform, "Sill", new Vector2(0f, -1.66f), new Vector2(4.4f, 0.14f), trim, -3);
-            // 창에서 방바닥으로 비스듬히 떨어지는 블라인드 빛 무늬.
-            for (int i = 0; i < 4; i++)
-            {
-                var beam = AddFieldRect(root.transform, "BlindLight_" + i, new Vector2(-8.6f + i * 0.35f, -3.55f - i * 0.16f), new Vector2(2.6f, 0.12f),
-                    new Color(0.65f, 0.72f, 0.95f, 0.07f), -6);
-                beam.transform.localRotation = Quaternion.Euler(0f, 0f, -6f);
-            }
+            // 창에서 방바닥으로 번지는 흐린 거리 불빛. 줄무늬가 따로 놀지 않게 옅은 빛 한 덩이로 둔다.
+            AddFieldSoft(root.transform, "BlindLight", new Vector2(-8.2f, -3.7f), new Vector2(5.0f, 0.7f), new Color(0.65f, 0.72f, 0.95f, 0.08f), -6);
             window.AddComponent<WindowRain>();   // 숙소 창과 같은 빗줄기. Glass 크기에 저절로 맞춘다
             AddFieldRect(root.transform, "Radiator", new Vector2(-10.4f, -2.6f), new Vector2(2.4f, 1.1f), new Color(0.32f, 0.33f, 0.36f), -6);
             for (int i = 0; i < 9; i++)
@@ -152,6 +312,12 @@ namespace UrbanLegendBureau.EditorTools
             // 천장 형광등은 꺼져 있다. 모니터와 휴대폰 불빛이 전부다. 방 전체를 어둡게 덮는다.
             AddFieldRect(root.transform, "Dim", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.08f, 0.32f), -2);
             AddFieldRect(root.transform, "Fluorescent", new Vector2(-1.0f, 3.45f), new Vector2(2.6f, 0.14f), new Color(0.40f, 0.42f, 0.46f), -1);
+            // 형광등이 혼자 켜지는 연출에서만 쓰는 빛. 처음에는 꺼져 있다.
+            var tubeOn = new GameObject("FluorescentOn");
+            tubeOn.transform.SetParent(root.transform, false);
+            AddFieldRect(tubeOn.transform, "Tube", new Vector2(-1.0f, 3.45f), new Vector2(2.6f, 0.14f), new Color(0.92f, 0.96f, 1f), 0);
+            AddFieldSoft(tubeOn.transform, "Pool", new Vector2(-1.0f, 0.4f), new Vector2(16f, 8f), new Color(0.85f, 0.92f, 1f, 0.16f), 0);
+            tubeOn.SetActive(false);
 
             // --- 조사 지점
             var deskPoint = BuildPoint(root.transform, "InvestigationPoint_Desk", new Vector2(1.6f, -1.4f), new Vector2(4.6f, 3.6f),
@@ -160,9 +326,31 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.35f, 0.60f, 0.72f), "field.test.phone", "field.test.phone.result", null);
             var wallPoint = BuildPoint(root.transform, "InvestigationPoint_Wall", new Vector2(7.5f, 0.6f), new Vector2(3.8f, 2.4f),
                 new Color(0.62f, 0.30f, 0.34f), "field.test.wall", "field.test.wall.result", null);
+            var exitPoint = BuildPoint(root.transform, "InvestigationPoint_PostExit", new Vector2(11.6f, -0.5f), new Vector2(2.2f, 5.0f),
+                new Color(0.5f, 0.5f, 0.5f), "field.post.exit", "field.post.exit", null);
+            var windowPoint = BuildPoint(root.transform, "InvestigationPoint_PostWindow", new Vector2(-10.4f, 1.0f), new Vector2(4.0f, 3.2f),
+                new Color(0.4f, 0.5f, 0.7f), "field.post.window", "field.post.window", null);
             SetHighlightTargets(deskPoint, root.transform, "Monitor/Bezel", "Monitor/Screen", "DeskTop", "Keyboard");
             SetHighlightTargets(phonePoint, root.transform, "Phone/Body", "Phone/Screen");
-            return new[] { deskPoint, phonePoint, wallPoint };
+            SetHighlightTargets(exitPoint, root.transform, "Door");
+            SetHighlightTargets(windowPoint, root.transform, "Window/Frame");
+
+            // 현관으로 들어와 왼쪽을 보고 선다.
+            BuildFieldActors(root.transform, -3.86f, 9.4f, 2.4f, -11f, 10.4f, faceLeft: true);
+
+            // --- 무서운 연출
+            // 창 쪽으로 가면 블라인드가 덜컹이고 등 뒤에서 현관문이 쾅 닫힌다. 창이 조금 열려 있었다.
+            var slats = window.transform;
+            AddScare(root.transform, "post_window", FieldScare.TriggerKind.ReachX, -7.6f, null, 1f,
+                SSound("air_rush_pass", 0.35f), SShake(slats.gameObject, 0.6f, 0.06f), SWait(0.3f), SSound("door_slam_1", 0.7f), SWait(0.5f),
+                SLines("field.post.scare.slam.001", "!field.post.scare.slam.002", "field.post.scare.slam.003"));
+            // 벽 낙서를 보고 오면 꺼져 있던 형광등이 혼자 깜빡이며 켜졌다 꺼진다.
+            AddScare(root.transform, "post_tube", FieldScare.TriggerKind.AfterPoint, 0f, "point_wall", 0f,
+                SWait(0.6f), SSound("lamp_flicker", 0.5f), SFlicker(tubeOn, 4, 0.07f), SShow(tubeOn), SWait(0.8f), SSound("power_down", 0.3f), SHide(tubeOn),
+                SWait(0.4f), SLines("field.post.scare.tube.001", "!field.post.scare.tube.002"));
+
+            points = new[] { deskPoint, phonePoint, wallPoint, exitPoint, windowPoint };
+            return root;
         }
 
         // =========================================================== 사건 #002 엘리베이터
@@ -172,9 +360,9 @@ namespace UrbanLegendBureau.EditorTools
         /// 돌려주는 것: 타기 지점, 조작판 지점, 거울 지점, 엘리베이터(ElevatorCar).
         /// </summary>
         private static void BuildElevatorField(Transform parent, out GameObject boardPoint, out GameObject panelPoint,
-            out GameObject mirrorPoint, out ElevatorCar car)
+            out GameObject mirrorPoint, out GameObject bulletinPoint, out ElevatorCar car)
         {
-            var hall = BuildElevatorHall(parent, out boardPoint);
+            var hall = BuildElevatorHall(parent, out boardPoint, out bulletinPoint);
             var inside = BuildElevatorInside(parent, out panelPoint, out mirrorPoint, out car);
 
             var swap = parent.gameObject.AddComponent<FieldSceneSwap>();
@@ -189,7 +377,7 @@ namespace UrbanLegendBureau.EditorTools
         private static readonly Color SteelDark = new Color(0.34f, 0.36f, 0.40f);
         private static readonly Color SteelLight = new Color(0.68f, 0.71f, 0.75f);
 
-        private static GameObject BuildElevatorHall(Transform parent, out GameObject boardPoint)
+        private static GameObject BuildElevatorHall(Transform parent, out GameObject boardPoint, out GameObject bulletinPoint)
         {
             var root = new GameObject("ElevatorHall");
             root.transform.SetParent(parent, false);
@@ -197,23 +385,32 @@ namespace UrbanLegendBureau.EditorTools
             var wall = new Color(0.30f, 0.31f, 0.33f);
             var shadow = new Color(0f, 0f, 0f, 0.4f);
 
-            // 밤의 사무 건물 복도. 대리석 무늬 바닥, 흰 벽판, 천장 등 몇 개만 켜져 있다.
-            AddFieldRect(root.transform, "Wall", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), wall, -9);
-            for (int i = 0; i <= 22; i++)
-                AddFieldRect(root.transform, "Panel_" + i, new Vector2(-22f + i * 2.0f, 0.4f), new Vector2(0.05f, 7.0f), Color.Lerp(wall, Color.black, 0.2f), -8);
-            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 3.75f), new Vector2(44f, 0.5f), new Color(0.22f, 0.23f, 0.25f), -8);
-            AddFieldRect(root.transform, "Floor", new Vector2(0f, -4.5f), new Vector2(44f, 2.2f), new Color(0.26f, 0.26f, 0.27f), -8);
+            // 구도시 구오 빌라 1층 현관 홀. 누렇게 바랜 잔 타일 벽, 검은 줄눈의 바닥 타일, 천장 등 두 개.
+            // 왼쪽 끝은 비 오는 공동 현관 유리문과 우편함, 엘리베이터 위에 건물 이름판, 오른쪽에 관리실 게시판.
+            var tile = new Color(0.47f, 0.44f, 0.37f);
+            AddFieldRect(root.transform, "Wall", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), tile, -9);
+            for (int i = 0; i <= 88; i++)
+                AddFieldRect(root.transform, "TileV_" + i, new Vector2(-22f + i * 0.5f, 0.4f), new Vector2(0.025f, 7.2f), Color.Lerp(tile, Color.black, 0.18f), -8);
             for (int i = 0; i <= 14; i++)
-                AddFieldRect(root.transform, "Tile_" + i, new Vector2(-21f + i * 3.0f, -4.5f), new Vector2(0.04f, 2.2f), new Color(0.2f, 0.2f, 0.21f), -7);
-            AddFieldGradient(root.transform, "FloorSheen", new Vector2(0f, -3.7f), new Vector2(44f, 0.8f), new Color(1f, 1f, 1f, 0.06f), -7);
-            AddFieldRect(root.transform, "Baseboard", new Vector2(0f, -3.3f), new Vector2(44f, 0.18f), new Color(0.18f, 0.18f, 0.19f), -7);
+                AddFieldRect(root.transform, "TileH_" + i, new Vector2(0f, -3.2f + i * 0.5f), new Vector2(44f, 0.025f), Color.Lerp(tile, Color.black, 0.18f), -8);
+            AddFieldRect(root.transform, "WainBand", new Vector2(0f, -1.6f), new Vector2(44f, 0.18f), new Color(0.32f, 0.26f, 0.20f), -8);
+            foreach (var p in new[] { new Vector2(-4.6f, 2.2f), new Vector2(9.8f, 1.4f), new Vector2(-8.4f, -1.9f) })
+                AddFieldSoft(root.transform, "Stain", p, new Vector2(2.0f, 1.4f), new Color(0.2f, 0.18f, 0.12f, 0.3f), -8);
+            AddFieldRect(root.transform, "Ceiling", new Vector2(0f, 3.75f), new Vector2(44f, 0.5f), new Color(0.2f, 0.2f, 0.2f), -8);
+            AddFieldRect(root.transform, "Floor", new Vector2(0f, -4.5f), new Vector2(44f, 2.2f), new Color(0.24f, 0.22f, 0.21f), -8);
+            for (int i = 0; i <= 29; i++)
+                AddFieldRect(root.transform, "Tile_" + i, new Vector2(-21.75f + i * 1.5f, -4.5f), new Vector2(0.04f, 2.2f), new Color(0.12f, 0.12f, 0.12f), -7);
+            AddFieldRect(root.transform, "TileRow", new Vector2(0f, -4.3f), new Vector2(44f, 0.04f), new Color(0.12f, 0.12f, 0.12f), -7);
+            AddFieldGradient(root.transform, "FloorSheen", new Vector2(0f, -3.7f), new Vector2(44f, 0.8f), new Color(1f, 1f, 1f, 0.05f), -7);
+            AddFieldRect(root.transform, "Baseboard", new Vector2(0f, -3.3f), new Vector2(44f, 0.18f), new Color(0.16f, 0.15f, 0.14f), -7);
 
-            // 천장 등. 가운데 둘은 켜져 있고, 오른쪽 하나는 꺼져 있다.
-            foreach (var x in new[] { -8f, 0f, 8f })
+            // 천장 등. 왼쪽은 밝고 오른쪽은 누렇게 약하다.
+            var lamps = new GameObject("Lamps");
+            lamps.transform.SetParent(root.transform, false);
+            foreach (var x in new[] { -6f, 4.5f })
             {
-                bool on = x <= 0f;
-                AddFieldRect(root.transform, "Light_" + x, new Vector2(x, 3.42f), new Vector2(2.4f, 0.14f), on ? new Color(0.92f, 0.95f, 0.98f) : new Color(0.35f, 0.36f, 0.38f), -6);
-                if (on) AddFieldSoft(root.transform, "LightPool_" + x, new Vector2(x, 1.0f), new Vector2(6.5f, 6.0f), new Color(0.85f, 0.9f, 1f, 0.12f), -6);
+                AddFieldRect(lamps.transform, "Light_" + x, new Vector2(x, 3.42f), new Vector2(1.8f, 0.16f), new Color(0.95f, 0.93f, 0.85f), -6);
+                AddFieldSoft(lamps.transform, "LightPool_" + x, new Vector2(x, 0.8f), new Vector2(7.5f, 6.4f), new Color(1f, 0.92f, 0.75f, x < 0f ? 0.13f : 0.08f), -6);
             }
 
             // 엘리베이터 두 대. 왼쪽(타는 쪽)은 1층에 서 있다. 오른쪽은 '점검 중' 안내가 붙어 있다.
@@ -222,37 +419,90 @@ namespace UrbanLegendBureau.EditorTools
             {
                 float x = carX[c];
                 AddFieldRect(root.transform, "Frame_" + c, new Vector2(x, -0.55f), new Vector2(3.4f, 5.6f), SteelDark, -7);
-                AddFieldRect(root.transform, "DoorL_" + c, new Vector2(x - 0.78f, -0.6f), new Vector2(1.52f, 5.3f), Steel, -6);
-                AddFieldRect(root.transform, "DoorR_" + c, new Vector2(x + 0.78f, -0.6f), new Vector2(1.52f, 5.3f), Steel, -6);
-                AddFieldGradient(root.transform, "DoorSheen_" + c, new Vector2(x, 0.8f), new Vector2(3.1f, 2.4f), new Color(1f, 1f, 1f, 0.08f), -5);
-                AddFieldRect(root.transform, "Seam_" + c, new Vector2(x, -0.6f), new Vector2(0.04f, 5.3f), SteelDark, -5);
+                // 문 뒤의 텅 빈 칸. 오른쪽 문이 저절로 열리는 연출에서만 보인다.
+                if (c == 1)
+                {
+                    var empty = new GameObject("EmptyCar_1");
+                    empty.transform.SetParent(root.transform, false);
+                    AddFieldRect(empty.transform, "Dark", new Vector2(x, -0.6f), new Vector2(3.1f, 5.3f), new Color(0.05f, 0.05f, 0.06f), -6);
+                    AddFieldSoft(empty.transform, "Dim", new Vector2(x, 1.6f), new Vector2(2.8f, 1.8f), new Color(0.7f, 0.75f, 0.8f, 0.12f), -6);
+                    AddFieldRect(empty.transform, "Rail", new Vector2(x, -1.6f), new Vector2(3.0f, 0.08f), new Color(0.35f, 0.36f, 0.38f), -6);
+                }
+                var leafL = new GameObject("DoorL_" + c);
+                leafL.transform.SetParent(root.transform, false);
+                leafL.transform.localPosition = new Vector3(x - 0.78f, -0.6f, 0f);
+                AddFieldRect(leafL.transform, "Leaf", Vector2.zero, new Vector2(1.52f, 5.3f), Steel, -5);
+                var leafR = new GameObject("DoorR_" + c);
+                leafR.transform.SetParent(root.transform, false);
+                leafR.transform.localPosition = new Vector3(x + 0.78f, -0.6f, 0f);
+                AddFieldRect(leafR.transform, "Leaf", Vector2.zero, new Vector2(1.52f, 5.3f), Steel, -5);
+                AddFieldRect(leafR.transform, "Seam", new Vector2(-0.76f, 0f), new Vector2(0.04f, 5.3f), SteelDark, -4);
+                AddFieldGradient(root.transform, "DoorSheen_" + c, new Vector2(x, 0.8f), new Vector2(3.1f, 2.4f), new Color(1f, 1f, 1f, 0.06f), -4);
+                // 문짝이 열리며 숨는 양옆 벽.
+                AddFieldRect(root.transform, "JambL_" + c, new Vector2(x - 2.5f, -0.55f), new Vector2(1.6f, 5.6f), tile, -3);
+                AddFieldRect(root.transform, "JambR_" + c, new Vector2(x + 2.5f, -0.55f), new Vector2(1.6f, 5.6f), tile, -3);
                 AddFieldRect(root.transform, "Indicator_" + c, new Vector2(x, 2.75f), new Vector2(1.0f, 0.42f), new Color(0.05f, 0.05f, 0.06f), -6);
                 var digit = AddFieldWorldText(root.transform, "Floor_" + c, new Vector2(x, 2.75f), new Vector2(0.9f, 0.4f),
                     c == 0 ? "field.elev.floor_1" : "field.elev.floor_3", new Color(0.95f, 0.30f, 0.22f), -5);
                 digit.fontSizeMax = 3.4f;
-                AddFieldRect(root.transform, "CallPanel_" + c, new Vector2(x + 2.05f, -0.9f), new Vector2(0.36f, 0.8f), SteelDark, -6);
-                AddFieldCircle(root.transform, "CallUp_" + c, new Vector2(x + 2.05f, -0.72f), 0.18f, c == 0 ? new Color(1f, 0.8f, 0.4f) : SteelLight, -5);
-                AddFieldCircle(root.transform, "CallDown_" + c, new Vector2(x + 2.05f, -1.08f), 0.18f, SteelLight, -5);
             }
+            // 호출 단추. 두 대 사이 벽에 하나.
+            AddFieldRect(root.transform, "CallPanel", new Vector2(0.9f, -0.9f), new Vector2(0.36f, 0.8f), SteelDark, -2);
+            AddFieldCircle(root.transform, "CallUp", new Vector2(0.9f, -0.72f), 0.18f, new Color(1f, 0.8f, 0.4f), -1);
+            AddFieldCircle(root.transform, "CallDown", new Vector2(0.9f, -1.08f), 0.18f, SteelLight, -1);
             // 오른쪽 엘리베이터 문에 붙은 점검 안내. 홀에 서면 바로 보인다.
-            AddFieldRect(root.transform, "NoticeSheet", new Vector2(3.4f, -0.1f), new Vector2(1.5f, 1.1f), new Color(0.92f, 0.9f, 0.82f), -4);
-            var notice = AddFieldWorldText(root.transform, "Notice", new Vector2(3.4f, -0.1f), new Vector2(1.4f, 1.0f), "field.elev.notice", new Color(0.2f, 0.18f, 0.16f), -3);
+            var noticeGroup = new GameObject("Notice");
+            noticeGroup.transform.SetParent(root.transform, false);
+            AddFieldRect(noticeGroup.transform, "NoticeSheet", new Vector2(3.4f, -0.1f), new Vector2(1.5f, 1.1f), new Color(0.92f, 0.9f, 0.82f), -3);
+            var notice = AddFieldWorldText(noticeGroup.transform, "NoticeText", new Vector2(3.4f, -0.1f), new Vector2(1.4f, 1.0f), "field.elev.notice", new Color(0.2f, 0.18f, 0.16f), -2);
             notice.textWrappingMode = TextWrappingModes.Normal;
             notice.fontSizeMax = 1.6f;
+            // 엘리베이터 위의 건물 이름판.
+            AddFieldRect(root.transform, "NamePlate", new Vector2(0.9f, 3.25f), new Vector2(4.4f, 0.5f), new Color(0.28f, 0.22f, 0.16f), -5);
+            var plate = AddFieldWorldText(root.transform, "NamePlateText", new Vector2(0.9f, 3.25f), new Vector2(4.2f, 0.46f), "field.elev.building", new Color(0.86f, 0.78f, 0.55f), -4);
+            plate.fontSizeMax = 2.6f;
 
-            // 왼쪽 끝 창과 화분, 오른쪽 끝 비상구 표시와 소화기. 사람이 없는 건물이라는 것이 보이게.
-            AddFieldRect(root.transform, "Window", new Vector2(-10.5f, 0.8f), new Vector2(3.6f, 3.6f), new Color(0.07f, 0.08f, 0.13f), -7);
-            AddFieldRect(root.transform, "WindowMullion", new Vector2(-10.5f, 0.8f), new Vector2(0.1f, 3.6f), SteelDark, -6);
-            AddFieldRect(root.transform, "WindowFrame", new Vector2(-10.5f, -1.05f), new Vector2(3.8f, 0.12f), SteelDark, -6);
-            foreach (var p in new[] { new Vector2(-11.4f, 0.2f), new Vector2(-9.7f, 1.1f), new Vector2(-9.4f, 0.0f) })
-                AddFieldRect(root.transform, "City", p, new Vector2(0.15f, 0.18f), new Color(0.7f, 0.6f, 0.35f), -5);
-            AddFieldSoft(root.transform, "Shadow_Plant", new Vector2(-7.0f, -3.42f), new Vector2(1.4f, 0.3f), shadow, -6);
-            AddFieldRect(root.transform, "Pot", new Vector2(-7.0f, -2.95f), new Vector2(0.8f, 0.8f), new Color(0.3f, 0.22f, 0.18f), -5);
-            AddFieldCircle(root.transform, "Leaves", new Vector2(-7.0f, -1.9f), 1.4f, new Color(0.16f, 0.28f, 0.2f), -5);
-            AddFieldRect(root.transform, "ExitSign", new Vector2(9.6f, 2.6f), new Vector2(1.1f, 0.42f), new Color(0.15f, 0.65f, 0.35f), -6);
-            AddFieldSoft(root.transform, "ExitGlow", new Vector2(9.6f, 2.6f), new Vector2(2.4f, 1.4f), new Color(0.2f, 0.9f, 0.45f, 0.18f), -6);
-            AddFieldRect(root.transform, "Extinguisher", new Vector2(8.2f, -2.8f), new Vector2(0.4f, 0.9f), new Color(0.65f, 0.12f, 0.12f), -5);
-            AddFieldRect(root.transform, "ExtinguisherBox", new Vector2(8.2f, -2.6f), new Vector2(0.7f, 1.5f), new Color(0.2f, 0.2f, 0.22f, 0.5f), -6);
+            // 왼쪽 끝 공동 현관 유리문. 밖에 비가 온다.
+            var entrance = new GameObject("Window");
+            entrance.transform.SetParent(root.transform, false);
+            entrance.transform.localPosition = new Vector3(-12.6f, -0.4f, 0f);
+            AddFieldRect(entrance.transform, "Frame", Vector2.zero, new Vector2(3.6f, 5.8f), new Color(0.22f, 0.22f, 0.24f), -7);
+            AddFieldRect(entrance.transform, "Glass", Vector2.zero, new Vector2(3.2f, 5.4f), new Color(0.06f, 0.08f, 0.13f), -6);
+            AddFieldRect(entrance.transform, "Mullion", Vector2.zero, new Vector2(0.08f, 5.4f), new Color(0.22f, 0.22f, 0.24f), -4);
+            AddFieldRect(entrance.transform, "Handle", new Vector2(0.3f, -0.4f), new Vector2(0.08f, 0.8f), new Color(0.6f, 0.6f, 0.58f), -4);
+            AddFieldSoft(entrance.transform, "StreetLamp", new Vector2(-0.6f, 1.6f), new Vector2(1.6f, 1.6f), new Color(1f, 0.8f, 0.45f, 0.3f), -5);
+            entrance.AddComponent<WindowRain>();
+            // 우편함. 칸 열여섯, 몇 칸은 전단이 삐져나와 있다.
+            var mail = new GameObject("Mailboxes");
+            mail.transform.SetParent(root.transform, false);
+            mail.transform.localPosition = new Vector3(-8.6f, 0.2f, 0f);
+            AddFieldRect(mail.transform, "Back", Vector2.zero, new Vector2(3.0f, 2.2f), new Color(0.36f, 0.37f, 0.38f), -6);
+            for (int r = 0; r < 4; r++)
+                for (int k = 0; k < 4; k++)
+                {
+                    var box = new Vector2(-1.1f + k * 0.74f, 0.78f - r * 0.52f);
+                    AddFieldRect(mail.transform, "Box", box, new Vector2(0.66f, 0.44f), new Color(0.50f, 0.51f, 0.52f), -5);
+                    AddFieldRect(mail.transform, "Slot", box + new Vector2(0f, 0.08f), new Vector2(0.4f, 0.05f), new Color(0.15f, 0.15f, 0.16f), -4);
+                    if ((r * 4 + k) % 5 == 2) AddFieldRect(mail.transform, "Flyer", box + new Vector2(0.05f, 0.16f), new Vector2(0.36f, 0.12f), new Color(0.88f, 0.84f, 0.7f), -3);
+                }
+            var flap = AddFieldRect(mail.transform, "LooseFlap", new Vector2(1.12f, -0.78f), new Vector2(0.66f, 0.44f), new Color(0.56f, 0.57f, 0.58f), -3);
+            // 관리실 게시판. 코르크판에 안내문 몇 장. 가운데 한 장이 3층 정지 안내다.
+            var board = new GameObject("Bulletin");
+            board.transform.SetParent(root.transform, false);
+            board.transform.localPosition = new Vector3(8.2f, 0.5f, 0f);
+            AddFieldRect(board.transform, "Frame", Vector2.zero, new Vector2(2.8f, 2.0f), new Color(0.30f, 0.22f, 0.15f), -6);
+            AddFieldRect(board.transform, "Cork", Vector2.zero, new Vector2(2.6f, 1.8f), new Color(0.55f, 0.42f, 0.28f), -5);
+            AddFieldRect(board.transform, "Sheet_0", new Vector2(-0.7f, 0.25f), new Vector2(0.8f, 1.0f), new Color(0.92f, 0.91f, 0.86f), -4);
+            AddFieldRect(board.transform, "Sheet_1", new Vector2(0.25f, 0.1f), new Vector2(0.9f, 1.2f), new Color(0.96f, 0.95f, 0.9f), -4);
+            AddFieldRect(board.transform, "Sheet_2", new Vector2(0.95f, -0.35f), new Vector2(0.55f, 0.6f), new Color(0.95f, 0.85f, 0.5f), -4);
+            AddFieldRect(board.transform, "Pin", new Vector2(0.25f, 0.62f), new Vector2(0.1f, 0.1f), new Color(0.8f, 0.2f, 0.2f), -3);
+
+            // 오른쪽 끝 계단실 문과 비상구 표시, 소화기.
+            AddFieldRect(root.transform, "StairDoor", new Vector2(11.6f, -0.6f), new Vector2(2.0f, 5.3f), new Color(0.24f, 0.26f, 0.25f), -6);
+            AddFieldRect(root.transform, "StairDoorWin", new Vector2(11.6f, 0.9f), new Vector2(0.6f, 0.9f), new Color(0.05f, 0.06f, 0.08f), -5);
+            AddFieldRect(root.transform, "ExitSign", new Vector2(11.6f, 2.6f), new Vector2(1.1f, 0.42f), new Color(0.15f, 0.65f, 0.35f), -6);
+            AddFieldSoft(root.transform, "ExitGlow", new Vector2(11.6f, 2.6f), new Vector2(2.4f, 1.4f), new Color(0.2f, 0.9f, 0.45f, 0.18f), 13);
+            AddFieldRect(root.transform, "Extinguisher", new Vector2(9.8f, -2.8f), new Vector2(0.4f, 0.9f), new Color(0.65f, 0.12f, 0.12f), -5);
             AddFieldGradient(root.transform, "CeilingShade", new Vector2(0f, 3.0f), new Vector2(44f, 1.2f), new Color(0f, 0f, 0f, 0.35f), -6);
             AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.07f, 0.25f), -2);
 
@@ -261,6 +511,29 @@ namespace UrbanLegendBureau.EditorTools
             boardPoint = BuildPoint(root.transform, "InvestigationPoint_ElevBoard", new Vector2(-1.6f, -0.6f), new Vector2(3.2f, 5.4f),
                 new Color(0.6f, 0.66f, 0.74f), "field.elev.board", "field.elev.board", null);
             SetHighlightTargets(boardPoint, root.transform, "DoorL_0", "DoorR_0");
+            bulletinPoint = BuildPoint(root.transform, "InvestigationPoint_ElevBulletin", new Vector2(8.2f, 0.5f), new Vector2(3.0f, 2.2f),
+                new Color(0.7f, 0.6f, 0.45f), "field.elev.bulletin", "field.elev.bulletin", null);
+            SetHighlightTargets(bulletinPoint, root.transform, "Bulletin");
+
+            // --- 무서운 연출
+            var dark = AddBlackout(root.transform, "Blackout", new Color(0f, 0f, 0.02f, 0.96f));
+            var emptyCar = root.transform.Find("EmptyCar_1").gameObject;
+            emptyCar.SetActive(false);
+            var leafL1 = root.transform.Find("DoorL_1").gameObject;
+            var leafR1 = root.transform.Find("DoorR_1").gameObject;
+            root.transform.Find("Notice").SetParent(leafR1.transform, true);   // 안내문은 오른쪽 문짝에 붙어 함께 움직인다
+            // 점검 중이라던 오른쪽 엘리베이터가 혼자 내려와 텅 빈 채 열렸다 닫힌다.
+            AddScare(root.transform, "elev_empty", FieldScare.TriggerKind.ReachX, 1.4f, null, 1.5f,
+                SSound("elevator_ding", 0.45f, 0.92f), SWait(0.5f), SShow(emptyCar), SSound("door_slide", 0.45f),
+                SMoveAsync(leafL1, new Vector2(-1.5f, 0f), 1.0f), SMove(leafR1, new Vector2(1.5f, 0f), 1.0f), SWait(1.6f),
+                SLines("field.elev.scare.empty.001", "!field.elev.scare.empty.002"),
+                SSound("door_slide", 0.4f, 0.9f), SMoveAsync(leafL1, new Vector2(1.5f, 0f), 0.9f), SMove(leafR1, new Vector2(-1.5f, 0f), 0.9f), SHide(emptyCar));
+            // 우편함 앞에서 홀 불이 나가고 비상구 불빛만 남는다. 어둠 속에서 우편함 뚜껑 하나가 덜컹인다.
+            var mailScare = AddScare(root.transform, "elev_mail", FieldScare.TriggerKind.ReachX, -6.6f, null, 0f,
+                SSound("power_down", 0.4f), SFadeIn(dark, 0.25f), SWait(0.8f), SSound("door_bang_2", 0.3f, 1.4f), SShake(flap, 0.35f, 0.05f), SWait(0.6f),
+                SLines("field.elev.scare.mail.001", "!field.elev.scare.mail.002"),
+                SSound("lamp_flicker", 0.45f), SFadeOut(dark, 0.2f), SFlicker(lamps, 2, 0.07f));
+            mailScare.RequireFlag = "field_event:scare_elev_empty";   // 빈 엘리베이터를 본 뒤, 돌아 나올 때
             return root;
         }
 
@@ -385,6 +658,28 @@ namespace UrbanLegendBureau.EditorTools
                 new Color(0.55f, 0.65f, 0.75f), "field.test.mirror", "field.test.mirror.result", null);
             SetHighlightTargets(panelPoint, root.transform, "PanelPlate", "PanelCover");
             SetHighlightTargets(mirrorPoint, root.transform, "MirrorFrame", "Mirror");
+
+            // --- 무서운 연출
+            // 3층 연출 뒤: 칸의 불이 나가고 붉은 비상등만 켜진다. 표시등은 3 에서 깜빡인다. 몇 초 뒤 불이 돌아온다.
+            var dark = AddBlackout(root.transform, "Blackout", new Color(0f, 0f, 0.02f, 0.97f));
+            var red = AddFieldSoft(root.transform, "EmergencyRed", new Vector2(0f, 2.6f), new Vector2(12f, 7f), new Color(0.9f, 0.08f, 0.06f, 0.3f), 13);
+            red.SetActive(false);
+            var redLamp = AddFieldRect(root.transform, "EmergencyLamp", new Vector2(-3.2f, 2.95f), new Vector2(0.5f, 0.2f), new Color(1f, 0.2f, 0.15f), 14);
+            redLamp.SetActive(false);
+            var blackoutScare = AddScare(root.transform, "elev_blackout", FieldScare.TriggerKind.OnShow, 0f, null, 0f,
+                SWait(2.5f), SSound("power_down", 0.5f), SFadeIn(dark, 0.12f), SWait(1.0f), SSound("lamp_flicker", 0.3f, 0.7f), SShow(red), SShow(redLamp), SWait(0.8f),
+                SLines("field.elev.scare.blackout.001", "!field.elev.scare.blackout.002", "field.elev.scare.blackout.003"),
+                SSound("light_switch", 0.4f), SHide(red), SHide(redLamp), SFadeOut(dark, 0.2f));
+            blackoutScare.RequireFlag = "field_event:elev_3f";
+            // 거울을 보고 오면, 거울 속 두 사람 뒤에 하나가 더 비쳤다가 사라진다.
+            var third = new GameObject("MirrorThird");
+            third.transform.SetParent(root.transform, false);
+            AddFieldCircle(third.transform, "Head", new Vector2(-3.55f, 1.25f), 0.42f, new Color(0.08f, 0.09f, 0.11f, 0.85f), -2);
+            AddFieldRect(third.transform, "Body", new Vector2(-3.55f, 0.15f), new Vector2(0.62f, 1.7f), new Color(0.08f, 0.09f, 0.11f, 0.85f), -2);
+            third.SetActive(false);
+            AddScare(root.transform, "elev_mirror", FieldScare.TriggerKind.AfterPoint, 0f, "point_mirror", 0f,
+                SWait(0.5f), SFadeIn(third, 0.08f), SSound("ghost_sting", 0.35f), SWait(0.35f), SFadeOut(third, 0.12f), SSound("heartbeat", 0.4f), SWait(0.5f),
+                SLines("field.elev.scare.mirror.001", "!field.elev.scare.mirror.002", "field.elev.scare.mirror.003"));
             return root;
         }
 
@@ -437,7 +732,7 @@ namespace UrbanLegendBureau.EditorTools
             CloseupRect(go.transform, "Desk", new Vector2(0f, -190f), new Vector2(1920f, 220f), new Color(0.27f, 0.22f, 0.18f));
             CloseupRect(go.transform, "DeskEdge", new Vector2(0f, -86f), new Vector2(1920f, 14f), new Color(0.34f, 0.28f, 0.23f));
 
-            var monitor = CloseupGroup(go.transform, "Monitor", new Vector2(0f, 250f));
+            var monitor = CloseupGroup(go.transform, "Monitor", new Vector2(0f, 222f));
             CloseupRect(monitor.transform, "Bezel", Vector2.zero, new Vector2(1060f, 600f), new Color(0.04f, 0.04f, 0.05f));
             CloseupRect(monitor.transform, "Screen", new Vector2(0f, 10f), new Vector2(1010f, 540f), new Color(0.94f, 0.95f, 0.97f));
             CloseupRect(monitor.transform, "SiteBar", new Vector2(0f, 248f), new Vector2(1010f, 44f), new Color(0.20f, 0.25f, 0.36f));
@@ -488,14 +783,80 @@ namespace UrbanLegendBureau.EditorTools
             var printHit = CloseupHotspot(go.transform, "Hotspot_Prints", new Vector2(545f, -215f), new Vector2(380f, 170f));
             AttachGlow(printHit, prints);
 
+            // 키보드 왼쪽의 손바닥만 한 수첩. 펼친 쪽에 날짜와 시각, 계정 이름이 빽빽하다(지운 기록).
+            var book = CloseupGroup(go.transform, "Notebook", new Vector2(-700f, -175f));
+            var cover = CloseupRect(book.transform, "Cover", Vector2.zero, new Vector2(300f, 150f), new Color(0.16f, 0.2f, 0.3f));
+            cover.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 3f);
+            var pageL = CloseupRect(book.transform, "PageL", new Vector2(-70f, 4f), new Vector2(136f, 136f), new Color(0.94f, 0.93f, 0.88f));
+            var pageR = CloseupRect(book.transform, "PageR", new Vector2(70f, 4f), new Vector2(136f, 136f), new Color(0.94f, 0.93f, 0.88f));
+            foreach (var page in new[] { pageL, pageR })
+                for (int l = 0; l < 6; l++)
+                    CloseupRect(page.transform, "Row", new Vector2(-6f, 50f - l * 19f), new Vector2(100f - (l % 3) * 14f, 4f), l % 2 == 0 ? new Color(0.25f, 0.3f, 0.5f) : new Color(0.6f, 0.2f, 0.2f));
+            var bookHit = CloseupHotspot(go.transform, "Hotspot_Notebook", new Vector2(-700f, -175f), new Vector2(320f, 170f));
+            AttachGlow(bookHit, book);
+
             FinishCloseup(go, screen, "field.post.desk_hint",
-                new[] { postHit, printHit, noteHit },
-                new[] { "field.post.desk_post", "field.post.desk_prints", "field.post.desk_note" },
-                actionIds: new[] { null, "action_test_002", null });
+                new[] { postHit, printHit, noteHit, bookHit },
+                new[] { "field.post.desk_post", "field.post.desk_prints", "field.post.desk_note", "field.post.desk_book" },
+                actionIds: new[] { null, "action_test_002", null, "action_test_011" });
             return screen;
         }
 
         /// <summary>침대 위 휴대폰. 잠금 화면에 공유 알림이 세 개. 넷째 알림은 진행 담당이 띄운다.</summary>
+        /// <summary>
+        /// 302호 문 앞에 쌓인 우편물. 철문 아랫단과 복도 바닥. 고지서, 전단 묶음, 우유 투입구.
+        /// 고지서 날짜로 며칠째 아무도 드나들지 않았는지 안다. 투입구 안으로는 파란 모니터 불빛이 새어 나온다.
+        /// </summary>
+        private static CloseupScreen BuildPostPileCloseup(string name)
+        {
+            var screen = NewCloseup(name, new Color(0.06f, 0.06f, 0.07f, 1f), out var go);
+            CloseupRect(go.transform, "Door", new Vector2(-40f, 300f), new Vector2(1100f, 560f), new Color(0.30f, 0.25f, 0.22f));
+            CloseupRect(go.transform, "DoorPanel", new Vector2(-40f, 320f), new Vector2(900f, 420f), new Color(0.22f, 0.18f, 0.16f));
+            CloseupRect(go.transform, "Sill", new Vector2(-40f, 12f), new Vector2(1180f, 24f), new Color(0.18f, 0.18f, 0.19f));
+            CloseupRect(go.transform, "Floor", new Vector2(0f, -170f), new Vector2(1920f, 340f), new Color(0.28f, 0.28f, 0.27f));
+            for (int i = 0; i < 40; i++)
+                CloseupRect(go.transform, "Grit", new Vector2(-940f + (i * 137) % 1880, -40f - (i * 53) % 290), new Vector2(8f, 5f), new Color(0.38f, 0.38f, 0.36f));
+            var shade = CloseupRect(go.transform, "Shade", new Vector2(0f, 300f), new Vector2(1920f, 600f), new Color(0f, 0f, 0f, 0.25f));
+            shade.sprite = FieldSoftSprite(); shade.type = Image.Type.Simple;
+
+            // 우유 투입구. 덮개 틈으로 안쪽의 파란 빛이 새어 나온다(진행 담당이 살핀 뒤 깜빡이게 한다).
+            var slot = CloseupGroup(go.transform, "MilkSlot", new Vector2(120f, 330f));
+            CloseupRect(slot.transform, "Frame", Vector2.zero, new Vector2(360f, 90f), new Color(0.55f, 0.55f, 0.52f));
+            CloseupRect(slot.transform, "Gap", new Vector2(0f, -8f), new Vector2(320f, 34f), new Color(0.03f, 0.03f, 0.05f));
+            var leak = CloseupRect(slot.transform, "Leak", new Vector2(0f, -8f), new Vector2(300f, 18f), new Color(0.35f, 0.55f, 1f, 0.55f));
+            leak.gameObject.name = "Leak";
+            var slotHit = CloseupHotspot(go.transform, "Hotspot_Slot", new Vector2(120f, 330f), new Vector2(400f, 130f));
+            AttachGlow(slotHit, slot);
+
+            // 바닥의 전단 묶음. 같은 치킨집 전단이 날짜만 다르게 세 장.
+            var flyers = CloseupGroup(go.transform, "Flyers", new Vector2(-470f, -120f));
+            Color[] flyerCol = { new Color(0.92f, 0.86f, 0.55f), new Color(0.90f, 0.88f, 0.84f), new Color(0.86f, 0.5f, 0.42f) };
+            for (int i = 0; i < 3; i++)
+            {
+                var f = CloseupRect(flyers.transform, "Flyer_" + i, new Vector2(i * 40f, i * 18f), new Vector2(330f, 200f), flyerCol[i]);
+                f.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -10f + i * 9f);
+                CloseupRect(f.transform, "Head", new Vector2(0f, 60f), new Vector2(260f, 36f), new Color(0.75f, 0.2f, 0.15f, 0.8f));
+                for (int l = 0; l < 3; l++) CloseupRect(f.transform, "Line", new Vector2(0f, 6f - l * 30f), new Vector2(240f - l * 40f, 8f), new Color(0.4f, 0.4f, 0.4f));
+            }
+            var flyerHit = CloseupHotspot(go.transform, "Hotspot_Flyers", new Vector2(-430f, -100f), new Vector2(460f, 280f));
+            AttachGlow(flyerHit, flyers);
+
+            // 붉은 줄의 고지서 봉투. '미납 안내'. 소인 날짜가 사흘 전이다.
+            var bill = CloseupGroup(go.transform, "Bill", new Vector2(360f, -150f));
+            var env = CloseupRect(bill.transform, "Envelope", Vector2.zero, new Vector2(400f, 220f), new Color(0.93f, 0.92f, 0.88f));
+            env.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 7f);
+            CloseupRect(env.transform, "RedBand", new Vector2(0f, 70f), new Vector2(400f, 30f), new Color(0.75f, 0.18f, 0.16f));
+            CloseupLabel(env.transform, "Text", "field.post.pile_bill_label", 26f, UIFontWeight.Bold, new Color(0.3f, 0.12f, 0.1f), new Vector2(0f, 0f), new Vector2(360f, 110f), TextAlignmentOptions.Center);
+            var billHit = CloseupHotspot(go.transform, "Hotspot_Bill", new Vector2(360f, -150f), new Vector2(440f, 260f));
+            AttachGlow(billHit, bill);
+
+            FinishCloseup(go, screen, "field.post.pile_hint",
+                new[] { billHit, flyerHit, slotHit },
+                new[] { "field.post.pile_bill", "field.post.pile_flyers", "field.post.pile_slot" },
+                actionIds: new[] { "action_test_012", null, null });
+            return screen;
+        }
+
         private static CloseupScreen BuildPostPhoneCloseup(string name)
         {
             var screen = NewCloseup(name, new Color(0.06f, 0.07f, 0.10f, 1f), out var go);
@@ -578,6 +939,55 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>엘리베이터 조작판. 3층 버튼만 닳아 반들거린다. 아래 덮개를 열면 점검 표시가 붙어 있다.</summary>
+        /// <summary>
+        /// 구오 빌라 1층 관리실 게시판. 코르크판에 안내문 셋과 손글씨 쪽지 하나.
+        /// 가운데 관리실 안내가 3층 자동 정지(점검 설정)를 알린다. 쪽지는 주민이 붙인 항의다.
+        /// </summary>
+        private static CloseupScreen BuildElevBulletinCloseup(string name)
+        {
+            var screen = NewCloseup(name, new Color(0.07f, 0.06f, 0.05f, 1f), out var go);
+            CloseupRect(go.transform, "Wall", new Vector2(0f, 120f), new Vector2(1920f, 860f), new Color(0.36f, 0.33f, 0.27f));
+            for (int i = 0; i < 48; i++)
+                CloseupRect(go.transform, "Grout", new Vector2(-940f + i * 40f, 120f), new Vector2(2f, 860f), new Color(0.3f, 0.27f, 0.22f));
+            CloseupRect(go.transform, "Frame", new Vector2(0f, 150f), new Vector2(1500f, 760f), new Color(0.30f, 0.22f, 0.15f));
+            CloseupRect(go.transform, "Cork", new Vector2(0f, 150f), new Vector2(1440f, 700f), new Color(0.58f, 0.44f, 0.29f));
+            for (int i = 0; i < 60; i++)
+                CloseupRect(go.transform, "Speck", new Vector2(-700f + (i * 233) % 1400, -180f + (i * 97) % 650), new Vector2(6f, 6f), new Color(0.48f, 0.36f, 0.23f));
+
+            // 왼쪽: 정기 소독 안내. 오래돼 누렇다.
+            var left = CloseupGroup(go.transform, "Disinfect", new Vector2(-470f, 200f));
+            var lp = CloseupRect(left.transform, "Paper", Vector2.zero, new Vector2(340f, 440f), new Color(0.88f, 0.85f, 0.74f));
+            lp.rectTransform.localRotation = Quaternion.Euler(0f, 0f, -3f);
+            CloseupLabel(lp.transform, "Text", "field.elev.bulletin_disinfect", 26f, UIFontWeight.SemiBold, new Color(0.25f, 0.22f, 0.18f), Vector2.zero, new Vector2(300f, 400f), TextAlignmentOptions.Center);
+            CloseupRect(left.transform, "Pin", new Vector2(0f, 205f), new Vector2(18f, 18f), new Color(0.2f, 0.4f, 0.8f));
+            var leftHit = CloseupHotspot(go.transform, "Hotspot_Disinfect", new Vector2(-470f, 200f), new Vector2(370f, 470f));
+            AttachGlow(leftHit, left);
+
+            // 가운데: 관리실 안내. 새 종이, 굵은 글씨.
+            var main = CloseupGroup(go.transform, "Notice", new Vector2(20f, 170f));
+            var mp = CloseupRect(main.transform, "Paper", Vector2.zero, new Vector2(460f, 560f), new Color(0.97f, 0.96f, 0.92f));
+            CloseupRect(mp.transform, "Head", new Vector2(0f, 230f), new Vector2(460f, 60f), new Color(0.2f, 0.28f, 0.42f));
+            CloseupLabel(mp.transform, "Title", "field.elev.bulletin_title", 28f, UIFontWeight.Bold, Color.white, new Vector2(0f, 230f), new Vector2(440f, 56f), TextAlignmentOptions.Center);
+            CloseupLabel(mp.transform, "Text", "field.elev.bulletin_body", 25f, UIFontWeight.Medium, new Color(0.15f, 0.15f, 0.18f), new Vector2(0f, -30f), new Vector2(410f, 420f), TextAlignmentOptions.Top);
+            CloseupRect(main.transform, "Pin", new Vector2(0f, 270f), new Vector2(20f, 20f), new Color(0.85f, 0.2f, 0.2f));
+            var mainHit = CloseupHotspot(go.transform, "Hotspot_Notice", new Vector2(20f, 170f), new Vector2(490f, 590f));
+            AttachGlow(mainHit, main);
+
+            // 오른쪽: 주민이 붙인 손글씨 쪽지. 비뚤게 붙어 있다.
+            var memo = CloseupGroup(go.transform, "Complaint", new Vector2(500f, 90f));
+            var cp = CloseupRect(memo.transform, "Paper", Vector2.zero, new Vector2(320f, 260f), new Color(0.98f, 0.9f, 0.55f));
+            cp.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 8f);
+            CloseupLabel(cp.transform, "Text", "field.elev.bulletin_complaint", 26f, UIFontWeight.SemiBold, new Color(0.3f, 0.15f, 0.1f), Vector2.zero, new Vector2(290f, 230f), TextAlignmentOptions.Center);
+            var memoHit = CloseupHotspot(go.transform, "Hotspot_Complaint", new Vector2(500f, 90f), new Vector2(350f, 290f));
+            AttachGlow(memoHit, memo);
+
+            FinishCloseup(go, screen, "field.elev.bulletin_hint",
+                new[] { mainHit, memoHit, leftHit },
+                new[] { "field.elev.bulletin_notice", "field.elev.bulletin_memo", "field.elev.bulletin_old" },
+                actionIds: new[] { "action_test_010", null, null });
+            return screen;
+        }
+
         private static CloseupScreen BuildElevPanelCloseup(string name)
         {
             var screen = NewCloseup(name, new Color(0.08f, 0.08f, 0.09f, 1f), out var go);

@@ -21,10 +21,13 @@ MonoBehaviour:
     placeTextId: ui.casefile.place_test_wall
     fromPageId: 
   - clueId: clue_test_005
-    placeTextId: ui.casefile.place_test_net
-    fromPageId: web_test_004
+    placeTextId: ui.casefile.place_post_book
+    fromPageId: 
   - clueId: clue_test_006
     placeTextId: ui.casefile.place_test_phone
+    fromPageId: 
+  - clueId: clue_test_009
+    placeTextId: ui.casefile.place_post_pile
     fromPageId: 
   _analyses:
   - analysisId: analysis_test_001_a

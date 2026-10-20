@@ -65,19 +65,37 @@ namespace UrbanLegendBureau.Systems
         /// <summary>사건을 새로 고를 때 본편 현장의 보이는 것을 처음으로 돌린다. 얻은 단서와 본 연출은 저장본에 있다.</summary>
         private void ResetMainField()
         {
+            WireFieldScares();
             foreach (var m in _mainCloseups) if (m != null && m.screen != null) m.screen.ResetChecked();
             if (_elevator != null) _elevator.ResetCar();
+            // 갈아 끼우는 본편 현장(복도→원룸, 홀→엘리베이터)은 처음 장소로 돌린다. 막차 현장은 건드리지 않는다.
             foreach (var swap in FindObjectsByType<FieldSceneSwap>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-                if (swap.GetComponentInChildren<ElevatorCar>(true) != null) swap.SetAfter(false);
+                if (swap.name.StartsWith("FieldRoot_Legend")) swap.SetAfter(false);
+        }
+
+        /// <summary>현장 연출(FieldScare)이 저장본과 대사 띠를 쓰도록 건다. 여러 번 불러도 같다.</summary>
+        private void WireFieldScares()
+        {
+            FieldScare.Done = id => MainEventDone("scare_" + id);
+            FieldScare.Mark = id => MarkMainEvent("scare_" + id);
+            FieldScare.HasFlag = HasFlag;
+            FieldScare.CanFire = () => InMain && !FieldHudScreen.IsSpeaking && FieldHudScreen.IsFront && !FieldHudScreen.IsCutscene && !TravelScreen.IsPlaying;
+            FieldScare.Say = (lines, hanyoung, done) => CctvLines(lines, hanyoung, 0, () => { _fieldHudScreen.ClearSpeech(); done?.Invoke(); });
         }
 
         /// <summary>본편 현장 지점을 눌렀다. 맡은 일이 있으면 처리하고 true.</summary>
         private bool TryHandleMainFieldPoint(InvestigationPoint point)
         {
             if (point == null) return false;
-            if (point.PointId == ElevBoardPointId)
+            switch (point.PointId)
             {
-                BoardElevator();
+                case ElevBoardPointId: BoardElevator(); return true;
+                case PostDoorPointId: KnockPostDoor(); return true;
+                case PostExitPointId: LeavePostRoom(); return true;
+            }
+            if (MainRemarks.TryGetValue(point.PointId, out var remark))
+            {
+                CctvLines(remark.lines, remark.hanyoung, 0, () => _fieldHudScreen.ClearSpeech());
                 return true;
             }
 
@@ -87,9 +105,103 @@ namespace UrbanLegendBureau.Systems
             return true;
         }
 
+        // ------------------------------------------------------------- 한마디만 하는 지점
+
+        /// <summary>가까이 볼 것 없이 한마디 나누는 지점. 시간은 흐르지 않는다. '!' 로 시작하면 한영이 한다.</summary>
+        private static readonly Dictionary<string, (string[] lines, bool[] hanyoung)> MainRemarks = new Dictionary<string, (string[], bool[])>
+        {
+            { "point_post_meter", Remark("field.post.meter.001", "!field.post.meter.002") },
+            { "point_post_window", Remark("field.post.window.001", "!field.post.window.002") },
+        };
+
+        private static (string[] lines, bool[] hanyoung) Remark(params string[] ids)
+        {
+            var lines = new string[ids.Length];
+            var hanyoung = new bool[ids.Length];
+            for (int i = 0; i < ids.Length; i++)
+            {
+                hanyoung[i] = ids[i].StartsWith("!");
+                lines[i] = hanyoung[i] ? ids[i].Substring(1) : ids[i];
+            }
+            return (lines, hanyoung);
+        }
+
+        // ------------------------------------------------------------- 사건 #001 302호 문
+
+        private const string PostDoorPointId = "point_post_door";
+        private const string PostExitPointId = "point_post_exit";
+
+        /// <summary>
+        /// 302호 문. 처음에는 두드리고 초인종을 눌러 사람이 없는지 확인한다. 대답이 없고 안에서 알림 소리만 난다.
+        /// 확인한 뒤로는 관리인에게 받은 열쇠로 곧장 들어간다.
+        /// </summary>
+        private void KnockPostDoor()
+        {
+            if (MainEventDone("post_knock")) { EnterPostRoom(); return; }
+            MarkMainEvent("post_knock");
+            StartCoroutine(KnockRoutine());
+        }
+
+        private IEnumerator KnockRoutine()
+        {
+            FieldHudScreen.IsCutscene = true;
+            for (int i = 0; i < 3; i++) { Sfx.Play("door_bang_0", 0.45f, 1.15f); yield return new WaitForSeconds(0.32f); }
+            yield return new WaitForSeconds(0.6f);
+            bool said = false;
+            CctvLines(KnockLines, KnockHanyoung, 0, () => said = true);
+            while (!said) yield return null;
+            _fieldHudScreen.ClearSpeech();
+            Sfx.Play("intercom_ring", 0.4f);   // 초인종
+            yield return new WaitForSeconds(2.2f);
+            // 아무 대답도 없는데, 문 너머에서 휴대폰 알림이 두 번 울린다.
+            Sfx.Play("phone_click", 0.22f, 0.7f);
+            yield return new WaitForSeconds(0.5f);
+            Sfx.Play("phone_click", 0.22f, 0.7f);
+            yield return new WaitForSeconds(1.0f);
+            said = false;
+            CctvLines(KnockAfterLines, KnockAfterHanyoung, 0, () => said = true);
+            while (!said) yield return null;
+            _fieldHudScreen.ClearSpeech();
+            FieldHudScreen.IsCutscene = false;
+            EnterPostRoom();
+        }
+
+        private static readonly string[] KnockLines = { "field.post.knock.001", "field.post.knock.002" };
+        private static readonly bool[] KnockHanyoung = { false, true };
+        private static readonly string[] KnockAfterLines = { "field.post.knock.003", "field.post.knock.004", "field.post.knock.005" };
+        private static readonly bool[] KnockAfterHanyoung = { false, true, true };
+
+        /// <summary>열쇠로 302호에 들어간다. 원룸으로 바뀌고 현관 앞에 선다.</summary>
+        private void EnterPostRoom()
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            var swap = root != null ? root.GetComponent<FieldSceneSwap>() : null;
+            if (swap == null) return;
+            Sfx.Play("key_1", 0.5f);
+            Sfx.Play("room_door_open", 0.45f);
+            swap.SetAfter(true);
+            foreach (var walker in root.GetComponentsInChildren<FieldWalker>(true)) if (walker.isActiveAndEnabled) walker.ResetToStart();
+            Debug.Log("[CaseDirector] 본편 현장 | 302호에 들어간다");
+        }
+
+        /// <summary>현관으로 나가 복도에 선다.</summary>
+        private void LeavePostRoom()
+        {
+            var root = _field != null ? _field.ActiveRoot : null;
+            var swap = root != null ? root.GetComponent<FieldSceneSwap>() : null;
+            if (swap == null) return;
+            Sfx.Play("room_door", 0.45f);
+            swap.SetAfter(false);
+            foreach (var walker in root.GetComponentsInChildren<FieldWalker>(true)) if (walker.isActiveAndEnabled) walker.ResetToStart();
+        }
+
         private void OpenMainCloseup(string pointId, CloseupScreen screen)
         {
-            screen.Closed = () => { if (_ui.Contains(screen)) _ui.Close(screen); };
+            screen.Closed = () =>
+            {
+                if (_ui.Contains(screen)) _ui.Close(screen);
+                FieldScare.NotifyPoint(pointId);   // 살피고 돌아오면 터지는 연출
+            };
             screen.SpotIntercept = index => InterceptMainSpot(screen, index);
             screen.SpotIndexChecked = index =>
             {
@@ -152,6 +264,13 @@ namespace UrbanLegendBureau.Systems
                 StartCoroutine(PhoneBuzz(screen));
                 return;
             }
+            // 사건 #001 우유 투입구: 안쪽의 파란 빛이 한 번 꺼졌다 켜진다. 누가 앞을 지나간 것처럼.
+            if (pointId == "point_post_pile" && index == 2 && !MainEventDone("post_slot"))
+            {
+                MarkMainEvent("post_slot");
+                StartCoroutine(SlotBlink(screen));
+                return;
+            }
             // 사건 #002 비상 호출: 잡음뿐이다.
             if (pointId == "point_panel" && index == 2) Sfx.Play("intercom_static", 0.4f);
         }
@@ -171,6 +290,23 @@ namespace UrbanLegendBureau.Systems
             var fourth = phone != null ? phone.Find("Notice_3") : null;
             if (fourth != null && MainEventDone("phone_buzz")) fourth.gameObject.SetActive(true);
         }
+
+        /// <summary>우유 투입구 틈의 파란 빛이 뚝 끊겼다가 돌아온다. 한영은 모니터 화면보호기라고 본다.</summary>
+        private IEnumerator SlotBlink(CloseupScreen screen)
+        {
+            screen.SetInteractable(false);
+            var leak = screen.transform.Find("MilkSlot/Leak");
+            yield return new WaitForSeconds(0.9f);
+            if (leak != null) leak.gameObject.SetActive(false);
+            Sfx.Play("heartbeat", 0.35f);
+            yield return new WaitForSeconds(1.1f);
+            if (leak != null) leak.gameObject.SetActive(true);
+            yield return new WaitForSeconds(0.4f);
+            screen.Talk(Speakers(SlotHanyoung), SlotLines, () => screen.SetInteractable(true));
+        }
+
+        private static readonly string[] SlotLines = { "field.post.slot.001", "field.post.slot.002" };
+        private static readonly bool[] SlotHanyoung = { false, true };
 
         private static int CountChecked(CloseupScreen screen)
         {

@@ -40,8 +40,8 @@ legend.risk.manifestation	현현급	Manifestation	실체 출현
 legend.risk.annihilation	멸망급	Annihilation	통제 불능
 
 # --- 5단계: 데이터 구조 검증용 테스트 세트 (실제 콘텐츠 아님) ---
-legend.test.001.name	테스트 괴담	Test Legend	구조 검증용
-legend.test.001.description	데이터 구조 검증을 위한 임시 괴담이다. 실제 게임 콘텐츠가 아니다.	A placeholder legend used to verify the data structure. Not real content.	
+legend.test.001.name	지워지지 않는 글	The Post That Won't Die	사건 #001 괴담 이름
+legend.test.001.description	세 번 지워도 다시 올라온다는 게시글. 지울수록 더 빨리 돌아온다고 한다.	A post that comes back no matter how many times it's deleted. They say it returns faster each time.	
 rule.test.001.text	자정 이후에는 이름을 부르지 않는다.	Do not call the name after midnight.	
 clue.test.001.text	삭제되지 않는 게시글의 캡처 이미지	A screenshot of a post that cannot be deleted	
 web.test.001.title	이 글 지워지지 않음	This post will not delete	
@@ -79,7 +79,7 @@ field.test.wall.result	알아볼 수 없는 글씨다. 최근에 쓴 것 같지�
 
 # --- 7단계: 테스트 사건 ---
 case.test.001.title	사건 #001 — 삭제되지 않는 게시글	Case #001 — The Post That Will Not Delete	테스트 사건
-case.test.001.summary	한 커뮤니티 게시글이 세 번 삭제됐는데도 계속 다시 올라오고 있다.	A community post keeps reappearing after being deleted three times.	
+case.test.001.summary	세 번 삭제된 게시글이 계속 다시 올라온다. 글을 지우던 사람의 주소를 따서 직접 찾아간다.	A post deleted three times keeps coming back. We trace the address of the person who kept deleting it.	
 
 # --- 8단계: 규칙 추론 ---
 ui.slice.rule_found	새로운 규칙 발견	New Rule Discovered	규칙 해금 팝업
@@ -134,14 +134,14 @@ ui.seal.need_true_rule	괴담의 올바른 규칙을 파악하지 못했습니�
 # --- 13단계: 사건 데이터 ---
 case.test.001.name	사건 #001 — 삭제되지 않는 게시글	Case #001 — The Post That Will Not Delete	1번 사건 이름
 case.test.002.name	사건 #002 — 3층에서 멈추는 엘리베이터	Case #002 — The Elevator That Stops at the Third Floor	2번 사건 이름
-case.test.002.description	야간에만 3층에서 멈춘다는 엘리베이터 제보가 반복해서 접수되고 있다.	Reports keep coming in about an elevator that stops at the third floor only at night.	
+case.test.002.description	구도시 구오 빌라에서, 밤마다 엘리베이터가 아무도 누르지 않은 3층에 선다는 제보가 이어지고 있다.	Reports keep coming from Guo Villa in the old town: at night the elevator stops at the third floor though no one pressed it.	
 
 # --- 13단계: 두 번째 괴담 ---
 legend.test.002.name	3층의 승객	The Passenger on Three	
 legend.test.002.description	아무도 누르지 않았는데 3층에서 문이 열린다. 열린 문 밖에는 아무도 없다.	The doors open on the third floor though no one pressed it. No one is standing there.	
 rule.test.003.text	문이 열려도 3층에서는 내리지 않는다.	Do not step out on the third floor, even if the doors open.	정답 규칙
 clue.test.003.text	3층 버튼만 유독 닳아 있는 조작판	A control panel worn down only on the third-floor button	
-web.test.003.title	야근하다 겪은 일 (엘리베이터)	Something that happened during overtime (elevator)	
+web.test.003.title	새벽에 집에 오다 겪은 일 (엘리베이터)	Something that happened coming home at dawn (elevator)	
 web.test.003.body	누르지도 않은 3층에서 문이 열렸습니다. 아무도 없었는데 닫힘 버튼이 안 먹더군요.	The doors opened on three, which I never pressed. Nobody was there, and the close button stopped responding.	
 field.test.panel	엘리베이터 조작판	Elevator Panel	
 field.test.panel.result	3층 버튼만 유독 닳아 있다.	Only the third-floor button is worn down.	
@@ -1226,10 +1226,10 @@ clue.test.004.title	거울 아래 관리 메모	The note under the mirror	테스
 action.test.007.name	거울 주변 살피기	Check around the mirror
 action.test.007.desc	거울 테두리와 그 아래를 꼼꼼히 살핀다.	Look closely at the mirror frame and below it.
 action.test.007.result	거울 아래에 종이 한 장이 붙어 있다.	A sheet of paper is taped under the mirror.
-ui.casefile.place_test_desk	사무실 책상	Office desk	테스트 사건 1
-ui.casefile.place_test_wall	사무실 벽	Office wall	테스트 사건 1
-ui.casefile.place_test_panel	엘리베이터 조작판	Elevator panel	테스트 사건 2
-ui.casefile.place_test_mirror	엘리베이터 거울	Elevator mirror	테스트 사건 2
+ui.casefile.place_test_desk	자취방 책상	Studio desk	사건 #001
+ui.casefile.place_test_wall	자취방 벽	Studio wall	사건 #001
+ui.casefile.place_test_panel	구오 빌라 엘리베이터 조작판	Guo Villa elevator panel	사건 #002
+ui.casefile.place_test_mirror	구오 빌라 엘리베이터 거울	Guo Villa elevator mirror	사건 #002
 analysis.test.001.a.title	작성자가 다른 세 장	Three copies, three authors	분석 (테스트 1)
 analysis.test.001.a.body	캡처 속 글 세 개는 작성자가 모두 다르다. 벽 낙서의 '세 번 부르면 나타난다'는 '세 번 지워도 다시 올라온다'가 옮겨 적히며 바뀐 말이다. 글은 지워질 때마다 누군가 다시 퍼 나른 것이다.	The three captured posts each have a different author. "Say it three times and it appears" on the wall is a garbled copy of "deleted three times and it came back". Someone reposted it each time.
 deduce.test.001.q1.label	괴담의 진위	Is it real
@@ -1274,8 +1274,8 @@ report.test.002.overview.title	사건 개요	Case Overview
 report.test.002.overview.body	밤마다 3층에서 문이 열리는 것은 야간 자동 정지 {_} 때문이다.	The doors open on three every night because of the night auto-stop {_}.
 report.test.002.overview.answer	설정	setting
 report.test.002.target.title	검열 대상	Target post
-report.test.002.target.body	검열 대상은 '{_}하다 겪은 일 (엘리베이터)' 글이다.	The target is "Something that happened during {_} (elevator)".
-report.test.002.target.answer	야근	overtime
+report.test.002.target.body	검열 대상은 '{_}에 집에 오다 겪은 일 (엘리베이터)' 글이다.	The target is "Something that happened coming home at {_} (elevator)".	
+report.test.002.target.answer	새벽	dawn	
 post.test.001.reply_to	원글: 이 글 지워지지 않음	Re: This post will not delete	정정글 원글 표시
 post.test.001.title_fear	[경고] 지워지지 않는 글, 절대 이름 부르지 마세요	[Warning] The undeletable post, never say the name
 post.test.001.title_refute	지워지지 않는 글, 사람들이 퍼 나른 겁니다	The undeletable post was just reposted
@@ -1306,7 +1306,7 @@ post.test.001.react.ok_2	세 번 부르면 나타난다는 건 어디서 나온 
 post.test.001.react.bad_1	역시 진짜였구나... 이름 안 불러야지.	So it was real... not saying the name.
 post.test.001.react.bad_2	더 무서워졌어요.	Now I am more scared.
 post.test.001.react.weak_1	음... 그래서 진짜라는 거예요 아니라는 거예요?	So... is it real or not?
-post.test.002.reply_to	원글: 야근하다 겪은 일 (엘리베이터)	Re: Something that happened during overtime (elevator)	정정글 원글 표시
+post.test.002.reply_to	원글: 새벽에 집에 오다 겪은 일 (엘리베이터)	Re: Something that happened coming home at dawn (elevator)	정정글 원글 표시
 post.test.002.title_fear	[주의] 3층에서 절대 내리지 마세요	[Caution] Never step out on three
 post.test.002.title_refute	3층 엘리베이터, 점검 설정 때문이었습니다	The 3F elevator was a maintenance setting
 post.test.002.title_calm	3층 엘리베이터 건 확인해 봤어요	I looked into the 3F elevator
@@ -1385,7 +1385,7 @@ post.test.002.intro_facts	확인된 것만 짧게 정리합니다.	Only what has
 post.test.002.intro_neutral	엘리베이터 얘기가 계속 나와서요.	The elevator keeps coming up.
 post.test.002.intro_hook2	이건 진짜 말이 안 되는 일이에요.	This truly makes no sense.
 post.test.002.fact_refute2	닳은 3층 버튼은 자동 정지를 취소하려고 사람들이 누른 자국이었습니다.	The worn 3F button is from people pressing it to cancel the auto-stop.	분석 기록이 있어야 보임
-post.test.002.fact_reports2	다른 건물에도 비슷한 얘기가 있긴 해요.	Other buildings have similar stories too.
+post.test.002.fact_reports2	다른 빌라에도 비슷한 얘기가 있긴 해요.	Other villas have similar stories too.	
 post.test.002.fact_real2	3층에서 문이 열리는 건 분명히 일어나는 일입니다.	The doors opening on three definitely happens.
 post.test.002.action_calm2	해제되기 전까지는 3층에서 문이 열려도 그냥 닫으시면 됩니다.	Until it's removed, just close the doors if they open on three.
 post.test.002.action_counter2	3층 버튼만 누르지 않으면 괜찮겠죠.	Just don't press three and you'll be fine.
@@ -1407,7 +1407,7 @@ ui.net.comment_none	지금 이 글에 달 수 있는 댓글이 없습니다	No c
 ui.net.comment_done	이 글에는 이미 답글을 달았습니다	You already replied to this post
 ui.net.clue_from_page	새 단서 — {0}	New clue — {0}	인터넷 글에서 얻은 단서
 ui.casefile.place_test_net	괴담넷 글	GwedamNet post	인터넷에서 얻은 단서 자리
-ui.casefile.place_test_phone	사무실 휴대폰	Office phone	테스트 사건 1
+ui.casefile.place_test_phone	자취방 휴대폰	Phone in the studio	사건 #001
 web.test.004.title	삭제 기록 남겨 둡니다 (운영 보조)	Deletion log, for the record (moderator)	테스트 1 후속 글
 web.test.004.body	운영 보조입니다. 그 글은 지울 때마다 몇 분 안에 다른 신규 계정이 다시 올렸습니다.\n같은 글이 저절로 돌아온 적은 없습니다. 기록을 남겨 둡니다.	Moderator here. Each time that post was deleted, a different new account reposted it within minutes.\nIt never came back on its own. Leaving this for the record.
 web.test.004.c1	그럼 퍼 나른 사람이 있었던 거네요	So someone was reposting it
@@ -1476,7 +1476,7 @@ post.test.002.c_ok2	닳은 3층 버튼은 정지를 취소하려고 누른 자�
 post.test.002.c_bad2	무서워서 이제 계단만 써요.	Too scared, stairs only now.	본편 댓글 (틀림)
 post.test.002.c_ok3	관리실 안내랑 조작판 표시 둘 다 점검 모드라고 적혀 있어요.	Both the management notice and the panel tag say maintenance mode.	본편 댓글 (맞음, 추가 분석 필요)
 post.test.002.q1.title	3층 엘리베이터, 내리면 안 되는 거 맞죠?	The 3F elevator — you really shouldn't step out, right?	질문 글
-post.test.002.q1.body	오늘 야근인데 무서워서요.	Working late tonight and I'm scared.
+post.test.002.q1.body	오늘도 새벽에 들어가는데 무서워서요.	I'm getting home at dawn again tonight and I'm scared.	
 post.test.002.q1_ok	야간 점검 설정 때문에 서는 거예요. 그냥 닫힘 누르시면 돼요.	It stops because of a night maintenance setting. Just press close.	답글 (맞음)
 post.test.002.q1_bad1	절대 내리지 마세요.	Never step out.	답글 (틀림)
 post.test.002.q1_bad2	계단 쓰세요. 그게 안전해요.	Use the stairs. Safer.	답글 (틀림)
@@ -1500,7 +1500,7 @@ post.test.001.q5.body	지워도 또 올라오면 운영자도 못 막는 거 아
 post.test.001.q5_bad1	운영자도 무서워서 손 놨대요.	The mods gave up, scared.	답글 (틀림)
 post.test.001.q5_bad2	서버에 뭐가 씌었다던데요.	They say the server is possessed.	답글 (틀림)
 post.test.001.q5_ok	운영 기록 보면 매번 다른 계정이 다시 올린 거라, 계정을 막으면 끝나요.	The mod log shows a new account reposted it each time; blocking accounts ends it.	답글 (맞음)
-post.test.002.q4.title	야근 끝나고 엘리베이터 타기 무서워요	Scared to take the elevator after overtime	질문 글
+post.test.002.q4.title	새벽에 들어갈 때 엘리베이터 타기 무서워요	Scared to take the elevator when I get home at dawn	질문 글
 post.test.002.q4.body	오늘도 3층에서 설까 봐 계속 신경 쓰여요.	I keep worrying it'll stop on three again tonight.
 post.test.002.q4_bad1	그냥 계단 쓰세요. 그게 맘 편해요.	Just take the stairs. Less stress.	답글 (틀림)
 post.test.002.q4_ok	점검 설정이라 서는 거예요. 문 열리면 닫힘 누르시면 돼요.	It stops because of a maintenance setting. Press close if it opens.	답글 (맞음)
@@ -1564,8 +1564,8 @@ report.test.001.target.choice_1	퍼가지 마세요	do not share	보고서 보�
 report.test.001.target.choice_2	보면 저주받음	cursed if you read	보고서 보기(오답)
 report.test.002.overview.choice_1	고장	malfunction	보고서 보기(오답)
 report.test.002.overview.choice_2	귀신	ghost	보고서 보기(오답)
-report.test.002.target.choice_1	산책	walk	보고서 보기(오답)
-report.test.002.target.choice_2	청소	cleaning	보고서 보기(오답)
+report.test.002.target.choice_1	저녁	evening	보고서 보기(오답)
+report.test.002.target.choice_2	주말	weekend	보고서 보기(오답)
 # 본편 사건 현장 (원룸·엘리베이터)
 field.main.spot_not_yet	아직 뭘 봐야 할지 모르겠다. <b>다른 데부터</b> 살펴보자.	I don't know what to look for yet. <b>Something else first.</b>	본편 가까이 보기 - 조건이 모자랄 때 차지한
 field.post.graffiti_line	세 번 부르면 나타난다	Call it three times and it appears	원룸 벽 낙서
@@ -1622,3 +1622,76 @@ ui.net.comment_low	믿음도가 해결 목표 아래라 댓글로는 더 낮출 
 ui.work.case_opened_now	새 사건 접수: <b>{0}</b>	New case: <b>{0}</b>	사건 해결 직후 바로 열린 새 사건
 ui.sleep.skip	건너뛰기  ▶▶	Skip  ▶▶	잠드는 연출 건너뛰기 단추
 ui.casefile.wrong_belief	잘못 짚은 판단이 새어 나갔다. 믿음도 <color=#E05A4F>{0}% → {1}%</color>	A wrong call leaked out. Belief <color=#E05A4F>{0}% → {1}%</color>	본편 수사 노트 오답 알림
+ui.casefile.place_post_book	자취방 책상 수첩	Notebook on the studio desk	사건 #001
+ui.casefile.place_post_pile	302호 문 앞	Outside door 302	사건 #001
+ui.casefile.place_elev_board	구오 빌라 관리실 게시판	Guo Villa notice board	사건 #002
+place.case_test_001	역전동 다세대 302호	Unit 302, Yeokjeon-dong	본편 현장 이름
+place.case_test_002	구도시 구오 빌라	Guo Villa, old town	본편 현장 이름
+clue.test.009.title	쌓인 고지서	The piled-up bill	
+clue.test.009.text	302호 문 앞의 미납 고지서. 소인이 사흘 전이고, 그 뒤로 아무도 우편물을 들여가지 않았다.	An overdue bill outside door 302, postmarked three days ago. Nobody has taken the mail in since.	
+action.test.010.name	게시판 살피기	Read the notice board	
+action.test.010.desc	관리실 게시판의 안내문을 읽는다.	Read the management notices.	
+action.test.010.result	관리실 안내문을 찾았다.	Found the management notice.	
+action.test.011.name	수첩 살피기	Check the notebook	
+action.test.011.desc	책상 위 수첩을 펼쳐 본다.	Open the notebook on the desk.	
+action.test.011.result	삭제 기록을 찾았다.	Found a deletion log.	
+action.test.012.name	우편물 살피기	Check the mail	
+action.test.012.desc	문 앞에 쌓인 우편물을 들춰 본다.	Go through the mail piled at the door.	
+action.test.012.result	고지서 날짜를 확인했다.	Checked the date on the bill.	
+field.post.door_301	301	301	
+field.post.door_302	302	302	
+field.post.door_303	303	303	
+field.post.door	302호 현관문	Door 302	
+field.post.pile	문 앞 우편물	Mail at the door	
+field.post.meter	전기 계량기	Electric meter	
+field.post.exit	현관	Front door	
+field.post.window	창문	Window	
+field.post.knock.001	…계십니까. 괴담 검열국에서 나왔습니다.	…Hello? We're from the Bureau.	노크
+field.post.knock.002	초인종도 눌러.	Ring the bell too.	한영
+field.post.knock.003	대답이 없어요. 그런데… <b>안에서 알림 소리</b>가 났어요.	No answer. But… <b>a notification chimed inside.</b>	
+field.post.knock.004	휴대폰만 두고 나갔나 보지. 문 앞에 우편물도 쌓여 있고.	Left the phone behind, probably. Mail's piling up at the door too.	한영
+field.post.knock.005	<b>사람 없는 건 확인했어.</b> 관리인한테 받은 열쇠로 들어간다.	<b>Nobody's home, confirmed.</b> We go in with the super's key.	한영
+field.post.meter.001	계량기 원판이 천천히 돌아요. <b>안에 켜 둔 게 있나 봐요.</b>	The meter disc is turning slowly. <b>Something's left on inside.</b>	
+field.post.meter.002	사람은 없는데 전기는 쓰고 있다. 들어가 보면 알겠지.	Nobody home, but the power's running. We'll see inside.	한영
+field.post.window.001	창문이 한 뼘쯤 열려 있다. 창틀에 빗물이 고였다.	The window is open a hand's width. Rain has pooled on the sill.	
+field.post.window.002	환기라도 시키다 나간 모양이야. 사흘이나.	Opened it to air the place out and left. Three days ago.	한영
+field.post.scare.sensor.001	…센서등이 꺼졌어요.	…The sensor light went out.	
+field.post.scare.sensor.002	움직임이 없으면 꺼지는 거야. 손 흔들어.	It goes off when nothing moves. Wave your hand.	한영
+field.post.scare.stairs.001	위층에서 누가 내려와요.	Someone's coming down from upstairs.	
+field.post.scare.stairs.002	…발소리가 멈췄어요. 아무도 안 내려오는데요.	…The footsteps stopped. Nobody came down.	
+field.post.scare.stairs.003	윗집 사람이 다시 올라갔겠지. 신경 쓰지 마.	The neighbor went back up. Don't mind it.	한영
+field.post.pile_hint	어디를 살펴볼까.	Where should I look?	
+field.post.pile_bill_label	미납 안내\n소인 10.13	OVERDUE\nPostmarked 10.13	
+field.post.pile_bill	붉은 줄 고지서. 소인이 <b>사흘 전</b>이다. 그 뒤로 아무도 우편물을 들여가지 않았다.	A red-banded bill, postmarked <b>three days ago</b>. Nobody has taken the mail in since.	
+field.post.pile_flyers	같은 치킨집 전단 세 장. 날짜만 다르다. 하루에 한 장씩 쌓였다.	Three copies of the same chicken flyer, different dates. One a day.	
+field.post.pile_slot	우유 투입구 틈으로 <b>파란 빛</b>이 샌다. 안에 모니터가 켜져 있다.	<b>Blue light</b> leaks through the milk slot. A monitor's on inside.	
+field.post.slot.001	방금… 빛이 한 번 끊겼어요. 누가 앞을 지나간 것처럼.	Just now… the light cut out once. Like someone walked past it.	
+field.post.slot.002	화면이 꺼졌다 켜진 거야. 절전 모드겠지.	The screen blinked off and on. Power saving.	한영
+field.post.desk_book	키보드 옆 수첩. 날짜별로 <b>'지움 → 몇 분 뒤 다른 계정이 다시 올림'</b>이 빽빽하다. 이 방 주인이 운영 보조였다.	A notebook by the keyboard, packed with dated entries: <b>"deleted → reposted by a different account minutes later."</b> The tenant was a forum moderator.	
+field.post.scare.slam.001	…!	…!	현관문 쾅
+field.post.scare.slam.002	창문이 열려 있었어. 바람에 현관문이 닫힌 거야.	The window was open. The wind shut the front door.	한영
+field.post.scare.slam.003	…심장 떨어질 뻔했네요.	…That nearly stopped my heart.	
+field.post.scare.tube.001	형광등이… 혼자 켜졌다 꺼졌어요.	The light… came on and went off by itself.	
+field.post.scare.tube.002	스위치가 반쯤 걸려 있어. 낡은 집은 다 이래.	The switch is half-stuck. Old places are like that.	한영
+field.elev.building	구 오 빌 라	GUO VILLA	건물 이름판
+field.elev.bulletin	관리실 게시판	Notice board	
+field.elev.bulletin_hint	어디를 살펴볼까.	Where should I look?	
+field.elev.bulletin_disinfect	정기 소독 안내\n\n매월 첫째 주 화요일\n오전 10시 ~ 12시	Pest control\n\nFirst Tuesday monthly\n10 AM – 12 PM	
+field.elev.bulletin_title	관리실 안내	From the office	
+field.elev.bulletin_body	야간(0시~5시) 점검 설정으로\n엘리베이터가 <b>3층에 자동 정지</b>합니다.\n\n문이 열려도 이상이 아니며\n닫힘 버튼은 잠시 듣지 않습니다.\n\n해제를 요청해 두었습니다.\n— 구오 빌라 관리실	Due to a night (0–5 AM) maintenance setting\nthe elevator <b>stops at 3F automatically</b>.\n\nAn open door is not a fault,\nand Close won't respond for a moment.\n\nRemoval has been requested.\n— Guo Villa Office	
+field.elev.bulletin_complaint	밤마다 3층에서\n왜 서요??\n누가 장난치는 거면\n그만하세요\n— 502호	Why does it stop\non 3 every night??\nIf this is a prank\nSTOP\n— Unit 502	
+field.elev.bulletin_notice	관리실 안내문. <b>야간 점검 설정으로 3층에 자동 정지</b>한다고 적혀 있다.	The office notice: <b>a night maintenance setting stops it at 3F</b>.	
+field.elev.bulletin_memo	주민의 항의 쪽지. 다들 3층에서 서는 걸 겪었다. 이유는 모른 채.	A resident's complaint. Everyone's had it stop on three, without knowing why.	
+field.elev.bulletin_old	누렇게 바랜 소독 안내. 이번 일과는 상관없다.	A yellowed pest-control notice. Unrelated.	
+field.elev.scare.empty.001	점검 중이라던 쪽이 혼자 내려와서… 열렸어요. 아무도 없는데.	The one under maintenance came down by itself… and opened. Empty.	
+field.elev.scare.empty.002	점검 모드라 빈 채로 오르내리는 거야. 저건 안 타.	Maintenance mode runs it empty. We're not taking that one.	한영
+field.elev.scare.mail.001	불이… 그리고 방금 우편함이.	The lights… and the mailbox just now.	
+field.elev.scare.mail.002	타이머 등이야. 뚜껑은 원래 덜렁거렸고.	Timer light. And that flap was already loose.	한영
+field.elev.scare.blackout.001	정전이에요…?	A blackout…?	
+field.elev.scare.blackout.002	비상등 들어왔잖아. 점검 설정 걸린 날은 전원이 한 번씩 튄대.	The emergency light's on. Power trips now and then with that setting on.	한영
+field.elev.scare.blackout.003	…표시등은 계속 3이에요.	…The display's still showing 3.	
+field.elev.scare.mirror.001	방금 거울에… 우리 뒤에 하나 더.	In the mirror just now… one more behind us.	
+field.elev.scare.mirror.002	문틈 빛이 비친 거야. 여긴 우리 둘뿐이야.	Light through the door gap. It's just us two.	한영
+field.elev.scare.mirror.003	…네. 둘뿐이에요.	…Right. Just us.	
+ui.travel.duration_main_field.case_test_001	숙소에서 역전동 다세대 302호까지 {0}분	{0} min from the dorm to Unit 302, Yeokjeon-dong	본편 현장 이동
+ui.travel.duration_main_field.case_test_002	숙소에서 구도시 구오 빌라까지 {0}분	{0} min from the dorm to Guo Villa	본편 현장 이동

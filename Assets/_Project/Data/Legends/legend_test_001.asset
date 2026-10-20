@@ -17,6 +17,14 @@ MonoBehaviour:
   _descriptionTextId: legend.test.001.description
   _riskLevel: 2
   _initialSpreadRate: 20
+  _verdictTextId: 
+  _verdictKind: 1
+  _verdictClueIds: []
+  _verdictAllowedClueIds: []
+  _counterTextId: 
+  _counterOptionTextIds: []
+  _counterClueIds: []
+  _counterAllowedClueIds: []
   _rules:
   - {fileID: 11400000, guid: d2d23c5a3adc0564e905000ca950fe4a, type: 2}
   - {fileID: 11400000, guid: 999ec248f9b19ed48bc6672889baf234, type: 2}
@@ -25,6 +33,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 61d675c168376604f8a8e302d7cc9a5c, type: 2}
   - {fileID: 11400000, guid: 2f340343f2cd9cd3e30ee26bac6dcd75, type: 2}
   - {fileID: 11400000, guid: 52d22d60994f92490b9d7a41b4195ba5, type: 2}
+  - {fileID: 11400000, guid: ba6ff38b191a3f54ab32e16562715851, type: 2}
   _webPages:
   - {fileID: 11400000, guid: a5e058e5f8580004a851d4861d38b4bb, type: 2}
   - {fileID: 11400000, guid: caf327726b3155e40a36523c300c8fbe, type: 2}
@@ -34,3 +43,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d1984e46725f3704989ea6305b29c4f6, type: 2}
   - {fileID: 11400000, guid: 17756692d79f3124d8fd88da2764c250, type: 2}
   - {fileID: 11400000, guid: bf5e3905bd528073fb3410bc7da86ed0, type: 2}
+  - {fileID: 11400000, guid: 6f2e934606465334e9fb363aeb791d19, type: 2}
+  - {fileID: 11400000, guid: 710d7747d3c152a44868f06a35a275fe, type: 2}

@@ -114,7 +114,10 @@ namespace UrbanLegendBureau.Systems
             GamePointer.SetVisible(false);
 
             _mainTravelling = true;
-            PlayTravel(TravelToFieldTextId, MainFieldDurationTextId, MainTravelMinutes, FieldTravelSeconds,
+            // 사건마다 현장 이름이 붙은 글이 있으면 그것을 쓴다("숙소에서 구도시 구오 빌라까지 40분").
+            string placeDuration = MainFieldDurationTextId + "." + _caseId;
+            string durationId = _loc.Has(placeDuration) ? placeDuration : MainFieldDurationTextId;
+            PlayTravel(TravelToFieldTextId, durationId, MainTravelMinutes, FieldTravelSeconds,
                 () => { if (!_save.Current.work.gameOver) EnterMainField(); },
                 AfterMainTravel);
             Debug.Log($"[CaseDirector] 본편 | 현장으로 이동 | {_caseId} | {MainTravelMinutes}분");

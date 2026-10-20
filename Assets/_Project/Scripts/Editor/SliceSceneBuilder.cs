@@ -63,21 +63,25 @@ namespace UrbanLegendBureau.EditorTools
             rootSo.ApplyModifiedPropertiesWithoutUndo();
 
             // --- 현장 (월드) ---
-            // 사건 #001 삭제되지 않는 게시글: 제보자의 원룸. 걸어 다니며 책상·휴대폰·벽 낙서를 가까이 들여다본다.
+            // 사건 #001 삭제되지 않는 게시글: 글을 지우던 사람의 자취방(302호). 걸어 다니며 가까이 들여다본다.
             var fieldRoot = new GameObject("FieldRoot_Legend1");
             BuildFieldBackground(fieldRoot.transform);
-            var postPoints = BuildPostRoomField(fieldRoot.transform);
-            var desk = postPoints[0];
-            var phone = postPoints[1];
-            var wall = postPoints[2];
-            // 현관으로 들어와 왼쪽을 보고 선다.
-            BuildFieldActors(fieldRoot.transform, -3.86f, 9.4f, 2.4f, -11f, 10.4f, faceLeft: true);
+            // 복도(302호 문 앞)에서 사람이 없는지 확인하고 들어가면 원룸으로 바뀐다. 사람은 장소마다 따로 선다.
+            var postPoints = BuildPostField(fieldRoot.transform);
+            var postDoor = postPoints[0];
+            var postPile = postPoints[1];
+            var postMeter = postPoints[2];
+            var desk = postPoints[3];
+            var phone = postPoints[4];
+            var wall = postPoints[5];
+            var postExit = postPoints[6];
+            var postWindow = postPoints[7];
 
             // --- 두 번째 사건의 현장 ---
-            // 사건 #002 3층에서 멈추는 엘리베이터: 야간 사무 건물. 홀에서 엘리베이터를 타면 안쪽으로 바뀐다.
+            // 사건 #002 3층에서 멈추는 엘리베이터: 구도시 구오 빌라. 1층 홀에서 엘리베이터를 타면 안쪽으로 바뀐다.
             var fieldRoot2 = new GameObject("FieldRoot_Legend2");
             BuildFieldBackground(fieldRoot2.transform);
-            BuildElevatorField(fieldRoot2.transform, out var elevBoard, out var panel, out var mirror, out var elevatorCar);
+            BuildElevatorField(fieldRoot2.transform, out var elevBoard, out var panel, out var mirror, out var elevBulletin, out var elevatorCar);
 
             // --- 지점별 조사 방법 ---
             // 본편 현장의 지점은 가까이 보기 화면을 연다. 살필 곳마다 조사 행동이 걸려 있다(가까이 보기 화면 쪽에서 정한다).
@@ -93,6 +97,12 @@ namespace UrbanLegendBureau.EditorTools
             ConfigurePoint(mirror, "point_mirror",
                 new[] { "action_test_007", "action_test_006" }, null, false, CaseStep.Started);
             ConfigurePoint(elevBoard, "point_elev_board", null, null, false, CaseStep.Started);
+            ConfigurePoint(elevBulletin, "point_elev_bulletin", null, null, false, CaseStep.Started);
+            ConfigurePoint(postDoor, "point_post_door", null, null, false, CaseStep.Started);
+            ConfigurePoint(postPile, "point_post_pile", null, null, false, CaseStep.Started);
+            ConfigurePoint(postMeter, "point_post_meter", null, null, false, CaseStep.Started);
+            ConfigurePoint(postExit, "point_post_exit", null, null, false, CaseStep.Started);
+            ConfigurePoint(postWindow, "point_post_window", null, null, false, CaseStep.Started);
 
             // --- 실제 사건 1: 막차의 빈자리 (20단계) ---
             var fieldRootSubway = new GameObject("FieldRoot_Subway");
@@ -233,8 +243,10 @@ namespace UrbanLegendBureau.EditorTools
                 ("point_desk", BuildPostDeskCloseup("Screen_PostDeskCloseup")),
                 ("point_phone", BuildPostPhoneCloseup("Screen_PostPhoneCloseup")),
                 ("point_wall", BuildPostWallCloseup("Screen_PostWallCloseup")),
+                ("point_post_pile", BuildPostPileCloseup("Screen_PostPileCloseup")),
                 ("point_panel", BuildElevPanelCloseup("Screen_ElevPanelCloseup")),
                 ("point_mirror", BuildElevMirrorCloseup("Screen_ElevMirrorCloseup")),
+                ("point_elev_bulletin", BuildElevBulletinCloseup("Screen_ElevBulletinCloseup")),
             };
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);

@@ -17,6 +17,14 @@ MonoBehaviour:
   _descriptionTextId: legend.test.002.description
   _riskLevel: 1
   _initialSpreadRate: 12
+  _verdictTextId: 
+  _verdictKind: 1
+  _verdictClueIds: []
+  _verdictAllowedClueIds: []
+  _counterTextId: 
+  _counterOptionTextIds: []
+  _counterClueIds: []
+  _counterAllowedClueIds: []
   _rules:
   - {fileID: 11400000, guid: cbe713e3144d8cc41b1100ca05e11e3b, type: 2}
   _clues:
@@ -32,3 +40,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 5faa49e96e6693448ae7cac87dc543ba, type: 2}
   - {fileID: 11400000, guid: dfe98b20f7025f2de496ee7e5d35f334, type: 2}
   - {fileID: 11400000, guid: f441af335484faf3cc4fac3bb9d44c99, type: 2}
+  - {fileID: 11400000, guid: b1a3464f0a9c84e42a167e56ff7dfadd, type: 2}
