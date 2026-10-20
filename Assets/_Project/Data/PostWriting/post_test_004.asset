@@ -1,0 +1,384 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b0dbd73e73be1c409294794e2046c17, type: 3}
+  m_Name: post_test_004
+  m_EditorClassIdentifier: Assembly-CSharp::UrbanLegendBureau.Data.PostWritingSO
+  _postWritingId: post_test_004
+  _caseId: case_test_004
+  _legendId: legend_test_004
+  _isTutorial: 0
+  _titleCandidates:
+  - candidateId: title_fear
+    textId: post.test.004.title_fear
+    tag: 4
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.title_fear
+    requiredEvidenceIds: []
+  - candidateId: title_refute
+    textId: post.test.004.title_refute
+    tag: 1
+    beliefDelta: -4
+    reviewTextId: post.test.004.review.title_refute
+    requiredEvidenceIds: []
+  - candidateId: title_calm
+    textId: post.test.004.title_calm
+    tag: 2
+    beliefDelta: -1
+    reviewTextId: post.test.004.review.title_calm
+    requiredEvidenceIds: []
+  - candidateId: title_record
+    textId: post.test.004.title_record
+    tag: 1
+    beliefDelta: -3
+    reviewTextId: post.test.004.review.title_record
+    requiredEvidenceIds:
+    - analysis_test_004_b
+  - candidateId: title_refute2
+    textId: post.test.004.title_refute2
+    tag: 1
+    beliefDelta: -3
+    reviewTextId: post.test.004.review.title_refute2
+    requiredEvidenceIds: []
+  - candidateId: title_neutral
+    textId: post.test.004.title_neutral
+    tag: 0
+    beliefDelta: 0
+    reviewTextId: post.test.004.review.title_neutral
+    requiredEvidenceIds: []
+  - candidateId: title_fear2
+    textId: post.test.004.title_fear2
+    tag: 4
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.title_fear2
+    requiredEvidenceIds: []
+  _introCandidates:
+  - candidateId: intro_rumor
+    textId: post.test.004.intro_rumor
+    tag: 0
+    beliefDelta: 0
+    reviewTextId: post.test.004.review.intro_rumor
+    requiredEvidenceIds: []
+  - candidateId: intro_witness
+    textId: post.test.004.intro_witness
+    tag: 3
+    beliefDelta: 1
+    reviewTextId: post.test.004.review.intro_witness
+    requiredEvidenceIds: []
+  - candidateId: intro_hook
+    textId: post.test.004.intro_hook
+    tag: 3
+    beliefDelta: 1
+    reviewTextId: post.test.004.review.intro_hook
+    requiredEvidenceIds: []
+  - candidateId: intro_record
+    textId: post.test.004.intro_record
+    tag: 2
+    beliefDelta: -1
+    reviewTextId: post.test.004.review.intro_record
+    requiredEvidenceIds:
+    - analysis_test_004_b
+  - candidateId: intro_facts
+    textId: post.test.004.intro_facts
+    tag: 2
+    beliefDelta: -1
+    reviewTextId: post.test.004.review.intro_facts
+    requiredEvidenceIds: []
+  - candidateId: intro_neutral
+    textId: post.test.004.intro_neutral
+    tag: 0
+    beliefDelta: 0
+    reviewTextId: post.test.004.review.intro_neutral
+    requiredEvidenceIds: []
+  - candidateId: intro_hook2
+    textId: post.test.004.intro_hook2
+    tag: 3
+    beliefDelta: 1
+    reviewTextId: post.test.004.review.intro_hook2
+    requiredEvidenceIds: []
+  _factCandidates:
+  - candidateId: fact_refute
+    textId: post.test.004.fact_refute
+    tag: 1
+    beliefDelta: -6
+    reviewTextId: post.test.004.review.fact_refute
+    requiredEvidenceIds: []
+  - candidateId: fact_reports
+    textId: post.test.004.fact_reports
+    tag: 3
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.fact_reports
+    requiredEvidenceIds: []
+  - candidateId: fact_real
+    textId: post.test.004.fact_real
+    tag: 4
+    beliefDelta: 3
+    reviewTextId: post.test.004.review.fact_real
+    requiredEvidenceIds: []
+  - candidateId: fact_record
+    textId: post.test.004.fact_record
+    tag: 1
+    beliefDelta: -5
+    reviewTextId: post.test.004.review.fact_record
+    requiredEvidenceIds:
+    - analysis_test_004_b
+  - candidateId: fact_refute2
+    textId: post.test.004.fact_refute2
+    tag: 1
+    beliefDelta: -5
+    reviewTextId: post.test.004.review.fact_refute2
+    requiredEvidenceIds:
+    - analysis_test_004_a
+  - candidateId: fact_reports2
+    textId: post.test.004.fact_reports2
+    tag: 3
+    beliefDelta: 1
+    reviewTextId: post.test.004.review.fact_reports2
+    requiredEvidenceIds: []
+  - candidateId: fact_real2
+    textId: post.test.004.fact_real2
+    tag: 4
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.fact_real2
+    requiredEvidenceIds: []
+  _actionCandidates:
+  - candidateId: action_calm
+    textId: post.test.004.action_calm
+    tag: 2
+    beliefDelta: -4
+    reviewTextId: post.test.004.review.action_calm
+    requiredEvidenceIds: []
+  - candidateId: action_counter
+    textId: post.test.004.action_counter
+    tag: 0
+    beliefDelta: -1
+    reviewTextId: post.test.004.review.action_counter
+    requiredEvidenceIds: []
+  - candidateId: action_fear
+    textId: post.test.004.action_fear
+    tag: 4
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.action_fear
+    requiredEvidenceIds: []
+  - candidateId: action_record
+    textId: post.test.004.action_record
+    tag: 2
+    beliefDelta: -3
+    reviewTextId: post.test.004.review.action_record
+    requiredEvidenceIds:
+    - analysis_test_004_b
+  - candidateId: action_calm2
+    textId: post.test.004.action_calm2
+    tag: 2
+    beliefDelta: -3
+    reviewTextId: post.test.004.review.action_calm2
+    requiredEvidenceIds: []
+  - candidateId: action_counter2
+    textId: post.test.004.action_counter2
+    tag: 0
+    beliefDelta: 0
+    reviewTextId: post.test.004.review.action_counter2
+    requiredEvidenceIds: []
+  - candidateId: action_fear2
+    textId: post.test.004.action_fear2
+    tag: 4
+    beliefDelta: 2
+    reviewTextId: post.test.004.review.action_fear2
+    requiredEvidenceIds: []
+  _postModifier: -1
+  _tutorialTargetBelief: 10
+  _requiredDrop: 5
+  _excellentDrop: 8
+  _refuteSection: 2
+  _allowRewrite: 1
+  _maxAttempts: 0
+  _authorTextId: ui.net.author_alias
+  _boardTextId: ui.net.board_free
+  _replyLineTextId: post.test.004.reply_to
+  _views: 29
+  _successLikes: 11
+  _successDislikes: 2
+  _successReactions:
+  - authorTextId: ui.net.author_nick_6
+    bodyTextId: post.test.004.react.ok_1
+  - authorTextId: ui.net.author_nick_10
+    bodyTextId: post.test.004.react.ok_2
+  _failLikes: 7
+  _failDislikes: 3
+  _failReactions:
+  - authorTextId: ui.net.author_nick_7
+    bodyTextId: post.test.004.react.bad_1
+  - authorTextId: ui.net.author_nick_12
+    bodyTextId: post.test.004.react.bad_2
+  _weakLikes: 4
+  _weakDislikes: 4
+  _weakReactions:
+  - authorTextId: ui.net.author_nick_5
+    bodyTextId: post.test.004.react.weak_1
+  _commentOptions:
+  - optionId: c_ok1
+    bodyTextId: post.test.004.c_ok1
+    beliefDelta: -2
+    requiredEvidenceIds: []
+    claimId: claim_main
+    pageIds:
+    - web_test_007
+  - optionId: c_bad1
+    bodyTextId: post.test.004.c_bad1
+    beliefDelta: 2
+    requiredEvidenceIds: []
+    claimId: 
+    pageIds: []
+  - optionId: c_ok2
+    bodyTextId: post.test.004.c_ok2
+    beliefDelta: -3
+    requiredEvidenceIds:
+    - analysis_test_004_a
+    claimId: claim_rule
+    pageIds:
+    - web_test_007
+  - optionId: c_bad2
+    bodyTextId: post.test.004.c_bad2
+    beliefDelta: 2
+    requiredEvidenceIds: []
+    claimId: 
+    pageIds: []
+  - optionId: c_ok3
+    bodyTextId: post.test.004.c_ok3
+    beliefDelta: -3
+    requiredEvidenceIds:
+    - analysis_test_004_b
+    claimId: claim_source
+    pageIds:
+    - web_test_007
+  _questionTemplates:
+  - templateId: q1
+    titleTextId: post.test.004.q1.title
+    bodyTextId: post.test.004.q1.body
+    authorTextId: ui.net.author_anon
+    options:
+    - optionId: q1_ok
+      bodyTextId: post.test.004.q1_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q1_bad1
+      bodyTextId: post.test.004.q1_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q1_bad2
+      bodyTextId: post.test.004.q1_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q2
+    titleTextId: post.test.004.q2.title
+    bodyTextId: post.test.004.q2.body
+    authorTextId: ui.net.author_nick_3
+    options:
+    - optionId: q2_bad1
+      bodyTextId: post.test.004.q2_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q2_ok
+      bodyTextId: post.test.004.q2_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q2_bad2
+      bodyTextId: post.test.004.q2_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q3
+    titleTextId: post.test.004.q3.title
+    bodyTextId: post.test.004.q3.body
+    authorTextId: ui.net.author_nick_9
+    options:
+    - optionId: q3_bad1
+      bodyTextId: post.test.004.q3_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q3_bad2
+      bodyTextId: post.test.004.q3_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q3_ok
+      bodyTextId: post.test.004.q3_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q4
+    titleTextId: post.test.004.q4.title
+    bodyTextId: post.test.004.q4.body
+    authorTextId: ui.net.author_nick_4
+    options:
+    - optionId: q4_bad1
+      bodyTextId: post.test.004.q4_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q4_ok
+      bodyTextId: post.test.004.q4_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q4_bad2
+      bodyTextId: post.test.004.q4_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  - templateId: q5
+    titleTextId: post.test.004.q5.title
+    bodyTextId: post.test.004.q5.body
+    authorTextId: ui.net.author_nick_11
+    options:
+    - optionId: q5_bad1
+      bodyTextId: post.test.004.q5_bad1
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q5_bad2
+      bodyTextId: post.test.004.q5_bad2
+      beliefDelta: 2
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+    - optionId: q5_ok
+      bodyTextId: post.test.004.q5_ok
+      beliefDelta: -3
+      requiredEvidenceIds: []
+      claimId: 
+      pageIds: []
+  _introLineTextId: 
+  _excellentLineTextId: 
+  _successLineTextId: 
+  _failLineTextId: 
+  _weakLineTextId: 
+  _flatLineTextId: 
+  _rewriteLineTextId: 

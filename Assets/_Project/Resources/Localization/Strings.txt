@@ -1685,8 +1685,8 @@ field.elev.bulletin_memo	주민의 항의 쪽지. 다들 3층에서 서는 걸 �
 field.elev.bulletin_old	누렇게 바랜 소독 안내. 이번 일과는 상관없다.	A yellowed pest-control notice. Unrelated.	
 field.elev.scare.empty.001	점검 중이라던 쪽이 혼자 내려와서… 열렸어요. 아무도 없는데.	The one under maintenance came down by itself… and opened. Empty.	
 field.elev.scare.empty.002	점검 모드라 빈 채로 오르내리는 거야. 저건 안 타.	Maintenance mode runs it empty. We're not taking that one.	한영
-field.elev.scare.mail.001	불이… 그리고 방금 우편함이.	The lights… and the mailbox just now.	
-field.elev.scare.mail.002	타이머 등이야. 뚜껑은 원래 덜렁거렸고.	Timer light. And that flap was already loose.	한영
+field.elev.scare.mail.001	방금 우편함이… 혼자 덜컹였어요.	The mailbox just… rattled on its own.	
+field.elev.scare.mail.002	뚜껑이 원래 덜렁거렸어. 현관 틈으로 바람이 들어와.	That flap was loose. Wind gets in through the door.	한영
 field.elev.scare.blackout.001	정전이에요…?	A blackout…?	
 field.elev.scare.blackout.002	비상등 들어왔잖아. 점검 설정 걸린 날은 전원이 한 번씩 튄대.	The emergency light's on. Power trips now and then with that setting on.	한영
 field.elev.scare.blackout.003	…표시등은 계속 3이에요.	…The display's still showing 3.	
@@ -1695,3 +1695,445 @@ field.elev.scare.mirror.002	문틈 빛이 비친 거야. 여긴 우리 둘뿐이
 field.elev.scare.mirror.003	…네. 둘뿐이에요.	…Right. Just us.	
 ui.travel.duration_main_field.case_test_001	숙소에서 역전동 다세대 302호까지 {0}분	{0} min from the dorm to Unit 302, Yeokjeon-dong	본편 현장 이동
 ui.travel.duration_main_field.case_test_002	숙소에서 구도시 구오 빌라까지 {0}분	{0} min from the dorm to Guo Villa	본편 현장 이동
+case.test.004.name	사건 #004 — 4시 44분의 호출	Case #004 — The 4:44 Call	
+case.test.004.description	새벽마트 구도시점에서, 새벽 4시 44분이면 스피커가 손님 이름을 부른다는 제보가 이어지고 있다.	Reports keep coming from the Saebyeok Mart in the old town: at 4:44 AM the speaker calls out customers' names.	
+legend.test.004.name	4시 44분의 호출	The 4:44 Call	
+legend.test.004.description	새벽 4시 44분, 편의점 스피커가 이름을 부른다. 불린 사람은 사흘 안에 사라진다고 한다.	At 4:44 AM the store speaker calls a name. Whoever is called vanishes within three days, they say.	
+place.case_test_004	새벽마트 구도시점	Saebyeok Mart, old town	본편 현장 이름
+ui.travel.duration_main_field.case_test_004	숙소에서 새벽마트 구도시점까지 {0}분	{0} min from the dorm to Saebyeok Mart	본편 현장 이동
+ui.casefile.place_store_counter	새벽마트 계산대	Saebyeok Mart counter	사건 #004
+ui.casefile.place_store_locker	새벽마트 택배 보관함	Saebyeok Mart parcel lockers	사건 #004
+ui.casefile.place_store_notice	새벽마트 출입문 공지	Saebyeok Mart door notice	사건 #004
+web.test.007.title	편의점에서 제 이름이 불렸어요 (4시 44분)	The convenience store called my name (4:44)	
+web.test.007.body	새벽 4시 44분에 스피커에서 제 이름이 나왔어요. 가게엔 저 혼자였는데. 사흘 안에 무슨 일 생긴다던데 진짜예요?	At 4:44 AM my name came out of the speaker. I was the only one there. They say something happens within three days. Is that true?	
+web.test.007.c1	저도 들었어요. 이름 불린 사람 사흘 안에 사라진대요	I heard it too. People who get called disappear in three days	
+web.test.007.c2	4시 44분이라니 그것만으로 소름	4:44 alone gives me chills	
+web.test.008.title	[새벽마트 구도시점] 택배 보관함 안내 방송 안내	[Saebyeok Mart] About the parcel locker announcement	
+web.test.008.body	택배 보관함에 맡겨진 물건이 있으면 매일 04:44에 받는 분 성함을 안내 방송합니다.\n시간이 공교롭다는 말씀이 많아 시간을 바꿀 예정입니다.	If a parcel is waiting in our locker, we announce the recipient's name every day at 04:44.\nMany say the time is unsettling, so we'll change it.	
+web.test.008.c1	아 택배 안내였어요?	Oh, it was a parcel notice?	
+web.test.008.c2	네, 곧 시간 바꿀게요. 놀라게 해 드려 죄송합니다	Yes, we'll change the time soon. Sorry for the scare	
+clue.test.013.title	방송 단말 예약 목록	The announcement schedule	
+clue.test.013.text	계산대 아래 방송 단말에 '04:44 택배 수령 안내(자동)'가 예약돼 있다. 보관함에 물건이 있으면 받는 사람 이름을 읽는다.	The announcer under the counter has "04:44 Parcel pickup notice (auto)" scheduled. It reads out the recipients of parcels in the locker.	
+clue.test.014.title	보관함 송장	The locker labels	
+clue.test.014.text	택배 보관함에 송장이 붙은 상자 셋. 받는 사람 이름 가운데 하나가 원글 작성자의 닉네임과 같은 이름이다.	Three boxes in the locker with labels. One recipient's name matches the original poster's.	
+clue.test.015.title	점포 공지	The store notice	
+clue.test.015.text	점포가 출입문과 괴담넷에 붙인 공지. 택배 보관함 안내 방송을 매일 04:44에 한다고 적혀 있다.	The store's notice on the door and on the forum: the parcel announcement runs daily at 04:44.	
+clue.test.016.title	야간 근무 일지	The night shift log	
+clue.test.016.text	알바의 근무 일지. '4:44 방송 또 손님 놀람. 점장님께 시간 바꿔 달라고 말씀드림.'	The part-timer's log: "4:44 announcement scared a customer again. Asked the manager to change the time."	
+analysis.test.004.a.title	예약 방송과 보관함 송장	The schedule and the labels	
+analysis.test.004.a.body	4시 44분 방송은 예약된 택배 수령 안내다. 불린 이름은 보관함에 택배가 와 있는 사람이다. 작성자도 택배를 받을 사람이었다.	The 4:44 announcement is a scheduled parcel notice. The names called belong to people with parcels in the locker. The poster was one of them.	
+analysis.test.004.b.title	점포 공지와 근무 일지	The notice and the log	
+analysis.test.004.b.body	점포도 알바도 4시 44분 방송이 택배 안내라고 적었다. 시각이 공교로워 오해를 샀을 뿐이다.	Both the store and the part-timer wrote that 4:44 is the parcel notice. The unlucky time just caused a misunderstanding.	
+deduce.test.004.q1.label	괴담의 진위	Is it real?	
+deduce.test.004.q1.question	새벽 4시 44분에 이름이 불리는 까닭은?	Why are names called at 4:44 AM?	
+deduce.test.004.q1.opt0	스피커에 무언가 씌어 이름을 부른다.	Something possessed the speaker.	
+deduce.test.004.q1.opt1	택배 수령 안내 방송이 그 시각에 예약돼 있다.	A parcel pickup announcement is scheduled then.	
+deduce.test.004.q1.opt2	야간 알바가 장난으로 이름을 부른다.	The night clerk calls names as a prank.	
+deduce.test.004.q1.explain	방송 단말의 예약과 보관함 송장이 맞아떨어진다. 불린 이름은 택배를 받을 사람이다.	The schedule and the labels match. The names are parcel recipients.	
+deduce.test.004.q1.report	택배 안내 예약 방송에서 생긴 착각으로 판단됨.	Judged a misunderstanding caused by a scheduled parcel announcement.	
+deduce.test.004.q2.label	대처법	What to do	
+deduce.test.004.q2.question	이 괴담에 맞는 대처는?	The right response to this legend?	
+deduce.test.004.q2.opt0	이름이 불리면 사흘 동안 밖에 나가지 않는다.	If called, stay indoors for three days.	
+deduce.test.004.q2.opt1	이름이 불렸다면 택배를 찾아가고, 점포에 방송 시간 조정을 요청한다.	If called, pick up the parcel and ask the store to change the time.	
+deduce.test.004.q2.opt2	새벽에는 그 편의점에 가지 않는다.	Avoid that store at dawn.	
+deduce.test.004.q2.explain	점포도 알바도 시간을 바꾸려 한다. 불린 사람은 택배를 찾아가면 된다.	The store already plans to change the time. Anyone called just needs to pick up their parcel.	
+deduce.test.004.q2.report	불린 사람은 택배를 찾아갈 것. 점포에 방송 시간 조정을 요청할 것.	Those called should collect their parcels; ask the store to change the time.	
+deduce.test.004.summary	방송 단말의 예약과 보관함 송장, 점포 공지를 대조해 4시 44분의 호출이 택배 수령 안내 방송임을 확인하였다.	Comparing the schedule, the labels and the store notice, we confirmed the 4:44 call is a parcel pickup announcement.	
+report.test.004.overview.title	사건 개요	Overview	
+report.test.004.overview.body	새벽 4시 44분에 이름을 부르는 것은 {_} 수령 안내 방송이다.	The 4:44 AM name-calling is a {_} pickup announcement.	
+report.test.004.overview.answer	택배	parcel	
+report.test.004.overview.choice_1	분실물	lost item	보고서 보기(오답)
+report.test.004.overview.choice_2	귀신	ghost	보고서 보기(오답)
+report.test.004.target.title	검열 대상	Target post	
+report.test.004.target.body	검열 대상은 '편의점에서 제 이름이 {_} (4시 44분)' 글이다.	The target is "The convenience store {_} my name (4:44)".	
+report.test.004.target.answer	불렸어요	called	
+report.test.004.target.choice_1	들렸어요	echoed	보고서 보기(오답)
+report.test.004.target.choice_2	적혔어요	wrote	보고서 보기(오답)
+action.test.016.name	방송 단말 살피기	Check the announcer	
+action.test.016.desc	계산대 아래 방송 단말의 예약 목록을 본다.	Look at the schedule on the announcer.	
+action.test.016.result	04:44 예약을 찾았다.	Found the 04:44 schedule.	
+action.test.017.name	보관함 살피기	Check the lockers	
+action.test.017.desc	택배 보관함의 송장을 읽는다.	Read the locker labels.	
+action.test.017.result	송장의 이름을 확인했다.	Checked the names on the labels.	
+action.test.018.name	공지 읽기	Read the notice	
+action.test.018.desc	출입문에 붙은 공지를 읽는다.	Read the notice on the door.	
+action.test.018.result	점포 공지를 찾았다.	Found the store notice.	
+action.test.019.name	근무 일지 살피기	Check the shift log	
+action.test.019.desc	계산대의 근무 일지를 넘겨 본다.	Leaf through the shift log.	
+action.test.019.result	근무 일지를 찾았다.	Found the shift log.	
+post.test.004.reply_to	원글: 편의점에서 제 이름이 불렸어요 (4시 44분)	Re: The convenience store called my name (4:44)	정정글 원글 표시
+post.test.004.title_fear	[주의] 4시 44분에 이름 불리면 사흘 동안 나가지 마세요	[Warning] If you're called at 4:44, stay in for three days	
+post.test.004.title_refute	4시 44분 방송, 택배 안내였습니다	The 4:44 call was a parcel notice	
+post.test.004.title_calm	4시 44분 방송 건 확인해 봤어요	I checked the 4:44 announcement	
+post.test.004.title_refute2	4시 44분 방송, 방송 단말 예약으로 확인했습니다	Confirmed the 4:44 call via the announcer's schedule	
+post.test.004.title_neutral	새벽마트 방송 건	About the Saebyeok Mart announcement	
+post.test.004.title_fear2	4시 44분에 이름 불린 분 계신가요?	Anyone else called at 4:44?	
+post.test.004.title_record	점포 공지 확인: 4시 44분 방송은 택배 안내입니다	Store notice confirmed: 4:44 is a parcel notice	
+post.test.004.intro_rumor	새벽 4시 44분에 이름이 불린다는 이야기 보셨죠.	You've seen the story about names called at 4:44.	
+post.test.004.intro_witness	저도 그 편의점에서 들었어요.	I heard it at that store too.	
+post.test.004.intro_hook	이건 정말 오싹한 이야기입니다.	This one is truly chilling.	
+post.test.004.intro_facts	확인된 것만 짧게 정리합니다.	Just the confirmed facts, briefly.	
+post.test.004.intro_neutral	편의점 방송 얘기가 계속 나와서요.	The store announcement keeps coming up.	
+post.test.004.intro_hook2	이건 진짜 설명이 안 되는 일이에요.	This really can't be explained.	
+post.test.004.intro_record	점포 공지와 근무 일지를 함께 확인했습니다.	I checked the store notice and the shift log together.	
+post.test.004.fact_refute	계산대 방송 단말에 04:44 택배 수령 안내가 자동 예약돼 있었습니다. 불린 이름은 택배를 받을 분들입니다.	The announcer has a 04:44 parcel pickup notice scheduled. The names are parcel recipients.	
+post.test.004.fact_reports	이름이 불렸다는 제보가 여러 건 있는 건 맞아요.	There are many reports of names being called, true.	
+post.test.004.fact_real	4시 44분에 뭔가 있는 건 확실해 보입니다.	Something definitely happens at 4:44.	
+post.test.004.fact_refute2	보관함 송장의 이름과 방송에서 불린 이름이 같았습니다.	The names on the locker labels match the names called.	
+post.test.004.fact_reports2	다른 편의점에서도 비슷한 얘기가 있긴 해요.	Other stores have similar stories too.	
+post.test.004.fact_real2	이름이 불리는 건 분명히 일어나는 일입니다.	Names really are being called.	
+post.test.004.fact_record	점포 공지와 야간 근무 일지 모두 4시 44분 방송이 택배 안내라고 적고 있습니다.	Both the store notice and the night log say 4:44 is the parcel notice.	
+post.test.004.action_calm	이름이 불렸다면 택배를 찾아가시면 됩니다. 점포도 시간을 바꾼다고 해요.	If you're called, pick up your parcel. The store will change the time.	
+post.test.004.action_counter	그래도 불리면 그날은 조심하는 게 좋겠죠.	Still, be careful the day you're called.	
+post.test.004.action_fear	새벽에는 그 편의점에 가지 마세요.	Don't go to that store at dawn.	
+post.test.004.action_calm2	방송 시간이 바뀌기 전까지는 4시 44분 방송을 택배 알림으로 들으시면 됩니다.	Until the time changes, treat 4:44 as a parcel alert.	
+post.test.004.action_counter2	이름을 적어 두지만 않으면 괜찮겠죠.	As long as you don't leave your name, you're fine.	
+post.test.004.action_fear2	혹시 모르니 이름 불리면 사흘은 집에 계세요.	Just in case, stay home three days if called.	
+post.test.004.action_record	보관함에 택배가 있는지 확인하시고, 시간 조정 공지가 올라오면 다시 알려 드릴게요.	Check the locker for your parcel; I'll post again when the time changes.	
+post.test.004.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.	
+post.test.004.review.title_refute	제목에서 원인을 밝혀 소문을 꺾습니다.	Naming the cause in the title breaks the rumor.	
+post.test.004.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but doesn't say what's wrong.	
+post.test.004.review.title_refute2	제목에서 근거를 밝힙니다.	States the evidence in the title.	
+post.test.004.review.title_neutral	아무 쪽으로도 기울지 않습니다.	Leans neither way.	
+post.test.004.review.title_fear2	겪은 사람을 찾는 제목이 괴담을 키웁니다.	Asking for witnesses grows the legend.	
+post.test.004.review.title_record	새 근거로 원인을 밝힙니다.	Reveals the cause with new evidence.	
+post.test.004.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor plainly.	
+post.test.004.review.intro_witness	직접 겪었다는 말이 실재한다는 인상을 줍니다.	Claiming to witness it makes it feel real.	
+post.test.004.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opener grows belief.	
+post.test.004.review.intro_facts	확인된 것만 말하겠다는 도입이 믿음을 덜어 줍니다.	Promising only facts eases belief.	
+post.test.004.review.intro_neutral	소문을 키우지도 줄이지도 않습니다.	Neither grows nor shrinks the rumor.	
+post.test.004.review.intro_hook2	설명이 안 된다는 강조가 겁을 줍니다.	Stressing the inexplicable scares people.	
+post.test.004.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Opening with checked evidence eases belief.	
+post.test.004.review.fact_refute	원인을 근거와 함께 밝힙니다.	Gives the cause with evidence.	
+post.test.004.review.fact_reports	제보가 많다는 말만으로 믿음이 오릅니다.	"Many reports" alone raises belief.	
+post.test.004.review.fact_real	괴담이 사실이라고 못 박습니다.	Declares the legend true.	
+post.test.004.review.fact_refute2	분석한 근거로 원인을 밝힙니다.	Gives the cause from the analysis.	
+post.test.004.review.fact_reports2	다른 곳에도 있다는 말이 믿음을 조금 올립니다.	"It happens elsewhere" nudges belief up.	
+post.test.004.review.fact_real2	괴담이 실제로 일어난다고 못 박습니다.	Declares it really happens.	
+post.test.004.review.fact_record	두 근거로 원인을 못 박습니다.	Pins the cause with two sources.	
+post.test.004.review.action_calm	할 일을 알려 줘 안심시킵니다.	Reassures with a clear action.	
+post.test.004.review.action_counter	괴담 규칙을 반쯤 인정합니다.	Half-accepts the legend's rule.	
+post.test.004.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to avoid it grows fear.	
+post.test.004.review.action_calm2	평소처럼 대처하라는 안내가 안심시킵니다.	Advising normal behavior reassures.	
+post.test.004.review.action_counter2	괴담 규칙을 대처법처럼 남깁니다.	Leaves the legend's rule as advice.	
+post.test.004.review.action_fear2	피하라는 말이 공포를 키웁니다.	Telling people to hide grows fear.	
+post.test.004.review.action_record	할 일을 구체적으로 알려 줘 안심시킵니다.	Specific steps reassure.	
+post.test.004.react.ok_1	택배 안내였구나. 괜히 무서워했네요.	A parcel notice! Got scared for nothing.	
+post.test.004.react.ok_2	저 보관함에 택배 있었어요 ㅋㅋ	My parcel was in the locker lol	
+post.test.004.react.bad_1	역시 4시 44분은 뭔가 있어...	4:44 really is cursed...	
+post.test.004.react.bad_2	이제 새벽엔 안 갑니다.	Not going there at dawn anymore.	
+post.test.004.react.weak_1	그래서 불려도 괜찮다는 거예요?	So it's fine to be called?	
+post.test.004.c_ok1	4시 44분 방송은 택배 수령 안내래요.	The 4:44 call is a parcel pickup notice.	
+post.test.004.c_bad1	저도 불렸는데 그날 진짜 이상한 일 있었어요.	I was called too and something weird happened that day.	
+post.test.004.c_ok2	불린 이름이 보관함 송장 이름이랑 같았어요.	The names called match the locker labels.	
+post.test.004.c_bad2	무서워서 이제 다른 편의점 가요.	Too scared, I use another store now.	
+post.test.004.c_ok3	점포 공지랑 근무 일지 둘 다 택배 안내라고 적혀 있어요.	The store notice and the shift log both say it's a parcel notice.	
+post.test.004.q1.title	4시 44분에 이름 불렸는데 어떡해요?	I got called at 4:44, what do I do?	
+post.test.004.q1.body	오늘 새벽에 불렸어요. 사흘이라던데...	Got called this morning. Three days, they said...	
+post.test.004.q1_ok	택배 수령 안내예요. 보관함에 택배 있을 거예요.	It's a parcel notice. Your parcel's in the locker.	
+post.test.004.q1_bad1	사흘 동안 절대 나가지 마세요.	Don't go out for three days.	
+post.test.004.q1_bad2	이름 바꾸는 수밖에 없대요.	The only way is to change your name.	
+post.test.004.q2.title	방금 또 이름 부르는 방송 들었어요	Just heard a name called again	
+post.test.004.q2.body	아무도 없는데 누구 이름을 부르더라고요.	It called someone's name with nobody there.	
+post.test.004.q2_bad1	그 사람 이제 큰일 났네요.	That person's in trouble now.	
+post.test.004.q2_ok	택배 보관함 안내 방송이래요. 매일 그 시각에 나와요.	It's the parcel locker announcement. Daily at that time.	
+post.test.004.q2_bad2	다음엔 꼭 귀 막으세요.	Cover your ears next time.	
+post.test.004.q3.title	왜 하필 4시 44분이에요?	Why 4:44 of all times?	
+post.test.004.q3.body	시간부터가 너무 불길해요.	The time itself is ominous.	
+post.test.004.q3_bad1	4가 세 개라 그런 거죠.	Because it's three fours.	
+post.test.004.q3_bad2	그 시간에 사고가 있었대요.	There was an accident at that hour.	
+post.test.004.q3_ok	점포가 택배 안내를 그 시각으로 예약해 둔 거예요. 곧 바꾼대요.	The store just scheduled the parcel notice then. They'll change it.	
+post.test.004.q4.title	새벽 알바인데 그 방송 무서워요	I work nights and the announcement scares me	
+post.test.004.q4.body	4시 44분만 되면 심장이 철렁해요.	My heart drops every 4:44.	
+post.test.004.q4_bad1	그 시간엔 창고에 숨어 계세요.	Hide in the stockroom then.	
+post.test.004.q4_ok	택배 안내 예약이에요. 점장님께 시간 바꿔 달라고 하세요.	It's a scheduled parcel notice. Ask the manager to change it.	
+post.test.004.q4_bad2	방송 끄면 더 큰일 난대요.	Turning it off makes it worse, they say.	
+post.test.004.q5.title	이름 불리고 사라진 사람 진짜 있어요?	Has anyone really vanished?	
+post.test.004.q5.body	다들 사흘 사흘 하니까 궁금해서요.	Everyone says three days, so I'm curious.	
+post.test.004.q5_bad1	제 친구 친구가 그랬대요.	A friend of a friend did.	
+post.test.004.q5_bad2	기사로도 났다던데요.	It was in the news, apparently.	
+post.test.004.q5_ok	없어요. 불린 사람은 택배를 찾아갔을 뿐이에요.	No. The people called just picked up parcels.	
+case.test.005.name	사건 #005 — 혼자 흔들리는 그네	Case #005 — The Swing That Moves Alone	
+case.test.005.description	구도시 달빛 어린이공원에서, 자정이면 그네 하나가 혼자 흔들린다는 제보가 이어지고 있다.	Reports keep coming from Moonlight Children's Park: at midnight one swing moves by itself.	
+legend.test.005.name	빈 그네의 아이	The Child on the Empty Swing	
+legend.test.005.description	자정이면 그네 하나가 혼자 흔들린다. 거기 탄 아이에게 말을 걸면 데려간다고 한다.	At midnight one swing sways by itself. Speak to the child on it and it takes you, they say.	
+place.case_test_005	달빛 어린이공원	Moonlight Children's Park	본편 현장 이름
+ui.travel.duration_main_field.case_test_005	숙소에서 달빛 어린이공원까지 {0}분	{0} min from the dorm to Moonlight Park	본편 현장 이동
+ui.casefile.place_park_swing	달빛 어린이공원 그네	Moonlight Park swings	사건 #005
+ui.casefile.place_park_vent	공원 옆 상가 환풍기	The shop vent beside the park	사건 #005
+ui.casefile.place_park_board	공원 입구 게시판	Park entrance board	사건 #005
+web.test.009.title	공원 그네가 혼자 흔들려요 (자정)	The park swing moves by itself (midnight)	
+web.test.009.body	자정에 공원 앞을 지나는데 바람 한 점 없는데 그네 하나만 계속 흔들렸어요. 누가 타고 있는 것처럼요.	Passing the park at midnight, not a breath of wind, but one swing kept swaying. Like someone was on it.	
+web.test.009.c1	말 걸면 안 된대요. 데려간대요	Don't talk to it. It takes you	
+web.test.009.c2	그 공원 예전에 사고 났다던데	Something happened at that park once, I heard	
+web.test.010.title	[구도시 시설관리] 달빛 어린이공원 놀이시설 점검 안내	[Old Town Facilities] Moonlight Park playground inspection	
+web.test.010.body	그네 연결 고리 마모 신고가 접수되어 점검합니다.\n인근 상가 환풍기(00시~06시 가동) 바람 민원도 함께 전달했습니다.	A worn swing hook has been reported and will be inspected.\nComplaints about the nearby shop vent (runs 00:00–06:00) have been passed on.	
+web.test.010.c1	아 환풍기 바람이었구나	Oh, it was the vent	
+web.test.010.c2	네, 고리는 이번 주에 교체합니다	Yes, the hook will be replaced this week	
+clue.test.017.title	헐거운 그네 고리	The loose swing hook	
+clue.test.017.text	흔들리던 그네만 위쪽 연결 고리가 닳아 헐겁다. 손가락으로 밀어도 크게 흔들린다.	Only the moving swing has a worn, loose top hook. A finger's push sets it swaying.	
+clue.test.018.title	환풍기 가동 타이머	The vent timer	
+clue.test.018.text	공원 옆 상가 환풍기에 '가동 00:00~06:00' 타이머 스티커. 배기구가 그네 쪽을 향한다.	A sticker on the shop vent: "Runs 00:00–06:00". The outlet points at the swings.	
+clue.test.019.title	시설관리 점검 안내	The facilities notice	
+clue.test.019.text	공원 입구 게시판과 괴담넷의 점검 안내. 그네 고리 마모와 환풍기 바람 민원이 적혀 있다.	The inspection notice on the board and the forum: a worn swing hook and complaints about vent wind.	
+clue.test.020.title	한쪽으로 파인 모래	Sand worn one way	
+clue.test.020.text	그 그네 아래 모래가 환풍기 반대쪽으로만 길게 파였다. 늘 같은 쪽에서 밀려 흔들렸다.	Under that swing the sand is gouged only on the side away from the vent. It's always pushed from one side.	
+analysis.test.005.a.title	헐거운 고리와 환풍기 바람	The loose hook and the vent	
+analysis.test.005.a.body	자정에 켜지는 환풍기 바람이 그네 쪽으로 분다. 고리가 헐거운 그네 하나만 그 바람에 흔들린다.	The vent switches on at midnight and blows at the swings. Only the one with the loose hook sways.	
+analysis.test.005.b.title	점검 안내와 모래 자국	The notice and the sand	
+analysis.test.005.b.body	모래는 늘 환풍기 반대쪽으로 파였다. 시설관리도 고리 마모와 환풍기 바람을 알고 있다.	The sand is always worn away from the vent. The facilities office knows about both the hook and the wind.	
+deduce.test.005.q1.label	괴담의 진위	Is it real?	
+deduce.test.005.q1.question	자정에 그네가 혼자 흔들리는 까닭은?	Why does the swing move alone at midnight?	
+deduce.test.005.q1.opt0	아이 혼령이 타고 있다.	A child's spirit is riding it.	
+deduce.test.005.q1.opt1	자정에 켜지는 환풍기 바람이 헐거운 그네를 흔든다.	The midnight vent wind sways the loose swing.	
+deduce.test.005.q1.opt2	누군가 줄로 몰래 당긴다.	Someone pulls it with a string.	
+deduce.test.005.q1.explain	환풍기는 자정에 켜져 그네 쪽으로 분다. 고리가 헐거운 그네 하나만 흔들린다.	The vent starts at midnight and blows at the swings. Only the loose one moves.	
+deduce.test.005.q1.report	환풍기 바람과 헐거운 고리에서 생긴 착각으로 판단됨.	Judged a misunderstanding caused by vent wind and a loose hook.	
+deduce.test.005.q2.label	대처법	What to do	
+deduce.test.005.q2.question	이 괴담에 맞는 대처는?	The right response to this legend?	
+deduce.test.005.q2.opt0	흔들리는 그네에 말을 걸지 않는다.	Don't speak to the swaying swing.	
+deduce.test.005.q2.opt1	시설관리에 고리 교체와 환풍기 방향 조정을 요청한다.	Ask facilities to replace the hook and redirect the vent.	
+deduce.test.005.q2.opt2	자정에는 공원에 가지 않는다.	Stay away from the park at midnight.	
+deduce.test.005.q2.explain	원인이 고리와 바람이니 둘을 고치면 흔들리지 않는다.	Fix the hook and the wind and it stops.	
+deduce.test.005.q2.report	시설관리에 고리 교체와 환풍기 방향 조정을 요청할 것.	Ask facilities to replace the hook and redirect the vent.	
+deduce.test.005.summary	헐거운 고리와 환풍기 타이머, 모래 자국을 대조해 자정에 그네가 흔들리는 것은 환풍기 바람 때문임을 확인하였다.	Comparing the hook, the vent timer and the sand, we confirmed the swing moves because of the vent wind.	
+report.test.005.overview.title	사건 개요	Overview	
+report.test.005.overview.body	자정에 그네를 흔드는 것은 공원 옆 상가 {_} 바람이다.	What sways the swing at midnight is wind from the shop's {_}.	
+report.test.005.overview.answer	환풍기	vent	
+report.test.005.overview.choice_1	가로등	streetlight	보고서 보기(오답)
+report.test.005.overview.choice_2	아이	child	보고서 보기(오답)
+report.test.005.target.title	검열 대상	Target post	
+report.test.005.target.body	검열 대상은 '공원 그네가 혼자 {_} (자정)' 글이다.	The target is "The park swing {_} by itself (midnight)".	
+report.test.005.target.answer	흔들려요	moves	
+report.test.005.target.choice_1	멈춰요	stops	보고서 보기(오답)
+report.test.005.target.choice_2	울어요	cries	보고서 보기(오답)
+action.test.020.name	그네 고리 살피기	Check the swing hook	
+action.test.020.desc	흔들리던 그네의 연결 고리를 본다.	Look at the swing's hook.	
+action.test.020.result	헐거운 고리를 찾았다.	Found a loose hook.	
+action.test.021.name	환풍기 살피기	Check the vent	
+action.test.021.desc	상가 환풍기의 스티커를 읽는다.	Read the sticker on the vent.	
+action.test.021.result	가동 타이머를 찾았다.	Found the timer.	
+action.test.022.name	게시판 읽기	Read the board	
+action.test.022.desc	공원 입구 게시판의 안내를 읽는다.	Read the notice at the entrance.	
+action.test.022.result	점검 안내를 찾았다.	Found the inspection notice.	
+action.test.023.name	모래 살피기	Check the sand	
+action.test.023.desc	그네 아래 모래 자국을 본다.	Look at the marks in the sand.	
+action.test.023.result	한쪽으로 파인 자국을 찾았다.	Found marks worn one way.	
+post.test.005.reply_to	원글: 공원 그네가 혼자 흔들려요 (자정)	Re: The park swing moves by itself (midnight)	정정글 원글 표시
+post.test.005.title_fear	[주의] 자정에 흔들리는 그네에 말 걸지 마세요	[Warning] Don't speak to the swing at midnight	
+post.test.005.title_refute	혼자 흔들리는 그네, 환풍기 바람이었습니다	The swaying swing was vent wind	
+post.test.005.title_calm	달빛공원 그네 건 확인해 봤어요	I checked the Moonlight Park swing	
+post.test.005.title_refute2	그네 고리가 헐거웠습니다. 직접 확인했어요	The swing hook was loose. Checked it myself	
+post.test.005.title_neutral	달빛공원 그네 건	About the Moonlight Park swing	
+post.test.005.title_fear2	자정에 그 그네 본 분 계신가요?	Anyone seen that swing at midnight?	
+post.test.005.title_record	시설관리 안내 확인: 그네는 고리와 환풍기 문제입니다	Facilities confirmed: it's the hook and the vent	
+post.test.005.intro_rumor	자정이면 그네가 혼자 흔들린다는 이야기 보셨죠.	You've seen the story about the midnight swing.	
+post.test.005.intro_witness	저도 그 공원에서 봤어요.	I saw it at that park too.	
+post.test.005.intro_hook	이건 정말 오싹한 이야기입니다.	This one is truly chilling.	
+post.test.005.intro_facts	확인된 것만 짧게 정리합니다.	Just the confirmed facts, briefly.	
+post.test.005.intro_neutral	공원 그네 얘기가 계속 나와서요.	The park swing keeps coming up.	
+post.test.005.intro_hook2	바람도 없는데 흔들린다니 말이 안 되죠.	Swaying with no wind makes no sense.	
+post.test.005.intro_record	시설관리 안내와 모래 자국을 함께 확인했습니다.	I checked the facilities notice and the sand marks together.	
+post.test.005.fact_refute	공원 옆 상가 환풍기가 자정부터 돌면서 그네 쪽으로 바람을 보냅니다. 고리가 헐거운 그네 하나만 흔들립니다.	The shop vent starts at midnight and blows at the swings. Only the loose one sways.	
+post.test.005.fact_reports	흔들리는 걸 봤다는 제보가 여러 건 있는 건 맞아요.	There are many sightings, true.	
+post.test.005.fact_real	그 그네에 뭔가 있는 건 확실해 보입니다.	Something is definitely on that swing.	
+post.test.005.fact_refute2	흔들리는 그네만 연결 고리가 닳아 손가락으로 밀어도 흔들립니다.	Only that swing has a worn hook; a finger sets it swaying.	
+post.test.005.fact_reports2	다른 공원에도 비슷한 얘기가 있긴 해요.	Other parks have similar stories too.	
+post.test.005.fact_real2	그네가 혼자 흔들리는 건 분명히 일어나는 일입니다.	The swing really does move alone.	
+post.test.005.fact_record	시설관리 안내에도 고리 마모와 환풍기 바람이 적혀 있고, 모래도 환풍기 반대쪽으로만 파였습니다.	The facilities notice lists the worn hook and vent wind, and the sand is worn only away from the vent.	
+post.test.005.action_calm	시설관리가 이번 주에 고리를 바꾼다고 하니 걱정 안 하셔도 됩니다.	Facilities will replace the hook this week, no need to worry.	
+post.test.005.action_counter	그래도 자정엔 그네 근처에 안 가는 게 좋겠죠.	Still, better avoid the swings at midnight.	
+post.test.005.action_fear	자정엔 그 공원에 가지 마세요.	Don't go to that park at midnight.	
+post.test.005.action_calm2	고리를 바꾸기 전까지 그 그네는 타지 말고, 흔들려도 바람이라고 생각하시면 됩니다.	Until the hook's replaced, skip that swing; if it sways, it's the wind.	
+post.test.005.action_counter2	말만 안 걸면 괜찮겠죠.	As long as you don't speak to it.	
+post.test.005.action_fear2	혹시 모르니 아이들 그 공원 보내지 마세요.	Just in case, keep the kids away.	
+post.test.005.action_record	시설관리에 환풍기 방향 조정도 요청해 뒀습니다. 고쳐지면 다시 알려 드릴게요.	I asked facilities to redirect the vent too. I'll update when it's fixed.	
+post.test.005.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.	
+post.test.005.review.title_refute	제목에서 원인을 밝혀 소문을 꺾습니다.	Naming the cause in the title breaks the rumor.	
+post.test.005.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but doesn't say what's wrong.	
+post.test.005.review.title_refute2	제목에서 근거를 밝힙니다.	States the evidence in the title.	
+post.test.005.review.title_neutral	아무 쪽으로도 기울지 않습니다.	Leans neither way.	
+post.test.005.review.title_fear2	겪은 사람을 찾는 제목이 괴담을 키웁니다.	Asking for witnesses grows the legend.	
+post.test.005.review.title_record	새 근거로 원인을 밝힙니다.	Reveals the cause with new evidence.	
+post.test.005.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor plainly.	
+post.test.005.review.intro_witness	직접 봤다는 말이 실재한다는 인상을 줍니다.	Claiming to see it makes it feel real.	
+post.test.005.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opener grows belief.	
+post.test.005.review.intro_facts	확인된 것만 말하겠다는 도입이 믿음을 덜어 줍니다.	Promising only facts eases belief.	
+post.test.005.review.intro_neutral	소문을 키우지도 줄이지도 않습니다.	Neither grows nor shrinks the rumor.	
+post.test.005.review.intro_hook2	말이 안 된다는 강조가 겁을 줍니다.	Stressing the impossible scares people.	
+post.test.005.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Opening with checked evidence eases belief.	
+post.test.005.review.fact_refute	원인을 근거와 함께 밝힙니다.	Gives the cause with evidence.	
+post.test.005.review.fact_reports	제보가 많다는 말만으로 믿음이 오릅니다.	"Many reports" alone raises belief.	
+post.test.005.review.fact_real	괴담이 사실이라고 못 박습니다.	Declares the legend true.	
+post.test.005.review.fact_refute2	분석한 근거로 원인을 밝힙니다.	Gives the cause from the analysis.	
+post.test.005.review.fact_reports2	다른 곳에도 있다는 말이 믿음을 조금 올립니다.	"It happens elsewhere" nudges belief up.	
+post.test.005.review.fact_real2	괴담이 실제로 일어난다고 못 박습니다.	Declares it really happens.	
+post.test.005.review.fact_record	두 근거로 원인을 못 박습니다.	Pins the cause with two sources.	
+post.test.005.review.action_calm	곧 고친다는 안내가 안심시킵니다.	"It'll be fixed soon" reassures.	
+post.test.005.review.action_counter	괴담 규칙을 반쯤 인정합니다.	Half-accepts the legend's rule.	
+post.test.005.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to avoid it grows fear.	
+post.test.005.review.action_calm2	평소처럼 대처하라는 안내가 안심시킵니다.	Advising normal behavior reassures.	
+post.test.005.review.action_counter2	괴담 규칙을 대처법처럼 남깁니다.	Leaves the legend's rule as advice.	
+post.test.005.review.action_fear2	아이들까지 피하라는 말이 공포를 키웁니다.	Keeping kids away grows fear.	
+post.test.005.review.action_record	할 일을 구체적으로 알려 줘 안심시킵니다.	Specific steps reassure.	
+post.test.005.react.ok_1	환풍기였구나. 괜히 무서워했네요.	It was the vent. Got scared for nothing.	
+post.test.005.react.ok_2	그 고리 저도 덜렁거리는 거 봤어요.	I've seen that hook rattle too.	
+post.test.005.react.bad_1	역시 그 그네엔 누가 타고 있어...	Someone really is on that swing...	
+post.test.005.react.bad_2	이제 그 공원 안 지나갑니다.	Not walking past that park anymore.	
+post.test.005.react.weak_1	그래서 말 걸어도 된다는 거예요?	So it's fine to talk to it?	
+post.test.005.c_ok1	자정부터 도는 상가 환풍기 바람 때문이래요.	It's the shop vent that starts at midnight.	
+post.test.005.c_bad1	저도 봤는데 그네 위에 그림자가 있었어요.	I saw it too, there was a shadow on it.	
+post.test.005.c_ok2	흔들리는 그네만 고리가 헐거워요. 손으로 밀어도 흔들려요.	Only that swing's hook is loose. A push sets it off.	
+post.test.005.c_bad2	무서워서 애들 데리고 다른 공원 가요.	Too scared, I take the kids elsewhere now.	
+post.test.005.c_ok3	시설관리 안내에도 고리 마모랑 환풍기 바람이 적혀 있어요.	The facilities notice lists the worn hook and the vent wind.	
+post.test.005.q1.title	그네가 흔들리는데 말 걸면 진짜 데려가요?	Will it take me if I talk to the swing?	
+post.test.005.q1.body	오늘 자정에 지나가야 해서요.	I have to pass by at midnight tonight.	
+post.test.005.q1_ok	상가 환풍기 바람이에요. 고리 헐거운 그네만 흔들려요.	It's the shop vent. Only the loose swing moves.	
+post.test.005.q1_bad1	절대 쳐다보지도 마세요.	Don't even look at it.	
+post.test.005.q1_bad2	돌아가는 게 안전해요.	Safer to take another way.	
+post.test.005.q2.title	방금 그네 혼자 흔들리는 거 봤어요	Just saw the swing move alone	
+post.test.005.q2.body	바람 한 점 없었는데요.	Not a breath of wind.	
+post.test.005.q2_bad1	누가 타고 있었던 거예요.	Someone was riding it.	
+post.test.005.q2_ok	옆 상가 환풍기가 자정부터 돌아요. 그 바람이에요.	The shop vent starts at midnight. That's the wind.	
+post.test.005.q2_bad2	다음엔 꼭 피하세요.	Avoid it next time.	
+post.test.005.q3.title	왜 그네 하나만 흔들려요?	Why only one swing?	
+post.test.005.q3.body	옆 그네는 가만히 있더라고요.	The one beside it stays still.	
+post.test.005.q3_bad1	그 그네가 아이 자리래요.	That's the child's seat, they say.	
+post.test.005.q3_bad2	그 그네에서 사고가 있었대요.	There was an accident on that one.	
+post.test.005.q3_ok	그 그네만 연결 고리가 닳아서 작은 바람에도 흔들려요.	Only that one has a worn hook, so a little wind moves it.	
+post.test.005.q4.title	아이가 그 그네 타고 싶대요	My kid wants to ride that swing	
+post.test.005.q4.body	소문 듣고 나니 좀 꺼려져요.	After the rumor I'm hesitant.	
+post.test.005.q4_bad1	절대 태우지 마세요.	Never let them.	
+post.test.005.q4_ok	고리가 헐거워서 그래요. 교체 전까지만 옆 그네 타게 하세요.	The hook is loose. Use the other swing until it's replaced.	
+post.test.005.q4_bad2	타기 전에 인사부터 하래요.	Greet it before riding, they say.	
+post.test.005.q5.title	그 공원 예전에 무슨 일 있었어요?	Did something happen at that park?	
+post.test.005.q5.body	다들 사고 사고 하니까 궁금해서요.	Everyone mentions an accident.	
+post.test.005.q5_bad1	예전에 아이가 다쳤대요.	A kid got hurt there once.	
+post.test.005.q5_bad2	원래 묘지 자리였대요.	It used to be a graveyard.	
+post.test.005.q5_ok	아무 일 없어요. 고리가 낡고 옆에 환풍기가 있을 뿐이에요.	Nothing happened. Just an old hook and a vent nearby.	
+case.test.003.name	사건 #003 — 7호실의 노크	Case #003 — The Knock in Room 7	
+case.test.003.description	한 인터넷 생방송에서 동명고시원 7호실의 노크 소리가 그대로 잡힌 뒤, 하룻밤 사이 믿음도가 80%를 넘었다. 이번 것은 진짜다.	After a live stream caught the knocking in Room 7 of Dongmyeong Gosiwon, belief shot past 80% overnight. This one is real.	
+legend.test.003.name	7호실의 노크	The Knock in Room 7	
+legend.test.003.description	동명고시원 7호실 문을 밤마다 안에서 누군가 두드린다. 대답하면 문이 열린다고 한다.	Every night someone knocks on Room 7's door from the inside. Answer, and the door opens.	
+place.case_test_003	동명고시원	Dongmyeong Gosiwon	본편 현장 이름
+ui.travel.duration_main_field.case_test_003	숙소에서 동명고시원까지 {0}분	{0} min from the dorm to Dongmyeong Gosiwon	본편 현장 이동
+web.test.006.title	[생방송 다시보기] 고시원 7호실 노크, 진짜 들림	[Stream replay] The Room 7 knocking — you can really hear it	
+web.test.006.body	새벽 2시에 7호실 앞에서 방송 켰는데 안에서 진짜 두드렸어요. 빈방이라던데. 대답할 뻔했음.	Went live outside Room 7 at 2 AM and it really knocked from inside. It's supposed to be empty. I almost answered.	
+web.test.006.c1	소리 들었어요 소름…	I heard it, chills…	
+web.test.006.c2	대답하면 안 돼요 절대	Never answer it	
+clue.test.010.title	관리인 수첩 — 첫 쪽	Caretaker's notebook — page one	
+clue.test.010.text	"7호실 정리할 때: 문지방에 소금부터. 그다음 침대 머리맡에 부적."	"When settling Room 7: salt on the threshold first. Then the charm at the head of the bed."	
+clue.test.011.title	관리인 수첩 — 둘째 쪽	Caretaker's notebook — page two	
+clue.test.011.text	"마지막에 창틀에 초를 켠다. 순서가 틀리면 다시 두드린다."	"Last, light a candle on the window sill. Get the order wrong and it knocks again."	
+clue.test.012.title	창틀의 옛 촛농	Old wax on the sill	
+clue.test.012.text	7호실 창틀에 오래된 촛농 자국. 예전에도 누군가 여기서 초를 켰다.	Old candle wax on Room 7's window sill. Someone lit a candle here before.	
+action.test.013.name	수첩 첫 쪽 읽기	Read page one	
+action.test.013.desc	관리인 수첩의 첫 쪽을 읽는다.	Read the first page of the notebook.	
+action.test.013.result	결계 순서 앞부분을 알았다.	Learned the first part of the order.	
+action.test.014.name	수첩 둘째 쪽 읽기	Read page two	
+action.test.014.desc	관리인 수첩의 둘째 쪽을 읽는다.	Read the second page of the notebook.	
+action.test.014.result	결계 순서 끝부분을 알았다.	Learned the rest of the order.	
+action.test.015.name	창틀 살피기	Check the sill	
+action.test.015.desc	7호실 창틀을 살핀다.	Look at Room 7's sill.	
+action.test.015.result	옛 촛농을 찾았다.	Found old wax.	
+field.gosi.office	총 무 실	OFFICE	
+field.gosi.room_3	3	3	
+field.gosi.room_4	4	4	
+field.gosi.room_5	5	5	
+field.gosi.room_6	6	6	
+field.gosi.room_7	7	7	
+field.gosi.room_8	8	8	
+field.gosi.room_9	9	9	
+field.gosi.desk	총무실 책상	Office desk	
+field.gosi.door7	7호실	Room 7	
+field.gosi.exit	방에서 나가기	Leave the room	
+field.gosi.rite_sill	문지방	Threshold	
+field.gosi.rite_head	침대 머리맡	Head of the bed	
+field.gosi.rite_window	창틀	Window sill	
+field.gosi.desk_hint	어디를 살펴볼까.	Where should I look?	
+field.gosi.note_left	7호실 정리할 때\n\n1. 문지방에 소금부터\n\n2. 그다음\n   침대 머리맡에 부적	Settling Room 7\n\n1. Salt on the threshold first\n\n2. Then the charm\n   at the head of the bed	
+field.gosi.note_right	3. 마지막에\n   창틀에 초를 켠다\n\n순서 틀리면\n다시 두드린다	3. Last, light a candle\n   on the window sill\n\nWrong order and\nit knocks again	
+field.gosi.note_left_read	관리인 수첩. <b>문지방에 소금 → 머리맡에 부적</b>.	The caretaker's notebook. <b>Salt on the threshold → charm at the bed head.</b>	
+field.gosi.note_right_read	<b>마지막에 창틀에 초.</b> 순서가 틀리면 다시 두드린다고 적혀 있다.	<b>Last, a candle on the sill.</b> Wrong order and it knocks again.	
+field.gosi.enter.001	…들어가요?	…We're going in?	
+field.gosi.enter.002	안에서 두드리는 건 대답을 바라는 거야. 대답하지 마.	It knocks because it wants an answer. Don't answer.	한영
+field.gosi.enter.003	결계는 내가 친다. 넌 내가 말하는 것만 건네.	I'll lay the ward. You just hand me what I ask for.	한영
+field.gosi.scare.tube.001	형광등이…	The lights…	
+field.gosi.scare.tube.002	여긴 늘 그래. 관리인이 안 갈아.	Always like this here. The caretaker never changes them.	한영
+field.gosi.scare.knock.001	…!	…!	
+field.gosi.scare.knock.002	7호실이야. 빈방이고.	Room 7. It's empty.	한영
+field.gosi.scare.knock.003	대답하지 마. 순서부터 찾자.	Don't answer. Find the order first.	한영
+field.gosi.scare.slipper.001	방금… 6호실 앞 슬리퍼가 없어졌어요.	Just now… the slippers outside 6 were gone.	
+field.gosi.scare.slipper.002	신경 쓰지 마. 시선을 끄는 거야.	Ignore it. It wants your attention.	한영
+field.gosi.rite.ask	무엇을 놓을까?	What goes here?	한영
+field.gosi.item.salt	소금	Salt	
+field.gosi.item.charm	부적	Charm	
+field.gosi.item.candle	초	Candle	
+field.gosi.item.cancel	그만두기	Never mind	
+field.gosi.rite.not_yet	순서를 모르고 치면 안 돼. 총무실 수첩부터 찾아.	We can't lay it without the order. Find the notebook in the office.	한영
+field.gosi.rite.wax.001	창틀에 오래된 촛농이 있어요.	There's old wax on the sill.	
+field.gosi.rite.wax.002	전에도 누가 여기서 초를 켰네. 마지막 자리야.	Someone lit a candle here before. That's the last spot.	한영
+field.gosi.rite.ok_1	좋아. 다음.	Good. Next.	한영
+field.gosi.rite.ok_2	하나 남았어.	One left.	한영
+field.gosi.rite.wrong.001	으…! 다 흩어졌어요!	Ugh…! It all scattered!	
+field.gosi.rite.wrong.002	순서가 틀렸어. 처음부터 다시.	Wrong order. From the start.	한영
+field.gosi.rite.wrong_toast	결계가 깨졌다. 믿음도 <color=#E05A4F>{0}% → {1}%</color>	The ward broke. Belief <color=#E05A4F>{0}% → {1}%</color>	
+field.gosi.rite.final.001	됐어. 이제 끝내자.	That's it. Let's finish this.	한영
+field.gosi.rite.final.002	여긴 네 방이 아니야. 나가.	This isn't your room. Leave.	한영
+field.gosi.rite.final.003	…조용해졌어요.	…It went quiet.	
+field.gosi.rite.final.004	끝났어. 다신 안 두드려.	It's over. It won't knock again.	한영
+field.gosi.rite.final.005	(손이 아직 떨린다.)	(My hands are still shaking.)	
+field.gosi.rite.after	결계는 그대로야. 여긴 이제 조용해.	The ward holds. It's quiet now.	한영
+field.gosi.rite.done_toast	결계 완성. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Ward complete. Belief <color=#6CC9C2>{0}% → {1}%</color>	
+ui.work.exorcism_alert	⚠ 생방송 하나로 믿음도가 급상승했다. 이번 것은 진짜다 — 한영이 직접 나선다.	⚠ One live stream sent belief soaring. This one is real — Hanyoung steps in herself.	
+field.store.clock	04:44	04:44	
+field.store.counter	계산대	Counter	
+field.store.locker	택배 보관함	Parcel lockers	
+field.store.notice	출입문 공지	Door notice	
+field.store.counter_hint	어디를 살펴볼까.	Where should I look?	
+field.store.schedule	예약 방송\n\n00:00  영업 안내\n02:00  청소 안내\n04:44  택배 수령 안내 (자동)\n       보관함 받는 분 성함\n06:00  폐기 안내	Scheduled announcements\n\n00:00  Store notice\n02:00  Cleaning\n04:44  Parcel pickup (auto)\n       reads recipients\n06:00  Disposal	
+field.store.log_text	야간 근무 일지\n\n10/16  4:44 방송 또 손님 놀람\n10/17  점장님께 시간 바꿔\n       달라고 말씀드림\n10/18  보관함 3칸 찼음	Night log\n\n10/16  4:44 scared a customer again\n10/17  Asked manager to\n       change the time\n10/18  3 lockers full	
+field.store.counter_schedule	방송 단말에 <b>04:44 택배 수령 안내(자동)</b>가 예약돼 있다.	The announcer has <b>04:44 parcel pickup (auto)</b> scheduled.	
+field.store.counter_log	알바의 근무 일지. <b>4:44 방송 때문에 손님이 놀란다</b>고 적혀 있다.	The shift log: <b>customers keep getting startled by the 4:44 announcement</b>.	
+field.store.locker_hint	어디를 살펴볼까.	Where should I look?	
+field.store.label_1	받는 분\n김○○	To\nKim ○○	
+field.store.label_2	받는 분\n새벽세시	To\nSaebyeok-sesi	
+field.store.label_3	받는 분\n차지환	To\nCha Jihwan	
+field.store.locker_labels	송장 셋. 하나가 원글 작성자 닉네임 <b>'새벽세시'</b> 앞으로 와 있다.	Three labels. One is addressed to the original poster, <b>"Saebyeok-sesi"</b>.	
+field.store.notice_hint	어디를 살펴볼까.	Where should I look?	
+field.store.notice_title	택배 보관함 안내	Parcel locker notice	
+field.store.notice_body	보관함에 맡겨진 물건이 있으면\n매일 04:44에\n받는 분 성함을 안내 방송합니다.\n\n시간이 공교롭다는 말씀이 많아\n곧 바꿀 예정입니다.\n— 새벽마트 구도시점	If a parcel is waiting in our locker\nwe announce the recipient's name\ndaily at 04:44.\n\nMany say the time is unsettling,\nso we'll change it soon.\n— Saebyeok Mart	
+field.store.notice_read	점포 공지. <b>매일 04:44에 택배 받는 분 이름을 방송</b>한다.	The store notice: <b>names of parcel recipients are announced daily at 04:44</b>.	
+field.store.scare.fridge.001	냉장고 불이…	The fridge light…	
+field.store.scare.fridge.002	안정기 나간 거야. 편의점은 다 이래.	Ballast's gone. Every store's like this.	한영
+field.store.scare.call.001	…차… 지한… 님?	…Cha… Jihan…?	
+field.store.scare.call.002	지금 제 이름 불렀어요…?	Did it just call my name…?	
+field.store.scare.call.003	'차지환 님, 택배가 도착했습니다.' 끝까지 들어.	"Cha Jihwan, your parcel has arrived." Listen to the end.	한영
+field.store.scare.call.004	…아.	…Oh.	
+field.store.scare.door.001	아무도 없는데 자동문이…	Nobody's there but the door…	
+field.store.scare.door.002	센서가 지나가는 차 불빛을 잡은 거야.	The sensor caught a passing car's lights.	한영
+field.park.swing	그네	Swing	
+field.park.vent	상가 환풍기	Shop vent	
+field.park.board	입구 게시판	Entrance board	
+field.park.swing_hint	어디를 살펴볼까.	Where should I look?	
+field.park.swing_hook	흔들리던 그네만 <b>연결 고리가 닳아 헐겁다</b>. 손가락으로 밀어도 흔들린다.	Only the swaying swing has a <b>worn, loose hook</b>. A finger sets it moving.	
+field.park.swing_sand	그네 아래 모래가 <b>환풍기 반대쪽으로만</b> 길게 파였다.	The sand under it is gouged <b>only on the side away from the vent</b>.	
+field.park.vent_hint	어디를 살펴볼까.	Where should I look?	
+field.park.vent_sticker	가동 시간\n00:00 ~ 06:00	Runs\n00:00 – 06:00	
+field.park.vent_read	환풍기 스티커. <b>자정부터 새벽 6시까지</b> 돈다. 배기구가 그네 쪽이다.	The sticker: it runs <b>from midnight to 6 AM</b>, blowing toward the swings.	
+field.park.board_hint	어디를 살펴볼까.	Where should I look?	
+field.park.board_title	놀이시설 점검 안내	Playground inspection	
+field.park.board_body	그네 연결 고리 마모 신고가\n접수되어 점검합니다.\n\n인근 상가 환풍기 바람 민원도\n함께 전달했습니다.\n— 구도시 시설관리	A worn swing hook was reported\nand will be inspected.\n\nComplaints about the nearby\nshop vent were passed on.\n— Old Town Facilities	
+field.park.board_read	시설관리 안내. <b>그네 고리 마모와 환풍기 바람</b>이 적혀 있다.	The facilities notice lists <b>the worn hook and the vent wind</b>.	
+field.park.scare.lamp.001	가로등이 꺼졌어요. 그리고 방금… 웃음소리 같은 거.	The streetlight went out. And just now… something like laughter.	
+field.park.scare.lamp.002	바람이 환풍구를 지나는 소리야.	That's wind through the vent.	한영
+field.park.scare.stop.001	그네가… 멈췄어요. 우리가 오니까.	The swing… stopped. When we came.	
+field.park.scare.stop.002	바람이 잠깐 멎은 거야. 다시 불 거야.	The wind paused. It'll pick up again.	한영
+field.park.scare.laugh.001	또 들려요. 아이 목소리 같은…	I hear it again. Like a child…	
+field.park.scare.laugh.002	날개에 걸린 비닐이 우는 거야. 가까이 가 봐.	A plastic bag caught in the blades. Go closer.	한영
+field.post.scare.lever.001	303호 문고리가… 혼자 돌아갔어요.	The handle on 303… turned by itself.	
+field.post.scare.lever.002	안에 사람이 사는 집이야. 나오려다 말았겠지.	Someone lives there. They almost came out.	한영
+field.post.scare.knob.001	현관 문고리가 돌아갔어요. 밖에서.	The front door handle turned. From outside.	
+field.post.scare.knob.002	옆집 사람이 집을 헷갈린 거야. 문 잠갔으니 됐어.	A neighbor got the wrong door. It's locked, that's enough.	한영
+field.gosi.scare.gap.001	5호실 문틈 불빛이… 누가 지나간 것처럼 가렸다가 돌아왔어요.	The light under 5's door… went dark like someone passed, then came back.	
+field.gosi.scare.gap.002	안에 사람이 있는 거야. 고시원은 다 얇아.	Someone's in there. Gosiwon walls are thin.	한영

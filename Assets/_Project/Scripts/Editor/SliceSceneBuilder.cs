@@ -98,6 +98,23 @@ namespace UrbanLegendBureau.EditorTools
                 new[] { "action_test_007", "action_test_006" }, null, false, CaseStep.Started);
             ConfigurePoint(elevBoard, "point_elev_board", null, null, false, CaseStep.Started);
             ConfigurePoint(elevBulletin, "point_elev_bulletin", null, null, false, CaseStep.Started);
+
+            // 사건 #003 고시원, #004 편의점, #005 공원. 살필 곳마다 가까이 보기, 고시원 7호실은 결계를 친다.
+            var fieldRootGosi = new GameObject("FieldRoot_Legend3");
+            BuildFieldBackground(fieldRootGosi.transform);
+            var gosi = BuildGosiField(fieldRootGosi.transform);
+            string[] gosiIds = { "point_gosi_desk", "point_gosi_door7", "point_rite_sill", "point_rite_head", "point_rite_window", "point_gosi_exit" };
+            for (int pi = 0; pi < gosi.Length; pi++) ConfigurePoint(gosi[pi], gosiIds[pi], null, null, false, CaseStep.Started);
+            var fieldRootStore = new GameObject("FieldRoot_Legend4");
+            BuildFieldBackground(fieldRootStore.transform);
+            var store = BuildStoreField(fieldRootStore.transform);
+            string[] storeIds = { "point_store_counter", "point_store_locker", "point_store_notice" };
+            for (int pi = 0; pi < store.Length; pi++) ConfigurePoint(store[pi], storeIds[pi], null, null, false, CaseStep.Started);
+            var fieldRootPark = new GameObject("FieldRoot_Legend5");
+            BuildFieldBackground(fieldRootPark.transform);
+            var park = BuildParkField(fieldRootPark.transform);
+            string[] parkIds = { "point_park_swing", "point_park_vent", "point_park_board" };
+            for (int pi = 0; pi < park.Length; pi++) ConfigurePoint(park[pi], parkIds[pi], null, null, false, CaseStep.Started);
             ConfigurePoint(postDoor, "point_post_door", null, null, false, CaseStep.Started);
             ConfigurePoint(postPile, "point_post_pile", null, null, false, CaseStep.Started);
             ConfigurePoint(postMeter, "point_post_meter", null, null, false, CaseStep.Started);
@@ -191,7 +208,7 @@ namespace UrbanLegendBureau.EditorTools
             var fieldSo = new SerializedObject(field);
             fieldSo.Update();
             var groups = fieldSo.FindProperty("_fieldGroups");
-            groups.arraySize = 4;
+            groups.arraySize = 7;
             var g3 = groups.GetArrayElementAtIndex(3);
             g3.FindPropertyRelative("legendId").stringValue = CaseDirector.RoomFieldId;
             g3.FindPropertyRelative("root").objectReferenceValue = fieldRootRoom;
@@ -204,6 +221,13 @@ namespace UrbanLegendBureau.EditorTools
             var g2 = groups.GetArrayElementAtIndex(2);
             g2.FindPropertyRelative("legendId").stringValue = "legend_subway_last_train";
             g2.FindPropertyRelative("root").objectReferenceValue = fieldRootSubway;
+            (string legend, GameObject root)[] newFields = { ("legend_test_003", fieldRootGosi), ("legend_test_004", fieldRootStore), ("legend_test_005", fieldRootPark) };
+            for (int gi = 0; gi < newFields.Length; gi++)
+            {
+                var gx = groups.GetArrayElementAtIndex(4 + gi);
+                gx.FindPropertyRelative("legendId").stringValue = newFields[gi].legend;
+                gx.FindPropertyRelative("root").objectReferenceValue = newFields[gi].root;
+            }
 
             // 조사할 것 위에 뜨는 말풍선. 현장마다 두지 않고 하나를 옮겨 쓴다.
             fieldSo.FindProperty("_prompt").objectReferenceValue = BuildFieldPrompt(fieldGo.transform);
@@ -247,6 +271,13 @@ namespace UrbanLegendBureau.EditorTools
                 ("point_panel", BuildElevPanelCloseup("Screen_ElevPanelCloseup")),
                 ("point_mirror", BuildElevMirrorCloseup("Screen_ElevMirrorCloseup")),
                 ("point_elev_bulletin", BuildElevBulletinCloseup("Screen_ElevBulletinCloseup")),
+                ("point_gosi_desk", BuildGosiDeskCloseup("Screen_GosiDeskCloseup")),
+                ("point_store_counter", BuildStoreCounterCloseup("Screen_StoreCounterCloseup")),
+                ("point_store_locker", BuildStoreLockerCloseup("Screen_StoreLockerCloseup")),
+                ("point_store_notice", BuildStoreNoticeCloseup("Screen_StoreNoticeCloseup")),
+                ("point_park_swing", BuildParkSwingCloseup("Screen_ParkSwingCloseup")),
+                ("point_park_vent", BuildParkVentCloseup("Screen_ParkVentCloseup")),
+                ("point_park_board", BuildParkBoardCloseup("Screen_ParkBoardCloseup")),
             };
             var travel = BuildTravelScreen("Screen_Travel");
             var cluePopup = BuildPopupScreen("Popup_Clue", out var clueButtons);

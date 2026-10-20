@@ -105,8 +105,8 @@ namespace UrbanLegendBureau.EditorTools
             stairShadow.SetActive(false);
 
             // 천장 센서등. 가운데 하나뿐이다.
-            AddFieldCircle(root.transform, "SensorLamp", new Vector2(-0.6f, 3.38f), 0.8f, new Color(0.92f, 0.90f, 0.80f), -6);
-            var sensorPool = AddFieldSoft(root.transform, "SensorPool", new Vector2(-0.6f, 0.4f), new Vector2(12f, 7.5f), new Color(1f, 0.95f, 0.8f, 0.13f), -6);
+            AddFieldCircle(root.transform, "SensorLamp", new Vector2(-0.6f, 3.38f), 0.8f, new Color(0.32f, 0.31f, 0.28f), -6);   // 센서등은 고장 나 꺼져 있다
+            AddFieldSoft(root.transform, "ExitGlowHall", new Vector2(13.5f, 1.5f), new Vector2(5f, 5f), new Color(0.2f, 0.9f, 0.45f, 0.07f), -6);
 
             // 철문 셋. 302호가 이번 주소다.
             float[] doorX = { -5.6f, 3.0f, 10.6f };
@@ -157,7 +157,7 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "Hydrant", new Vector2(14.2f, -0.4f), new Vector2(1.0f, 1.6f), new Color(0.55f, 0.12f, 0.12f), -5);
 
             AddFieldGradient(root.transform, "CeilingShade", new Vector2(0f, 3.0f), new Vector2(44f, 1.2f), new Color(0f, 0f, 0f, 0.4f), -6);
-            AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.07f, 0.28f), -2);
+            AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.07f, 0.55f), -2);
 
             // 계단에서 올라와 302호 쪽을 보고 선다.
             BuildFieldActors(root.transform, -3.86f, -8.4f, 2.4f, -9.2f, 13.6f);
@@ -175,10 +175,10 @@ namespace UrbanLegendBureau.EditorTools
             // --- 무서운 연출
             var dark = AddBlackout(root.transform, "Blackout", new Color(0f, 0f, 0.02f, 0.95f));
             // 가운데쯤 오면 센서등이 꺼진다. 잠깐 깜깜하다가 손을 흔들면 다시 켜진다.
-            AddScare(root.transform, "post_sensor", FieldScare.TriggerKind.ReachX, -1.6f, null, 2f,
-                SSound("power_down", 0.35f), SHide(sensorPool), SFadeIn(dark, 0.5f), SWait(0.9f),
-                SLines("field.post.scare.sensor.001", "!field.post.scare.sensor.002"),
-                SSound("lamp_flicker", 0.4f), SFadeOut(dark, 0.15f), SFlicker(sensorPool, 2, 0.08f), SShow(sensorPool));
+            var lever303 = root.transform.Find("Lever_2").gameObject;
+            AddScare(root.transform, "post_lever", FieldScare.TriggerKind.ReachX, 9.6f, null, 0f,
+                SSound("door_bang_2", 0.3f, 1.5f), SShake(lever303, 0.5f, 0.05f), SWait(0.6f), SSound("door_bang_2", 0.25f, 1.6f), SShake(lever303, 0.3f, 0.05f), SWait(0.5f),
+                SLines("field.post.scare.lever.001", "!field.post.scare.lever.002"));
             // 계단 위에서 누가 내려오는 발소리. 참 벽에 그림자가 비치다가 멈춘다. 아무도 내려오지 않는다.
             AddScare(root.transform, "post_stairs", FieldScare.TriggerKind.ReachX, 6.0f, null, 0f,
                 SSound("step_soft_0", 0.25f), SWait(0.55f), SSound("step_soft_1", 0.3f), SWait(0.5f), SSound("step_soft_2", 0.38f),
@@ -345,9 +345,10 @@ namespace UrbanLegendBureau.EditorTools
                 SSound("air_rush_pass", 0.35f), SShake(slats.gameObject, 0.6f, 0.06f), SWait(0.3f), SSound("door_slam_1", 0.7f), SWait(0.5f),
                 SLines("field.post.scare.slam.001", "!field.post.scare.slam.002", "field.post.scare.slam.003"));
             // 벽 낙서를 보고 오면 꺼져 있던 형광등이 혼자 깜빡이며 켜졌다 꺼진다.
-            AddScare(root.transform, "post_tube", FieldScare.TriggerKind.AfterPoint, 0f, "point_wall", 0f,
-                SWait(0.6f), SSound("lamp_flicker", 0.5f), SFlicker(tubeOn, 4, 0.07f), SShow(tubeOn), SWait(0.8f), SSound("power_down", 0.3f), SHide(tubeOn),
-                SWait(0.4f), SLines("field.post.scare.tube.001", "!field.post.scare.tube.002"));
+            var knob = root.transform.Find("DoorKnob").gameObject;
+            AddScare(root.transform, "post_knob", FieldScare.TriggerKind.AfterPoint, 0f, "point_wall", 0f,
+                SWait(0.6f), SSound("door_bang_2", 0.3f, 1.4f), SShake(knob, 0.6f, 0.04f), SWait(0.3f), SSound("door_bang_2", 0.3f, 1.5f), SShake(knob, 0.4f, 0.04f), SWait(0.6f),
+                SLines("field.post.scare.knob.001", "!field.post.scare.knob.002"));
 
             points = new[] { deskPoint, phonePoint, wallPoint, exitPoint, windowPoint };
             return root;
@@ -528,11 +529,10 @@ namespace UrbanLegendBureau.EditorTools
                 SMoveAsync(leafL1, new Vector2(-1.5f, 0f), 1.0f), SMove(leafR1, new Vector2(1.5f, 0f), 1.0f), SWait(1.6f),
                 SLines("field.elev.scare.empty.001", "!field.elev.scare.empty.002"),
                 SSound("door_slide", 0.4f, 0.9f), SMoveAsync(leafL1, new Vector2(1.5f, 0f), 0.9f), SMove(leafR1, new Vector2(-1.5f, 0f), 0.9f), SHide(emptyCar));
-            // 우편함 앞에서 홀 불이 나가고 비상구 불빛만 남는다. 어둠 속에서 우편함 뚜껑 하나가 덜컹인다.
+            // 돌아 나오는 길, 우편함 뚜껑 하나가 혼자 덜컹인다.
             var mailScare = AddScare(root.transform, "elev_mail", FieldScare.TriggerKind.ReachX, -6.6f, null, 0f,
-                SSound("power_down", 0.4f), SFadeIn(dark, 0.25f), SWait(0.8f), SSound("door_bang_2", 0.3f, 1.4f), SShake(flap, 0.35f, 0.05f), SWait(0.6f),
-                SLines("field.elev.scare.mail.001", "!field.elev.scare.mail.002"),
-                SSound("lamp_flicker", 0.45f), SFadeOut(dark, 0.2f), SFlicker(lamps, 2, 0.07f));
+                SSound("door_bang_2", 0.3f, 1.4f), SShake(flap, 0.35f, 0.05f), SWait(0.4f), SSound("door_bang_2", 0.35f, 1.3f), SShake(flap, 0.3f, 0.05f), SSound("heartbeat", 0.35f), SWait(0.6f),
+                SLines("field.elev.scare.mail.001", "!field.elev.scare.mail.002"));
             mailScare.RequireFlag = "field_event:scare_elev_empty";   // 빈 엘리베이터를 본 뒤, 돌아 나올 때
             return root;
         }

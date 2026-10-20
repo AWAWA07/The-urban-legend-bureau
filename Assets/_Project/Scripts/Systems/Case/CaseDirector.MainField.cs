@@ -93,6 +93,7 @@ namespace UrbanLegendBureau.Systems
                 case PostDoorPointId: KnockPostDoor(); return true;
                 case PostExitPointId: LeavePostRoom(); return true;
             }
+            if (TryHandleGosiPoint(point)) return true;
             if (MainRemarks.TryGetValue(point.PointId, out var remark))
             {
                 CctvLines(remark.lines, remark.hanyoung, 0, () => _fieldHudScreen.ClearSpeech());
