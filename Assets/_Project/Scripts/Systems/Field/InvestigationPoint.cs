@@ -396,7 +396,12 @@ namespace UrbanLegendBureau.Systems
                     o.enabled = visible;
                     o.sortingOrder = top ? OnTopOrder : (_renderer != null ? _renderer.sortingOrder + 1 : o.sortingOrder);
                 }
-                else o.enabled = visible && !top;
+                else
+                {
+                    o.enabled = visible && !top;
+                    // 숨 쉬는 사람처럼 그림이 바뀌는 것은 외곽선도 같은 칸을 따라간다.
+                    if (o.enabled && o.sprite != src.sprite) o.sprite = src.sprite;
+                }
             }
 
             for (int i = 0; i < _topOutlines.Count; i++)

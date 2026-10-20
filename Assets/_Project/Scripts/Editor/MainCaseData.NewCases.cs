@@ -65,6 +65,7 @@ namespace UrbanLegendBureau.EditorTools
             Action("action_test_013", "action.test.013", 10, "clue_test_010");
             Action("action_test_014", "action.test.014", 10, "clue_test_011");
             Action("action_test_015", "action.test.015", 10, "clue_test_012");
+            Action("action_test_028", "action.test.028", 10, "clue_test_021");   // 8호실 고시생에게 방송 얘기를 듣는다
             Clue("clue_test_021", "clue.test.021.text", ClueType.Digital, "web_test_006");
 
             var page = Ensure<WebPageSO>("WebPages", "web_test_006");
@@ -94,7 +95,7 @@ namespace UrbanLegendBureau.EditorTools
             SetRefs(legend, "_clues", Load<ClueSO>("Clues/clue_test_010"), Load<ClueSO>("Clues/clue_test_011"), Load<ClueSO>("Clues/clue_test_012"), Load<ClueSO>("Clues/clue_test_021"));
             SetRefs(legend, "_webPages", page);
             SetRefs(legend, "_investigationActions", Load<InvestigationActionSO>("Actions/action_test_013"),
-                Load<InvestigationActionSO>("Actions/action_test_014"), Load<InvestigationActionSO>("Actions/action_test_015"));
+                Load<InvestigationActionSO>("Actions/action_test_014"), Load<InvestigationActionSO>("Actions/action_test_015"), Load<InvestigationActionSO>("Actions/action_test_028"));
 
             var c = Ensure<CaseSO>("Cases", "case_test_003");
             var cso = new SerializedObject(c);

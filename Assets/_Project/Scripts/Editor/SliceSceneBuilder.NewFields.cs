@@ -94,7 +94,7 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "Towel", new Vector2(11.2f, -1.6f), new Vector2(0.6f, 0.8f), new Color(0.6f, 0.3f, 0.3f), -4);
             AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.03f, 0.03f, 0.06f, 0.5f), -2);
 
-            BuildFieldActors(root.transform, -3.86f, -8.8f, 2.4f, -10.6f, 11.0f);
+            BuildFieldActors(root.transform, -3.86f, -8.8f, 2.4f, -10.6f, 5.5f);   // 오른쪽 끝은 고시생 앞. 몸을 뚫고 지나가지 않는다
 
             deskPoint = BuildPoint(root.transform, "InvestigationPoint_GosiDesk", new Vector2(-11.2f, -0.6f), new Vector2(3.6f, 3.2f),
                 new Color(0.6f, 0.5f, 0.4f), "field.gosi.desk", "field.gosi.desk", null);
@@ -110,7 +110,7 @@ namespace UrbanLegendBureau.EditorTools
             student.transform.Find("Sprite").GetComponent<SpriteRenderer>().sortingOrder = 2;   // 지나가는 두 사람보다 뒤
             npcPoint = BuildPoint(root.transform, "InvestigationPoint_GosiStudent", new Vector2(sx, -1.95f), new Vector2(1.6f, 3.8f),
                 new Color(0.5f, 0.6f, 0.55f), "field.gosi.npc.point", "field.gosi.npc.point", null);
-            SetHighlightTargets(npcPoint, root.transform, "GosiStudent");
+            SetHighlightTargets(npcPoint, root.transform, "GosiStudent/Sprite");   // 발밑 그림자는 빼고 사람 그림에만 외곽선
 
             // --- 무서운 연출
             var midTube = root.transform.Find("Tubes").gameObject;

@@ -20,6 +20,7 @@ namespace UrbanLegendBureau.Systems
             public string PointId, NameTextId, Key, CaseId;
             public string[] Intro, Topics, Bye, After;
             public string[][] TopicLines;   // Topics 와 같은 순서
+            public string[] TopicActions;   // Topics 와 같은 순서. 다 듣고 나면 그 조사 행동을 한다(단서를 얻는다). 없으면 null
         }
 
         /// <summary>#003 동명고시원 8호실 고시생. 벽 하나 너머로 2년째 7호실 노크를 듣고 있다.</summary>
@@ -36,6 +37,7 @@ namespace UrbanLegendBureau.Systems
                     new[] { "@field.gosi.npc.room.001", "@field.gosi.npc.room.002", "!field.gosi.npc.room.003" },
                     new[] { "@field.gosi.npc.rumor.001", "@field.gosi.npc.rumor.002", "field.gosi.npc.rumor.003" },
                 },
+                TopicActions = new[] { null, null, "action_test_028" },   // 방송 얘기를 들으면 생방송 다시보기 기록 단서
                 Bye = new[] { "@field.gosi.npc.bye.001" },
                 After = new[] { "@field.gosi.npc.after.001", "@field.gosi.npc.after.002", "!field.gosi.npc.after.003" },
             },
@@ -44,9 +46,12 @@ namespace UrbanLegendBureau.Systems
         private bool TryHandleNpcPoint(InvestigationPoint point)
         {
             foreach (var n in Npcs)
-                if (n.PointId == point.PointId) { TalkNpc(n); return true; }
+                if (n.PointId == point.PointId) { _npcPoint = point; TalkNpc(n); return true; }
             return false;
         }
+
+        /// <summary>지금 말을 건 사람의 조사 지점. 대화에서 얻은 단서를 이 지점의 조사로 남긴다.</summary>
+        private InvestigationPoint _npcPoint;
 
         private void TalkNpc(NpcDef n)
         {
@@ -76,7 +81,13 @@ namespace UrbanLegendBureau.Systems
                 if (pick < 0 || pick >= left.Count) { NpcLines(n, n.Bye, 0, () => _fieldHudScreen.ClearSpeech()); return; }
                 string topic = left[pick];
                 MarkMainEvent("npc:" + n.PointId + ":" + topic);
-                NpcLines(n, n.TopicLines[System.Array.IndexOf(n.Topics, topic)], 0, () => NpcTopics(n));
+                int ti = System.Array.IndexOf(n.Topics, topic);
+                NpcLines(n, n.TopicLines[ti], 0, () =>
+                {
+                    var act = n.TopicActions != null && ti < n.TopicActions.Length ? n.TopicActions[ti] : null;
+                    if (!string.IsNullOrEmpty(act) && _npcPoint != null) PerformFieldAction(_npcPoint, act);
+                    NpcTopics(n);
+                });
             });
         }
 

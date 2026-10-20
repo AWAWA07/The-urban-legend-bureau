@@ -2542,3 +2542,6 @@ field.gosi.npc.bye.001	…네. 혹시 끝나면, 오늘 밤은 좀 잘 수 있�
 field.gosi.npc.after.001	…조용하네요. 2년 만에 처음이에요, 이렇게 조용한 거.	…It's quiet. First time in two years it's been this quiet.	
 field.gosi.npc.after.002	뭘 하신 건지는 몰라도… 고맙습니다. 오늘은 잘 수 있겠어요.	I don't know what you did, but… thank you. I think I can sleep tonight.	
 field.gosi.npc.after.003	잘 자. 시험 잘 보고.	Sleep well. Good luck on the exam.	한영
+action.test.028.name	8호실 고시생에게 묻기	Ask the Room 8 student	
+action.test.028.desc	8호실 고시생에게 생방송 날 일을 듣는다.	Hear from the Room 8 student about the night of the stream.	
+action.test.028.result	방송 진행자가 처음 꺼낸 말이라는 증언을 들었다.	Heard that the streamer was the first to say it.	
