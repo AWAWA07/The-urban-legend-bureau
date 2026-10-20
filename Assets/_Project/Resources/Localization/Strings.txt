@@ -1854,107 +1854,107 @@ post.test.004.q5_bad1	제 친구 친구가 그랬대요.	A friend of a friend di
 post.test.004.q5_bad2	기사로도 났다던데요.	It was in the news, apparently.	
 post.test.004.q5_ok	없어요. 불린 사람은 택배를 찾아갔을 뿐이에요.	No. The people called just picked up parcels.	
 case.test.005.name	사건 #005 — 혼자 흔들리는 그네	Case #005 — The Swing That Moves Alone	
-case.test.005.description	구도시 달빛 어린이공원에서, 자정이면 그네 하나가 혼자 흔들린다는 제보가 이어지고 있다.	Reports keep coming from Moonlight Children's Park: at midnight one swing moves by itself.	
+case.test.005.description	구도시 달빛 어린이공원에서, 자정이면 그네 하나가 혼자 흔들린다는 제보가 이어지고 있다. 이번 것은 진짜다.	Reports keep coming from Moonlight Children's Park: at midnight one swing moves by itself. This one is real.	
 legend.test.005.name	빈 그네의 아이	The Child on the Empty Swing	
 legend.test.005.description	자정이면 그네 하나가 혼자 흔들린다. 거기 탄 아이에게 말을 걸면 데려간다고 한다.	At midnight one swing sways by itself. Speak to the child on it and it takes you, they say.	
 place.case_test_005	달빛 어린이공원	Moonlight Children's Park	본편 현장 이름
 ui.travel.duration_main_field.case_test_005	숙소에서 달빛 어린이공원까지 {0}분	{0} min from the dorm to Moonlight Park	본편 현장 이동
 ui.casefile.place_park_swing	달빛 어린이공원 그네	Moonlight Park swings	사건 #005
 ui.casefile.place_park_vent	공원 옆 상가 환풍기	The shop vent beside the park	사건 #005
-ui.casefile.place_park_board	공원 입구 게시판	Park entrance board	사건 #005
+ui.casefile.place_park_board	공원 입구 게시판 뒤	Behind the entrance board	사건 #005
 web.test.009.title	공원 그네가 혼자 흔들려요 (자정)	The park swing moves by itself (midnight)	
 web.test.009.body	자정에 공원 앞을 지나는데 바람 한 점 없는데 그네 하나만 계속 흔들렸어요. 누가 타고 있는 것처럼요.	Passing the park at midnight, not a breath of wind, but one swing kept swaying. Like someone was on it.	
 web.test.009.c1	말 걸면 안 된대요. 데려간대요	Don't talk to it. It takes you	
 web.test.009.c2	그 공원 예전에 사고 났다던데	Something happened at that park once, I heard	
-web.test.010.title	[구도시 시설관리] 달빛 어린이공원 놀이시설 점검 안내	[Old Town Facilities] Moonlight Park playground inspection	
-web.test.010.body	그네 연결 고리 마모 신고가 접수되어 점검합니다.\n인근 상가 환풍기(00시~06시 가동) 바람 민원도 함께 전달했습니다.	A worn swing hook has been reported and will be inspected.\nComplaints about the nearby shop vent (runs 00:00–06:00) have been passed on.	
-web.test.010.c1	아 환풍기 바람이었구나	Oh, it was the vent	
-web.test.010.c2	네, 고리는 이번 주에 교체합니다	Yes, the hook will be replaced this week	
-clue.test.017.title	헐거운 그네 고리	The loose swing hook	
-clue.test.017.text	흔들리던 그네만 위쪽 연결 고리가 닳아 헐겁다. 손가락으로 밀어도 크게 흔들린다.	Only the moving swing has a worn, loose top hook. A finger's push sets it swaying.	
-clue.test.018.title	환풍기 가동 타이머	The vent timer	
-clue.test.018.text	공원 옆 상가 환풍기에 '가동 00:00~06:00' 타이머 스티커. 배기구가 그네 쪽을 향한다.	A sticker on the shop vent: "Runs 00:00–06:00". The outlet points at the swings.	
-clue.test.019.title	시설관리 점검 안내	The facilities notice	
-clue.test.019.text	공원 입구 게시판과 괴담넷의 점검 안내. 그네 고리 마모와 환풍기 바람 민원이 적혀 있다.	The inspection notice on the board and the forum: a worn swing hook and complaints about vent wind.	
-clue.test.020.title	한쪽으로 파인 모래	Sand worn one way	
-clue.test.020.text	그 그네 아래 모래가 환풍기 반대쪽으로만 길게 파였다. 늘 같은 쪽에서 밀려 흔들렸다.	Under that swing the sand is gouged only on the side away from the vent. It's always pushed from one side.	
-analysis.test.005.a.title	헐거운 고리와 환풍기 바람	The loose hook and the vent	
-analysis.test.005.a.body	자정에 켜지는 환풍기 바람이 그네 쪽으로 분다. 고리가 헐거운 그네 하나만 그 바람에 흔들린다.	The vent switches on at midnight and blows at the swings. Only the one with the loose hook sways.	
-analysis.test.005.b.title	점검 안내와 모래 자국	The notice and the sand	
-analysis.test.005.b.body	모래는 늘 환풍기 반대쪽으로 파였다. 시설관리도 고리 마모와 환풍기 바람을 알고 있다.	The sand is always worn away from the vent. The facilities office knows about both the hook and the wind.	
+web.test.010.title	[구도시 시설관리] 달빛 어린이공원 환풍기 수리 안내	[Old Town Facilities] Moonlight Park vent repair	
+web.test.010.body	공원 옆 상가 환풍기가 고장 나 10/10부터 가동을 멈췄습니다.\n그네 흔들림 민원은 바람 때문이 아님을 확인했습니다.	The shop vent beside the park broke and has been off since 10/10.\nWe confirmed the swing complaints are not caused by wind.	
+web.test.010.c1	그럼 그네는 왜 흔들려요…?	Then why does the swing move…?	
+web.test.010.c2	저희도 원인을 모르겠습니다	We don't know either	
+clue.test.017.title	그네 고리의 이름표	The name tag on the hook	
+clue.test.017.text	가운데 그네 고리에 낡은 이름표 끈이 묶여 있다. '해바라기반 김하은'. 이름표는 없고 끈만 남았다.	A worn name-tag string is tied to the middle swing's hook: "Sunflower class, Kim Haeun." Only the string is left.	
+clue.test.018.title	멈춘 환풍기	The stopped vent	
+clue.test.018.text	환풍기에 '고장 — 10/10부터 가동 중지' 스티커. 바람은 없는데 그네는 흔들렸다.	A sticker on the vent: "Broken — off since 10/10." No wind, yet the swing moved.	
+clue.test.019.title	빛바랜 실종 전단	The faded missing poster	
+clue.test.019.text	게시판 뒤 10년 전 실종 전단. 아래에 손글씨가 덧붙어 있다. '하은아, 엄마는 매일 밤 입구 가로등 아래 있어.' 관리인 메모: '어머니, 작년 겨울 돌아가심.'	A ten-year-old missing poster, with a handwritten line added: "Haeun, Mom is under the gate lamp every night." A caretaker's note: "Her mother passed away last winter."	
+clue.test.020.title	모래 속 분홍 운동화	A pink sneaker in the sand	
+clue.test.020.text	그네 아래 모래에서 작은 분홍 운동화 한 짝이 나왔다. 오래 묻혀 색이 바랬다.	A small pink sneaker turns up in the sand under the swing, faded from years underground.	
+analysis.test.005.a.title	이름표와 멈춘 환풍기	The name tag and the stopped vent	
+analysis.test.005.a.body	환풍기는 멈춰 있는데 그네는 흔들렸다. 그 그네엔 '김하은' 이름표 끈이 묶여 있다. 바람이 아니다. 그 아이다.	The vent is off, yet the swing moved — and it carries Kim Haeun's name-tag string. Not the wind. It's her.	
+analysis.test.005.b.title	실종 전단과 분홍 운동화	The poster and the pink sneaker	
+analysis.test.005.b.body	하은이는 신발을 잃고 그네에서, 엄마는 매일 밤 가로등 아래서 서로를 기다렸다. 10년 동안 한 번도 만나지 못했다. 아이는 누구도 해치지 않았다.	Haeun waited on the swing; her mother waited under the lamp every night. For ten years they never met. The child never hurt anyone.	
 deduce.test.005.q1.label	괴담의 진위	Is it real?	
-deduce.test.005.q1.question	자정에 그네가 혼자 흔들리는 까닭은?	Why does the swing move alone at midnight?	
-deduce.test.005.q1.opt0	아이 혼령이 타고 있다.	A child's spirit is riding it.	
-deduce.test.005.q1.opt1	자정에 켜지는 환풍기 바람이 헐거운 그네를 흔든다.	The midnight vent wind sways the loose swing.	
-deduce.test.005.q1.opt2	누군가 줄로 몰래 당긴다.	Someone pulls it with a string.	
-deduce.test.005.q1.explain	환풍기는 자정에 켜져 그네 쪽으로 분다. 고리가 헐거운 그네 하나만 흔들린다.	The vent starts at midnight and blows at the swings. Only the loose one moves.	
-deduce.test.005.q1.report	환풍기 바람과 헐거운 고리에서 생긴 착각으로 판단됨.	Judged a misunderstanding caused by vent wind and a loose hook.	
-deduce.test.005.q2.label	대처법	What to do	
-deduce.test.005.q2.question	이 괴담에 맞는 대처는?	The right response to this legend?	
-deduce.test.005.q2.opt0	흔들리는 그네에 말을 걸지 않는다.	Don't speak to the swaying swing.	
-deduce.test.005.q2.opt1	시설관리에 고리 교체와 환풍기 방향 조정을 요청한다.	Ask facilities to replace the hook and redirect the vent.	
-deduce.test.005.q2.opt2	자정에는 공원에 가지 않는다.	Stay away from the park at midnight.	
-deduce.test.005.q2.explain	원인이 고리와 바람이니 둘을 고치면 흔들리지 않는다.	Fix the hook and the wind and it stops.	
-deduce.test.005.q2.report	시설관리에 고리 교체와 환풍기 방향 조정을 요청할 것.	Ask facilities to replace the hook and redirect the vent.	
-deduce.test.005.summary	헐거운 고리와 환풍기 타이머, 모래 자국을 대조해 자정에 그네가 흔들리는 것은 환풍기 바람 때문임을 확인하였다.	Comparing the hook, the vent timer and the sand, we confirmed the swing moves because of the vent wind.	
+deduce.test.005.q1.question	자정에 그네가 흔들린 까닭은?	Why did the swing move at midnight?	
+deduce.test.005.q1.opt0	상가 환풍기 바람 때문이다.	Wind from the shop vent.	
+deduce.test.005.q1.opt1	엄마를 기다리던 아이가 있었고, 배웅해 보냈다.	A child was waiting for her mom, and we saw her off.	
+deduce.test.005.q1.opt2	누군가 줄로 몰래 당겼다.	Someone pulled it with a string.	
+deduce.test.005.q1.explain	환풍기는 고장으로 멈춰 있었다. 그네에는 하은이의 이름표 끈이 있었다.	The vent was off. The swing carried Haeun's name-tag string.	
+deduce.test.005.q1.report	실제 현상이었으나 아이를 배웅해 정리되었다.	A real phenomenon, settled by seeing the child off.	
+deduce.test.005.q2.label	덧붙은 소문	The added rumor	
+deduce.test.005.q2.question	퍼지면서 덧붙은 거짓 소문은?	Which rumor was added as it spread?	
+deduce.test.005.q2.opt0	그네는 자정 무렵에 흔들린다.	It moves around midnight.	
+deduce.test.005.q2.opt1	말을 걸면 아이가 데려간다.	Speak to her and she takes you.	
+deduce.test.005.q2.opt2	가운데 그네만 흔들린다.	Only the middle swing moves.	
+deduce.test.005.q2.explain	하은이는 누구도 해치지 않았다. 엄마를 기다렸을 뿐이다.	Haeun never hurt anyone. She only waited for her mom.	
+deduce.test.005.q2.report	'말을 걸면 데려간다'는 퍼지며 덧붙은 거짓 소문.	"Speak to her and she takes you" is a false rumor added as it spread.	
+deduce.test.005.summary	이름표와 멈춘 환풍기, 실종 전단과 운동화를 대조해 그네의 아이가 엄마를 기다리던 하은이였고, 배웅으로 정리되었음을 확인하였다.	Comparing the name tag, the stopped vent, the poster and the sneaker, we confirmed the child was Haeun waiting for her mom, and saw her off.	
 report.test.005.overview.title	사건 개요	Overview	
-report.test.005.overview.body	자정에 그네를 흔드는 것은 공원 옆 상가 {_} 바람이다.	What sways the swing at midnight is wind from the shop's {_}.	
-report.test.005.overview.answer	환풍기	vent	
-report.test.005.overview.choice_1	가로등	streetlight	보고서 보기(오답)
-report.test.005.overview.choice_2	아이	child	보고서 보기(오답)
+report.test.005.overview.body	그네를 흔든 것은 엄마를 기다리던 아이였고, {_}으로 정리되었다.	What moved the swing was a child waiting for her mom, settled by a {_}.	
+report.test.005.overview.answer	배웅	farewell	
+report.test.005.overview.choice_1	환풍기	vent	보고서 보기(오답)
+report.test.005.overview.choice_2	퇴마	exorcism	보고서 보기(오답)
 report.test.005.target.title	검열 대상	Target post	
 report.test.005.target.body	검열 대상은 '공원 그네가 혼자 {_} (자정)' 글이다.	The target is "The park swing {_} by itself (midnight)".	
 report.test.005.target.answer	흔들려요	moves	
 report.test.005.target.choice_1	멈춰요	stops	보고서 보기(오답)
 report.test.005.target.choice_2	울어요	cries	보고서 보기(오답)
 action.test.020.name	그네 고리 살피기	Check the swing hook	
-action.test.020.desc	흔들리던 그네의 연결 고리를 본다.	Look at the swing's hook.	
-action.test.020.result	헐거운 고리를 찾았다.	Found a loose hook.	
+action.test.020.desc	가운데 그네 고리를 본다.	Look at the middle swing's hook.	
+action.test.020.result	이름표 끈을 찾았다.	Found a name-tag string.	
 action.test.021.name	환풍기 살피기	Check the vent	
 action.test.021.desc	상가 환풍기의 스티커를 읽는다.	Read the sticker on the vent.	
-action.test.021.result	가동 타이머를 찾았다.	Found the timer.	
+action.test.021.result	고장 스티커를 찾았다.	Found the broken sticker.	
 action.test.022.name	게시판 읽기	Read the board	
 action.test.022.desc	공원 입구 게시판의 안내를 읽는다.	Read the notice at the entrance.	
-action.test.022.result	점검 안내를 찾았다.	Found the inspection notice.	
+action.test.022.result	실종 전단을 찾았다.	Found the missing poster.	
 action.test.023.name	모래 살피기	Check the sand	
 action.test.023.desc	그네 아래 모래 자국을 본다.	Look at the marks in the sand.	
-action.test.023.result	한쪽으로 파인 자국을 찾았다.	Found marks worn one way.	
+action.test.023.result	분홍 운동화를 찾았다.	Found a pink sneaker.	
 post.test.005.reply_to	원글: 공원 그네가 혼자 흔들려요 (자정)	Re: The park swing moves by itself (midnight)	정정글 원글 표시
 post.test.005.title_fear	[주의] 자정에 흔들리는 그네에 말 걸지 마세요	[Warning] Don't speak to the swing at midnight	
-post.test.005.title_refute	혼자 흔들리는 그네, 환풍기 바람이었습니다	The swaying swing was vent wind	
+post.test.005.title_refute	달빛공원 그네, 이제 흔들리지 않습니다	The Moonlight Park swing doesn't move anymore	
 post.test.005.title_calm	달빛공원 그네 건 확인해 봤어요	I checked the Moonlight Park swing	
-post.test.005.title_refute2	그네 고리가 헐거웠습니다. 직접 확인했어요	The swing hook was loose. Checked it myself	
+post.test.005.title_refute2	'말 걸면 데려간다'는 사실이 아닙니다	"It takes you if you speak" isn't true	
 post.test.005.title_neutral	달빛공원 그네 건	About the Moonlight Park swing	
 post.test.005.title_fear2	자정에 그 그네 본 분 계신가요?	Anyone seen that swing at midnight?	
-post.test.005.title_record	시설관리 안내 확인: 그네는 고리와 환풍기 문제입니다	Facilities confirmed: it's the hook and the vent	
+post.test.005.title_record	실종 전단으로 확인했습니다: 그 아이는 누구도 해치지 않았어요	Confirmed by the old poster: that child never hurt anyone	
 post.test.005.intro_rumor	자정이면 그네가 혼자 흔들린다는 이야기 보셨죠.	You've seen the story about the midnight swing.	
 post.test.005.intro_witness	저도 그 공원에서 봤어요.	I saw it at that park too.	
 post.test.005.intro_hook	이건 정말 오싹한 이야기입니다.	This one is truly chilling.	
-post.test.005.intro_facts	확인된 것만 짧게 정리합니다.	Just the confirmed facts, briefly.	
+post.test.005.intro_facts	확인된 것만 조용히 정리합니다.	Just the confirmed facts, quietly.	
 post.test.005.intro_neutral	공원 그네 얘기가 계속 나와서요.	The park swing keeps coming up.	
 post.test.005.intro_hook2	바람도 없는데 흔들린다니 말이 안 되죠.	Swaying with no wind makes no sense.	
-post.test.005.intro_record	시설관리 안내와 모래 자국을 함께 확인했습니다.	I checked the facilities notice and the sand marks together.	
-post.test.005.fact_refute	공원 옆 상가 환풍기가 자정부터 돌면서 그네 쪽으로 바람을 보냅니다. 고리가 헐거운 그네 하나만 흔들립니다.	The shop vent starts at midnight and blows at the swings. Only the loose one sways.	
+post.test.005.intro_record	실종 전단과 그네의 이름표를 함께 확인했습니다.	I checked the old poster and the name tag on the swing.	
+post.test.005.fact_refute	그네는 이제 흔들리지 않습니다. 기다리던 아이는 집에 갔어요.	The swing doesn't move anymore. The child who was waiting went home.	
 post.test.005.fact_reports	흔들리는 걸 봤다는 제보가 여러 건 있는 건 맞아요.	There are many sightings, true.	
-post.test.005.fact_real	그 그네에 뭔가 있는 건 확실해 보입니다.	Something is definitely on that swing.	
-post.test.005.fact_refute2	흔들리는 그네만 연결 고리가 닳아 손가락으로 밀어도 흔들립니다.	Only that swing has a worn hook; a finger sets it swaying.	
+post.test.005.fact_real	그네에 아직 아이가 있는 건 확실해요.	The child is definitely still on the swing.	
+post.test.005.fact_refute2	그 아이는 누구도 데려간 적이 없습니다. 10년 동안 엄마를 기다렸을 뿐이고, 엄마도 매일 밤 그 아이를 기다렸어요.	She never took anyone. She waited ten years for her mom, and her mom waited for her every night.	
 post.test.005.fact_reports2	다른 공원에도 비슷한 얘기가 있긴 해요.	Other parks have similar stories too.	
-post.test.005.fact_real2	그네가 혼자 흔들리는 건 분명히 일어나는 일입니다.	The swing really does move alone.	
-post.test.005.fact_record	시설관리 안내에도 고리 마모와 환풍기 바람이 적혀 있고, 모래도 환풍기 반대쪽으로만 파였습니다.	The facilities notice lists the worn hook and vent wind, and the sand is worn only away from the vent.	
-post.test.005.action_calm	시설관리가 이번 주에 고리를 바꾼다고 하니 걱정 안 하셔도 됩니다.	Facilities will replace the hook this week, no need to worry.	
-post.test.005.action_counter	그래도 자정엔 그네 근처에 안 가는 게 좋겠죠.	Still, better avoid the swings at midnight.	
+post.test.005.fact_real2	말을 걸면 데려간다는 건 분명히 일어나는 일입니다.	It really does take people who speak to it.	
+post.test.005.fact_record	10년 전 실종 전단과 그네의 이름표가 같은 아이를 가리킵니다. 해칠 이유도, 해친 기록도 없습니다.	The ten-year-old poster and the name tag point to the same child. No reason to harm, no record of harm.	
+post.test.005.action_calm	이제 그 공원은 조용합니다. 아이들 데리고 가셔도 돼요.	The park is quiet now. Take your kids there.	
+post.test.005.action_counter	그래도 자정엔 말 걸지 않는 게 좋겠죠.	Still, better not to speak at midnight.	
 post.test.005.action_fear	자정엔 그 공원에 가지 마세요.	Don't go to that park at midnight.	
-post.test.005.action_calm2	고리를 바꾸기 전까지 그 그네는 타지 말고, 흔들려도 바람이라고 생각하시면 됩니다.	Until the hook's replaced, skip that swing; if it sways, it's the wind.	
+post.test.005.action_calm2	그네 아래 꽃 한 송이 두고 가시는 분들도 있어요. 무서워하지 않으셔도 됩니다.	Some leave a flower under the swing. There's nothing to fear.	
 post.test.005.action_counter2	말만 안 걸면 괜찮겠죠.	As long as you don't speak to it.	
 post.test.005.action_fear2	혹시 모르니 아이들 그 공원 보내지 마세요.	Just in case, keep the kids away.	
-post.test.005.action_record	시설관리에 환풍기 방향 조정도 요청해 뒀습니다. 고쳐지면 다시 알려 드릴게요.	I asked facilities to redirect the vent too. I'll update when it's fixed.	
+post.test.005.action_record	더 퍼뜨리지 말아 주세요. 하은이 가족분들께도 상처가 됩니다.	Please stop spreading it. It hurts Haeun's family too.	
 post.test.005.review.title_fear	경고를 앞세워 괴담을 더 무섭게 만듭니다.	Leading with a warning makes it scarier.	
-post.test.005.review.title_refute	제목에서 원인을 밝혀 소문을 꺾습니다.	Naming the cause in the title breaks the rumor.	
+post.test.005.review.title_refute	끝났다는 사실을 제목에서 밝힙니다.	States in the title that it's over.	
 post.test.005.review.title_calm	차분하지만 무엇이 틀렸는지는 말하지 않습니다.	Calm, but doesn't say what's wrong.	
-post.test.005.review.title_refute2	제목에서 근거를 밝힙니다.	States the evidence in the title.	
+post.test.005.review.title_refute2	덧붙은 소문을 제목에서 바로잡습니다.	Corrects the added rumor in the title.	
 post.test.005.review.title_neutral	아무 쪽으로도 기울지 않습니다.	Leans neither way.	
 post.test.005.review.title_fear2	겪은 사람을 찾는 제목이 괴담을 키웁니다.	Asking for witnesses grows the legend.	
-post.test.005.review.title_record	새 근거로 원인을 밝힙니다.	Reveals the cause with new evidence.	
+post.test.005.review.title_record	근거로 아이의 사정을 밝힙니다.	Tells the child's story with evidence.	
 post.test.005.review.intro_rumor	소문을 담담히 짚고 넘어갑니다.	Notes the rumor plainly.	
 post.test.005.review.intro_witness	직접 봤다는 말이 실재한다는 인상을 줍니다.	Claiming to see it makes it feel real.	
 post.test.005.review.intro_hook	겁을 주는 도입은 믿음을 키웁니다.	A scary opener grows belief.	
@@ -1962,55 +1962,55 @@ post.test.005.review.intro_facts	확인된 것만 말하겠다는 도입이 믿�
 post.test.005.review.intro_neutral	소문을 키우지도 줄이지도 않습니다.	Neither grows nor shrinks the rumor.	
 post.test.005.review.intro_hook2	말이 안 된다는 강조가 겁을 줍니다.	Stressing the impossible scares people.	
 post.test.005.review.intro_record	근거를 확인했다는 도입이 믿음을 덜어 줍니다.	Opening with checked evidence eases belief.	
-post.test.005.review.fact_refute	원인을 근거와 함께 밝힙니다.	Gives the cause with evidence.	
+post.test.005.review.fact_refute	정리된 결과를 밝힙니다.	States the settled result.	
 post.test.005.review.fact_reports	제보가 많다는 말만으로 믿음이 오릅니다.	"Many reports" alone raises belief.	
-post.test.005.review.fact_real	괴담이 사실이라고 못 박습니다.	Declares the legend true.	
-post.test.005.review.fact_refute2	분석한 근거로 원인을 밝힙니다.	Gives the cause from the analysis.	
+post.test.005.review.fact_real	아이가 아직 있다고 못 박습니다.	Declares the child is still there.	
+post.test.005.review.fact_refute2	거짓 소문을 정면으로 바로잡습니다.	Corrects the false rumor head-on.	
 post.test.005.review.fact_reports2	다른 곳에도 있다는 말이 믿음을 조금 올립니다.	"It happens elsewhere" nudges belief up.	
-post.test.005.review.fact_real2	괴담이 실제로 일어난다고 못 박습니다.	Declares it really happens.	
-post.test.005.review.fact_record	두 근거로 원인을 못 박습니다.	Pins the cause with two sources.	
-post.test.005.review.action_calm	곧 고친다는 안내가 안심시킵니다.	"It'll be fixed soon" reassures.	
-post.test.005.review.action_counter	괴담 규칙을 반쯤 인정합니다.	Half-accepts the legend's rule.	
+post.test.005.review.fact_real2	거짓 소문을 사실이라고 못 박습니다.	Declares the false rumor true.	
+post.test.005.review.fact_record	두 근거로 소문을 바로잡습니다.	Corrects the rumor with two sources.	
+post.test.005.review.action_calm	이제 안전하다는 안내가 안심시킵니다.	Saying it's safe now reassures.	
+post.test.005.review.action_counter	거짓 규칙을 반쯤 인정합니다.	Half-accepts the false rule.	
 post.test.005.review.action_fear	피하라는 말이 공포를 키웁니다.	Telling people to avoid it grows fear.	
-post.test.005.review.action_calm2	평소처럼 대처하라는 안내가 안심시킵니다.	Advising normal behavior reassures.	
-post.test.005.review.action_counter2	괴담 규칙을 대처법처럼 남깁니다.	Leaves the legend's rule as advice.	
+post.test.005.review.action_calm2	따뜻한 안내가 두려움을 덜어 줍니다.	A warm note eases fear.	
+post.test.005.review.action_counter2	거짓 규칙을 대처법처럼 남깁니다.	Leaves the false rule as advice.	
 post.test.005.review.action_fear2	아이들까지 피하라는 말이 공포를 키웁니다.	Keeping kids away grows fear.	
-post.test.005.review.action_record	할 일을 구체적으로 알려 줘 안심시킵니다.	Specific steps reassure.	
-post.test.005.react.ok_1	환풍기였구나. 괜히 무서워했네요.	It was the vent. Got scared for nothing.	
-post.test.005.react.ok_2	그 고리 저도 덜렁거리는 거 봤어요.	I've seen that hook rattle too.	
-post.test.005.react.bad_1	역시 그 그네엔 누가 타고 있어...	Someone really is on that swing...	
+post.test.005.review.action_record	퍼뜨리지 말자는 부탁이 소문을 멈춥니다.	Asking people to stop spreading it ends the rumor.	
+post.test.005.react.ok_1	서로 기다리기만 했다니… 눈물 나요.	They were just waiting for each other… I'm in tears.	
+post.test.005.react.ok_2	내일 꽃 한 송이 두고 올게요.	I'll leave a flower tomorrow.	
+post.test.005.react.bad_1	그래도 무서워요. 아직 있을 것 같아.	Still scary. I feel she's still there.	
 post.test.005.react.bad_2	이제 그 공원 안 지나갑니다.	Not walking past that park anymore.	
-post.test.005.react.weak_1	그래서 말 걸어도 된다는 거예요?	So it's fine to talk to it?	
-post.test.005.c_ok1	자정부터 도는 상가 환풍기 바람 때문이래요.	It's the shop vent that starts at midnight.	
-post.test.005.c_bad1	저도 봤는데 그네 위에 그림자가 있었어요.	I saw it too, there was a shadow on it.	
-post.test.005.c_ok2	흔들리는 그네만 고리가 헐거워요. 손으로 밀어도 흔들려요.	Only that swing's hook is loose. A push sets it off.	
+post.test.005.react.weak_1	그래서 말 걸어도 된다는 거예요?	So it's fine to speak to her?	
+post.test.005.c_ok1	그네는 이제 안 흔들린대요. 그 아이 집에 갔대요.	The swing doesn't move anymore. She went home.	
+post.test.005.c_bad1	저도 봤는데 그네 위에 그림자가 있었어요.	I saw a shadow on it too.	
+post.test.005.c_ok2	말 걸면 데려간다는 건 지어낸 말이에요. 그 아이는 누굴 해친 적 없어요.	"It takes you" was made up. She never hurt anyone.	
 post.test.005.c_bad2	무서워서 애들 데리고 다른 공원 가요.	Too scared, I take the kids elsewhere now.	
-post.test.005.c_ok3	시설관리 안내에도 고리 마모랑 환풍기 바람이 적혀 있어요.	The facilities notice lists the worn hook and the vent wind.	
-post.test.005.q1.title	그네가 흔들리는데 말 걸면 진짜 데려가요?	Will it take me if I talk to the swing?	
+post.test.005.c_ok3	실종 전단이랑 이름표 둘 다 같은 아이예요. 엄마를 기다렸던 거래요.	The poster and the name tag are the same child. She was waiting for her mom.	
+post.test.005.q1.title	그네가 흔들리는데 말 걸면 진짜 데려가요?	Will she take me if I talk to the swing?	
 post.test.005.q1.body	오늘 자정에 지나가야 해서요.	I have to pass by at midnight tonight.	
-post.test.005.q1_ok	상가 환풍기 바람이에요. 고리 헐거운 그네만 흔들려요.	It's the shop vent. Only the loose swing moves.	
+post.test.005.q1_ok	그런 일 없어요. 그 아이는 엄마를 기다렸을 뿐이고, 이제 집에 갔어요.	No. She only waited for her mom, and she's gone home now.	
 post.test.005.q1_bad1	절대 쳐다보지도 마세요.	Don't even look at it.	
 post.test.005.q1_bad2	돌아가는 게 안전해요.	Safer to take another way.	
-post.test.005.q2.title	방금 그네 혼자 흔들리는 거 봤어요	Just saw the swing move alone	
-post.test.005.q2.body	바람 한 점 없었는데요.	Not a breath of wind.	
-post.test.005.q2_bad1	누가 타고 있었던 거예요.	Someone was riding it.	
-post.test.005.q2_ok	옆 상가 환풍기가 자정부터 돌아요. 그 바람이에요.	The shop vent starts at midnight. That's the wind.	
-post.test.005.q2_bad2	다음엔 꼭 피하세요.	Avoid it next time.	
+post.test.005.q2.title	오늘은 그네가 안 흔들리네요	The swing isn't moving tonight	
+post.test.005.q2.body	매일 보던 건데 오늘은 조용해요.	I saw it every night, but tonight it's quiet.	
+post.test.005.q2_bad1	다른 데로 옮겨 간 거예요.	It moved somewhere else.	
+post.test.005.q2_ok	기다리던 아이가 집에 갔대요. 이제 안 흔들릴 거예요.	The child who was waiting went home. It won't move anymore.	
+post.test.005.q2_bad2	더 무서운 게 오려는 거예요.	Something worse is coming.	
 post.test.005.q3.title	왜 그네 하나만 흔들려요?	Why only one swing?	
 post.test.005.q3.body	옆 그네는 가만히 있더라고요.	The one beside it stays still.	
 post.test.005.q3_bad1	그 그네가 아이 자리래요.	That's the child's seat, they say.	
 post.test.005.q3_bad2	그 그네에서 사고가 있었대요.	There was an accident on that one.	
-post.test.005.q3_ok	그 그네만 연결 고리가 닳아서 작은 바람에도 흔들려요.	Only that one has a worn hook, so a little wind moves it.	
+post.test.005.q3_ok	그 그네에 10년 전 엄마를 기다리던 아이 이름표가 있었대요.	That swing had the name tag of a child who waited for her mom ten years ago.	
 post.test.005.q4.title	아이가 그 그네 타고 싶대요	My kid wants to ride that swing	
 post.test.005.q4.body	소문 듣고 나니 좀 꺼려져요.	After the rumor I'm hesitant.	
 post.test.005.q4_bad1	절대 태우지 마세요.	Never let them.	
-post.test.005.q4_ok	고리가 헐거워서 그래요. 교체 전까지만 옆 그네 타게 하세요.	The hook is loose. Use the other swing until it's replaced.	
+post.test.005.q4_ok	이제 괜찮아요. 무섭기보다 슬픈 이야기였어요.	It's fine now. It was a sad story more than a scary one.	
 post.test.005.q4_bad2	타기 전에 인사부터 하래요.	Greet it before riding, they say.	
 post.test.005.q5.title	그 공원 예전에 무슨 일 있었어요?	Did something happen at that park?	
 post.test.005.q5.body	다들 사고 사고 하니까 궁금해서요.	Everyone mentions an accident.	
-post.test.005.q5_bad1	예전에 아이가 다쳤대요.	A kid got hurt there once.	
+post.test.005.q5_bad1	그 아이가 사람을 데려간대요.	That child takes people, they say.	
 post.test.005.q5_bad2	원래 묘지 자리였대요.	It used to be a graveyard.	
-post.test.005.q5_ok	아무 일 없어요. 고리가 낡고 옆에 환풍기가 있을 뿐이에요.	Nothing happened. Just an old hook and a vent nearby.	
+post.test.005.q5_ok	10년 전 엄마를 기다리던 아이가 있었대요. 누굴 해친 일은 없어요.	Ten years ago a child waited there for her mom. No one was ever hurt.	
 case.test.003.name	사건 #003 — 7호실의 노크	Case #003 — The Knock in Room 7	
 case.test.003.description	한 인터넷 생방송에서 동명고시원 7호실의 노크 소리가 그대로 잡힌 뒤, 하룻밤 사이 믿음도가 80%를 넘었다. 이번 것은 진짜다.	After a live stream caught the knocking in Room 7 of Dongmyeong Gosiwon, belief shot past 80% overnight. This one is real.	
 legend.test.003.name	7호실의 노크	The Knock in Room 7	
@@ -2085,7 +2085,7 @@ field.gosi.rite.final.004	끝났어. 다신 안 두드려.	It's over. It won't k
 field.gosi.rite.final.005	(손이 아직 떨린다.)	(My hands are still shaking.)	
 field.gosi.rite.after	결계는 그대로야. 여긴 이제 조용해.	The ward holds. It's quiet now.	한영
 field.gosi.rite.done_toast	결계 완성. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Ward complete. Belief <color=#6CC9C2>{0}% → {1}%</color>	
-ui.work.exorcism_alert	⚠ 생방송 하나로 믿음도가 급상승했다. 이번 것은 진짜다 — 한영이 직접 나선다.	⚠ One live stream sent belief soaring. This one is real — Hanyoung steps in herself.	
+ui.work.exorcism_alert	⚠ 이번 것은 진짜다 — 한영이 직접 나선다.	⚠ This one is real — Hanyoung steps in herself.	
 field.store.clock	04:44	04:44	
 field.store.counter	계산대	Counter	
 field.store.locker	택배 보관함	Parcel lockers	
@@ -2116,21 +2116,21 @@ field.park.swing	그네	Swing
 field.park.vent	상가 환풍기	Shop vent	
 field.park.board	입구 게시판	Entrance board	
 field.park.swing_hint	어디를 살펴볼까.	Where should I look?	
-field.park.swing_hook	흔들리던 그네만 <b>연결 고리가 닳아 헐겁다</b>. 손가락으로 밀어도 흔들린다.	Only the swaying swing has a <b>worn, loose hook</b>. A finger sets it moving.	
-field.park.swing_sand	그네 아래 모래가 <b>환풍기 반대쪽으로만</b> 길게 파였다.	The sand under it is gouged <b>only on the side away from the vent</b>.	
+field.park.swing_hook	가운데 그네 고리에 <b>'해바라기반 김하은'</b> 이름표 끈이 묶여 있다.	The middle hook has a name-tag string: <b>"Sunflower class, Kim Haeun."</b>	
+field.park.swing_sand	모래 속에서 <b>작은 분홍 운동화 한 짝</b>이 나왔다.	<b>A small pink sneaker</b> turns up in the sand.	
 field.park.vent_hint	어디를 살펴볼까.	Where should I look?	
-field.park.vent_sticker	가동 시간\n00:00 ~ 06:00	Runs\n00:00 – 06:00	
-field.park.vent_read	환풍기 스티커. <b>자정부터 새벽 6시까지</b> 돈다. 배기구가 그네 쪽이다.	The sticker: it runs <b>from midnight to 6 AM</b>, blowing toward the swings.	
+field.park.vent_sticker	고장\n10/10부터 가동 중지	BROKEN\nOff since 10/10	
+field.park.vent_read	환풍기는 <b>고장 나 멈춰 있다</b>. 바람 탓이 아니다.	The vent is <b>broken and off</b>. It isn't the wind.	
 field.park.board_hint	어디를 살펴볼까.	Where should I look?	
-field.park.board_title	놀이시설 점검 안내	Playground inspection	
-field.park.board_body	그네 연결 고리 마모 신고가\n접수되어 점검합니다.\n\n인근 상가 환풍기 바람 민원도\n함께 전달했습니다.\n— 구도시 시설관리	A worn swing hook was reported\nand will be inspected.\n\nComplaints about the nearby\nshop vent were passed on.\n— Old Town Facilities	
-field.park.board_read	시설관리 안내. <b>그네 고리 마모와 환풍기 바람</b>이 적혀 있다.	The facilities notice lists <b>the worn hook and the vent wind</b>.	
+field.park.board_title	찾습니다	MISSING	
+field.park.board_body	김하은 (7살)\n분홍 운동화 한 짝을 잃고\n그네에서 엄마를 기다렸습니다.\n\n(손글씨) 하은아,\n엄마는 매일 밤\n입구 가로등 아래 있어.	Kim Haeun (7)\nLost one pink sneaker,\nwaiting on the swing for her mom.\n\n(handwritten) Haeun,\nMom is under the gate lamp\nevery night.	
+field.park.board_read	10년 전 실종 전단과 엄마의 손글씨. 옆에 관리인 메모: <b>'어머니, 작년 겨울 돌아가심.'</b>	The old poster and a mother's handwriting. Beside it, a caretaker's note: <b>"Her mother passed away last winter."</b>	
 field.park.scare.lamp.001	가로등이 꺼졌어요. 그리고 방금… 웃음소리 같은 거.	The streetlight went out. And just now… something like laughter.	
 field.park.scare.lamp.002	바람이 환풍구를 지나는 소리야.	That's wind through the vent.	한영
 field.park.scare.stop.001	그네가… 멈췄어요. 우리가 오니까.	The swing… stopped. When we came.	
-field.park.scare.stop.002	바람이 잠깐 멎은 거야. 다시 불 거야.	The wind paused. It'll pick up again.	한영
-field.park.scare.laugh.001	또 들려요. 아이 목소리 같은…	I hear it again. Like a child…	
-field.park.scare.laugh.002	날개에 걸린 비닐이 우는 거야. 가까이 가 봐.	A plastic bag caught in the blades. Go closer.	한영
+field.park.scare.stop.002	낯선 사람이 와서 그래. 놀라게 하지 말자.	Strangers came, that's all. Let's not scare her.	한영
+field.park.scare.laugh.001	들려요. 아이 웃음소리…	I hear it. A child laughing…	
+field.park.scare.laugh.002	혼자 놀고 있었구나. 오래.	She's been playing alone. For a long time.	한영
 field.post.scare.lever.001	303호 문고리가… 혼자 돌아갔어요.	The handle on 303… turned by itself.	
 field.post.scare.lever.002	안에 사람이 사는 집이야. 나오려다 말았겠지.	Someone lives there. They almost came out.	한영
 field.post.scare.knob.001	현관 문고리가 돌아갔어요. 밖에서.	The front door handle turned. From outside.	
@@ -2264,3 +2264,28 @@ post.test.003.q5.body	다들 빈방이라던데 궁금해서요.	Everyone says i
 post.test.003.q5_bad1	예전에 사고가 있었대요.	There was an accident, apparently.	
 post.test.003.q5_bad2	그 방은 원래 사람이 못 산대요.	No one can live in that room.	
 post.test.003.q5_ok	예전에도 같은 일이 있었고 관리인이 정리했었대요. 이번에도 정리됐어요.	It happened before and the caretaker settled it. It's settled again now.	
+field.park.rite_swing	그네 아래	Under the swing	
+field.park.rite_chain	그네 사슬	Swing chain	
+field.park.rite_lamp	입구 가로등	Lamp by the gate	
+field.park.casefile_locked	하은이부터. 기다리던 걸 먼저 끝내 주자.	Haeun first. Let's end her wait before anything else.	
+field.park.rite.not_yet	아직 이 아이가 뭘 기다리는지 몰라. 공원을 더 살펴봐.	We don't know what she's waiting for yet. Look around the park.	한영
+field.park.rite.ask	무엇을 돌려줄까?	What do we give back?	한영
+field.park.item.shoe	분홍 운동화	Pink sneaker	
+field.park.item.tag	이름표	Name tag	
+field.park.item.candle	초	Candle	
+field.park.item.cancel	그만두기	Never mind	
+field.park.rite.ok_1	잃어버린 신발. 이제 걸을 수 있어.	Her lost shoe. Now she can walk.	한영
+field.park.rite.ok_2	이름도 찾았어. 마지막은 엄마가 기다리는 곳.	Her name, too. Last is where her mom waits.	한영
+field.park.rite.wrong.001	그네가 세게 흔들려요…!	The swing's rocking hard…!	
+field.park.rite.wrong.002	순서가 틀렸어. 아이가 헷갈려 해. 처음부터 천천히.	Wrong order. She's confused. From the start, slowly.	한영
+field.park.rite.wrong_toast	아이가 놀라 흩어졌다. 믿음도 <color=#E05A4F>{0}% → {1}%</color>	She got scared. Belief <color=#E05A4F>{0}% → {1}%</color>	
+field.park.rite.final.001	하은아. 오래 기다렸지.	Haeun. You waited a long time.	한영
+field.park.rite.final.002	엄마도 매일 밤 저 가로등 아래서 너를 기다리셨어. 10년 동안.	Your mom waited for you under that lamp every night. For ten years.	한영
+field.park.rite.final.003	이제 엄마는 저 너머에서 기다리셔. 신발 신고, 불 따라가면 돼.	Now she's waiting on the other side. Put your shoe on and follow the light.	한영
+field.park.rite.final.004	…아이가 웃었어요. 가로등 쪽으로 뛰어가요…	…She smiled. She's running toward the lamp…	
+field.park.rite.final.005	이번엔 길이 엇갈리지 않을 거야.	This time they won't miss each other.	한영
+field.park.rite.final.006	(그네가 멈췄다. 가로등 아래 촛불만 오래 흔들렸다.)	(The swing has stopped. Only the candle under the lamp flickers on.)	
+field.park.rite.final.007	가자. 남은 건 사람들이 덧붙인 무서운 소문뿐이야.	Let's go. All that's left is the scary rumor people added.	한영
+field.park.rite.after	이제 그네는 안 흔들려. 하은이는 집에 갔어.	The swing won't move anymore. Haeun went home.	한영
+field.park.rite.done_toast	배웅을 마쳤다. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Farewell complete. Belief <color=#6CC9C2>{0}% → {1}%</color>	
+field.park.rite.next	남은 건 '말 걸면 데려간다'는 소문이다. 수사 노트와 정정글로 정리하자.	What's left is the "it takes you" rumor. Finish the case file and post a correction.	

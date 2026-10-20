@@ -259,7 +259,7 @@ namespace UrbanLegendBureau.Systems
                 var names = new List<string>();
                 foreach (var id in opened) names.Add(CaseName(_workday.FindCase(id)));
                 solvedText += "\n" + _loc.Get("ui.work.case_opened_now", string.Join(", ", names));
-                if (opened.Contains(ExorcismCaseId)) solvedText += "\n" + _loc.Get("ui.work.exorcism_alert");
+                if (opened.Exists(id => RiteOf(id) != null)) solvedText += "\n" + _loc.Get("ui.work.exorcism_alert");
                 Debug.Log($"[CaseDirector] 본편 | 근무 중 새 사건 | {string.Join(", ", opened)}");
             }
             ShowMainToast(solvedText);

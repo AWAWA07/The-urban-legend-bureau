@@ -21,6 +21,6 @@ MonoBehaviour:
   _postWriting: {fileID: 11400000, guid: a5b6813767e1abc498e5ab5bf9fdeb03, type: 2}
   _deduction: {fileID: 11400000, guid: 3bf57c619fe57fb4bb79e5e413265206, type: 2}
   _mainStory: 1
-  _startBelief: 44
+  _startBelief: 72
   _appearWorkday: 3
   _resolveBelief: 0

@@ -38,8 +38,8 @@ namespace UrbanLegendBureau.EditorTools
                 { "web_test_003", "web_test_009" }, { "web_test_005", "web_test_010" },
             }, new[] { "action_test_020", "action_test_021", "action_test_022", "action_test_023" },
                 new[] { "ui.casefile.place_park_swing", "ui.casefile.place_park_vent", "ui.casefile.place_park_board", "ui.casefile.place_park_swing" },
-                startBelief: 44, appearWorkday: 3, riskLevel: 2, spread: 18,
-                overview: new[] { "환풍기", "~[환풍기|환기구|배기구]", "vent", "fan" },
+                startBelief: 72, appearWorkday: 3, riskLevel: 4, spread: 30,   // 진짜 괴담: 엄마를 기다리던 아이
+                overview: new[] { "배웅", "~[배웅|배웅해|보내]", "farewell", "send off" },
                 target: new[] { "흔들려요", "~[흔들려요|흔들린다|흔들림]", "swinging" });
         }
 

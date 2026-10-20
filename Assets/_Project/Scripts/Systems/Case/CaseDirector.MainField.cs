@@ -65,6 +65,7 @@ namespace UrbanLegendBureau.Systems
         /// <summary>사건을 새로 고를 때 본편 현장의 보이는 것을 처음으로 돌린다. 얻은 단서와 본 연출은 저장본에 있다.</summary>
         private void ResetMainField()
         {
+            ResetRiteVisuals();
             WireFieldScares();
             foreach (var m in _mainCloseups) if (m != null && m.screen != null) m.screen.ResetChecked();
             if (_elevator != null) _elevator.ResetCar();

@@ -113,7 +113,7 @@ namespace UrbanLegendBureau.EditorTools
             var fieldRootPark = new GameObject("FieldRoot_Legend5");
             BuildFieldBackground(fieldRootPark.transform);
             var park = BuildParkField(fieldRootPark.transform);
-            string[] parkIds = { "point_park_swing", "point_park_vent", "point_park_board" };
+            string[] parkIds = { "point_park_swing", "point_park_vent", "point_park_board", "point_prite_swing", "point_prite_chain", "point_prite_lamp" };
             for (int pi = 0; pi < park.Length; pi++) ConfigurePoint(park[pi], parkIds[pi], null, null, false, CaseStep.Started);
             ConfigurePoint(postDoor, "point_post_door", null, null, false, CaseStep.Started);
             ConfigurePoint(postPile, "point_post_pile", null, null, false, CaseStep.Started);

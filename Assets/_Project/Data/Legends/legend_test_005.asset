@@ -15,8 +15,8 @@ MonoBehaviour:
   _legendId: legend_test_005
   _nameTextId: legend.test.005.name
   _descriptionTextId: legend.test.005.description
-  _riskLevel: 2
-  _initialSpreadRate: 18
+  _riskLevel: 4
+  _initialSpreadRate: 30
   _verdictTextId: 
   _verdictKind: 1
   _verdictClueIds: []

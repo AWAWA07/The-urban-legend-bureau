@@ -78,10 +78,10 @@ MonoBehaviour:
     answerTextId: report.test.005.overview.answer
     targetPageId: 
     acceptedAnswers:
-    - "\uD658\uD48D\uAE30"
-    - "~[\uD658\uD48D\uAE30|\uD658\uAE30\uAD6C|\uBC30\uAE30\uAD6C]"
-    - vent
-    - fan
+    - "\uBC30\uC6C5"
+    - "~[\uBC30\uC6C5|\uBC30\uC6C5\uD574|\uBCF4\uB0B4]"
+    - farewell
+    - send off
     choiceTextIds:
     - report.test.005.overview.choice_1
     - report.test.005.overview.choice_2

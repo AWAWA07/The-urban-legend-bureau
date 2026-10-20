@@ -434,7 +434,37 @@ namespace UrbanLegendBureau.EditorTools
             AddFieldRect(root.transform, "BoardPaper", new Vector2(-10.3f, -0.3f), new Vector2(1.1f, 1.3f), new Color(0.95f, 0.94f, 0.88f), -5);
             AddFieldRect(root.transform, "Night", new Vector2(0f, 0.2f), new Vector2(44f, 10.8f), new Color(0.02f, 0.03f, 0.08f, 0.35f), -2);
 
+            // 배웅에 놓는 것 셋. 처음엔 숨겨 두고 한영이 놓을 때 드러난다.
+            var shoe = new GameObject("Rite_Shoe"); shoe.transform.SetParent(root.transform, false);
+            AddFieldRect(shoe.transform, "Sole", new Vector2(1.5f, -3.35f), new Vector2(0.42f, 0.08f), new Color(0.9f, 0.9f, 0.88f), -3);
+            AddFieldRect(shoe.transform, "Body", new Vector2(1.45f, -3.24f), new Vector2(0.34f, 0.16f), new Color(0.9f, 0.45f, 0.55f), -3);
+            shoe.SetActive(false);
+            var tag = new GameObject("Rite_Tag"); tag.transform.SetParent(root.transform, false);
+            AddFieldRect(tag.transform, "Card", new Vector2(1.88f, -1.3f), new Vector2(0.22f, 0.28f), new Color(0.98f, 0.95f, 0.75f), -3);
+            AddFieldRect(tag.transform, "String", new Vector2(1.88f, -1.08f), new Vector2(0.02f, 0.18f), new Color(0.8f, 0.3f, 0.3f), -3);
+            tag.SetActive(false);
+            var candleP = new GameObject("Rite_Candle"); candleP.transform.SetParent(root.transform, false);
+            AddFieldRect(candleP.transform, "Wax", new Vector2(-3.55f, -3.2f), new Vector2(0.16f, 0.34f), new Color(0.95f, 0.93f, 0.85f), -3);
+            AddFieldCircle(candleP.transform, "Flame", new Vector2(-3.55f, -2.95f), 0.14f, new Color(1f, 0.8f, 0.35f), -2);
+            AddFieldSoft(candleP.transform, "Glow", new Vector2(-3.55f, -2.9f), new Vector2(3.4f, 3.4f), new Color(1f, 0.75f, 0.35f, 0.22f), -2);
+            candleP.SetActive(false);
+            // 그네에 앉은 아이. 틀리면 잠깐, 마칠 때는 천천히 드러난다.
+            var child = new GameObject("ChildFigure"); child.transform.SetParent(root.transform, false);
+            AddFieldCircle(child.transform, "Head", new Vector2(1.5f, -1.45f), 0.62f, new Color(0.82f, 0.86f, 0.92f, 0.55f), -3);
+            AddFieldRect(child.transform, "Hair", new Vector2(1.5f, -1.22f), new Vector2(0.62f, 0.2f), new Color(0.25f, 0.25f, 0.3f, 0.55f), -2);
+            AddFieldRect(child.transform, "Body", new Vector2(1.5f, -2.0f), new Vector2(0.55f, 0.75f), new Color(0.95f, 0.75f, 0.8f, 0.5f), -3);
+            AddFieldRect(child.transform, "Legs", new Vector2(1.5f, -2.55f), new Vector2(0.36f, 0.4f), new Color(0.82f, 0.86f, 0.92f, 0.45f), -3);
+            child.SetActive(false);
+
             BuildFieldActors(root.transform, -3.86f, -9.4f, 2.4f, -11f, 10.6f);
+
+            var riteSwing = BuildPoint(root.transform, "InvestigationPoint_PRiteSwing", new Vector2(1.0f, -3.35f), new Vector2(1.0f, 0.6f),
+                new Color(0.9f, 0.6f, 0.7f), "field.park.rite_swing", "field.park.rite_swing", null);
+            var riteChain = BuildPoint(root.transform, "InvestigationPoint_PRiteChain", new Vector2(2.3f, -0.4f), new Vector2(0.7f, 2.4f),
+                new Color(0.9f, 0.9f, 0.6f), "field.park.rite_chain", "field.park.rite_chain", null);
+            var riteLamp = BuildPoint(root.transform, "InvestigationPoint_PRiteLamp", new Vector2(-3.8f, -1.2f), new Vector2(1.0f, 4.4f),
+                new Color(1f, 0.85f, 0.5f), "field.park.rite_lamp", "field.park.rite_lamp", null);
+            SetHighlightTargets(riteLamp, root.transform, "LampPost");
 
             var swingPoint = BuildPoint(root.transform, "InvestigationPoint_ParkSwing", new Vector2(1.5f, -1.0f), new Vector2(2.2f, 5.0f),
                 new Color(0.6f, 0.5f, 0.6f), "field.park.swing", "field.park.swing", null);
@@ -453,7 +483,7 @@ namespace UrbanLegendBureau.EditorTools
             AddScare(root.transform, "park_laugh", FieldScare.TriggerKind.AfterPoint, 0f, "point_park_vent", 0f,
                 SWait(0.5f), SSound("ghost_whisper_0", 0.45f), SWait(1.0f),
                 SLines("field.park.scare.laugh.001", "!field.park.scare.laugh.002"));
-            return new[] { swingPoint, ventPoint, boardPoint };
+            return new[] { swingPoint, ventPoint, boardPoint, riteSwing, riteChain, riteLamp };
         }
 
         private static CloseupScreen BuildParkSwingCloseup(string name)
