@@ -103,8 +103,9 @@ namespace UrbanLegendBureau.EditorTools
             var fieldRootGosi = new GameObject("FieldRoot_Legend3");
             BuildFieldBackground(fieldRootGosi.transform);
             var gosi = BuildGosiField(fieldRootGosi.transform);
-            string[] gosiIds = { "point_gosi_desk", "point_gosi_door7", "point_rite_sill", "point_rite_head", "point_rite_window", "point_gosi_exit" };
+            string[] gosiIds = { "point_gosi_desk", "point_gosi_door7", "point_rite_sill", "point_rite_head", "point_rite_window", "point_gosi_exit", "point_gosi_npc" };
             for (int pi = 0; pi < gosi.Length; pi++) ConfigurePoint(gosi[pi], gosiIds[pi], null, null, false, CaseStep.Started);
+            SetPointPrompt(gosi[6], "ui.field.prompt_talk");   // 8호실 고시생: "말 걸기"
             var fieldRootStore = new GameObject("FieldRoot_Legend4");
             BuildFieldBackground(fieldRootStore.transform);
             var store = BuildStoreField(fieldRootStore.transform);
@@ -1555,6 +1556,13 @@ namespace UrbanLegendBureau.EditorTools
         }
 
         /// <summary>숙소의 물건 하나. 조사 방법도 해금 조건도 없고, 말풍선 글만 제 것을 쓴다.</summary>
+        private static void SetPointPrompt(GameObject pointGo, string promptTextId)
+        {
+            var so = new SerializedObject(pointGo.GetComponent<InvestigationPoint>());
+            so.FindProperty("_promptTextId").stringValue = promptTextId;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
         private static void ConfigureRoomPoint(GameObject pointGo, string pointId, string promptTextId)
         {
             var point = pointGo.GetComponent<InvestigationPoint>();

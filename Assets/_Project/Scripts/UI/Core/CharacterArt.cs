@@ -88,6 +88,24 @@ namespace UrbanLegendBureau.UI
             return Load(StaffRoot + "Portrait/" + face) ?? Load(StaffRoot + "Portrait/calm");
         }
 
+        /// <summary>현장에서 만나는 사람의 이름 ID 는 "npc." 로 시작한다. 그림은 Characters/Npc/(이름 뒤쪽)/Portrait/ 에 둔다.</summary>
+        public const string NpcPrefix = "npc.";
+
+        private const string NpcRoot = "Characters/Npc/";
+        private static readonly Dictionary<string, Dictionary<string, string>> _npcPortraits = new Dictionary<string, Dictionary<string, string>>();
+
+        public static bool IsNpc(string speakerTextId) => !string.IsNullOrEmpty(speakerTextId) && speakerTextId.StartsWith(NpcPrefix);
+
+        /// <summary>그 사람의 초상. 표(portraits.txt)에 대사가 없으면 calm.</summary>
+        public static Sprite NpcFace(string speakerTextId, string lineTextId)
+        {
+            if (!IsNpc(speakerTextId)) return null;
+            string root = NpcRoot + speakerTextId.Substring(NpcPrefix.Length) + "/";
+            if (!_npcPortraits.TryGetValue(root, out var table)) _npcPortraits[root] = table = LoadTable(root + "portraits");
+            string face = !string.IsNullOrEmpty(lineTextId) && table.TryGetValue(lineTextId, out var f) ? f : "calm";
+            return Load(root + "Portrait/" + face) ?? Load(root + "Portrait/calm");
+        }
+
         /// <summary>차지한의 처음 모습.</summary>
         public static Sprite ChajihanDefault()
         {

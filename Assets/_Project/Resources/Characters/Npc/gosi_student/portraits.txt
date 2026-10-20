@@ -1,0 +1,9 @@
+# 대사ID	초상(Portrait/ 안의 파일 이름). 적지 않은 대사는 calm
+field.gosi.npc.intro.001	annoyed
+field.gosi.npc.intro.003	tired
+field.gosi.npc.knock.002	scared
+field.gosi.npc.room.002	think
+field.gosi.npc.rumor.002	scared
+field.gosi.npc.bye.001	tired
+field.gosi.npc.after.001	relieved
+field.gosi.npc.after.002	smile

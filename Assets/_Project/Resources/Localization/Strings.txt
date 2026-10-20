@@ -2519,3 +2519,26 @@ field.inn.rite.final.004	(복도엔 아무도 없었다. 304호 문 앞에 빈 �
 field.inn.rite.after	시계가 다시 가. 이제 그냥 낡은 방이야. 문으로 나가자.	The clock runs again. It's just an old room now. Out the door.	한영
 field.inn.rite.done_toast	304호에서 빠져나왔다. 믿음도 <color=#6CC9C2>{0}% → {1}%</color>	Escaped Room 304. Belief <color=#6CC9C2>{0}% → {1}%</color>	
 field.inn.rite.next	남은 건 '직원이 노크하면 문을 열어라'는 가짜 수칙이다. 수사 노트와 정정글로 바로잡자.	What's left is the fake rule "open the door when staff knock." Fix it with the case file and a correction post.	
+ui.field.prompt_talk	[E] {0}에게 말 걸기	[E] Talk to {0}	현장에서 만난 사람의 말풍선
+npc.gosi_student	8호실 고시생	Room 8 Student	현장 인물 이름(초상: Characters/Npc/gosi_student)
+field.gosi.npc.point	8호실 고시생	the Room 8 student	
+field.gosi.npc.intro.001	…또 방송하러 오셨어요? 7호실 앞에서 떠들면 안 돼요. 저 내일 시험이에요.	…Here to stream again? Please don't make noise outside Room 7. I have an exam tomorrow.	
+field.gosi.npc.intro.002	방송 아니에요. 괴담 검열국에서 나왔어요. 몇 가지만 여쭤봐도 될까요?	We're not streaming. We're from the Urban Legend Bureau. Could I ask you a few things?	
+field.gosi.npc.intro.003	…검열국이요? 진짜 그런 데가 있구나. 짧게요.	…The Bureau? So that's real. Make it quick.	
+field.gosi.npc.ask.knock	노크 소리, 직접 들으셨어요?	Have you heard the knocking yourself?	
+field.gosi.npc.ask.room	7호실은 원래 빈방이에요?	Has Room 7 always been empty?	
+field.gosi.npc.ask.rumor	'대답하면 문이 열린다'는 얘기는요?	What about "answer it and the door opens"?	
+field.gosi.npc.ask.end	고마워요. 이제 들어가 보세요.	Thanks. You can go back in now.	
+field.gosi.npc.knock.001	벽 하나 사이라 다 들려요. 새벽 두 시 넘으면 세 번. 똑, 똑, 똑. 꼭 세 번이에요.	It's one wall away, I hear everything. After 2 a.m., three times. Knock, knock, knock. Always three.	
+field.gosi.npc.knock.002	근데 이상한 게… 복도 쪽이 아니라 방 안에서 문을 두드려요. 나가고 싶은 사람처럼.	But the strange part… it knocks from inside the room, not the hall. Like someone who wants out.	
+field.gosi.npc.knock.003	안에서 두드리는 거면 나가고 싶은 거야. 열어 주면 안 되는 쪽이고.	If it knocks from inside, it wants out. And that's the side you don't open for.	한영
+field.gosi.npc.room.001	저 2년째 사는데 그 방엔 한 번도 사람 안 들었어요. 지금 총무님은 그 방 얘기만 나오면 말을 돌리고요.	I've lived here two years and nobody's ever moved in there. The current manager changes the subject whenever it comes up.	
+field.gosi.npc.room.002	예전 총무 할머니는 가끔 밤에 소금 봉지랑 초를 들고 그 방에 들어가셨어요. 나오시면 한동안 조용했어요. 할머니 수첩이 아직 총무실에 있을걸요.	The old manager, a grandma, used to go in at night with a bag of salt and a candle. It'd be quiet for a while after. Her notebook should still be in the office.	
+field.gosi.npc.room.003	순서가 있었다는 거네. 총무실 수첩부터 보자.	So there was an order to it. Let's check that notebook first.	한영
+field.gosi.npc.rumor.001	그거요? 그날 방송한 사람이 처음 한 말이에요. 여기 살면서 그런 얘기는 한 번도 못 들어 봤어요.	That? The streamer said it first, that night. I've never heard anything like it living here.	
+field.gosi.npc.rumor.002	그 뒤로 밤마다 사람들이 와서 7호실 문에 대고 "네, 들어오세요" 해요. …무서운 건 노크보다 그 사람들이에요.	Since then people come every night and say "Yes, come in" to Room 7's door. …They scare me more than the knocking.	
+field.gosi.npc.rumor.003	…그 말은 저희가 바로잡을게요. 문 잘 잠그고 계세요.	…We'll set that straight. Keep your door locked.	
+field.gosi.npc.bye.001	…네. 혹시 끝나면, 오늘 밤은 좀 잘 수 있게 해 주세요.	…Okay. If you finish, let me get some sleep tonight.	
+field.gosi.npc.after.001	…조용하네요. 2년 만에 처음이에요, 이렇게 조용한 거.	…It's quiet. First time in two years it's been this quiet.	
+field.gosi.npc.after.002	뭘 하신 건지는 몰라도… 고맙습니다. 오늘은 잘 수 있겠어요.	I don't know what you did, but… thank you. I think I can sleep tonight.	
+field.gosi.npc.after.003	잘 자. 시험 잘 보고.	Sleep well. Good luck on the exam.	한영
